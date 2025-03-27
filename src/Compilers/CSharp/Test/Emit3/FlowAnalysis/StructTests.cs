@@ -11,15 +11,15 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class StructTests : FlowTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    [CompilerTrait(CompilerFeature.Tuples)]
-    public void TupleFieldNameAliasing()
+    public class StructTests : FlowTestBase
     {
-        var comp = CreateCompilationWithMscorlib40(@"
+        [Fact]
+        [CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleFieldNameAliasing()
+        {
+            var comp = CreateCompilationWithMscorlib40(@"
 using System;
 
 class C
@@ -48,44 +48,44 @@ class C
         Console.Write(t.y);
     }
 }", references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
-        comp.VerifyDiagnostics(
-            // (16,23): error CS0170: Use of possibly unassigned field 'y'
-            //         Console.Write(t.y);
-            Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.y").WithArguments("y").WithLocation(16, 23),
-            // (24,23): error CS0170: Use of possibly unassigned field 'Item2'
-            //         Console.Write(t.Item2);
-            Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.Item2").WithArguments("Item2").WithLocation(24, 23));
-    }
+            comp.VerifyDiagnostics(
+                // (16,23): error CS0170: Use of possibly unassigned field 'y'
+                //         Console.Write(t.y);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.y").WithArguments("y").WithLocation(16, 23),
+                // (24,23): error CS0170: Use of possibly unassigned field 'Item2'
+                //         Console.Write(t.Item2);
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "t.Item2").WithArguments("Item2").WithLocation(24, 23));
+        }
 
-    [Fact]
-    public void SelfDefaultConstructor()
-    {
-        string program = @"
+        [Fact]
+        public void SelfDefaultConstructor()
+        {
+            string program = @"
 struct S
 {
     public int x, y;
     public S(int x, int y) : this() { this.x = x; this.y = y; }
 }
 ";
-        var comp = CreateCompilation(program);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(program);
+            comp.VerifyDiagnostics();
 
-        var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-        var constructors = structType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
-        Assert.Equal(2, constructors.Length);
+            var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+            var constructors = structType.GetMembers(WellKnownMemberNames.InstanceConstructorName);
+            Assert.Equal(2, constructors.Length);
 
-        var sourceConstructor = (MethodSymbol)constructors.First(c => !c.IsImplicitlyDeclared);
-        var synthesizedConstructor = (MethodSymbol)constructors.First(c => c.IsImplicitlyDeclared);
-        Assert.NotEqual(sourceConstructor, synthesizedConstructor);
+            var sourceConstructor = (MethodSymbol)constructors.First(c => !c.IsImplicitlyDeclared);
+            var synthesizedConstructor = (MethodSymbol)constructors.First(c => c.IsImplicitlyDeclared);
+            Assert.NotEqual(sourceConstructor, synthesizedConstructor);
 
-        Assert.Equal(2, sourceConstructor.Parameters.Length);
-        Assert.Equal(0, synthesizedConstructor.Parameters.Length);
-    }
+            Assert.Equal(2, sourceConstructor.Parameters.Length);
+            Assert.Equal(0, synthesizedConstructor.Parameters.Length);
+        }
 
-    [Fact, WorkItem(543133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543133")]
-    public void FieldAssignedAndReferenced()
-    {
-        var text =
+        [Fact, WorkItem(543133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543133")]
+        public void FieldAssignedAndReferenced()
+        {
+            var text =
 @"using System;
  
 class Program
@@ -101,14 +101,14 @@ class Program
  
 struct P { public int X; }
 ";
-        var comp = CreateCompilation(text);
-        comp.VerifyDiagnostics();
-    }
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TestEmptyStructs()
-    {
-        var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
+        [Fact]
+        public void TestEmptyStructs()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(
 @"struct S { }
 
 class C
@@ -126,16 +126,16 @@ class C
         S s5 = s4;
     }
 }");
-        Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("s4", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-    }
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("s4", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+        }
 
-    [Fact]
-    [WorkItem(545509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545509")]
-    public void StructIndexerReceiver()
-    {
-        string program = @"
+        [Fact]
+        [WorkItem(545509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545509")]
+        public void StructIndexerReceiver()
+        {
+            string program = @"
 struct SafeBitVector
 {
     private int _data;
@@ -173,15 +173,15 @@ class SectionInformation2
         return _flags.Goo(x);
     }
 }";
-        var comp = CreateCompilation(program);
-        comp.VerifyDiagnostics();
-    }
+            var comp = CreateCompilation(program);
+            comp.VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(545710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545710")]
-    public void StructFieldWithAssignedPropertyMembers()
-    {
-        string program = @"
+        [Fact]
+        [WorkItem(545710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545710")]
+        public void StructFieldWithAssignedPropertyMembers()
+        {
+            string program = @"
 public struct PointF
 {
     private float x; private float y;
@@ -200,30 +200,30 @@ class GraphicsContext
     }
     public PointF TransformOffset { get { return this.transformOffset; } }
 }";
-        var comp = CreateCompilation(program);
-        comp.VerifyDiagnostics();
-    }
+            var comp = CreateCompilation(program);
+            comp.VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")]
-    public void GenericStructWithPropertyUsingStruct()
-    {
-        var source =
+        [Fact]
+        [WorkItem(874526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/874526")]
+        public void GenericStructWithPropertyUsingStruct()
+        {
+            var source =
 @"struct S<T>
 {
     S<T[]>? P { get; set; }
 }";
-        CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
-            // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
-            //     S<T[]>? P { get; set; }
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
-    }
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
+                // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
+                //     S<T[]>? P { get; set; }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_01()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_01()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     A<A<T>> x;
@@ -243,24 +243,24 @@ struct D<T>
     C<D<T>> x;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
-            // (14,10): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
-            //     D<T> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 10),
-            // (18,13): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
-            //     C<D<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 13)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (14,10): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
+                //     D<T> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 10),
+                // (18,13): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
+                //     C<D<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 13)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_02()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_02()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     A<A<T>> x;
@@ -275,18 +275,18 @@ struct C<T>
 {
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_03()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_03()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct E
 {}
 
@@ -306,21 +306,21 @@ struct Z
     X<Y> xy;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (12,10): error CS0523: Struct member 'Y.xz' of type 'X<Z>' causes a cycle in the struct layout
-            //     X<Z> xz;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xz").WithArguments("Y.xz", "X<Z>").WithLocation(12, 10),
-            // (18,10): error CS0523: Struct member 'Z.xy' of type 'X<Y>' causes a cycle in the struct layout
-            //     X<Y> xy;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xy").WithArguments("Z.xy", "X<Y>").WithLocation(18, 10)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (12,10): error CS0523: Struct member 'Y.xz' of type 'X<Z>' causes a cycle in the struct layout
+                //     X<Z> xz;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xz").WithArguments("Y.xz", "X<Z>").WithLocation(12, 10),
+                // (18,10): error CS0523: Struct member 'Z.xy' of type 'X<Y>' causes a cycle in the struct layout
+                //     X<Y> xy;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xy").WithArguments("Z.xy", "X<Y>").WithLocation(18, 10)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_04()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_04()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     A<A<T>> x;
@@ -343,24 +343,24 @@ struct D
     B<int> x;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
-            // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
-            //     C<C<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
-            // (16,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
-            //     B<T> z;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(16, 10)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (16,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(16, 10)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_05()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_05()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     A<A<T>> x;
@@ -383,24 +383,24 @@ struct D
     B<int> x;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
-            // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
-            //     C<C<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
-            // (14,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
-            //     B<T> z;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(14, 10)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (14,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(14, 10)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void InstanceMemberExplosion_06()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_06()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     A<A<T>> x;
@@ -423,24 +423,24 @@ struct D
     B<int> x;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
-            // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
-            //     C<C<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
-            // (15,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
-            //     B<T> z;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(15, 10)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (15,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(15, 10)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void StaticMemberExplosion_01()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void StaticMemberExplosion_01()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     static A<A<T>> x;
@@ -460,24 +460,24 @@ struct D<T>
     static C<D<T>> x;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     static A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20),
-            // (14,17): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
-            //     static D<T> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 17),
-            // (18,20): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
-            //     static C<D<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 20)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     static A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20),
+                // (14,17): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
+                //     static D<T> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 17),
+                // (18,20): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
+                //     static C<D<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 20)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    public void StaticMemberExplosion_02()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void StaticMemberExplosion_02()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct A<T>
 {
     static A<A<T>> x;
@@ -492,19 +492,19 @@ struct C<T>
 {
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
-            //     static A<A<T>> x;
-            Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20)
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     static A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75701")]
-    public void StaticMemberExplosion_03()
-    {
-        string program = @"#pragma warning disable CS0169 // The field is never used
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75701")]
+        public void StaticMemberExplosion_03()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
 struct E
 {}
 
@@ -524,15 +524,15 @@ struct Z
     static X<Y> xy;
 }
 ";
-        CreateCompilation(program).VerifyDiagnostics(
-            // Errors are expected here, see https://github.com/dotnet/roslyn/issues/75701.
-            );
-    }
+            CreateCompilation(program).VerifyDiagnostics(
+                // Errors are expected here, see https://github.com/dotnet/roslyn/issues/75701.
+                );
+        }
 
-    [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
-    public void EmptyStructsFromMetadata()
-    {
-        var comp1 = CreateCompilation(
+        [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
+        public void EmptyStructsFromMetadata()
+        {
+            var comp1 = CreateCompilation(
 @"public struct StructWithReference
 {
     string PrivateData;
@@ -541,10 +541,10 @@ public struct StructWithValue
 {
     int PrivateData;
 }");
-        var sourceReference = new CSharpCompilationReference(comp1);
-        var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -556,55 +556,55 @@ public struct StructWithValue
         var v2 = v1;
     }
 }";
-        CreateCompilation(source2,
-            options: TestOptions.ReleaseDll.WithWarningLevel(5),
-            references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
-            // (9,18): error CS0165: Use of unassigned local variable 'v1'
-            //         var v2 = v1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
-            );
-        CreateCompilation(source2,
-            options: TestOptions.ReleaseDll.WithWarningLevel(5),
-            references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
-            // (9,18): error CS0165: Use of unassigned local variable 'v1'
-            //         var v2 = v1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
-            );
-        CreateCompilation(source2,
-            options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
-            references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
-            // (9,18): error CS0165: Use of unassigned local variable 'v1'
-            //         var v2 = v1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
-            );
-        CreateCompilation(source2,
-            options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
-            references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
-            // (9,18): error CS0165: Use of unassigned local variable 'v1'
-            //         var v2 = v1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
-            );
-    }
+            CreateCompilation(source2,
+                options: TestOptions.ReleaseDll.WithWarningLevel(5),
+                references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
+            CreateCompilation(source2,
+                options: TestOptions.ReleaseDll.WithWarningLevel(5),
+                references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
+            CreateCompilation(source2,
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
+            CreateCompilation(source2,
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
+        }
 
-    [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
-    public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
-    {
-        var comp1 = CreateCompilation(
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        public void DoNotIgnorePrivateStructFieldsOfTypeParameterTypeFromMetadata()
+        {
+            var comp1 = CreateCompilation(
 @"public struct GenericStruct<T> where T : class
 {
     T PrivateData;
 }
 ");
-        var sourceReference = new CSharpCompilationReference(comp1);
-        var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
-        var source2 =
+            var source2 =
 @"class Program<T> where T : class
 {
     public static void Main()
@@ -613,31 +613,31 @@ public struct StructWithValue
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-    }
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
 
-    [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
-    public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
-    {
-        var comp1 = CreateCompilation(
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        public void IgnoreInternalStructFieldsOfReferenceTypeFromMetadata()
+        {
+            var comp1 = CreateCompilation(
 @"public struct Struct
 {
     internal string data;
 }
 ");
-        var sourceReference = new CSharpCompilationReference(comp1);
-        var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -646,26 +646,26 @@ public struct StructWithValue
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-    }
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
 
-    [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
-    public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
-    {
-        var comp1 = CreateCompilation(
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromMetadata()
+        {
+            var comp1 = CreateCompilation(
 @"
 internal class C1
 {
@@ -679,10 +679,10 @@ public struct Struct
     internal C1.S data;
 }
 ");
-        var sourceReference = new CSharpCompilationReference(comp1);
-        var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
+            var sourceReference = new CSharpCompilationReference(comp1);
+            var metadataReference = MetadataReference.CreateFromStream(comp1.EmitToStream());
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -691,26 +691,26 @@ public struct Struct
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-    }
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { sourceReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { metadataReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
 
-    [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
-    public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule()
-    {
-        var source = @"
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule()
+        {
+            var source = @"
 internal class C1
 {
     public struct S
@@ -723,10 +723,10 @@ public struct Struct
     internal C1.S data;
 }
 ";
-        var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
-        var moduleReference = comp1.EmitToImageReference();
+            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
+            var moduleReference = comp1.EmitToImageReference();
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -735,23 +735,23 @@ public struct Struct
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-    }
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
 
-    [Fact]
-    [WorkItem(30756, "https://github.com/dotnet/roslyn/issues/30756")]
-    public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule_PlusNullable()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(30756, "https://github.com/dotnet/roslyn/issues/30756")]
+        public void IgnoreEffectivelyInternalStructFieldsOfReferenceTypeFromAddedModule_PlusNullable()
+        {
+            var source = @"
 internal class C1
 {
     public struct S
@@ -766,10 +766,10 @@ public struct Struct
     internal C1.S data;
 }
 ";
-        var comp1 = CreateCompilation(source, options: WithNullableEnable(TestOptions.DebugModule));
-        var moduleReference = comp1.EmitToImageReference();
+            var comp1 = CreateCompilation(source, options: WithNullableEnable(TestOptions.DebugModule));
+            var moduleReference = comp1.EmitToImageReference();
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -778,31 +778,31 @@ public struct Struct
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable()).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable().WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): error CS0165: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
-    }
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable()).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: WithNullableEnable().WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
 
-    [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
-    public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
-    {
-        var source = @"
+        [Fact, WorkItem(1072447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072447")]
+        public void IgnorePrivateStructFieldsOfReferenceTypeFromAddedModule02()
+        {
+            var source = @"
 public struct Struct
 {
     private string data;
 }
 ";
-        var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
-        var moduleReference = comp1.EmitToImageReference();
+            var comp1 = CreateCompilation(source, options: TestOptions.DebugModule);
+            var moduleReference = comp1.EmitToImageReference();
 
-        var source2 =
+            var source2 =
 @"class Program
 {
     public static void Main()
@@ -811,12 +811,13 @@ public struct Struct
         var r2 = r1;
     }
 }";
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-            );
-        CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-            // (6,18): warning CS8829: Use of unassigned local variable 'r1'
-            //         var r2 = r1;
-            Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
-            );
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
+                );
+            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (6,18): warning CS8829: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18)
+                );
+        }
     }
 }

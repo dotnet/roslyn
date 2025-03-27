@@ -5,46 +5,47 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal static partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private static partial class Empty
+    internal static partial class SpecializedCollections
     {
-        internal class Collection<T> : Enumerable<T>, ICollection<T>
+        private static partial class Empty
         {
-            public static readonly ICollection<T> Instance = new Collection<T>();
-
-            protected Collection()
+            internal class Collection<T> : Enumerable<T>, ICollection<T>
             {
-            }
+                public static readonly ICollection<T> Instance = new Collection<T>();
 
-            public void Add(T item)
-            {
-                throw new NotSupportedException();
-            }
+                protected Collection()
+                {
+                }
 
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
+                public void Add(T item)
+                {
+                    throw new NotSupportedException();
+                }
 
-            public bool Contains(T item)
-            {
-                return false;
-            }
+                public void Clear()
+                {
+                    throw new NotSupportedException();
+                }
 
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-            }
+                public bool Contains(T item)
+                {
+                    return false;
+                }
 
-            public int Count => 0;
+                public void CopyTo(T[] array, int arrayIndex)
+                {
+                }
 
-            public bool IsReadOnly => true;
+                public int Count => 0;
 
-            public bool Remove(T item)
-            {
-                throw new NotSupportedException();
+                public bool IsReadOnly => true;
+
+                public bool Remove(T item)
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

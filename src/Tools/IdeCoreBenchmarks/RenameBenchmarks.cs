@@ -12,53 +12,54 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 
-namespace IdeCoreBenchmarks;
-
-[MemoryDiagnoser]
-public class RenameBenchmarks
+namespace IdeCoreBenchmarks
 {
-
-    private Solution _solution;
-    private ISymbol _symbol;
-    private string _csFilePath;
-
-    [GlobalSetup]
-    public void GlobalSetup()
+    [MemoryDiagnoser]
+    public class RenameBenchmarks
     {
-        var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-        _csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
 
-        if (!File.Exists(_csFilePath))
+        private Solution _solution;
+        private ISymbol _symbol;
+        private string _csFilePath;
+
+        [GlobalSetup]
+        public void GlobalSetup()
         {
-            throw new ArgumentException();
+            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
+
+            if (!File.Exists(_csFilePath))
+            {
+                throw new ArgumentException();
+            }
         }
-    }
 
-    [IterationSetup]
-    public void IterationSetup()
-    {
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
+        [IterationSetup]
+        public void IterationSetup()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
 
-        _solution = new AdhocWorkspace().CurrentSolution
-            .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
-            .AddDocument(documentId, "DocumentName", File.ReadAllText(_csFilePath));
+            _solution = new AdhocWorkspace().CurrentSolution
+                .AddProject(projectId, "ProjectName", "AssemblyName", LanguageNames.CSharp)
+                .AddDocument(documentId, "DocumentName", File.ReadAllText(_csFilePath));
 
-        var project = _solution.Projects.First();
-        var compilation = project.GetCompilationAsync().Result;
-        _symbol = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.BoundKind");
-    }
+            var project = _solution.Projects.First();
+            var compilation = project.GetCompilationAsync().Result;
+            _symbol = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.CSharp.BoundKind");
+        }
 
-    [Benchmark]
-    public void RenameNodes()
-    {
-        _ = Renamer.RenameSymbolAsync(_solution, _symbol, new SymbolRenameOptions(), "NewName");
-    }
+        [Benchmark]
+        public void RenameNodes()
+        {
+            _ = Renamer.RenameSymbolAsync(_solution, _symbol, new SymbolRenameOptions(), "NewName");
+        }
 
-    [IterationCleanup]
-    public void Cleanup()
-    {
-        _solution = null;
-        _symbol = null;
+        [IterationCleanup]
+        public void Cleanup()
+        {
+            _solution = null;
+            _symbol = null;
+        }
     }
 }

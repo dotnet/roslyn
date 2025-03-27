@@ -2,28 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis;
-
-internal static partial class SourceCodeKindExtensions
+namespace Microsoft.CodeAnalysis
 {
-    internal static SourceCodeKind MapSpecifiedToEffectiveKind(this SourceCodeKind kind)
+    internal static partial class SourceCodeKindExtensions
     {
-        switch (kind)
+        internal static SourceCodeKind MapSpecifiedToEffectiveKind(this SourceCodeKind kind)
         {
-            case SourceCodeKind.Script:
+            switch (kind)
+            {
+                case SourceCodeKind.Script:
 #pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
-            case SourceCodeKind.Interactive:
+                case SourceCodeKind.Interactive:
 #pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
-                return SourceCodeKind.Script;
+                    return SourceCodeKind.Script;
 
-            case SourceCodeKind.Regular:
-            default:
-                return SourceCodeKind.Regular;
+                case SourceCodeKind.Regular:
+                default:
+                    return SourceCodeKind.Regular;
+            }
         }
-    }
 
-    internal static bool IsValid(this SourceCodeKind value)
-    {
-        return value >= SourceCodeKind.Regular && value <= SourceCodeKind.Script;
+        internal static bool IsValid(this SourceCodeKind value)
+        {
+            return value >= SourceCodeKind.Regular && value <= SourceCodeKind.Script;
+        }
     }
 }

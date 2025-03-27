@@ -11,57 +11,58 @@ using System.Collections.Immutable;
 using System.IO;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
-public class SourceFileResolverTest
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [Fact]
-    public void IncorrectPathmaps()
+    public class SourceFileResolverTest
     {
-        string isABaseDirectory;
-        if (Path.DirectorySeparatorChar == '/')
+        [Fact]
+        public void IncorrectPathmaps()
         {
-            isABaseDirectory = "/";
-        }
-        else
-        {
-            isABaseDirectory = "C://";
-        }
+            string isABaseDirectory;
+            if (Path.DirectorySeparatorChar == '/')
+            {
+                isABaseDirectory = "/";
+            }
+            else
+            {
+                isABaseDirectory = "C://";
+            }
 
-        try
-        {
+            try
+            {
+                new SourceFileResolver(
+                    ImmutableArray.Create(""),
+                    isABaseDirectory,
+                    ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", null)));
+                AssertEx.Fail("Didn't throw");
+            }
+            catch (ArgumentException argException)
+            {
+                Assert.Equal(new ArgumentException(CodeAnalysisResources.NullValueInPathMap, "pathMap").Message, argException.Message);
+            }
+
+            // Empty pathmap value doesn't throw
             new SourceFileResolver(
                 ImmutableArray.Create(""),
                 isABaseDirectory,
-                ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", null)));
-            AssertEx.Fail("Didn't throw");
-        }
-        catch (ArgumentException argException)
-        {
-            Assert.Equal(new ArgumentException(CodeAnalysisResources.NullValueInPathMap, "pathMap").Message, argException.Message);
+                ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "")));
         }
 
-        // Empty pathmap value doesn't throw
-        new SourceFileResolver(
-            ImmutableArray.Create(""),
-            isABaseDirectory,
-            ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "")));
-    }
-
-    [Fact]
-    public void BadBaseDirectory()
-    {
-        try
+        [Fact]
+        public void BadBaseDirectory()
         {
-            new SourceFileResolver(
-                ImmutableArray.Create(""),
-                "not_a_root directory",
-                ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "value")));
-            AssertEx.Fail("Didn't throw");
-        }
-        catch (ArgumentException argException)
-        {
-            Assert.Equal(new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory").Message, argException.Message);
+            try
+            {
+                new SourceFileResolver(
+                    ImmutableArray.Create(""),
+                    "not_a_root directory",
+                    ImmutableArray.Create(KeyValuePairUtil.Create<string, string>("key", "value")));
+                AssertEx.Fail("Didn't throw");
+            }
+            catch (ArgumentException argException)
+            {
+                Assert.Equal(new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory").Message, argException.Message);
+            }
         }
     }
 }

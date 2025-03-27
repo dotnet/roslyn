@@ -9,81 +9,82 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-/// <summary>
-/// A display class field representing a local, exposed
-/// as a local on the original method.
-/// </summary>
-internal sealed class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    private readonly DisplayClassVariable _variable;
-
-    public EEDisplayClassFieldLocalSymbol(DisplayClassVariable variable)
+    /// <summary>
+    /// A display class field representing a local, exposed
+    /// as a local on the original method.
+    /// </summary>
+    internal sealed class EEDisplayClassFieldLocalSymbol : EELocalSymbolBase
     {
-        _variable = variable;
+        private readonly DisplayClassVariable _variable;
 
-        // Verify all type parameters are substituted.
-        Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.Type));
-    }
+        public EEDisplayClassFieldLocalSymbol(DisplayClassVariable variable)
+        {
+            _variable = variable;
 
-    internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
-    {
-        return new EEDisplayClassFieldLocalSymbol(_variable.ToOtherMethod(method, typeMap));
-    }
+            // Verify all type parameters are substituted.
+            Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.Type));
+        }
 
-    public override string Name
-    {
-        get { return _variable.Name; }
-    }
+        internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
+        {
+            return new EEDisplayClassFieldLocalSymbol(_variable.ToOtherMethod(method, typeMap));
+        }
 
-    internal override LocalDeclarationKind DeclarationKind
-    {
-        get { return LocalDeclarationKind.RegularVariable; }
-    }
+        public override string Name
+        {
+            get { return _variable.Name; }
+        }
 
-    internal override SyntaxToken IdentifierToken
-    {
-        get { throw ExceptionUtilities.Unreachable(); }
-    }
+        internal override LocalDeclarationKind DeclarationKind
+        {
+            get { return LocalDeclarationKind.RegularVariable; }
+        }
 
-    public override Symbol ContainingSymbol
-    {
-        get { return _variable.ContainingSymbol; }
-    }
+        internal override SyntaxToken IdentifierToken
+        {
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
 
-    public override TypeWithAnnotations TypeWithAnnotations
-    {
-        get { return TypeWithAnnotations.Create(_variable.Type); }
-    }
+        public override Symbol ContainingSymbol
+        {
+            get { return _variable.ContainingSymbol; }
+        }
 
-    internal override bool IsPinned
-    {
-        get { return false; }
-    }
+        public override TypeWithAnnotations TypeWithAnnotations
+        {
+            get { return TypeWithAnnotations.Create(_variable.Type); }
+        }
 
-    internal override bool IsKnownToReferToTempIfReferenceType
-    {
-        get { return false; }
-    }
+        internal override bool IsPinned
+        {
+            get { return false; }
+        }
 
-    internal override bool IsCompilerGenerated
-    {
-        get { return false; }
-    }
+        internal override bool IsKnownToReferToTempIfReferenceType
+        {
+            get { return false; }
+        }
 
-    public override RefKind RefKind
-    {
-        get { return RefKind.None; }
-    }
+        internal override bool IsCompilerGenerated
+        {
+            get { return false; }
+        }
 
-    public override ImmutableArray<Location> Locations
-    {
-        get { return NoLocations; }
-    }
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get { return ImmutableArray<SyntaxReference>.Empty; }
+        public override ImmutableArray<Location> Locations
+        {
+            get { return NoLocations; }
+        }
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get { return ImmutableArray<SyntaxReference>.Empty; }
+        }
     }
 }

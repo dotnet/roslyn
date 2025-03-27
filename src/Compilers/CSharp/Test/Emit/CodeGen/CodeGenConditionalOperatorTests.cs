@@ -9,596 +9,596 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenConditionalOperatorTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
-    public void Branchless_Compare()
+    public class CodeGenConditionalOperatorTests : CSharpTestBase
     {
-        var source = """
-            using static System.Console;
-            WriteLine(C.Compare(1, 2));
-            WriteLine(C.Compare(3, 3));
-            WriteLine(C.Compare(5, 4));
-
-            class C
-            {
-                public static int Compare(int x, int y)
-                {
-                    int tmp1 = (x > y) ? 1 : 0;
-                    int tmp2 = (x < y) ? 1 : 0;
-                    return tmp1 - tmp2;
-                }
-            }
-            """;
-        var expectedOutput = """
-            -1
-            0
-            1
-            """;
-
-        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Compare", """
-            {
-              // Code size       12 (0xc)
-              .maxstack  3
-              .locals init (int V_0) //tmp2
-              // sequence point: int tmp1 = (x > y) ? 1 : 0;
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  cgt
-              // sequence point: int tmp2 = (x < y) ? 1 : 0;
-              IL_0004:  ldarg.0
-              IL_0005:  ldarg.1
-              IL_0006:  clt
-              IL_0008:  stloc.0
-              // sequence point: return tmp1 - tmp2;
-              IL_0009:  ldloc.0
-              IL_000a:  sub
-              IL_000b:  ret
-            }
-            """);
-
-        verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithDebugPlusMode(true), expectedOutput: expectedOutput);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Compare", """
-            {
-              // Code size       14 (0xe)
-              .maxstack  2
-              .locals init (int V_0, //tmp1
-                            int V_1) //tmp2
-              // sequence point: int tmp1 = (x > y) ? 1 : 0;
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  cgt
-              IL_0004:  stloc.0
-              // sequence point: int tmp2 = (x < y) ? 1 : 0;
-              IL_0005:  ldarg.0
-              IL_0006:  ldarg.1
-              IL_0007:  clt
-              IL_0009:  stloc.1
-              // sequence point: return tmp1 - tmp2;
-              IL_000a:  ldloc.0
-              IL_000b:  ldloc.1
-              IL_000c:  sub
-              IL_000d:  ret
-            }
-            """);
-
-        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.Compare", """
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_Compare()
         {
-            // Code size       27 (0x1b)
-            .maxstack  2
-            .locals init (int V_0, //tmp1
-                        int V_1, //tmp2
-                        int V_2)
-            // sequence point: {
-            IL_0000:  nop
-            // sequence point: int tmp1 = (x > y) ? 1 : 0;
-            IL_0001:  ldarg.0
-            IL_0002:  ldarg.1
-            IL_0003:  bgt.s      IL_0008
-            IL_0005:  ldc.i4.0
-            IL_0006:  br.s       IL_0009
-            IL_0008:  ldc.i4.1
-            IL_0009:  stloc.0
-            // sequence point: int tmp2 = (x < y) ? 1 : 0;
-            IL_000a:  ldarg.0
-            IL_000b:  ldarg.1
-            IL_000c:  blt.s      IL_0011
-            IL_000e:  ldc.i4.0
-            IL_000f:  br.s       IL_0012
-            IL_0011:  ldc.i4.1
-            IL_0012:  stloc.1
-            // sequence point: return tmp1 - tmp2;
-            IL_0013:  ldloc.0
-            IL_0014:  ldloc.1
-            IL_0015:  sub
-            IL_0016:  stloc.2
-            IL_0017:  br.s       IL_0019
-            // sequence point: }
-            IL_0019:  ldloc.2
-            IL_001a:  ret
+            var source = """
+                using static System.Console;
+                WriteLine(C.Compare(1, 2));
+                WriteLine(C.Compare(3, 3));
+                WriteLine(C.Compare(5, 4));
+
+                class C
+                {
+                    public static int Compare(int x, int y)
+                    {
+                        int tmp1 = (x > y) ? 1 : 0;
+                        int tmp2 = (x < y) ? 1 : 0;
+                        return tmp1 - tmp2;
+                    }
+                }
+                """;
+            var expectedOutput = """
+                -1
+                0
+                1
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Compare", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  3
+                  .locals init (int V_0) //tmp2
+                  // sequence point: int tmp1 = (x > y) ? 1 : 0;
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  cgt
+                  // sequence point: int tmp2 = (x < y) ? 1 : 0;
+                  IL_0004:  ldarg.0
+                  IL_0005:  ldarg.1
+                  IL_0006:  clt
+                  IL_0008:  stloc.0
+                  // sequence point: return tmp1 - tmp2;
+                  IL_0009:  ldloc.0
+                  IL_000a:  sub
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithDebugPlusMode(true), expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Compare", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  2
+                  .locals init (int V_0, //tmp1
+                                int V_1) //tmp2
+                  // sequence point: int tmp1 = (x > y) ? 1 : 0;
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  cgt
+                  IL_0004:  stloc.0
+                  // sequence point: int tmp2 = (x < y) ? 1 : 0;
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldarg.1
+                  IL_0007:  clt
+                  IL_0009:  stloc.1
+                  // sequence point: return tmp1 - tmp2;
+                  IL_000a:  ldloc.0
+                  IL_000b:  ldloc.1
+                  IL_000c:  sub
+                  IL_000d:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.Compare", """
+            {
+                // Code size       27 (0x1b)
+                .maxstack  2
+                .locals init (int V_0, //tmp1
+                            int V_1, //tmp2
+                            int V_2)
+                // sequence point: {
+                IL_0000:  nop
+                // sequence point: int tmp1 = (x > y) ? 1 : 0;
+                IL_0001:  ldarg.0
+                IL_0002:  ldarg.1
+                IL_0003:  bgt.s      IL_0008
+                IL_0005:  ldc.i4.0
+                IL_0006:  br.s       IL_0009
+                IL_0008:  ldc.i4.1
+                IL_0009:  stloc.0
+                // sequence point: int tmp2 = (x < y) ? 1 : 0;
+                IL_000a:  ldarg.0
+                IL_000b:  ldarg.1
+                IL_000c:  blt.s      IL_0011
+                IL_000e:  ldc.i4.0
+                IL_000f:  br.s       IL_0012
+                IL_0011:  ldc.i4.1
+                IL_0012:  stloc.1
+                // sequence point: return tmp1 - tmp2;
+                IL_0013:  ldloc.0
+                IL_0014:  ldloc.1
+                IL_0015:  sub
+                IL_0016:  stloc.2
+                IL_0017:  br.s       IL_0019
+                // sequence point: }
+                IL_0019:  ldloc.2
+                IL_001a:  ret
+            }
+            """);
         }
-        """);
-    }
 
-    [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
-    public void Branchless_Operations()
-    {
-        var source = """
-            using static System.Console;
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_Operations()
+        {
+            var source = """
+                using static System.Console;
 
-            class C
-            {
-                static void Main() => M(1, 0, null!, true);
-                static void M(int x, int y, object a, bool b)
+                class C
                 {
-                    Write(x == y ? 1 : 0);
-                    Write(x == y ? 0 : 1);
-                    Write(x < y ? 1 : 0);
-                    Write(x < y ? 0 : 1);
-                    Write(x > y ? 1 : 0);
-                    Write(x > y ? 0 : 1);
-                    Write(a is string ? 0 : 1);
-                    Write(a is not string ? 0 : 1);
-                    Write(b ? 0 : 1);
-                    Write(!b ? 0 : 1);
-                    Write(x <= y ? true : false);
-                    Write(x <= y ? false : true);
-                    Write(x != y ? (byte)1 : (byte)0);
-                    Write(x != y ? 1 : (sbyte)0);
-                    Write(x != y ? (short)1 : (short)0);
-                    Write(x != y ? (ushort)1 : 0);
-                    Write(x != y ? 1U : 0);
-                    Write(x != y ? 1L : 0);
-                    Write(x != y ? 1UL : 0);
-                    Write(x != y ? (nint)1 : 0);
-                    Write(x != y ? 1 : (nuint)0);
-                    Write(x < y ? (char)0 : (char)1);
-                    Write(x < y ? '\x1' : '\x0');
-                    Write(true ? 1 : 0);
-                    Write(false ? 0 : 1);
-                    const bool B = true;
-                    Write(B ? 1 : 0);
+                    static void Main() => M(1, 0, null!, true);
+                    static void M(int x, int y, object a, bool b)
+                    {
+                        Write(x == y ? 1 : 0);
+                        Write(x == y ? 0 : 1);
+                        Write(x < y ? 1 : 0);
+                        Write(x < y ? 0 : 1);
+                        Write(x > y ? 1 : 0);
+                        Write(x > y ? 0 : 1);
+                        Write(a is string ? 0 : 1);
+                        Write(a is not string ? 0 : 1);
+                        Write(b ? 0 : 1);
+                        Write(!b ? 0 : 1);
+                        Write(x <= y ? true : false);
+                        Write(x <= y ? false : true);
+                        Write(x != y ? (byte)1 : (byte)0);
+                        Write(x != y ? 1 : (sbyte)0);
+                        Write(x != y ? (short)1 : (short)0);
+                        Write(x != y ? (ushort)1 : 0);
+                        Write(x != y ? 1U : 0);
+                        Write(x != y ? 1L : 0);
+                        Write(x != y ? 1UL : 0);
+                        Write(x != y ? (nint)1 : 0);
+                        Write(x != y ? 1 : (nuint)0);
+                        Write(x < y ? (char)0 : (char)1);
+                        Write(x < y ? '\x1' : '\x0');
+                        Write(true ? 1 : 0);
+                        Write(false ? 0 : 1);
+                        const bool B = true;
+                        Write(B ? 1 : 0);
+                    }
                 }
-            }
-            """;
-        var verifier = CompileAndVerify(source,
-            options: TestOptions.ReleaseExe,
-            expectedOutput: "0101101001FalseTrue111111111" + (char)1 + (char)0 + "111");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.M", """
-            {
-              // Code size      288 (0x120)
-              .maxstack  2
-              // sequence point: Write(x == y ? 1 : 0);
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  ceq
-              IL_0004:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x == y ? 0 : 1);
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  ceq
-              IL_000d:  ldc.i4.0
-              IL_000e:  ceq
-              IL_0010:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x < y ? 1 : 0);
-              IL_0015:  ldarg.0
-              IL_0016:  ldarg.1
-              IL_0017:  clt
-              IL_0019:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x < y ? 0 : 1);
-              IL_001e:  ldarg.0
-              IL_001f:  ldarg.1
-              IL_0020:  clt
-              IL_0022:  ldc.i4.0
-              IL_0023:  ceq
-              IL_0025:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x > y ? 1 : 0);
-              IL_002a:  ldarg.0
-              IL_002b:  ldarg.1
-              IL_002c:  cgt
-              IL_002e:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x > y ? 0 : 1);
-              IL_0033:  ldarg.0
-              IL_0034:  ldarg.1
-              IL_0035:  cgt
-              IL_0037:  ldc.i4.0
-              IL_0038:  ceq
-              IL_003a:  call       "void System.Console.Write(int)"
-              // sequence point: Write(a is string ? 0 : 1);
-              IL_003f:  ldarg.2
-              IL_0040:  isinst     "string"
-              IL_0045:  ldnull
-              IL_0046:  ceq
-              IL_0048:  call       "void System.Console.Write(int)"
-              // sequence point: Write(a is not string ? 0 : 1);
-              IL_004d:  ldarg.2
-              IL_004e:  isinst     "string"
-              IL_0053:  ldnull
-              IL_0054:  cgt.un
-              IL_0056:  call       "void System.Console.Write(int)"
-              // sequence point: Write(b ? 0 : 1);
-              IL_005b:  ldarg.3
-              IL_005c:  ldc.i4.0
-              IL_005d:  ceq
-              IL_005f:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!b ? 0 : 1);
-              IL_0064:  ldarg.3
-              IL_0065:  ldc.i4.0
-              IL_0066:  cgt.un
-              IL_0068:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x <= y ? true : false);
-              IL_006d:  ldarg.0
-              IL_006e:  ldarg.1
-              IL_006f:  cgt
-              IL_0071:  ldc.i4.0
-              IL_0072:  ceq
-              IL_0074:  call       "void System.Console.Write(bool)"
-              // sequence point: Write(x <= y ? false : true);
-              IL_0079:  ldarg.0
-              IL_007a:  ldarg.1
-              IL_007b:  cgt
-              IL_007d:  call       "void System.Console.Write(bool)"
-              // sequence point: Write(x != y ? (byte)1 : (byte)0);
-              IL_0082:  ldarg.0
-              IL_0083:  ldarg.1
-              IL_0084:  ceq
-              IL_0086:  ldc.i4.0
-              IL_0087:  ceq
-              IL_0089:  conv.u1
-              IL_008a:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x != y ? 1 : (sbyte)0);
-              IL_008f:  ldarg.0
-              IL_0090:  ldarg.1
-              IL_0091:  ceq
-              IL_0093:  ldc.i4.0
-              IL_0094:  ceq
-              IL_0096:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x != y ? (short)1 : (short)0);
-              IL_009b:  ldarg.0
-              IL_009c:  ldarg.1
-              IL_009d:  ceq
-              IL_009f:  ldc.i4.0
-              IL_00a0:  ceq
-              IL_00a2:  conv.i2
-              IL_00a3:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x != y ? (ushort)1 : 0);
-              IL_00a8:  ldarg.0
-              IL_00a9:  ldarg.1
-              IL_00aa:  ceq
-              IL_00ac:  ldc.i4.0
-              IL_00ad:  ceq
-              IL_00af:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x != y ? 1U : 0);
-              IL_00b4:  ldarg.0
-              IL_00b5:  ldarg.1
-              IL_00b6:  ceq
-              IL_00b8:  ldc.i4.0
-              IL_00b9:  ceq
-              IL_00bb:  call       "void System.Console.Write(uint)"
-              // sequence point: Write(x != y ? 1L : 0);
-              IL_00c0:  ldarg.0
-              IL_00c1:  ldarg.1
-              IL_00c2:  ceq
-              IL_00c4:  ldc.i4.0
-              IL_00c5:  ceq
-              IL_00c7:  conv.i8
-              IL_00c8:  call       "void System.Console.Write(long)"
-              // sequence point: Write(x != y ? 1UL : 0);
-              IL_00cd:  ldarg.0
-              IL_00ce:  ldarg.1
-              IL_00cf:  ceq
-              IL_00d1:  ldc.i4.0
-              IL_00d2:  ceq
-              IL_00d4:  conv.i8
-              IL_00d5:  call       "void System.Console.Write(ulong)"
-              // sequence point: Write(x != y ? (nint)1 : 0);
-              IL_00da:  ldarg.0
-              IL_00db:  ldarg.1
-              IL_00dc:  ceq
-              IL_00de:  ldc.i4.0
-              IL_00df:  ceq
-              IL_00e1:  conv.i
-              IL_00e2:  conv.i8
-              IL_00e3:  call       "void System.Console.Write(long)"
-              // sequence point: Write(x != y ? 1 : (nuint)0);
-              IL_00e8:  ldarg.0
-              IL_00e9:  ldarg.1
-              IL_00ea:  ceq
-              IL_00ec:  ldc.i4.0
-              IL_00ed:  ceq
-              IL_00ef:  conv.i
-              IL_00f0:  conv.u8
-              IL_00f1:  call       "void System.Console.Write(ulong)"
-              // sequence point: Write(x < y ? (char)0 : (char)1);
-              IL_00f6:  ldarg.0
-              IL_00f7:  ldarg.1
-              IL_00f8:  clt
-              IL_00fa:  ldc.i4.0
-              IL_00fb:  ceq
-              IL_00fd:  conv.u2
-              IL_00fe:  call       "void System.Console.Write(char)"
-              // sequence point: Write(x < y ? '\x1' : '\x0');
-              IL_0103:  ldarg.0
-              IL_0104:  ldarg.1
-              IL_0105:  clt
-              IL_0107:  conv.u2
-              IL_0108:  call       "void System.Console.Write(char)"
-              // sequence point: Write(true ? 1 : 0);
-              IL_010d:  ldc.i4.1
-              IL_010e:  call       "void System.Console.Write(int)"
-              // sequence point: Write(false ? 0 : 1);
-              IL_0113:  ldc.i4.1
-              IL_0114:  call       "void System.Console.Write(int)"
-              // sequence point: Write(B ? 1 : 0);
-              IL_0119:  ldc.i4.1
-              IL_011a:  call       "void System.Console.Write(int)"
-              // sequence point: }
-              IL_011f:  ret
-            }
-            """);
-    }
-
-    [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
-    public void Branchless_Negations()
-    {
-        var source = """
-            using static System.Console;
-
-            class C
-            {
-                static void Main() => M(1, 0, true);
-                static void M(int x, int y, bool b)
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "0101101001FalseTrue111111111" + (char)1 + (char)0 + "111");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.M", """
                 {
-                    Write(!(x < y) ? 0 : 1);
-                    Write(!!(x < y) ? 0 : 1);
-                    Write(!!!(x < y) ? 0 : 1);
-                    Write(!(x == y) ? 0 : 1);
-                    Write(!b ? 0 : 1);
-                    Write(!!b ? 0 : 1);
-                    Write(!!!b ? 0 : 1);
-                    Write(!false ? 0 : 1);
-                    Write(!!false ? 0 : 1);
-                    Write(!!!false ? 0 : 1);
+                  // Code size      288 (0x120)
+                  .maxstack  2
+                  // sequence point: Write(x == y ? 1 : 0);
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  ceq
+                  IL_0004:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x == y ? 0 : 1);
+                  IL_0009:  ldarg.0
+                  IL_000a:  ldarg.1
+                  IL_000b:  ceq
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  ceq
+                  IL_0010:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 1 : 0);
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  clt
+                  IL_0019:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 0 : 1);
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  clt
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  ceq
+                  IL_0025:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x > y ? 1 : 0);
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldarg.1
+                  IL_002c:  cgt
+                  IL_002e:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x > y ? 0 : 1);
+                  IL_0033:  ldarg.0
+                  IL_0034:  ldarg.1
+                  IL_0035:  cgt
+                  IL_0037:  ldc.i4.0
+                  IL_0038:  ceq
+                  IL_003a:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(a is string ? 0 : 1);
+                  IL_003f:  ldarg.2
+                  IL_0040:  isinst     "string"
+                  IL_0045:  ldnull
+                  IL_0046:  ceq
+                  IL_0048:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(a is not string ? 0 : 1);
+                  IL_004d:  ldarg.2
+                  IL_004e:  isinst     "string"
+                  IL_0053:  ldnull
+                  IL_0054:  cgt.un
+                  IL_0056:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(b ? 0 : 1);
+                  IL_005b:  ldarg.3
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ceq
+                  IL_005f:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!b ? 0 : 1);
+                  IL_0064:  ldarg.3
+                  IL_0065:  ldc.i4.0
+                  IL_0066:  cgt.un
+                  IL_0068:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x <= y ? true : false);
+                  IL_006d:  ldarg.0
+                  IL_006e:  ldarg.1
+                  IL_006f:  cgt
+                  IL_0071:  ldc.i4.0
+                  IL_0072:  ceq
+                  IL_0074:  call       "void System.Console.Write(bool)"
+                  // sequence point: Write(x <= y ? false : true);
+                  IL_0079:  ldarg.0
+                  IL_007a:  ldarg.1
+                  IL_007b:  cgt
+                  IL_007d:  call       "void System.Console.Write(bool)"
+                  // sequence point: Write(x != y ? (byte)1 : (byte)0);
+                  IL_0082:  ldarg.0
+                  IL_0083:  ldarg.1
+                  IL_0084:  ceq
+                  IL_0086:  ldc.i4.0
+                  IL_0087:  ceq
+                  IL_0089:  conv.u1
+                  IL_008a:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x != y ? 1 : (sbyte)0);
+                  IL_008f:  ldarg.0
+                  IL_0090:  ldarg.1
+                  IL_0091:  ceq
+                  IL_0093:  ldc.i4.0
+                  IL_0094:  ceq
+                  IL_0096:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x != y ? (short)1 : (short)0);
+                  IL_009b:  ldarg.0
+                  IL_009c:  ldarg.1
+                  IL_009d:  ceq
+                  IL_009f:  ldc.i4.0
+                  IL_00a0:  ceq
+                  IL_00a2:  conv.i2
+                  IL_00a3:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x != y ? (ushort)1 : 0);
+                  IL_00a8:  ldarg.0
+                  IL_00a9:  ldarg.1
+                  IL_00aa:  ceq
+                  IL_00ac:  ldc.i4.0
+                  IL_00ad:  ceq
+                  IL_00af:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x != y ? 1U : 0);
+                  IL_00b4:  ldarg.0
+                  IL_00b5:  ldarg.1
+                  IL_00b6:  ceq
+                  IL_00b8:  ldc.i4.0
+                  IL_00b9:  ceq
+                  IL_00bb:  call       "void System.Console.Write(uint)"
+                  // sequence point: Write(x != y ? 1L : 0);
+                  IL_00c0:  ldarg.0
+                  IL_00c1:  ldarg.1
+                  IL_00c2:  ceq
+                  IL_00c4:  ldc.i4.0
+                  IL_00c5:  ceq
+                  IL_00c7:  conv.i8
+                  IL_00c8:  call       "void System.Console.Write(long)"
+                  // sequence point: Write(x != y ? 1UL : 0);
+                  IL_00cd:  ldarg.0
+                  IL_00ce:  ldarg.1
+                  IL_00cf:  ceq
+                  IL_00d1:  ldc.i4.0
+                  IL_00d2:  ceq
+                  IL_00d4:  conv.i8
+                  IL_00d5:  call       "void System.Console.Write(ulong)"
+                  // sequence point: Write(x != y ? (nint)1 : 0);
+                  IL_00da:  ldarg.0
+                  IL_00db:  ldarg.1
+                  IL_00dc:  ceq
+                  IL_00de:  ldc.i4.0
+                  IL_00df:  ceq
+                  IL_00e1:  conv.i
+                  IL_00e2:  conv.i8
+                  IL_00e3:  call       "void System.Console.Write(long)"
+                  // sequence point: Write(x != y ? 1 : (nuint)0);
+                  IL_00e8:  ldarg.0
+                  IL_00e9:  ldarg.1
+                  IL_00ea:  ceq
+                  IL_00ec:  ldc.i4.0
+                  IL_00ed:  ceq
+                  IL_00ef:  conv.i
+                  IL_00f0:  conv.u8
+                  IL_00f1:  call       "void System.Console.Write(ulong)"
+                  // sequence point: Write(x < y ? (char)0 : (char)1);
+                  IL_00f6:  ldarg.0
+                  IL_00f7:  ldarg.1
+                  IL_00f8:  clt
+                  IL_00fa:  ldc.i4.0
+                  IL_00fb:  ceq
+                  IL_00fd:  conv.u2
+                  IL_00fe:  call       "void System.Console.Write(char)"
+                  // sequence point: Write(x < y ? '\x1' : '\x0');
+                  IL_0103:  ldarg.0
+                  IL_0104:  ldarg.1
+                  IL_0105:  clt
+                  IL_0107:  conv.u2
+                  IL_0108:  call       "void System.Console.Write(char)"
+                  // sequence point: Write(true ? 1 : 0);
+                  IL_010d:  ldc.i4.1
+                  IL_010e:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(false ? 0 : 1);
+                  IL_0113:  ldc.i4.1
+                  IL_0114:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(B ? 1 : 0);
+                  IL_0119:  ldc.i4.1
+                  IL_011a:  call       "void System.Console.Write(int)"
+                  // sequence point: }
+                  IL_011f:  ret
                 }
-            }
-            """;
-        var verifier = CompileAndVerify(source,
-            options: TestOptions.ReleaseExe,
-            expectedOutput: "0100101010");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.M", """
-            {
-              // Code size       85 (0x55)
-              .maxstack  2
-              // sequence point: Write(!(x < y) ? 0 : 1);
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  clt
-              IL_0004:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!(x < y) ? 0 : 1);
-              IL_0009:  ldarg.0
-              IL_000a:  ldarg.1
-              IL_000b:  clt
-              IL_000d:  ldc.i4.0
-              IL_000e:  ceq
-              IL_0010:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!!(x < y) ? 0 : 1);
-              IL_0015:  ldarg.0
-              IL_0016:  ldarg.1
-              IL_0017:  clt
-              IL_0019:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!(x == y) ? 0 : 1);
-              IL_001e:  ldarg.0
-              IL_001f:  ldarg.1
-              IL_0020:  ceq
-              IL_0022:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!b ? 0 : 1);
-              IL_0027:  ldarg.2
-              IL_0028:  ldc.i4.0
-              IL_0029:  cgt.un
-              IL_002b:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!b ? 0 : 1);
-              IL_0030:  ldarg.2
-              IL_0031:  ldc.i4.0
-              IL_0032:  ceq
-              IL_0034:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!!b ? 0 : 1);
-              IL_0039:  ldarg.2
-              IL_003a:  ldc.i4.0
-              IL_003b:  cgt.un
-              IL_003d:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!false ? 0 : 1);
-              IL_0042:  ldc.i4.0
-              IL_0043:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!false ? 0 : 1);
-              IL_0048:  ldc.i4.1
-              IL_0049:  call       "void System.Console.Write(int)"
-              // sequence point: Write(!!!false ? 0 : 1);
-              IL_004e:  ldc.i4.0
-              IL_004f:  call       "void System.Console.Write(int)"
-              // sequence point: }
-              IL_0054:  ret
-            }
-            """);
-    }
+                """);
+        }
 
-    [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
-    public void Branchless_NonBinaryArms()
-    {
-        var source = """
-            using static System.Console;
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_Negations()
+        {
+            var source = """
+                using static System.Console;
 
-            class C
-            {
-                static void Main() => M(1, 0);
-                static void M(int x, int y)
+                class C
                 {
-                    Write(x == y ? 1 : 1);
-                    Write(x != y ? 0 : 0);
-                    Write(x <= y ? 0 : 2);
-                    Write(x >= y ? 2 : 1);
-                    Write(x < y ? 0 : -1);
-                    Write(x < y ? 0d : 1d);
-                    Write(x < y ? 0f : 1f);
-                    Write(x < y ? 0m : 1m);
-                    Write(x < y ? '\x0' : 'a');
+                    static void Main() => M(1, 0, true);
+                    static void M(int x, int y, bool b)
+                    {
+                        Write(!(x < y) ? 0 : 1);
+                        Write(!!(x < y) ? 0 : 1);
+                        Write(!!!(x < y) ? 0 : 1);
+                        Write(!(x == y) ? 0 : 1);
+                        Write(!b ? 0 : 1);
+                        Write(!!b ? 0 : 1);
+                        Write(!!!b ? 0 : 1);
+                        Write(!false ? 0 : 1);
+                        Write(!!false ? 0 : 1);
+                        Write(!!!false ? 0 : 1);
+                    }
                 }
-            }
-            """;
-        var verifier = CompileAndVerify(source,
-            options: TestOptions.ReleaseExe,
-            expectedOutput: "1022-1111a");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("C.M", """
-            {
-              // Code size      151 (0x97)
-              .maxstack  2
-              // sequence point: Write(x == y ? 1 : 1);
-              IL_0000:  ldarg.0
-              IL_0001:  ldarg.1
-              IL_0002:  beq.s      IL_0007
-              IL_0004:  ldc.i4.1
-              IL_0005:  br.s       IL_0008
-              IL_0007:  ldc.i4.1
-              IL_0008:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x != y ? 0 : 0);
-              IL_000d:  ldarg.0
-              IL_000e:  ldarg.1
-              IL_000f:  bne.un.s   IL_0014
-              IL_0011:  ldc.i4.0
-              IL_0012:  br.s       IL_0015
-              IL_0014:  ldc.i4.0
-              IL_0015:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x <= y ? 0 : 2);
-              IL_001a:  ldarg.0
-              IL_001b:  ldarg.1
-              IL_001c:  ble.s      IL_0021
-              IL_001e:  ldc.i4.2
-              IL_001f:  br.s       IL_0022
-              IL_0021:  ldc.i4.0
-              IL_0022:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x >= y ? 2 : 1);
-              IL_0027:  ldarg.0
-              IL_0028:  ldarg.1
-              IL_0029:  bge.s      IL_002e
-              IL_002b:  ldc.i4.1
-              IL_002c:  br.s       IL_002f
-              IL_002e:  ldc.i4.2
-              IL_002f:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x < y ? 0 : -1);
-              IL_0034:  ldarg.0
-              IL_0035:  ldarg.1
-              IL_0036:  blt.s      IL_003b
-              IL_0038:  ldc.i4.m1
-              IL_0039:  br.s       IL_003c
-              IL_003b:  ldc.i4.0
-              IL_003c:  call       "void System.Console.Write(int)"
-              // sequence point: Write(x < y ? 0d : 1d);
-              IL_0041:  ldarg.0
-              IL_0042:  ldarg.1
-              IL_0043:  blt.s      IL_0050
-              IL_0045:  ldc.r8     1
-              IL_004e:  br.s       IL_0059
-              IL_0050:  ldc.r8     0
-              IL_0059:  call       "void System.Console.Write(double)"
-              // sequence point: Write(x < y ? 0f : 1f);
-              IL_005e:  ldarg.0
-              IL_005f:  ldarg.1
-              IL_0060:  blt.s      IL_0069
-              IL_0062:  ldc.r4     1
-              IL_0067:  br.s       IL_006e
-              IL_0069:  ldc.r4     0
-              IL_006e:  call       "void System.Console.Write(float)"
-              // sequence point: Write(x < y ? 0m : 1m);
-              IL_0073:  ldarg.0
-              IL_0074:  ldarg.1
-              IL_0075:  blt.s      IL_007e
-              IL_0077:  ldsfld     "decimal decimal.One"
-              IL_007c:  br.s       IL_0083
-              IL_007e:  ldsfld     "decimal decimal.Zero"
-              IL_0083:  call       "void System.Console.Write(decimal)"
-              // sequence point: Write(x < y ? '\x0' : 'a');
-              IL_0088:  ldarg.0
-              IL_0089:  ldarg.1
-              IL_008a:  blt.s      IL_0090
-              IL_008c:  ldc.i4.s   97
-              IL_008e:  br.s       IL_0091
-              IL_0090:  ldc.i4.0
-              IL_0091:  call       "void System.Console.Write(char)"
-              // sequence point: }
-              IL_0096:  ret
-            }
-            """);
-    }
-
-    [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
-    public void Branchless_NonBinaryCondition()
-    {
-        // public static class C { public static bool M() => -1; }
-        var source1 = """
-            .class public auto ansi abstract sealed beforefieldinit C
-                extends System.Object
-            {
-                .method public hidebysig static bool M () cil managed
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "0100101010");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.M", """
                 {
-                    .maxstack 8
-                    ldc.i4.m1
-                    ret
+                  // Code size       85 (0x55)
+                  .maxstack  2
+                  // sequence point: Write(!(x < y) ? 0 : 1);
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  clt
+                  IL_0004:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!(x < y) ? 0 : 1);
+                  IL_0009:  ldarg.0
+                  IL_000a:  ldarg.1
+                  IL_000b:  clt
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  ceq
+                  IL_0010:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!!(x < y) ? 0 : 1);
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  clt
+                  IL_0019:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!(x == y) ? 0 : 1);
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  ceq
+                  IL_0022:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!b ? 0 : 1);
+                  IL_0027:  ldarg.2
+                  IL_0028:  ldc.i4.0
+                  IL_0029:  cgt.un
+                  IL_002b:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!b ? 0 : 1);
+                  IL_0030:  ldarg.2
+                  IL_0031:  ldc.i4.0
+                  IL_0032:  ceq
+                  IL_0034:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!!b ? 0 : 1);
+                  IL_0039:  ldarg.2
+                  IL_003a:  ldc.i4.0
+                  IL_003b:  cgt.un
+                  IL_003d:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!false ? 0 : 1);
+                  IL_0042:  ldc.i4.0
+                  IL_0043:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!false ? 0 : 1);
+                  IL_0048:  ldc.i4.1
+                  IL_0049:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(!!!false ? 0 : 1);
+                  IL_004e:  ldc.i4.0
+                  IL_004f:  call       "void System.Console.Write(int)"
+                  // sequence point: }
+                  IL_0054:  ret
                 }
-            }
-            """;
-        var source2 = """
-            System.Console.WriteLine(D.M1());
-            System.Console.WriteLine(D.M2());
+                """);
+        }
 
-            class D
-            {
-                public static int M1() => C.M() ? 1 : 0;
-                public static int M2() => C.M() ? 0 : 1;
-            }
-            """;
-        var comp = CreateCompilationWithIL(source2, source1, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: """
-            1
-            0
-            """);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyMethodBody("D.M1", """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              // sequence point: C.M() ? 1 : 0
-              IL_0000:  call       "bool C.M()"
-              IL_0005:  ldc.i4.0
-              IL_0006:  cgt.un
-              IL_0008:  ret
-            }
-            """);
-        verifier.VerifyMethodBody("D.M2", """
-            {
-              // Code size        9 (0x9)
-              .maxstack  2
-              // sequence point: C.M() ? 0 : 1
-              IL_0000:  call       "bool C.M()"
-              IL_0005:  ldc.i4.0
-              IL_0006:  ceq
-              IL_0008:  ret
-            }
-            """);
-    }
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_NonBinaryArms()
+        {
+            var source = """
+                using static System.Console;
 
-    [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void ConditionalDelegateInterfaceUnification1()
-    {
-        var src =
+                class C
+                {
+                    static void Main() => M(1, 0);
+                    static void M(int x, int y)
+                    {
+                        Write(x == y ? 1 : 1);
+                        Write(x != y ? 0 : 0);
+                        Write(x <= y ? 0 : 2);
+                        Write(x >= y ? 2 : 1);
+                        Write(x < y ? 0 : -1);
+                        Write(x < y ? 0d : 1d);
+                        Write(x < y ? 0f : 1f);
+                        Write(x < y ? 0m : 1m);
+                        Write(x < y ? '\x0' : 'a');
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "1022-1111a");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("C.M", """
+                {
+                  // Code size      151 (0x97)
+                  .maxstack  2
+                  // sequence point: Write(x == y ? 1 : 1);
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  beq.s      IL_0007
+                  IL_0004:  ldc.i4.1
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x != y ? 0 : 0);
+                  IL_000d:  ldarg.0
+                  IL_000e:  ldarg.1
+                  IL_000f:  bne.un.s   IL_0014
+                  IL_0011:  ldc.i4.0
+                  IL_0012:  br.s       IL_0015
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x <= y ? 0 : 2);
+                  IL_001a:  ldarg.0
+                  IL_001b:  ldarg.1
+                  IL_001c:  ble.s      IL_0021
+                  IL_001e:  ldc.i4.2
+                  IL_001f:  br.s       IL_0022
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x >= y ? 2 : 1);
+                  IL_0027:  ldarg.0
+                  IL_0028:  ldarg.1
+                  IL_0029:  bge.s      IL_002e
+                  IL_002b:  ldc.i4.1
+                  IL_002c:  br.s       IL_002f
+                  IL_002e:  ldc.i4.2
+                  IL_002f:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 0 : -1);
+                  IL_0034:  ldarg.0
+                  IL_0035:  ldarg.1
+                  IL_0036:  blt.s      IL_003b
+                  IL_0038:  ldc.i4.m1
+                  IL_0039:  br.s       IL_003c
+                  IL_003b:  ldc.i4.0
+                  IL_003c:  call       "void System.Console.Write(int)"
+                  // sequence point: Write(x < y ? 0d : 1d);
+                  IL_0041:  ldarg.0
+                  IL_0042:  ldarg.1
+                  IL_0043:  blt.s      IL_0050
+                  IL_0045:  ldc.r8     1
+                  IL_004e:  br.s       IL_0059
+                  IL_0050:  ldc.r8     0
+                  IL_0059:  call       "void System.Console.Write(double)"
+                  // sequence point: Write(x < y ? 0f : 1f);
+                  IL_005e:  ldarg.0
+                  IL_005f:  ldarg.1
+                  IL_0060:  blt.s      IL_0069
+                  IL_0062:  ldc.r4     1
+                  IL_0067:  br.s       IL_006e
+                  IL_0069:  ldc.r4     0
+                  IL_006e:  call       "void System.Console.Write(float)"
+                  // sequence point: Write(x < y ? 0m : 1m);
+                  IL_0073:  ldarg.0
+                  IL_0074:  ldarg.1
+                  IL_0075:  blt.s      IL_007e
+                  IL_0077:  ldsfld     "decimal decimal.One"
+                  IL_007c:  br.s       IL_0083
+                  IL_007e:  ldsfld     "decimal decimal.Zero"
+                  IL_0083:  call       "void System.Console.Write(decimal)"
+                  // sequence point: Write(x < y ? '\x0' : 'a');
+                  IL_0088:  ldarg.0
+                  IL_0089:  ldarg.1
+                  IL_008a:  blt.s      IL_0090
+                  IL_008c:  ldc.i4.s   97
+                  IL_008e:  br.s       IL_0091
+                  IL_0090:  ldc.i4.0
+                  IL_0091:  call       "void System.Console.Write(char)"
+                  // sequence point: }
+                  IL_0096:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem(61483, "https://github.com/dotnet/roslyn/issues/61483")]
+        public void Branchless_NonBinaryCondition()
+        {
+            // public static class C { public static bool M() => -1; }
+            var source1 = """
+                .class public auto ansi abstract sealed beforefieldinit C
+                    extends System.Object
+                {
+                    .method public hidebysig static bool M () cil managed
+                    {
+                        .maxstack 8
+                        ldc.i4.m1
+                        ret
+                    }
+                }
+                """;
+            var source2 = """
+                System.Console.WriteLine(D.M1());
+                System.Console.WriteLine(D.M2());
+
+                class D
+                {
+                    public static int M1() => C.M() ? 1 : 0;
+                    public static int M2() => C.M() ? 0 : 1;
+                }
+                """;
+            var comp = CreateCompilationWithIL(source2, source1, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+                1
+                0
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyMethodBody("D.M1", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  // sequence point: C.M() ? 1 : 0
+                  IL_0000:  call       "bool C.M()"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  cgt.un
+                  IL_0008:  ret
+                }
+                """);
+            verifier.VerifyMethodBody("D.M2", """
+                {
+                  // Code size        9 (0x9)
+                  .maxstack  2
+                  // sequence point: C.M() ? 0 : 1
+                  IL_0000:  call       "bool C.M()"
+                  IL_0005:  ldc.i4.0
+                  IL_0006:  ceq
+                  IL_0008:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void ConditionalDelegateInterfaceUnification1()
+        {
+            var src =
 @"using System;
 using System.Security;
 
@@ -621,10 +621,10 @@ class C : I
         System.Console.Write(Tester(false)().GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       73 (0x49)
   .maxstack  2
@@ -658,9 +658,9 @@ class C : I
 }
 ");
 
-        verify = CompileAndVerify(src,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester", @"
+            verify = CompileAndVerify(src,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -688,12 +688,12 @@ class C : I
   IL_0042:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(20266, "https://github.com/dotnet/roslyn/issues/20266")]
-    public void ConditionalAccessInMethodGroupConversion()
-    {
-        var source = @"
+        [Fact, WorkItem(20266, "https://github.com/dotnet/roslyn/issues/20266")]
+        public void ConditionalAccessInMethodGroupConversion()
+        {
+            var source = @"
 class C
 {
     void M(object o)
@@ -710,15 +710,15 @@ class C
     }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
-        CompileAndVerify(comp);
-    }
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+        }
 
-    [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void ConditionalDelegateInterfaceUnification2()
-    {
-        var src =
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void ConditionalDelegateInterfaceUnification2()
+        {
+            var src =
 @"using System;
 using System.Security;
 
@@ -745,10 +745,10 @@ class C : I
         System.Console.Write(Tester(1)().GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "A");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "A");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      111 (0x6f)
   .maxstack  2
@@ -795,9 +795,9 @@ class C : I
   IL_006e:  ret
 }
 ");
-        verify = CompileAndVerify(src,
-            expectedOutput: "A");
-        verify.VerifyIL("C.Tester", @"
+            verify = CompileAndVerify(src,
+                expectedOutput: "A");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      104 (0x68)
   .maxstack  2
@@ -839,13 +839,13 @@ class C : I
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void ConditionalDelegateInterfaceUnification3()
-    {
-        var src =
-            @"using System;
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void ConditionalDelegateInterfaceUnification3()
+        {
+            var src =
+                @"using System;
 using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -871,10 +871,10 @@ class C : I
         System.Console.Write(Tester(-1)().GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "B");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "B");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      111 (0x6f)
   .maxstack  2
@@ -921,9 +921,9 @@ class C : I
   IL_006e:  ret
 }
 ");
-        verify = CompileAndVerify(src,
-            expectedOutput: "B");
-        verify.VerifyIL("C.Tester", @"
+            verify = CompileAndVerify(src,
+                expectedOutput: "B");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      104 (0x68)
   .maxstack  2
@@ -964,13 +964,13 @@ class C : I
   IL_0062:  stsfld     ""System.Func<I> C.<>c.<>9__0_0""
   IL_0067:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void ConditionalDelegateInterfaceUnification4()
-    {
-        var src =
-            @"using System;
+        [Fact, WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void ConditionalDelegateInterfaceUnification4()
+        {
+            var src =
+                @"using System;
 using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -1000,10 +1000,10 @@ class C : I
         System.Console.Write(Tester(-2)().GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "D");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "D");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      148 (0x94)
   .maxstack  2
@@ -1063,9 +1063,9 @@ class C : I
   IL_0093:  ret
 }
 ");
-        verify = CompileAndVerify(src,
-            expectedOutput: "D");
-        verify.VerifyIL("C.Tester", @"
+            verify = CompileAndVerify(src,
+                expectedOutput: "D");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size      140 (0x8c)
   .maxstack  2
@@ -1120,12 +1120,12 @@ class C : I
   IL_008b:  ret
 }
 ");
-    }
+        }
 
-    [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void NestedConditional1()
-    {
-        var src =
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void NestedConditional1()
+        {
+            var src =
 @"using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -1149,10 +1149,10 @@ public class C : I
         System.Console.Write(Tester(1, 0).GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       37 (0x25)
   .maxstack  1
@@ -1179,10 +1179,10 @@ public class C : I
   IL_0023:  ldloc.1
   IL_0024:  ret
 }");
-        // Optimized
-        verify = CompileAndVerify(src,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester", @"
+            // Optimized
+            verify = CompileAndVerify(src,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       30 (0x1e)
   .maxstack  1
@@ -1204,12 +1204,12 @@ public class C : I
   IL_001c:  ldloc.0
   IL_001d:  ret
 }");
-    }
+        }
 
-    [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void NestedConditional2()
-    {
-        var src =
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void NestedConditional2()
+        {
+            var src =
 @"using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -1233,10 +1233,10 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "B");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "B");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -1265,10 +1265,10 @@ public class C : I
   IL_0025:  ldloc.1
   IL_0026:  ret
 }");
-        // Optimized
-        verify = CompileAndVerify(src,
-            expectedOutput: "B");
-        verify.VerifyIL("C.Tester", @"
+            // Optimized
+            verify = CompileAndVerify(src,
+                expectedOutput: "B");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       32 (0x20)
   .maxstack  2
@@ -1292,12 +1292,12 @@ public class C : I
   IL_001e:  ldloc.0
   IL_001f:  ret
 }");
-    }
+        }
 
-    [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void NestedConditional3()
-    {
-        var src =
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void NestedConditional3()
+        {
+            var src =
 @"using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -1323,10 +1323,10 @@ public class C : I
         System.Console.Write(Tester(1).GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "A");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "A");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       51 (0x33)
   .maxstack  2
@@ -1361,10 +1361,10 @@ public class C : I
   IL_0031:  ldloc.1
   IL_0032:  ret
 }");
-        // Optimized
-        verify = CompileAndVerify(src,
-            expectedOutput: "A");
-        verify.VerifyIL("C.Tester", @"
+            // Optimized
+            verify = CompileAndVerify(src,
+                expectedOutput: "A");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -1394,12 +1394,12 @@ public class C : I
   IL_0029:  ldloc.0
   IL_002a:  ret
 }");
-    }
+        }
 
-    [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void NestedConditional4()
-    {
-        var src =
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void NestedConditional4()
+        {
+            var src =
 @"using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -1429,10 +1429,10 @@ public class C : I
         System.Console.Write(Tester(0).GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "D");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "D");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -1468,10 +1468,10 @@ public class C : I
   IL_0032:  ldloc.1
   IL_0033:  ret
 }");
-        // Optimized
-        verify = CompileAndVerify(src,
-            expectedOutput: "D");
-        verify.VerifyIL("C.Tester", @"
+            // Optimized
+            verify = CompileAndVerify(src,
+                expectedOutput: "D");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -1502,12 +1502,12 @@ public class C : I
   IL_002a:  ldloc.0
   IL_002b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorSimple()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorSimple()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1516,9 +1516,9 @@ class C
         System.Console.WriteLine(b ? 1 : 2);
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: "1");
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"{
+            var comp = CompileAndVerify(source, expectedOutput: "1");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldc.i4.1
@@ -1529,12 +1529,12 @@ class C
   IL_0007:  call       ""void System.Console.WriteLine(int)""
   IL_000c:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorConstantCondition()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorConstantCondition()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1545,11 +1545,11 @@ class C
         System.Console.WriteLine(false ? x : y);
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 1
 2");
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"{
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"{
   // Code size       15 (0xf)
   .maxstack  2
   .locals init (int V_0) //y
@@ -1561,12 +1561,12 @@ class C
   IL_0009:  call       ""void System.Console.WriteLine(int)""
   IL_000e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorNullLiteral()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorNullLiteral()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1578,9 +1578,9 @@ class C
         System.Console.WriteLine(s2);
     }
 }";
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -1598,12 +1598,12 @@ class C
   IL_001b:  call       ""void System.Console.WriteLine(string)""
   IL_0020:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorLambda()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorLambda()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1617,10 +1617,10 @@ class C
         System.Console.WriteLine(g2);
     }
 }";
-        // NOTE: this is slightly different from the Dev10 IL, which caches the lambdas in static fields
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"
+            // NOTE: this is slightly different from the Dev10 IL, which caches the lambdas in static fields
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       93 (0x5d)
   .maxstack  3
@@ -1660,12 +1660,12 @@ class C
   IL_005c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorMethodGroup()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorMethodGroup()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1684,9 +1684,9 @@ class C
         return 0;
     }
 }";
-        var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       55 (0x37)
   .maxstack  3
@@ -1714,12 +1714,12 @@ class C
   IL_0036:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorPreferWider()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorPreferWider()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -1729,10 +1729,10 @@ class C
         System.Console.Write(b ? 0 : 1u);
     }
 }";
-        // NOTE: second call is to Write(uint)
-        var comp = CompileAndVerify(source, expectedOutput: "00");
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"
+            // NOTE: second call is to Write(uint)
+            var comp = CompileAndVerify(source, expectedOutput: "00");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -1746,20 +1746,20 @@ class C
   IL_000d:  call       ""void System.Console.Write(uint)""
   IL_0012:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// This specific code has caused problems in the past.
-    /// System.Security.VerificationException on the second attempt.
-    /// </summary>
-    /// <remarks>
-    /// No special handling seems to have been required to make this work
-    /// in Roslyn.
-    /// </remarks>
-    [Fact]
-    public void TestConditionalOperatorInterfaceRegression1()
-    {
-        var source = @"
+        /// <summary>
+        /// This specific code has caused problems in the past.
+        /// System.Security.VerificationException on the second attempt.
+        /// </summary>
+        /// <remarks>
+        /// No special handling seems to have been required to make this work
+        /// in Roslyn.
+        /// </remarks>
+        [Fact]
+        public void TestConditionalOperatorInterfaceRegression1()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -1778,12 +1778,12 @@ public class Test
         Console.WriteLine(o2);
     }
 }";
-        // NOTE: second call is to Write(uint)
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            // NOTE: second call is to Write(uint)
+            var comp = CompileAndVerify(source, expectedOutput: @"
 first attempt: System.Type[]
 second attempt: System.Type[]");
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("Test.Main", @"
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
 {
   // Code size       61 (0x3d)
   .maxstack  1
@@ -1815,15 +1815,15 @@ second attempt: System.Type[]");
   IL_0037:  call       ""void System.Console.WriteLine(object)""
   IL_003c:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// From orcas bug #42645.  PEVerify fails.
-    /// </summary>
-    [Fact]
-    public void TestConditionalOperatorInterfaceRegression2()
-    {
-        var source = @"
+        /// <summary>
+        /// From orcas bug #42645.  PEVerify fails.
+        /// </summary>
+        [Fact]
+        public void TestConditionalOperatorInterfaceRegression2()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 public class Test
@@ -1837,11 +1837,11 @@ public class Test
         System.Console.WriteLine(c);
     }
 }";
-        // Note the explicit casts, even though the conversions are
-        // implicit reference conversions.
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("Test.Main", @"
+            // Note the explicit casts, even though the conversions are
+            // implicit reference conversions.
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  1
@@ -1865,12 +1865,12 @@ public class Test
   IL_0018:  call       ""void System.Console.WriteLine(object)""
   IL_001d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TestConditionalOperatorInterfaceRegression2a()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorInterfaceRegression2a()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 public class Test
@@ -1883,11 +1883,11 @@ public class Test
         IEnumerable<int> c = a != null ? a : (IEnumerable<int>)b;
     }
 }";
-        // Note the explicit casts, even though the conversions are
-        // implicit reference conversions.
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("Test.Main", @"
+            // Note the explicit casts, even though the conversions are
+            // implicit reference conversions.
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -1903,14 +1903,14 @@ public class Test
   IL_000f:  ret
 }
 ");
-    }
-    /// <summary>
-    /// From whidbey bug #108643.  Extraneous class casts in Test1.m2 (vs Test1.m1).
-    /// </summary>
-    [Fact]
-    public void TestConditionalOperatorInterfaceRegression3()
-    {
-        var source = @"
+        }
+        /// <summary>
+        /// From whidbey bug #108643.  Extraneous class casts in Test1.m2 (vs Test1.m1).
+        /// </summary>
+        [Fact]
+        public void TestConditionalOperatorInterfaceRegression3()
+        {
+            var source = @"
 interface Base { Base m1();}
 class Driver { public static int mask = 1;}
 class Test1 : Base
@@ -1927,9 +1927,9 @@ class Test1 : Base
     public Base m1() { return ((++cnt) & Driver.mask) != 0 ? same : next; } //version1 (explicit impl in original repro)
     public Base m2() { return ((++cnt) & Driver.mask) != 0 ? this : next; } //version2 
 }";
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("Test1.m1", @"
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test1.m1", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -1953,8 +1953,8 @@ class Test1 : Base
   IL_0021:  ldfld      ""Base Test1.same""
   IL_0026:  ret
 }");
-        // NOTE: no castclass
-        comp.VerifyIL("Test1.m2", @"
+            // NOTE: no castclass
+            comp.VerifyIL("Test1.m2", @"
 {
   // Code size       36 (0x24)
   .maxstack  3
@@ -1980,15 +1980,15 @@ class Test1 : Base
   IL_0022:  ldloc.1
   IL_0023:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// From whidbey bug #49619.  PEVerify fails.
-    /// </summary>
-    [Fact]
-    public void TestConditionalOperatorInterfaceRegression4()
-    {
-        var source = @"
+        /// <summary>
+        /// From whidbey bug #49619.  PEVerify fails.
+        /// </summary>
+        [Fact]
+        public void TestConditionalOperatorInterfaceRegression4()
+        {
+            var source = @"
 public interface IA { }
 public interface IB { int f(); }
 public class AB1 : IA, IB { public int f() { return 42; } }
@@ -2001,13 +2001,13 @@ class MainClass
         (p ? (IB)new AB1() : (IB)new AB2()).f();
     }
 }";
-        // Note the explicit casts, even though the conversions are
-        // implicit reference conversions.
-        // CONSIDER: dev10 writes to/reads from a temp to simulate
-        // a static cast (instead of using castclass).
-        var comp = CompileAndVerify(source);
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("MainClass.g", @"
+            // Note the explicit casts, even though the conversions are
+            // implicit reference conversions.
+            // CONSIDER: dev10 writes to/reads from a temp to simulate
+            // a static cast (instead of using castclass).
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("MainClass.g", @"
 {
   // Code size       26 (0x1a)
   .maxstack  1
@@ -2025,13 +2025,13 @@ class MainClass
   IL_0018:  pop
   IL_0019:  ret
 }");
-    }
+        }
 
-    [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-    [Fact]
-    public void TestConditionalOperatorForExpression()
-    {
-        var source = @"
+        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
+        [Fact]
+        public void TestConditionalOperatorForExpression()
+        {
+            var source = @"
 using System.Linq;
 using System.Collections.Generic;
 class Program
@@ -2047,16 +2047,16 @@ class Program
         }
     }
 }";
-        string expectedOutput = @"aaa
+            string expectedOutput = @"aaa
 bbb
 ccc";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForObjInit()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForObjInit()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -2080,19 +2080,19 @@ class Goo
     public int i;
 }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 0
 1
 1
 4
 4";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForObjInit_2()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForObjInit_2()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -2117,15 +2117,15 @@ class Goo
     public int i;
 }
 ";
-        string expectedOutput = @"10
+            string expectedOutput = @"10
 -10";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForExpressionTree()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForExpressionTree()
+        {
+            var source = @"
 using System;
 using System.Linq.Expressions;
 class Program
@@ -2138,14 +2138,14 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"100";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            string expectedOutput = @"100";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForCustomOperator()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForCustomOperator()
+        {
+            var source = @"
 using System;
 using System.Linq.Expressions;
 class Program
@@ -2169,14 +2169,14 @@ public struct TestStruct
     }
 }
 ";
-        string expectedOutput = @"10";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            string expectedOutput = @"10";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForMultiCondition()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForMultiCondition()
+        {
+            var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2185,22 +2185,22 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"2";
-        string expectedIL = @"{
+            string expectedOutput = @"2";
+            string expectedIL = @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldc.i4.2  
   IL_0001:  call       ""void System.Console.WriteLine(int)""
   IL_0006:  ret       
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
-    [Fact]
-    public void TestConditionalOperatorForImplicitConv()
-    {
-        var source = @"
+        [WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
+        [Fact]
+        public void TestConditionalOperatorForImplicitConv()
+        {
+            var source = @"
 using System.Linq;
 class Program
 {
@@ -2210,8 +2210,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"System.Int32[]";
-        string expectedIL = @"{
+            string expectedOutput = @"System.Int32[]";
+            string expectedIL = @"{
   // Code size       16 (0x10)
   .maxstack  4
   IL_0000:  ldc.i4.1  
@@ -2223,15 +2223,15 @@ class Program
   IL_000a:  call       ""void System.Console.WriteLine(object)""
   IL_000f:  ret       
 }";
-        // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
-        // We don't report the warning.
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
-    }
+            // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
+            // We don't report the warning.
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForConversion()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForConversion()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -2247,7 +2247,7 @@ class Program
     }
 }
 ";
-        string expectedIL = @"
+            string expectedIL = @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -2273,13 +2273,13 @@ class Program
   IL_0036:  call       ""void System.Console.WriteLine(decimal)""
   IL_003b:  ret
 }";
-        CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
-    public void TestConditionalOperatorForImplicitlyTypedArrays()
-    {
-        var source = @"
+        [Fact, WorkItem(530071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530071")]
+        public void TestConditionalOperatorForImplicitlyTypedArrays()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -2293,19 +2293,19 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 2
 3";
-        // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
-        // We don't report the warning.
-        CompileAndVerify(source, expectedOutput: expectedOutput).
-            VerifyDiagnostics();
-    }
+            // Dev11 compiler reports WRN_UnreachableExpr, but reachability is defined for statements not for expressions.
+            // We don't report the warning.
+            CompileAndVerify(source, expectedOutput: expectedOutput).
+                VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForConst()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForConst()
+        {
+            var source = @"
 class Program
 {
     const bool con = true;
@@ -2316,19 +2316,19 @@ class Program
     }
 }
 ";
-        string expectedIL = @"{
+            string expectedIL = @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.2
   IL_0001:  ret
 }";
-        CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForStatic()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForStatic()
+        {
+            var source = @"
 class Program
 {
     static bool con = true;
@@ -2339,7 +2339,7 @@ class Program
     }
 }
 ";
-        string expectedIL = @"{
+            string expectedIL = @"{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldsfld     ""bool Program.con""
@@ -2349,13 +2349,13 @@ class Program
   IL_0009:  ldc.i4.1
   IL_000a:  ret
 }";
-        CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForGenericMethod()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForGenericMethod()
+        {
+            var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2370,8 +2370,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"1";
-        string expectedIL = @"{
+            string expectedOutput = @"1";
+            string expectedIL = @"{
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldc.i4.1
@@ -2380,13 +2380,13 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(object)""
   IL_0010:  ret
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForGenericMethod2()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForGenericMethod2()
+        {
+            var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2401,8 +2401,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"1";
-        string expectedIL = @"
+            string expectedOutput = @"1";
+            string expectedIL = @"
 {
   // Code size       37 (0x25)
   .maxstack  1
@@ -2425,13 +2425,13 @@ class Program
   IL_0024:  ret
 }
 ";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForParenthesizedExpression()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForParenthesizedExpression()
+        {
+            var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2442,14 +2442,14 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"2";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            string expectedOutput = @"2";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForParameter()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForParameter()
+        {
+            var source = @"
 class Program
 {
     static bool b = true;
@@ -2463,8 +2463,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"true";
-        string expectedIL = @"{
+            string expectedOutput = @"true";
+            string expectedIL = @"{
   // Code size       21 (0x15)
   .maxstack  1
   IL_0000:  ldarg.0   
@@ -2475,13 +2475,13 @@ class Program
   IL_000f:  call       ""void System.Console.WriteLine(string)""
   IL_0014:  ret       
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForParameterRef()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForParameterRef()
+        {
+            var source = @"
 class Program
 {
     static bool b = true;
@@ -2495,8 +2495,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"False";
-        string expectedIL = @"
+            string expectedOutput = @"False";
+            string expectedIL = @"
 {
   // Code size       24 (0x18)
   .maxstack  3
@@ -2520,13 +2520,13 @@ class Program
   IL_0012:  call       ""void System.Console.WriteLine(bool)""
   IL_0017:  ret
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalOperatorForParameterOut()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalOperatorForParameterOut()
+        {
+            var source = @"
 class Program
 {
     static bool b = true;
@@ -2540,8 +2540,8 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"False";
-        string expectedIL = @"{
+            string expectedOutput = @"False";
+            string expectedIL = @"{
   // Code size       32 (0x20)
   .maxstack  3
   .locals init (bool V_0)
@@ -2564,13 +2564,13 @@ class Program
   IL_001a:  call       ""void System.Console.WriteLine(bool)""
   IL_001f:  ret       
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.fun", expectedIL);
+        }
 
-    [Fact]
-    public void TestConditionalRequiringBox()
-    {
-        var source = @"
+        [Fact]
+        public void TestConditionalRequiringBox()
+        {
+            var source = @"
 public static class Program
 {
     public static void Main()
@@ -2590,8 +2590,8 @@ public static class Program
         public string Goo() { return ""Val ""; }
     }
 }";
-        string expectedOutput = @"Val ";
-        string expectedIL = @"
+            string expectedOutput = @"Val ";
+            string expectedIL = @"
 {
   // Code size       38 (0x26)
   .maxstack  2
@@ -2617,13 +2617,13 @@ public static class Program
   IL_0020:  call       ""void System.Console.Write(string)""
   IL_0025:  ret
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact]
-    public void TestCoalesceRequiringBox()
-    {
-        var source = @"
+        [Fact]
+        public void TestCoalesceRequiringBox()
+        {
+            var source = @"
 public static class Program
 {
     public static void Main()
@@ -2647,8 +2647,8 @@ public static class Program
         public string Goo() { return ""Val ""; }
     }
 }";
-        string expectedOutput = @"Val Val ";
-        string expectedIL = @"
+            string expectedOutput = @"Val Val ";
+            string expectedIL = @"
 {
   // Code size       81 (0x51)
   .maxstack  3
@@ -2691,13 +2691,13 @@ public static class Program
   IL_004b:  call       ""void System.Console.Write(string)""
   IL_0050:  ret
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Program.Main", expectedIL);
+        }
 
-    [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
-    public void SeveralAdjacentIfsWithConditionalExpressions()
-    {
-        var source = @"
+        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
+        public void SeveralAdjacentIfsWithConditionalExpressions()
+        {
+            var source = @"
 class Class1
 {
     static void Main()
@@ -2712,8 +2712,8 @@ class Class1
 }
 ";
 
-        string expectedOutput = @"";
-        string expectedIL = @"
+            string expectedOutput = @"";
+            string expectedIL = @"
 {
   // Code size       25 (0x19)
   .maxstack  3
@@ -2744,13 +2744,13 @@ class Class1
   IL_0017:  stloc.1
   IL_0018:  ret
 }";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
+        }
 
-    [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
-    public void TestNestedConditionalAndNullOperators()
-    {
-        var src =
+        [Fact(), WorkItem(638289, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638289")]
+        public void TestNestedConditionalAndNullOperators()
+        {
+            var src =
 @"using System.Security;
 
 [assembly: SecurityTransparent()]
@@ -2774,10 +2774,10 @@ public class C : I
         System.Console.Write(Tester(null).GetType());
     }
 }";
-        var verify = CompileAndVerify(src,
-            options: TestOptions.DebugExe,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester", @"
+            var verify = CompileAndVerify(src,
+                options: TestOptions.DebugExe,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester", @"
 {
   // Code size       32 (0x20)
   .maxstack  2
@@ -2804,10 +2804,10 @@ public class C : I
   IL_001e:  ldloc.1
   IL_001f:  ret
 }");
-        // Optimized
-        verify = CompileAndVerify(src,
-            expectedOutput: "C");
-        verify.VerifyIL("C.Tester",
+            // Optimized
+            verify = CompileAndVerify(src,
+                expectedOutput: "C");
+            verify.VerifyIL("C.Tester",
 @"
 {
   // Code size       26 (0x1a)
@@ -2830,12 +2830,12 @@ public class C : I
   IL_0018:  ldloc.0
   IL_0019:  ret
 }");
-    }
+        }
 
-    [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
-    public void UnreachableLabelInUnreachableCode()
-    {
-        var source = @"
+        [Fact(), WorkItem(543609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543609")]
+        public void UnreachableLabelInUnreachableCode()
+        {
+            var source = @"
 class Class1
 {
     static void Main()
@@ -2866,8 +2866,8 @@ class Class1
 }
     ";
 
-        string expectedOutput = @"hi";
-        string expectedIL = @"
+            string expectedOutput = @"hi";
+            string expectedIL = @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -2876,13 +2876,13 @@ class Class1
   IL_000a:  ret
 }
 ";
-        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyIL("Class1.Main", expectedIL);
+        }
 
-    [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
-    public void GenericStructInLambda()
-    {
-        var source = @"
+        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        public void GenericStructInLambda()
+        {
+            var source = @"
 using System;
 
 static class LiveList
@@ -2903,13 +2903,13 @@ static class LiveList
     }
 }";
 
-        CompileAndVerify(source);
-    }
+            CompileAndVerify(source);
+        }
 
-    [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
-    public void GenericStructInIterator()
-    {
-        var source = @"
+        [Fact, WorkItem(12439, "https://github.com/dotnet/roslyn/issues/12439")]
+        public void GenericStructInIterator()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -2930,13 +2930,13 @@ static class LiveList
     }
 }";
 
-        CompileAndVerify(source);
-    }
+            CompileAndVerify(source);
+        }
 
-    [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
-    public void TestConditionalOperatorNotLvalue()
-    {
-        var source = @"
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvalue()
+        {
+            var source = @"
     class Program
     {
 
@@ -2974,17 +2974,17 @@ static class LiveList
         }
     }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 1
 1
 1";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
-    public void TestConditionalOperatorNotLvaluePointerElementAccess()
-    {
-        var source = @"
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvaluePointerElementAccess()
+        {
+            var source = @"
 class Program
 {
 
@@ -3010,15 +3010,15 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 1";
-        CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+        }
 
-    [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
-    public void TestConditionalOperatorNotLvalueRefCall()
-    {
-        var source = @"
+        [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
+        public void TestConditionalOperatorNotLvalueRefCall()
+        {
+            var source = @"
 class Program
 {
 
@@ -3047,15 +3047,15 @@ class Program
     }
 }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 1";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [Fact]
-    public void RefReadonlyConditional()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void RefReadonlyConditional()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 
 struct S
@@ -3118,7 +3118,7 @@ class C
 0
 0
 0");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size      290 (0x122)
   .maxstack  3
@@ -3230,12 +3230,12 @@ class C
   IL_011c:  call       ""void System.Console.WriteLine(int)""
   IL_0121:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void RefConditionalOperatorInValConditional()
-    {
-        var source = @"
+        [Fact]
+        public void RefConditionalOperatorInValConditional()
+        {
+            var source = @"
 using System;
 
 class Program
@@ -3283,12 +3283,12 @@ class Program
 
 }
 ";
-        string expectedOutput = @"2
+            string expectedOutput = @"2
 2
 2";
-        var verify = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var verify = CompileAndVerify(source, expectedOutput: expectedOutput);
 
-        verify.VerifyIL("Program.Main",
+            verify.VerifyIL("Program.Main",
 @"
 {
   // Code size      101 (0x65)
@@ -3344,13 +3344,13 @@ class Program
   IL_005f:  call       ""void System.Console.WriteLine(int)""
   IL_0064:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
-    public void ConditionalAccessUnconstrainedTField()
-    {
-        var source = @"using System;
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTField()
+        {
+            var source = @"using System;
 public class C<T>
 {
     public C(T t) => this.t = t;
@@ -3383,7 +3383,7 @@ public static class Program
         new C<string>().Print();
     }
 }";
-        var verify = CompileAndVerify(source, expectedOutput: @"0
+            var verify = CompileAndVerify(source, expectedOutput: @"0
 1
 
 
@@ -3392,7 +3392,7 @@ public static class Program
 hello
 hello");
 
-        verify.VerifyIL("C<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       75 (0x4b)
   .maxstack  2
@@ -3423,13 +3423,13 @@ hello");
   IL_004a:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
-    public void ConditionalAccessReadonlyUnconstrainedTField()
-    {
-        var source = @"using System;
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessReadonlyUnconstrainedTField()
+        {
+            var source = @"using System;
 public class C<T>
 {
     public C(T t) => this.t = t;
@@ -3462,7 +3462,7 @@ public static class Program
     }
 }
 ";
-        var verify = CompileAndVerify(source, expectedOutput: @"0
+            var verify = CompileAndVerify(source, expectedOutput: @"0
 0
 
 
@@ -3471,7 +3471,7 @@ public static class Program
 hello
 hello");
 
-        verify.VerifyIL("C<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -3497,13 +3497,13 @@ hello");
   IL_003a:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
-    public void ConditionalAccessUnconstrainedTLocal()
-    {
-        var source = @"using System;
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTLocal()
+        {
+            var source = @"using System;
 public class C<T>
 {
     public C(T t) => this.t = t;
@@ -3537,7 +3537,7 @@ public static class Program
         new C<string>().Print();
     }
 }";
-        var verify = CompileAndVerify(source, expectedOutput: @"0
+            var verify = CompileAndVerify(source, expectedOutput: @"0
 1
 
 
@@ -3546,7 +3546,7 @@ public static class Program
 hello
 hello");
 
-        verify.VerifyIL("C<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       73 (0x49)
   .maxstack  2
@@ -3579,13 +3579,13 @@ hello");
   IL_0048:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
-    public void ConditionalAccessUnconstrainedTTemp()
-    {
-        var source = @"using System;
+        [Fact]
+        [WorkItem(3519, "https://github.com/dotnet/roslyn/issues/35319")]
+        public void ConditionalAccessUnconstrainedTTemp()
+        {
+            var source = @"using System;
 public class C<T>
 {
     public C(T t) => this.t = t;
@@ -3610,13 +3610,13 @@ public static class Program
     }
 }
 ";
-        var verify = CompileAndVerify(source, expectedOutput: @"0
+            var verify = CompileAndVerify(source, expectedOutput: @"0
 
 0
 hello
 ");
 
-        verify.VerifyIL("C<T>.Print()", @"
+            verify.VerifyIL("C<T>.Print()", @"
 {
   // Code size       43 (0x2b)
   .maxstack  2
@@ -3638,12 +3638,12 @@ hello
   IL_002a:  ret
 }");
 
-    }
+        }
 
-    [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
-    public void ConditionalAccess_GenericExtension_ValueTuple()
-    {
-        var source = @"
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_GenericExtension_ValueTuple()
+        {
+            var source = @"
 using System;
 
 public static class Extension
@@ -3677,12 +3677,12 @@ class Program
         Console.WriteLine(new Class<int?>((0, null)).Value);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: @"abc
+            var verifier = CompileAndVerify(source, expectedOutput: @"abc
 
 0
 0
 ");
-        verifier.VerifyIL("Class<T>.Value.get", @"
+            verifier.VerifyIL("Class<T>.Value.get", @"
 {
   // Code size       46 (0x2e)
   .maxstack  2
@@ -3704,12 +3704,12 @@ class Program
   IL_0028:  call       ""string Extension.GetValue(object)""
   IL_002d:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
-    public void ConditionalAccess_InstanceMethod_ValueTuple()
-    {
-        var source = @"
+        [Fact, WorkItem(40690, "https://github.com/dotnet/roslyn/issues/40690")]
+        public void ConditionalAccess_InstanceMethod_ValueTuple()
+        {
+            var source = @"
 using System;
 
 public class Class<T>
@@ -3739,12 +3739,12 @@ class Program
         Console.WriteLine(new Class<int?>((0, null)).Value);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: @"abc
+            var verifier = CompileAndVerify(source, expectedOutput: @"abc
 
 0
 0
 ");
-        verifier.VerifyIL("Class<T>.Value.get", @"
+            verifier.VerifyIL("Class<T>.Value.get", @"
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -3765,12 +3765,12 @@ class Program
   IL_0024:  callvirt   ""string object.ToString()""
   IL_0029:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
-    public void NullableSideEffects_01()
-    {
-        var source = @"
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_01()
+        {
+            var source = @"
 struct S1
 {
     private int count;
@@ -3797,8 +3797,8 @@ class Program
     }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
-        verifier.VerifyIL("Program.Test1<T>(ref T)", @"
+            var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1<T>(ref T)", @"
 {
   // Code size       48 (0x30)
   .maxstack  2
@@ -3823,12 +3823,12 @@ class Program
   IL_002f:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
-    public void NullableSideEffects_02()
-    {
-        var source = @"
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_02()
+        {
+            var source = @"
 struct S1
 {
     private int count;
@@ -3858,8 +3858,8 @@ class Program
     }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
-        verifier.VerifyIL("Program.Test1<T>(ref T)", @"
+            var verifier = CompileAndVerify(source, expectedOutput: "11True").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1<T>(ref T)", @"
 {
   // Code size       64 (0x40)
   .maxstack  3
@@ -3891,12 +3891,12 @@ class Program
   IL_003f:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
-    public void NullableSideEffects_03()
-    {
-        var source = @"
+        [Fact, WorkItem(66152, "https://github.com/dotnet/roslyn/issues/66152")]
+        public void NullableSideEffects_03()
+        {
+            var source = @"
 struct S1
 {
 }
@@ -3917,11 +3917,12 @@ class C1 : C0<S1?>
     }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
-            // (16,23): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-            //         var result = y?.ToString(); 
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(16, 23)
-            );
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,23): error CS0023: Operator '?' cannot be applied to operand of type 'T'
+                //         var result = y?.ToString(); 
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(16, 23)
+                );
+        }
     }
 }

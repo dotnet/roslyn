@@ -9,38 +9,39 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Information decoded from early well-known custom attributes applied on a property.
-/// </summary>
-internal sealed class PropertyEarlyWellKnownAttributeData : CommonPropertyEarlyWellKnownAttributeData
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    #region IndexerNameAttribute
-
-    private string _indexerName;
-    public string IndexerName
+    /// <summary>
+    /// Information decoded from early well-known custom attributes applied on a property.
+    /// </summary>
+    internal sealed class PropertyEarlyWellKnownAttributeData : CommonPropertyEarlyWellKnownAttributeData
     {
-        get
-        {
-            VerifySealed(expected: true);
-            return _indexerName;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            Debug.Assert(value != null);
+        #region IndexerNameAttribute
 
-            // This can be false if there are duplicate IndexerNameAttributes.
-            // Just ignore the second one and let a later pass report an
-            // appropriate diagnostic.
-            if (_indexerName == null)
+        private string _indexerName;
+        public string IndexerName
+        {
+            get
             {
-                _indexerName = value;
-                SetDataStored();
+                VerifySealed(expected: true);
+                return _indexerName;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+
+                // This can be false if there are duplicate IndexerNameAttributes.
+                // Just ignore the second one and let a later pass report an
+                // appropriate diagnostic.
+                if (_indexerName == null)
+                {
+                    _indexerName = value;
+                    SetDataStored();
+                }
             }
         }
-    }
 
-    #endregion
+        #endregion
+    }
 }

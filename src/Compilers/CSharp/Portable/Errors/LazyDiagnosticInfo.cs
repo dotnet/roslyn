@@ -4,33 +4,34 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal abstract class LazyDiagnosticInfo : DiagnosticInfo
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private DiagnosticInfo? _lazyInfo;
-
-    protected LazyDiagnosticInfo()
-        : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
+    internal abstract class LazyDiagnosticInfo : DiagnosticInfo
     {
-    }
+        private DiagnosticInfo? _lazyInfo;
 
-    internal sealed override DiagnosticInfo GetResolvedInfo()
-    {
-        if (_lazyInfo == null)
+        protected LazyDiagnosticInfo()
+            : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
-            Interlocked.CompareExchange(ref _lazyInfo, ResolveInfo() ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
         }
 
-        return _lazyInfo;
+        internal sealed override DiagnosticInfo GetResolvedInfo()
+        {
+            if (_lazyInfo == null)
+            {
+                Interlocked.CompareExchange(ref _lazyInfo, ResolveInfo() ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
+            }
+
+            return _lazyInfo;
+        }
+
+        protected LazyDiagnosticInfo(LazyDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            _lazyInfo = original._lazyInfo;
+        }
+
+        protected abstract override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity);
+
+        protected abstract DiagnosticInfo? ResolveInfo();
     }
-
-    protected LazyDiagnosticInfo(LazyDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
-    {
-        _lazyInfo = original._lazyInfo;
-    }
-
-    protected abstract override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity);
-
-    protected abstract DiagnosticInfo? ResolveInfo();
 }

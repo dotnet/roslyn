@@ -5,23 +5,24 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-internal sealed class DiagnosticBagErrorLogger : ErrorLogger
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal readonly DiagnosticBag Diagnostics;
-
-    internal DiagnosticBagErrorLogger(DiagnosticBag diagnostics)
+    internal sealed class DiagnosticBagErrorLogger : ErrorLogger
     {
-        Diagnostics = diagnostics;
-    }
+        internal readonly DiagnosticBag Diagnostics;
 
-    public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
-    {
-        Diagnostics.Add(diagnostic);
-    }
+        internal DiagnosticBagErrorLogger(DiagnosticBag diagnostics)
+        {
+            Diagnostics = diagnostics;
+        }
 
-    public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
-    {
+        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
+        {
+            Diagnostics.Add(diagnostic);
+        }
+
+        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
+        {
+        }
     }
 }

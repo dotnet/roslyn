@@ -6,131 +6,132 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// Represents the results of overload resolution for a single member.
-/// </summary>
-[SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-internal readonly struct MemberResolutionResult<TMember> : IMemberResolutionResultWithPriority<TMember> where TMember : Symbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly TMember _member;
-    private readonly TMember _leastOverriddenMember;
-    private readonly MemberAnalysisResult _result;
-
     /// <summary>
-    /// At least one type argument was inferred from a function type.
+    /// Represents the results of overload resolution for a single member.
     /// </summary>
-    internal readonly bool HasTypeArgumentInferredFromFunctionType;
-
-    internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType)
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
+    internal readonly struct MemberResolutionResult<TMember> : IMemberResolutionResultWithPriority<TMember> where TMember : Symbol
     {
-        _member = member;
-        _leastOverriddenMember = leastOverriddenMember;
-        _result = result;
-        HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
-    }
+        private readonly TMember _member;
+        private readonly TMember _leastOverriddenMember;
+        private readonly MemberAnalysisResult _result;
 
-    internal MemberResolutionResult<TMember> WithResult(MemberAnalysisResult result)
-    {
-        return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, result, HasTypeArgumentInferredFromFunctionType);
-    }
+        /// <summary>
+        /// At least one type argument was inferred from a function type.
+        /// </summary>
+        internal readonly bool HasTypeArgumentInferredFromFunctionType;
 
-    internal bool IsNull
-    {
-        get { return (object)_member == null; }
-    }
-
-    internal bool IsNotNull
-    {
-        get { return (object)_member != null; }
-    }
-
-    /// <summary>
-    /// The member considered during overload resolution.
-    /// </summary>
-    public TMember Member
-    {
-        get { return _member; }
-    }
-
-    /// <summary>
-    /// The least overridden member that is accessible from the call site that performed overload resolution. 
-    /// Typically a virtual or abstract method (but not necessarily).
-    /// </summary>
-    /// <remarks>
-    /// The member whose parameter types and params modifiers were considered during overload resolution.
-    /// </remarks>
-    internal TMember LeastOverriddenMember
-    {
-        get { return _leastOverriddenMember; }
-    }
-
-    /// <summary>
-    /// Indicates why the compiler accepted or rejected the member during overload resolution.
-    /// </summary>
-    public MemberResolutionKind Resolution
-    {
-        get
+        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType)
         {
-            return Result.Kind;
+            _member = member;
+            _leastOverriddenMember = leastOverriddenMember;
+            _result = result;
+            HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
         }
-    }
 
-    /// <summary>
-    /// Returns true if the compiler accepted this member as the sole correct result of overload resolution.
-    /// </summary>
-    public bool IsValid
-    {
-        get
+        internal MemberResolutionResult<TMember> WithResult(MemberAnalysisResult result)
         {
-            return Result.IsValid;
+            return new MemberResolutionResult<TMember>(Member, LeastOverriddenMember, result, HasTypeArgumentInferredFromFunctionType);
         }
-    }
 
-    public bool IsApplicable
-    {
-        get
+        internal bool IsNull
         {
-            return Result.IsApplicable;
+            get { return (object)_member == null; }
         }
-    }
 
-    internal MemberResolutionResult<TMember> Worse()
-    {
-        return WithResult(MemberAnalysisResult.Worse());
-    }
-
-    internal MemberResolutionResult<TMember> Worst()
-    {
-        return WithResult(MemberAnalysisResult.Worst());
-    }
-
-    internal bool HasUseSiteDiagnosticToReport
-    {
-        get
+        internal bool IsNotNull
         {
-            return _result.HasUseSiteDiagnosticToReportFor(_member);
+            get { return (object)_member != null; }
         }
-    }
 
-    /// <summary>
-    /// The result of member analysis.
-    /// </summary>
-    internal MemberAnalysisResult Result
-    {
-        get { return _result; }
-    }
+        /// <summary>
+        /// The member considered during overload resolution.
+        /// </summary>
+        public TMember Member
+        {
+            get { return _member; }
+        }
 
-    TMember IMemberResolutionResultWithPriority<TMember>.MemberWithPriority => LeastOverriddenMember;
+        /// <summary>
+        /// The least overridden member that is accessible from the call site that performed overload resolution. 
+        /// Typically a virtual or abstract method (but not necessarily).
+        /// </summary>
+        /// <remarks>
+        /// The member whose parameter types and params modifiers were considered during overload resolution.
+        /// </remarks>
+        internal TMember LeastOverriddenMember
+        {
+            get { return _leastOverriddenMember; }
+        }
 
-    public override bool Equals(object? obj)
-    {
-        throw new NotSupportedException();
-    }
+        /// <summary>
+        /// Indicates why the compiler accepted or rejected the member during overload resolution.
+        /// </summary>
+        public MemberResolutionKind Resolution
+        {
+            get
+            {
+                return Result.Kind;
+            }
+        }
 
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
+        /// <summary>
+        /// Returns true if the compiler accepted this member as the sole correct result of overload resolution.
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                return Result.IsValid;
+            }
+        }
+
+        public bool IsApplicable
+        {
+            get
+            {
+                return Result.IsApplicable;
+            }
+        }
+
+        internal MemberResolutionResult<TMember> Worse()
+        {
+            return WithResult(MemberAnalysisResult.Worse());
+        }
+
+        internal MemberResolutionResult<TMember> Worst()
+        {
+            return WithResult(MemberAnalysisResult.Worst());
+        }
+
+        internal bool HasUseSiteDiagnosticToReport
+        {
+            get
+            {
+                return _result.HasUseSiteDiagnosticToReportFor(_member);
+            }
+        }
+
+        /// <summary>
+        /// The result of member analysis.
+        /// </summary>
+        internal MemberAnalysisResult Result
+        {
+            get { return _result; }
+        }
+
+        TMember IMemberResolutionResultWithPriority<TMember>.MemberWithPriority => LeastOverriddenMember;
+
+        public override bool Equals(object? obj)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotSupportedException();
+        }
     }
 }

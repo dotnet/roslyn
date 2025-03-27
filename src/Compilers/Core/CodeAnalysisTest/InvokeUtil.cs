@@ -28,157 +28,159 @@ using System.Runtime.Loader;
 using Roslyn.Test.Utilities.Desktop;
 #endif
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
+namespace Microsoft.CodeAnalysis.UnitTests
+{
 
 #if NET
 
-public sealed class InvokeUtil
-{
-    internal void Exec(
-        ITestOutputHelper testOutputHelper,
-        ImmutableArray<IAnalyzerPathResolver> pathResolvers,
-        ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
-        AssemblyLoadTestFixture fixture,
-        AnalyzerTestKind kind,
-        string typeName,
-        string methodName,
-        object? state = null)
+    public sealed class InvokeUtil
     {
-        using var tempRoot = new TempRoot();
-        switch (kind)
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            ImmutableArray<IAnalyzerPathResolver> pathResolvers,
+            ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerTestKind kind,
+            string typeName,
+            string methodName,
+            object? state = null)
         {
-            case AnalyzerTestKind.LoadDirect:
-                assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
-                break;
-            case AnalyzerTestKind.LoadStream:
-                assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver];
-                break;
-            case AnalyzerTestKind.ShadowLoad:
-                pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
-                assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
-                break;
-            default:
-                throw ExceptionUtilities.Unreachable();
-        }
-
-        var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
-        var compilerContextAssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
-        try
-        {
-            Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
-        }
-        finally
-        {
-            // When using the actual compiler load context (the one shared by all of our unit tests) the test
-            // did not load any additional assemblies that could interfere with later tests.
-            Assert.Equal(compilerContextAssemblyCount, loader.CompilerLoadContext.Assemblies.Count());
-        }
-    }
-
-    internal void Exec(
-        ITestOutputHelper testOutputHelper,
-        AssemblyLoadTestFixture fixture,
-        AnalyzerAssemblyLoader loader,
-        string typeName,
-        string methodName,
-        object? state = null)
-    {
-        // Ensure that the test did not load any of the test fixture assemblies into 
-        // the default load context. That should never happen. Assemblies should either 
-        // load into the compiler or directory load context.
-        //
-        // Not only is this bad behavior it also pollutes future test results.
-        var defaultContextCount = AssemblyLoadContext.Default.Assemblies.Count();
-        using var tempRoot = new TempRoot();
-
-        try
-        {
-            AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
-        }
-        finally
-        {
-            testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
-
-            foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
+            using var tempRoot = new TempRoot();
+            switch (kind)
             {
-                testOutputHelper.WriteLine($"Directory context: {context.Directory}");
-                foreach (var assembly in context.Assemblies)
+                case AnalyzerTestKind.LoadDirect:
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
+                    break;
+                case AnalyzerTestKind.LoadStream:
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.StreamAnalyzerAssemblyResolver];
+                    break;
+                case AnalyzerTestKind.ShadowLoad:
+                    pathResolvers = [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)];
+                    assemblyResolvers = [.. assemblyResolvers, AnalyzerAssemblyLoader.DiskAnalyzerAssemblyResolver];
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+
+            var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
+            var compilerContextAssemblyCount = loader.CompilerLoadContext.Assemblies.Count();
+            try
+            {
+                Exec(testOutputHelper, fixture, loader, typeName, methodName, state);
+            }
+            finally
+            {
+                // When using the actual compiler load context (the one shared by all of our unit tests) the test
+                // did not load any additional assemblies that could interfere with later tests.
+                Assert.Equal(compilerContextAssemblyCount, loader.CompilerLoadContext.Assemblies.Count());
+            }
+        }
+
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerAssemblyLoader loader,
+            string typeName,
+            string methodName,
+            object? state = null)
+        {
+            // Ensure that the test did not load any of the test fixture assemblies into 
+            // the default load context. That should never happen. Assemblies should either 
+            // load into the compiler or directory load context.
+            //
+            // Not only is this bad behavior it also pollutes future test results.
+            var defaultContextCount = AssemblyLoadContext.Default.Assemblies.Count();
+            using var tempRoot = new TempRoot();
+
+            try
+            {
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
+            }
+            finally
+            {
+                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
+
+                foreach (var context in loader.GetDirectoryLoadContextsSnapshot())
                 {
-                    testOutputHelper.WriteLine($"\t{assembly.FullName}");
+                    testOutputHelper.WriteLine($"Directory context: {context.Directory}");
+                    foreach (var assembly in context.Assemblies)
+                    {
+                        testOutputHelper.WriteLine($"\t{assembly.FullName}");
+                    }
                 }
-            }
 
-            if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
-            {
-                testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
-            }
+                if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
+                {
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
+                }
 
-            testOutputHelper.WriteLine($"Loader path maps");
-            foreach (var pair in loader.GetPathMapSnapshot())
-            {
-                testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
-            }
+                testOutputHelper.WriteLine($"Loader path maps");
+                foreach (var pair in loader.GetPathMapSnapshot())
+                {
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
+                }
 
-            Assert.Equal(defaultContextCount, AssemblyLoadContext.Default.Assemblies.Count());
+                Assert.Equal(defaultContextCount, AssemblyLoadContext.Default.Assemblies.Count());
+            }
         }
     }
-}
 
 #else
 
-public sealed class InvokeUtil : MarshalByRefObject
-{
-    internal void Exec(
-        ITestOutputHelper testOutputHelper,
-        AssemblyLoadTestFixture fixture,
-        AnalyzerTestKind kind,
-        string typeName,
-        string methodName,
-        IAnalyzerPathResolver[] pathResolvers,
-        object? state)
+    public sealed class InvokeUtil : MarshalByRefObject
     {
-        using var tempRoot = new TempRoot();
-        pathResolvers = kind switch
+        internal void Exec(
+            ITestOutputHelper testOutputHelper,
+            AssemblyLoadTestFixture fixture,
+            AnalyzerTestKind kind,
+            string typeName,
+            string methodName,
+            IAnalyzerPathResolver[] pathResolvers,
+            object? state)
         {
-            AnalyzerTestKind.LoadDirect => pathResolvers,
-            AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)],
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
-
-        var loader = new AnalyzerAssemblyLoader(pathResolvers.ToImmutableArray());
-
-        try
-        {
-            AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
-        }
-        catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
-        {
-            var inner = ex.InnerException;
-            throw new Exception(inner.Message + inner.StackTrace);
-        }
-        finally
-        {
-            testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
-
-            testOutputHelper.WriteLine($"Loaded Assemblies");
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName))
+            using var tempRoot = new TempRoot();
+            pathResolvers = kind switch
             {
-                testOutputHelper.WriteLine($"\t{assembly.FullName} -> {assembly.Location}");
+                AnalyzerTestKind.LoadDirect => pathResolvers,
+                AnalyzerTestKind.ShadowLoad => [.. pathResolvers, new ShadowCopyAnalyzerPathResolver(tempRoot.CreateDirectory().Path)],
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+
+            var loader = new AnalyzerAssemblyLoader(pathResolvers.ToImmutableArray());
+
+            try
+            {
+                AnalyzerAssemblyLoaderTests.InvokeTestCode(loader, fixture, typeName, methodName, state);
             }
-
-            if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
+            catch (TargetInvocationException ex) when (ex.InnerException is XunitException)
             {
-                testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
+                var inner = ex.InnerException;
+                throw new Exception(inner.Message + inner.StackTrace);
             }
-
-            testOutputHelper.WriteLine($"Loader path maps");
-            foreach (var pair in loader.GetPathMapSnapshot())
+            finally
             {
-                testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
+                testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
+
+                testOutputHelper.WriteLine($"Loaded Assemblies");
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderByDescending(x => x.FullName))
+                {
+                    testOutputHelper.WriteLine($"\t{assembly.FullName} -> {assembly.Location}");
+                }
+
+                if (loader.AnalyzerPathResolvers.OfType<ShadowCopyAnalyzerPathResolver>().FirstOrDefault() is { } shadowResolver)
+                {
+                    testOutputHelper.WriteLine($"{nameof(ShadowCopyAnalyzerPathResolver)}: {shadowResolver.BaseDirectory}");
+                }
+
+                testOutputHelper.WriteLine($"Loader path maps");
+                foreach (var pair in loader.GetPathMapSnapshot())
+                {
+                    testOutputHelper.WriteLine($"\t{pair.OriginalAssemblyPath} -> {pair.ResolvedAssemblyPath}");
+                }
             }
         }
     }
-}
 
 #endif
+
+}

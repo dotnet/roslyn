@@ -19,26 +19,26 @@ using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
-
-public class PDBUsingTests : CSharpPDBTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    #region Helpers
-
-    private static CSharpCompilation CreateDummyCompilation(string assemblyName)
+    public class PDBUsingTests : CSharpPDBTestBase
     {
-        return CreateCompilation(
-            "public class C { }",
-            assemblyName: assemblyName,
-            options: TestOptions.DebugDll);
-    }
+        #region Helpers
 
-    #endregion
+        private static CSharpCompilation CreateDummyCompilation(string assemblyName)
+        {
+            return CreateCompilation(
+                "public class C { }",
+                assemblyName: assemblyName,
+                options: TestOptions.DebugDll);
+        }
 
-    [Fact]
-    public void TestUsings()
-    {
-        var text = @"
+        #endregion
+
+        [Fact]
+        public void TestUsings()
+        {
+            var text = @"
 using System;
 
 class A { void M() { } }
@@ -57,7 +57,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -113,12 +113,12 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestNamespaceAliases()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestNamespaceAliases()
+        {
+            var text = @"
 using P = System;
 
 class A { void M() { } }
@@ -137,7 +137,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -193,12 +193,12 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestTypeAliases1()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestTypeAliases1()
+        {
+            var text = @"
 using P = System.String;
 
 class A { void M() { } }
@@ -217,7 +217,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -273,12 +273,12 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68312")]
-    public void TestTypeAliases1_B()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68312")]
+        public void TestTypeAliases1_B()
+        {
+            var text = @"
 using P = string;
 
 class A { void M() { } }
@@ -297,7 +297,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -353,12 +353,12 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestTypeAliases2()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestTypeAliases2()
+        {
+            var text = @"
 using P = System.Collections.Generic.List<int>;
 
 class A { void M() { } }
@@ -377,7 +377,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -433,12 +433,12 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68312")]
-    public void TestTypeAliases3()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/68312")]
+        public void TestTypeAliases3()
+        {
+            var text = @"
 using P = (int a, string b);
 
 class A { void M() { } }
@@ -464,7 +464,7 @@ namespace X
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.NetFramework).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -540,16 +540,16 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void TestExternAliases1()
-    {
-        CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
-        CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
-        CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+        [Fact]
+        public void TestExternAliases1()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
 
-        var text = @"
+            var text = @"
 extern alias P;
 
 class A { void M() { } }
@@ -568,29 +568,29 @@ namespace X
     }
 }
 ";
-        var compilation = CreateCompilation(text,
-            assemblyName: GetUniqueName(),
-            parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) ,
-                new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
-                new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R"))
-            });
+            var compilation = CreateCompilation(text,
+                assemblyName: GetUniqueName(),
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) ,
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R"))
+                });
 
-        compilation.VerifyDiagnostics(
-            // (2,1): info CS8020: Unused extern alias.
-            // extern alias P;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
-            // (8,5): info CS8020: Unused extern alias.
-            //     extern alias Q;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
-            // (14,9): info CS8020: Unused extern alias.
-            //         extern alias R;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
+            compilation.VerifyDiagnostics(
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
+                // (8,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
+                // (14,9): info CS8020: Unused extern alias.
+                //         extern alias R;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -651,36 +651,36 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
-    public void TestExternAliases2()
-    {
-        string source1 = @"
+        [Fact]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        public void TestExternAliases2()
+        {
+            string source1 = @"
 namespace U.V.W {}
 ";
 
-        var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
-        string source2 = @"
+            string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-        var compilation2 = CreateCompilation(
-            source2,
-            parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-            // first unaliased reference 
-            compilation1.ToMetadataReference(),
-            // second aliased reference
-            compilation1.ToMetadataReference(ImmutableArray.Create("X"))
-            });
+            var compilation2 = CreateCompilation(
+                source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                // first unaliased reference 
+                compilation1.ToMetadataReference(),
+                // second aliased reference
+                compilation1.ToMetadataReference(ImmutableArray.Create("X"))
+                });
 
-        compilation2.VerifyPdb("A.M", @"
+            compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -704,36 +704,36 @@ class A { void M() {  } }
   </methods>
 </symbols>
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
-    public void TestExternAliases3()
-    {
-        string source1 = @"
+        [Fact]
+        [WorkItem(1120579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1120579")]
+        public void TestExternAliases3()
+        {
+            string source1 = @"
 namespace U.V.W {}
 ";
 
-        var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
-        string source2 = @"
+            string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-        var compilation2 = CreateCompilation(
-            source2,
-            parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-            // first aliased reference
-            compilation1.ToMetadataReference(ImmutableArray.Create("X")),
-            // second unaliased reference 
-            compilation1.ToMetadataReference(),
-            });
+            var compilation2 = CreateCompilation(
+                source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                // first aliased reference
+                compilation1.ToMetadataReference(ImmutableArray.Create("X")),
+                // second unaliased reference 
+                compilation1.ToMetadataReference(),
+                });
 
-        compilation2.VerifyPdb("A.M", @"
+            compilation2.VerifyPdb("A.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -757,20 +757,20 @@ class A { void M() {  } }
   </methods>
 </symbols>
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(60045, "https://github.com/dotnet/roslyn/issues/60045")]
-    public void ExternAliases4()
-    {
-        var src1 = @"
+        [Fact]
+        [WorkItem(60045, "https://github.com/dotnet/roslyn/issues/60045")]
+        public void ExternAliases4()
+        {
+            var src1 = @"
 namespace N
 {
     public class C { }
 }";
-        var dummyCompilation = CreateCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
+            var dummyCompilation = CreateCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
 
-        var src2 = @"
+            var src2 = @"
 namespace M
 {
     extern alias A;
@@ -785,29 +785,29 @@ namespace M
         }
     }
 }";
-        var compilation = CreateCompilation(src2,
-            assemblyName: GetUniqueName(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
-            });
+            var compilation = CreateCompilation(src2,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
+                });
 
-        compilation.VerifyDiagnostics();
-        compilation.GetEmitDiagnostics();
-        compilation.VerifyEmitDiagnostics();
-    }
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+        }
 
-    [WorkItem(63927, "https://github.com/dotnet/roslyn/issues/63927")]
-    [Fact]
-    public void ExternAliases5()
-    {
-        string sourceA =
+        [WorkItem(63927, "https://github.com/dotnet/roslyn/issues/63927")]
+        [Fact]
+        public void ExternAliases5()
+        {
+            string sourceA =
 @"public class A { }";
-        var comp = CreateCompilation(sourceA, assemblyName: "A1");
-        var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+            var comp = CreateCompilation(sourceA, assemblyName: "A1");
+            var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
 
-        string sourceB =
+            string sourceB =
 @"#nullable enable
 extern alias A2;
 class B
@@ -815,9 +815,9 @@ class B
     static void F(A2::A? a) { }
 }
 ";
-        comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics();
-        comp.VerifyPdb(
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb(
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -841,48 +841,48 @@ class B
   </methods>
 </symbols>
 ");
-    }
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases6()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases6()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 class B
 {
     static void F(A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics();
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -908,9 +908,9 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -926,49 +926,49 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases7()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases7()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 class B
 {
     static void F(N2.A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using N2 = A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics();
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -994,9 +994,9 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1012,34 +1012,34 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases8()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases8()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2", "A3"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2", "A3"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 extern alias A3;
 class B
@@ -1047,19 +1047,19 @@ class B
     static void F(A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics(
-            // (2,1): hidden CS8020: Unused extern alias.
-            // extern alias A3;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A3;").WithLocation(2, 1)
-            );
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8020: Unused extern alias.
+                // extern alias A3;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A3;").WithLocation(2, 1)
+                );
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1087,9 +1087,9 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1105,34 +1105,34 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases9()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases9()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2", "A3"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2", "A3"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 extern alias A3;
 class B
@@ -1140,19 +1140,19 @@ class B
     static void F(N2.A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using N2 = A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics(
-            // (2,1): hidden CS8020: Unused extern alias.
-            // extern alias A3;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A3;").WithLocation(2, 1)
-            );
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8020: Unused extern alias.
+                // extern alias A3;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A3;").WithLocation(2, 1)
+                );
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1180,9 +1180,9 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1198,34 +1198,34 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases10()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases10()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 extern alias A5;
 class B
@@ -1233,19 +1233,19 @@ class B
     static void F(A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics(
-            // (2,1): hidden CS8020: Unused extern alias.
-            // extern alias A5;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A5;").WithLocation(2, 1)
-            );
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8020: Unused extern alias.
+                // extern alias A5;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A5;").WithLocation(2, 1)
+                );
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1272,9 +1272,9 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1290,34 +1290,34 @@ global using A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
-    [Fact]
-    public void ExternAliases11()
-    {
-        string sourceA1 =
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases11()
+        {
+            string sourceA1 =
 @"
 namespace N
 {
     public class A { }
 }
 ";
-        var comp = CreateCompilation(sourceA1, assemblyName: "A1");
-        var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+            var comp = CreateCompilation(sourceA1, assemblyName: "A1");
+            var refA1 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
 
-        string sourceA4 =
+            string sourceA4 =
 @"
 namespace N
 {
     public class A4 { }
 }
 ";
-        comp = CreateCompilation(sourceA4, assemblyName: "A4");
-        var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
+            comp = CreateCompilation(sourceA4, assemblyName: "A4");
+            var refA4 = comp.EmitToImageReference(aliases: ImmutableArray.Create("A5"));
 
-        string sourceB =
+            string sourceB =
 @"
 extern alias A5;
 class B
@@ -1325,19 +1325,19 @@ class B
     static void F(N2.A x) { }
 }
 ";
-        string sourceC =
+            string sourceC =
 @"
 extern alias A2;
 global using N2 = A2::N;
 ";
-        comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
-        comp.VerifyDiagnostics(
-            // (2,1): hidden CS8020: Unused extern alias.
-            // extern alias A5;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A5;").WithLocation(2, 1)
-            );
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA1, refA4 }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8020: Unused extern alias.
+                // extern alias A5;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias A5;").WithLocation(2, 1)
+                );
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1364,9 +1364,9 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.Pdb);
+                format: DebugInformationFormat.Pdb);
 
-        comp.VerifyPdb(
+            comp.VerifyPdb(
 @"
 <symbols>
   <files>
@@ -1382,23 +1382,23 @@ global using N2 = A2::N;
   </methods>
 </symbols>
 ",
-            format: DebugInformationFormat.PortablePdb);
-    }
+                format: DebugInformationFormat.PortablePdb);
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestExternAliases_ExplicitAndGlobal()
-    {
-        var dummySource = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestExternAliases_ExplicitAndGlobal()
+        {
+            var dummySource = @"
 namespace N
 {
     public class C { }
 }
 ";
 
-        CSharpCompilation dummyCompilation1 = CreateCompilation(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
-        CSharpCompilation dummyCompilation2 = CreateCompilation(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation1 = CreateCompilation(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation2 = CreateCompilation(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
 
-        var text = @"
+            var text = @"
 extern alias A;
 extern alias B;
 using X = A::N;
@@ -1407,27 +1407,27 @@ using Z = global::N;
 
 class C { void M() { } }
 ";
-        var compilation = CreateCompilation(text,
-            assemblyName: GetUniqueName(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("global", "A")),
-                new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("B", "global"))
-            });
+            var compilation = CreateCompilation(text,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("global", "A")),
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("B", "global"))
+                });
 
-        compilation.VerifyDiagnostics(
-            // (5,1): hidden CS8019: Unnecessary using directive.
-            // using Y = B::N;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = B::N;").WithLocation(5, 1),
-            // (4,1): hidden CS8019: Unnecessary using directive.
-            // using X = A::N;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = A::N;").WithLocation(4, 1),
-            // (6,1): hidden CS8019: Unnecessary using directive.
-            // using Z = global::N;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = global::N;").WithLocation(6, 1));
+            compilation.VerifyDiagnostics(
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Y = B::N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = B::N;").WithLocation(5, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using X = A::N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = A::N;").WithLocation(4, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
+                // using Z = global::N;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = global::N;").WithLocation(6, 1));
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
     <files>
       <file id=""1"" name="""" language=""C#"" />
@@ -1455,18 +1455,18 @@ class C { void M() { } }
         </method>
     </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestExternAliasesInUsing()
-    {
-        CSharpCompilation libComp = CreateCompilation(@"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestExternAliasesInUsing()
+        {
+            CSharpCompilation libComp = CreateCompilation(@"
 namespace N
 {
     public class A { }
 }", assemblyName: "Lib");
 
-        var text = @"
+            var text = @"
 extern alias P;
 using P::N;
 using Q = P::N.A;
@@ -1480,14 +1480,14 @@ namespace N
     class B { void M() { } }
 }
 ";
-        var compilation = CreateCompilation(text,
-            assemblyName: "Test",
-            options: TestOptions.DebugDll,
-            references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
+            var compilation = CreateCompilation(text,
+                assemblyName: "Test",
+                options: TestOptions.DebugDll,
+                references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
 
-        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
+            compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Info).Verify();
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1517,16 +1517,16 @@ namespace N
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestNamespacesAndAliases()
-    {
-        CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
-        CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
-        CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestNamespacesAndAliases()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
 
-        var text = @"
+            var text = @"
 extern alias P;
 using System;
 using AU1 = System;
@@ -1554,54 +1554,54 @@ namespace X
     }
 }
 ";
-        var compilation = CreateCompilation(text,
-            assemblyName: GetUniqueName(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) ,
-                new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
-                new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R"))
-            });
-        compilation.VerifyDiagnostics(
-            // (3,1): info CS8019: Unnecessary using directive.
-            // using System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
-            // (4,1): info CS8019: Unnecessary using directive.
-            // using AU1 = System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
-            // (5,1): info CS8019: Unnecessary using directive.
-            // using AT1 = System.Char;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
-            // (2,1): info CS8020: Unused extern alias.
-            // extern alias P;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
-            // (12,5): info CS8019: Unnecessary using directive.
-            //     using AU2 = System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
-            // (13,5): info CS8019: Unnecessary using directive.
-            //     using AT2 = System.IO.Directory;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
-            // (14,5): info CS8019: Unnecessary using directive.
-            //     using System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
-            // (11,5): info CS8020: Unused extern alias.
-            //     extern alias Q;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
-            // (21,9): info CS8019: Unnecessary using directive.
-            //         using AT3 = System.Text.StringBuilder;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
-            // (22,9): info CS8019: Unnecessary using directive.
-            //         using System.Text;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Text;"),
-            // (23,9): info CS8019: Unnecessary using directive.
-            //         using AU3 = System.Text;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Text;"),
-            // (20,9): info CS8020: Unused extern alias.
-            //         extern alias R;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
+            var compilation = CreateCompilation(text,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")) ,
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R"))
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (13,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (14,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
+                // (11,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
+                // (21,9): info CS8019: Unnecessary using directive.
+                //         using AT3 = System.Text.StringBuilder;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
+                // (22,9): info CS8019: Unnecessary using directive.
+                //         using System.Text;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Text;"),
+                // (23,9): info CS8019: Unnecessary using directive.
+                //         using AU3 = System.Text;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Text;"),
+                // (20,9): info CS8020: Unused extern alias.
+                //         extern alias R;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"));
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1680,18 +1680,18 @@ namespace X
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
-    public void ReferenceWithMultipleAliases()
-    {
-        var source1 = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
+        public void ReferenceWithMultipleAliases()
+        {
+            var source1 = @"
 namespace N { public class D { } }
 namespace M { public class E { } }
 ";
-        var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
-        var source2 = @"
+            var source2 = @"
 extern alias A;
 extern alias B;
 
@@ -1711,15 +1711,15 @@ public class C
     }
 }";
 
-        var compilation2 = CreateCompilation(source2,
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(compilation1, ImmutableArray.Create("A", "B"))
-            });
+            var compilation2 = CreateCompilation(source2,
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(compilation1, ImmutableArray.Create("A", "B"))
+                });
 
-        compilation2.VerifyDiagnostics();
-        compilation2.VerifyPdb(@"
+            compilation2.VerifyDiagnostics();
+            compilation2.VerifyPdb(@"
 <symbols>
     <files>
       <file id=""1"" name="""" language=""C#"" />
@@ -1753,18 +1753,18 @@ public class C
     </methods>
 </symbols>
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
-    public void ReferenceWithGlobalAndDuplicateAliases()
-    {
-        var source1 = @"
+        [Fact]
+        [WorkItem(913022, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913022")]
+        public void ReferenceWithGlobalAndDuplicateAliases()
+        {
+            var source1 = @"
 namespace N { public class D { } }
 ";
-        var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
 
-        var source2 = @"
+            var source2 = @"
 extern alias A;
 extern alias B;
 
@@ -1778,16 +1778,16 @@ public class C
     }
 }";
 
-        var compilation2 = CreateCompilation(source2,
-            parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(compilation1, ImmutableArray.Create("global", "B", "A", "A", "global"))
-            });
+            var compilation2 = CreateCompilation(source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(compilation1, ImmutableArray.Create("global", "B", "A", "A", "global"))
+                });
 
-        compilation2.VerifyDiagnostics();
-        compilation2.VerifyPdb(@"
+            compilation2.VerifyDiagnostics();
+            compilation2.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1816,16 +1816,16 @@ public class C
   </methods>
 </symbols>
 ");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestPartialTypeInOneFile()
-    {
-        CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
-        CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
-        CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestPartialTypeInOneFile()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
 
-        var text1 = @"
+            var text1 = @"
 extern alias P;
 using System;
 using AU1 = System;
@@ -1859,55 +1859,55 @@ namespace X
     }
 }
 ";
-        var compilation = CreateCompilation(
-            text1,
-            assemblyName: GetUniqueName(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")),
-                new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
-                new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")),
-            });
-        compilation.VerifyDiagnostics(
-            // (3,1): info CS8019: Unnecessary using directive.
-            // using System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
-            // (4,1): info CS8019: Unnecessary using directive.
-            // using AU1 = System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
-            // (5,1): info CS8019: Unnecessary using directive.
-            // using AT1 = System.Char;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
-            // (2,1): info CS8020: Unused extern alias.
-            // extern alias P;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
-            // (24,5): info CS8019: Unnecessary using directive.
-            //     using AU3 = System.Threading;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Threading;"),
-            // (25,5): info CS8019: Unnecessary using directive.
-            //     using AT3 = System.Threading.Thread;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Threading.Thread;"),
-            // (26,5): info CS8019: Unnecessary using directive.
-            //     using System.Threading;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),
-            // (23,5): info CS8020: Unused extern alias.
-            //     extern alias R;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"),
-            // (10,5): info CS8019: Unnecessary using directive.
-            //     using AU2 = System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
-            // (11,5): info CS8019: Unnecessary using directive.
-            //     using AT2 = System.IO.Directory;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
-            // (12,5): info CS8019: Unnecessary using directive.
-            //     using System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
-            // (9,5): info CS8020: Unused extern alias.
-            //     extern alias Q;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"));
+            var compilation = CreateCompilation(
+                text1,
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")),
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")),
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
+                // (24,5): info CS8019: Unnecessary using directive.
+                //     using AU3 = System.Threading;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Threading;"),
+                // (25,5): info CS8019: Unnecessary using directive.
+                //     using AT3 = System.Threading.Thread;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Threading.Thread;"),
+                // (26,5): info CS8019: Unnecessary using directive.
+                //     using System.Threading;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),
+                // (23,5): info CS8020: Unused extern alias.
+                //     extern alias R;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"));
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1986,17 +1986,17 @@ namespace X
     </method>
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestPartialTypeInTwoFiles()
-    {
-        CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
-        CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
-        CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
-        CSharpCompilation dummyCompilation4 = CreateDummyCompilation("d");
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestPartialTypeInTwoFiles()
+        {
+            CSharpCompilation dummyCompilation1 = CreateDummyCompilation("a");
+            CSharpCompilation dummyCompilation2 = CreateDummyCompilation("b");
+            CSharpCompilation dummyCompilation3 = CreateDummyCompilation("c");
+            CSharpCompilation dummyCompilation4 = CreateDummyCompilation("d");
 
-        var text1 = @"
+            var text1 = @"
 extern alias P;
 using System;
 using AU1 = System;
@@ -2017,7 +2017,7 @@ namespace X
 }
 ";
 
-        var text2 = @"
+            var text2 = @"
 extern alias R;
 using System.Text;
 using AU3 = System.Text;
@@ -2037,68 +2037,68 @@ namespace X
     }
 }
 ";
-        var compilation = CreateCompilation(
-            new string[] { text1, text2 },
-            assemblyName: GetUniqueName(),
-            options: TestOptions.DebugDll,
-            references: new[]
-            {
-                new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")),
-                new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
-                new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")),
-                new CSharpCompilationReference(dummyCompilation4, ImmutableArray.Create("S")),
-            });
-        compilation.VerifyDiagnostics(
-            // (3,1): info CS8019: Unnecessary using directive.
-            // using System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
-            // (4,1): info CS8019: Unnecessary using directive.
-            // using AU1 = System;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
-            // (5,1): info CS8019: Unnecessary using directive.
-            // using AT1 = System.Char;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
-            // (2,1): info CS8020: Unused extern alias.
-            // extern alias P;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
-            // (3,1): info CS8019: Unnecessary using directive.
-            // using System.Text;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Text;"),
-            // (4,1): info CS8019: Unnecessary using directive.
-            // using AU3 = System.Text;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Text;"),
-            // (5,1): info CS8019: Unnecessary using directive.
-            // using AT3 = System.Text.StringBuilder;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
-            // (10,5): info CS8019: Unnecessary using directive.
-            //     using AU2 = System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
-            // (2,1): info CS8020: Unused extern alias.
-            // extern alias R;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"),
-            // (11,5): info CS8019: Unnecessary using directive.
-            //     using AT2 = System.IO.Directory;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
-            // (12,5): info CS8019: Unnecessary using directive.
-            //     using System.IO;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
-            // (10,5): info CS8019: Unnecessary using directive.
-            //     using AU4 = System.Threading;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU4 = System.Threading;"),
-            // (9,5): info CS8020: Unused extern alias.
-            //     extern alias Q;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
-            // (11,5): info CS8019: Unnecessary using directive.
-            //     using AT4 = System.Threading.Thread;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT4 = System.Threading.Thread;"),
-            // (12,5): info CS8019: Unnecessary using directive.
-            //     using System.Threading;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),
-            // (9,5): info CS8020: Unused extern alias.
-            //     extern alias S;
-            Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias S;"));
+            var compilation = CreateCompilation(
+                new string[] { text1, text2 },
+                assemblyName: GetUniqueName(),
+                options: TestOptions.DebugDll,
+                references: new[]
+                {
+                    new CSharpCompilationReference(dummyCompilation1, ImmutableArray.Create("P")),
+                    new CSharpCompilationReference(dummyCompilation2, ImmutableArray.Create("Q")),
+                    new CSharpCompilationReference(dummyCompilation3, ImmutableArray.Create("R")),
+                    new CSharpCompilationReference(dummyCompilation4, ImmutableArray.Create("S")),
+                });
+            compilation.VerifyDiagnostics(
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU1 = System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU1 = System;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT1 = System.Char;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT1 = System.Char;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias P;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias P;"),
+                // (3,1): info CS8019: Unnecessary using directive.
+                // using System.Text;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Text;"),
+                // (4,1): info CS8019: Unnecessary using directive.
+                // using AU3 = System.Text;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU3 = System.Text;"),
+                // (5,1): info CS8019: Unnecessary using directive.
+                // using AT3 = System.Text.StringBuilder;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT3 = System.Text.StringBuilder;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU2 = System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU2 = System.IO;"),
+                // (2,1): info CS8020: Unused extern alias.
+                // extern alias R;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias R;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT2 = System.IO.Directory;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT2 = System.IO.Directory;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.IO;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.IO;"),
+                // (10,5): info CS8019: Unnecessary using directive.
+                //     using AU4 = System.Threading;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AU4 = System.Threading;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias Q;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Q;"),
+                // (11,5): info CS8019: Unnecessary using directive.
+                //     using AT4 = System.Threading.Thread;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using AT4 = System.Threading.Thread;"),
+                // (12,5): info CS8019: Unnecessary using directive.
+                //     using System.Threading;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading;"),
+                // (9,5): info CS8020: Unused extern alias.
+                //     extern alias S;
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias S;"));
 
-        compilation.VerifyPdb(@"
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2178,12 +2178,12 @@ namespace X
     </method>
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation); // TODO: https://github.com/dotnet/roslyn/issues/18004
-    }
+        }
 
-    [Fact]
-    public void TestSynthesizedConstructors()
-    {
-        var text = @"
+        [Fact]
+        public void TestSynthesizedConstructors()
+        {
+            var text = @"
 namespace X
 {
     using System;
@@ -2207,7 +2207,7 @@ namespace X
 }
 ";
 
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
     <files>
       <file id=""1"" name="""" language=""C#"" />
@@ -2239,12 +2239,12 @@ namespace X
         </method>
     </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializerLambdas()
-    {
-        var text = WithWindowsLineBreaks(@"
+        [Fact]
+        public void TestFieldInitializerLambdas()
+        {
+            var text = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -2256,7 +2256,7 @@ class C
     });
 }
 ");
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2319,12 +2319,12 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void TestAccessors()
-    {
-        var text = WithWindowsLineBreaks(@"
+        [Fact]
+        public void TestAccessors()
+        {
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -2337,7 +2337,7 @@ class C
 }
 ");
 
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2422,12 +2422,12 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void TestSynthesizedSealedAccessors()
-    {
-        var text = @"
+        [Fact]
+        public void TestSynthesizedSealedAccessors()
+        {
+            var text = @"
 using System;
 
 class Base
@@ -2441,7 +2441,7 @@ class Derived : Base
 }
 ";
 
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2473,12 +2473,12 @@ class Derived : Base
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void TestSynthesizedExplicitImplementation()
-    {
-        var text = WithWindowsLineBreaks(@"
+        [Fact]
+        public void TestSynthesizedExplicitImplementation()
+        {
+            var text = WithWindowsLineBreaks(@"
 using System.Runtime.CompilerServices;
 
 interface I1
@@ -2499,7 +2499,7 @@ class C : I1, I2
 }
 ");
 
-        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2534,13 +2534,13 @@ class C : I1, I2
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
-    [Fact]
-    public void SequencePointOnUsingExpression()
-    {
-        var source = @"
+        [WorkItem(692496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/692496")]
+        [Fact]
+        public void SequencePointOnUsingExpression()
+        {
+            var source = @"
 using System;
 
 public class Test : IDisposable
@@ -2555,9 +2555,9 @@ public class Test : IDisposable
     public void Dispose() { }
 }
 ";
-        var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-        v.VerifyIL("Test.Main", @"
+            v.VerifyIL("Test.Main", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
@@ -2582,12 +2582,12 @@ public class Test : IDisposable
   }
  -IL_0016:  ret
 }", sequencePoints: "Test.Main");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestNestedType()
-    {
-        var libSource = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestNestedType()
+        {
+            var libSource = @"
 public class Outer
 {
     public class Inner
@@ -2596,9 +2596,9 @@ public class Outer
 }
 ";
 
-        var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
 
-        var source = @"
+            var source = @"
 using I = Outer.Inner;
 
 public class Test
@@ -2608,7 +2608,7 @@ public class Test
     }
 }
 ";
-        CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
+            CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2631,12 +2631,12 @@ public class Test
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void TestVerbatimIdentifiers()
-    {
-        var source = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void TestVerbatimIdentifiers()
+        {
+            var source = @"
 using @namespace;
 using @object = @namespace;
 using @string = @namespace.@class<@namespace.@interface>.@struct;
@@ -2657,10 +2657,10 @@ namespace @namespace
 
 class Test { static void Main() { } }
 ";
-        var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source);
 
-        // As in dev12, we drop all '@'s.
-        comp.VerifyPdb("Test.Main", @"
+            // As in dev12, we drop all '@'s.
+            comp.VerifyPdb("Test.Main", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2683,17 +2683,17 @@ class Test { static void Main() { } }
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [WorkItem(842479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842479")]
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void UsingExternAlias()
-    {
-        var libSource = "public class C { }";
-        var lib = CreateCompilation(libSource, assemblyName: "Lib");
-        var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
+        [WorkItem(842479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842479")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void UsingExternAlias()
+        {
+            var libSource = "public class C { }";
+            var lib = CreateCompilation(libSource, assemblyName: "Lib");
+            var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
 
-        var source = @"
+            var source = @"
 extern alias Q;
 using R = Q;
 using Q;
@@ -2709,8 +2709,8 @@ namespace N
     }
 }
 ";
-        var comp = CreateCompilation(source, new[] { libRef });
-        comp.VerifyPdb("N.D.Main", @"
+            var comp = CreateCompilation(source, new[] { libRef });
+            comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2737,13 +2737,13 @@ namespace N
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [WorkItem(842478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842478")]
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void AliasIncludingDynamic()
-    {
-        var source = @"
+        [WorkItem(842478, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842478")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void AliasIncludingDynamic()
+        {
+            var source = @"
 using AD = System.Action<dynamic>;
 
 class D
@@ -2751,8 +2751,8 @@ class D
     static void Main() { }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyPdb("D.Main", @"
+            var comp = CreateCompilation(source);
+            comp.VerifyPdb("D.Main", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2773,12 +2773,12 @@ class D
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void UsingExpression()
-    {
-        TestSequencePoints(
+        [Fact]
+        public void UsingExpression()
+        {
+            TestSequencePoints(
 @"using System;
 
 public class Test : IDisposable
@@ -2793,12 +2793,12 @@ public class Test : IDisposable
     public void Dispose() { }
 
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
-    }
+        }
 
-    [Fact]
-    public void UsingVariable()
-    {
-        TestSequencePoints(
+        [Fact]
+        public void UsingVariable()
+        {
+            TestSequencePoints(
 @"using System;
 
 public class Test : IDisposable
@@ -2814,13 +2814,13 @@ public class Test : IDisposable
     public void Dispose() { }
 
 }", TestOptions.ReleaseExe, methodName: "Test.Main");
-    }
+        }
 
-    [WorkItem(546754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546754")]
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void ArrayType()
-    {
-        var source1 = @"
+        [WorkItem(546754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546754")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void ArrayType()
+        {
+            var source1 = @"
 using System;
 
 public class W {}
@@ -2831,9 +2831,9 @@ public class Y<T>
   public class Z<U> {}
 }
 ";
-        var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
 
-        var source2 = @"
+            var source2 = @"
 using t1 = Y<W[]>;
 using t2 = Y<W[,]>;
 using t3 = Y<W[,][]>;
@@ -2848,9 +2848,9 @@ public class C1
     }
 }
 ";
-        var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
-        comp2.VerifyPdb(@"
+            comp2.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2878,12 +2878,12 @@ public class C1
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615")]
-    public void WRN_DebugFullNameTooLong()
-    {
-        var text = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737"), WorkItem(543615, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543615")]
+        public void WRN_DebugFullNameTooLong()
+        {
+            var text = @"
 using System;
 
 using DICT1 = System.Collections.Generic.Dictionary<int, int>;
@@ -2902,21 +2902,21 @@ namespace goo
     }
 }";
 
-        var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
 
-        var exebits = new MemoryStream();
-        var pdbbits = new MemoryStream();
-        var result = compilation.Emit(exebits, pdbbits);
+            var exebits = new MemoryStream();
+            var pdbbits = new MemoryStream();
+            var result = compilation.Emit(exebits, pdbbits);
 
-        result.Diagnostics.Verify(
-            Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
-    }
+            result.Diagnostics.Verify(
+                Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+        }
 
-    [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
-    [Fact]
-    public void StaticType()
-    {
-        var source = @"
+        [WorkItem(1084059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084059")]
+        [Fact]
+        public void StaticType()
+        {
+            var source = @"
 using static System.Math;
 
 class D
@@ -2927,8 +2927,8 @@ class D
     }
 }
 ";
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
-        comp.VerifyPdb("D.Main", @"
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
       <file id=""1"" name="""" language=""C#"" />
@@ -2950,12 +2950,12 @@ class D
         </method>
     </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void UnusedImports()
-    {
-        var source = @"
+        [Fact]
+        public void UnusedImports()
+        {
+            var source = @"
 extern alias A;
 using System;
 using X = A::System.Linq.Enumerable;
@@ -2970,38 +2970,38 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
-        var v = CompileAndVerify(comp, validator: (peAssembly) =>
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var v = CompileAndVerify(comp, validator: (peAssembly) =>
+            {
+                var reader = peAssembly.ManifestModule.MetadataReader;
+
+                Assert.Equal(new[]
+                {
+                    "mscorlib",
+                    "System.Core",
+                    "System.Data"
+                }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
+
+                Assert.Equal(new[]
+                {
+                    "CompilationRelaxationsAttribute",
+                    "RuntimeCompatibilityAttribute",
+                    "DebuggableAttribute",
+                    "DebuggingModes",
+                    "Object",
+                    "Func`1",
+                    "Enumerable",
+                    "DataColumn"
+                }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
+
+                Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
+            });
+        }
+
+        [Fact]
+        public void UnusedImports_Nonexisting()
         {
-            var reader = peAssembly.ManifestModule.MetadataReader;
-
-            Assert.Equal(new[]
-            {
-                "mscorlib",
-                "System.Core",
-                "System.Data"
-            }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
-
-            Assert.Equal(new[]
-            {
-                "CompilationRelaxationsAttribute",
-                "RuntimeCompatibilityAttribute",
-                "DebuggableAttribute",
-                "DebuggingModes",
-                "Object",
-                "Func`1",
-                "Enumerable",
-                "DataColumn"
-            }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
-
-            Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));
-        });
-    }
-
-    [Fact]
-    public void UnusedImports_Nonexisting()
-    {
-        var source = @"
+            var source = @"
 extern alias A;
 using B;
 using X = C.D;
@@ -3015,43 +3015,43 @@ class C
     }
 }
 ";
-        var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source);
 
-        comp.VerifyDiagnostics(
-            // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
-            // using Z = F<int>;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<>").WithLocation(6, 11),
-            // (5,14): error CS0234: The type or namespace name 'E' does not exist in the namespace 'A' (are you missing an assembly reference?)
-            // using Y = A::E;
-            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A").WithLocation(5, 14),
-            // (4,13): error CS0426: The type name 'D' does not exist in the type 'C'
-            // using X = C.D;
-            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C").WithLocation(4, 13),
-            // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
-            // extern alias A;
-            Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14),
-            // (3,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
-            // using B;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3, 7),
-            // (5,1): hidden CS8019: Unnecessary using directive.
-            // using Y = A::E;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;").WithLocation(5, 1),
-            // (3,1): hidden CS8019: Unnecessary using directive.
-            // using B;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;").WithLocation(3, 1),
-            // (4,1): hidden CS8019: Unnecessary using directive.
-            // using X = C.D;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;").WithLocation(4, 1),
-            // (6,1): hidden CS8019: Unnecessary using directive.
-            // using Z = F<int>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;").WithLocation(6, 1)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F<int>").WithArguments("F<>").WithLocation(6, 11),
+                // (5,14): error CS0234: The type or namespace name 'E' does not exist in the namespace 'A' (are you missing an assembly reference?)
+                // using Y = A::E;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "E").WithArguments("E", "A").WithLocation(5, 14),
+                // (4,13): error CS0426: The type name 'D' does not exist in the type 'C'
+                // using X = C.D;
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "D").WithArguments("D", "C").WithLocation(4, 13),
+                // (2,14): error CS0430: The extern alias 'A' was not specified in a /reference option
+                // extern alias A;
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "A").WithArguments("A").WithLocation(2, 14),
+                // (3,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using B;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3, 7),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using Y = A::E;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = A::E;").WithLocation(5, 1),
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using B;").WithLocation(3, 1),
+                // (4,1): hidden CS8019: Unnecessary using directive.
+                // using X = C.D;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = C.D;").WithLocation(4, 1),
+                // (6,1): hidden CS8019: Unnecessary using directive.
+                // using Z = F<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Z = F<int>;").WithLocation(6, 1)
+                );
+        }
 
-    [Fact]
-    public void EmittingPdbVsNot()
-    {
-        string source = @"
+        [Fact]
+        public void EmittingPdbVsNot()
+        {
+            string source = @"
 using System;
 using X = System.IO.FileStream;
 
@@ -3067,22 +3067,22 @@ class C
 }
 ";
 
-        var c = CreateCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
+            var c = CreateCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
 
-        var peStream1 = new MemoryStream();
-        var peStream2 = new MemoryStream();
-        var pdbStream = new MemoryStream();
+            var peStream1 = new MemoryStream();
+            var peStream2 = new MemoryStream();
+            var pdbStream = new MemoryStream();
 
-        c.Emit(peStream: peStream1, pdbStream: pdbStream);
-        c.Emit(peStream: peStream2);
+            c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            c.Emit(peStream: peStream2);
 
-        MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
-    }
+            MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
+        }
 
-    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
-    public void ImportedNoPiaTypes()
-    {
-        var sourceLib = @"
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        public void ImportedNoPiaTypes()
+        {
+            var sourceLib = @"
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -3127,7 +3127,7 @@ namespace N
     }
 }
 ";
-        var source = @"
+            var source = @"
 using System;
 
 using static N.E;
@@ -3150,26 +3150,26 @@ class C
     }
 }
 ";
-        var libRef = CreateCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
-        var compilation = CreateCompilation(source, new[] { libRef });
-        var v = CompileAndVerify(compilation);
+            var libRef = CreateCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
+            var compilation = CreateCompilation(source, new[] { libRef });
+            var v = CompileAndVerify(compilation);
 
-        v.Diagnostics.Verify(
-            // (14,8): warning CS0169: The field 'C.i' is never used
-            //     NI i;
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i"),
-            // (5,1): hidden CS8019: Unnecessary using directive.
-            // using static N.SBad;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N.SBad;"),
-            // (10,1): hidden CS8019: Unnecessary using directive.
-            // using NIBad = N.IBad;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NIBad = N.IBad;"),
-            // (8,1): hidden CS8019: Unnecessary using directive.
-            // using ZBad = N.SBad;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ZBad = N.SBad;"));
+            v.Diagnostics.Verify(
+                // (14,8): warning CS0169: The field 'C.i' is never used
+                //     NI i;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("C.i"),
+                // (5,1): hidden CS8019: Unnecessary using directive.
+                // using static N.SBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static N.SBad;"),
+                // (10,1): hidden CS8019: Unnecessary using directive.
+                // using NIBad = N.IBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NIBad = N.IBad;"),
+                // (8,1): hidden CS8019: Unnecessary using directive.
+                // using ZBad = N.SBad;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ZBad = N.SBad;"));
 
-        // Usings of embedded types are currently omitted:
-        v.VerifyPdb("C.M", @"
+            // Usings of embedded types are currently omitted:
+            v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -3193,24 +3193,24 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
-    public void ImportedTypeWithUnknownBase()
-    {
-        var sourceLib1 = @"
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
+        public void ImportedTypeWithUnknownBase()
+        {
+            var sourceLib1 = @"
 namespace N
 {
     public class A { }
 }
 ";
-        var sourceLib2 = @"
+            var sourceLib2 = @"
 namespace N
 {
     public class B : A { }
 }
 ";
-        var source = @"
+            var source = @"
 using System;
 using X = N.B;
 
@@ -3222,17 +3222,17 @@ class C
     }
 }
 ";
-        var libRef1 = CreateCompilation(sourceLib1).EmitToImageReference();
-        var libRef2 = CreateCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
-        var compilation = CreateCompilation(source, new[] { libRef2 });
-        var v = CompileAndVerify(compilation);
+            var libRef1 = CreateCompilation(sourceLib1).EmitToImageReference();
+            var libRef2 = CreateCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
+            var compilation = CreateCompilation(source, new[] { libRef2 });
+            var v = CompileAndVerify(compilation);
 
-        v.Diagnostics.Verify(
-            // (3,1): hidden CS8019: Unnecessary using directive.
-            // using X = N.B;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.B;"));
+            v.Diagnostics.Verify(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using X = N.B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = N.B;"));
 
-        v.VerifyPdb("C.M", @"
+            v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -3255,12 +3255,12 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void ImportScopeEquality()
-    {
-        var sources = new[] { @"
+        [Fact]
+        public void ImportScopeEquality()
+        {
+            var sources = new[] { @"
 extern alias A;
 using System;
 using C = System;
@@ -3314,18 +3314,18 @@ using System;
 class C6 { void F() {} }
 " };
 
-        var c = CreateCompilationWithMscorlib40(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
-        var pdbStream = new MemoryStream();
-        c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
-        var pdbImage = pdbStream.ToImmutable();
+            var c = CreateCompilationWithMscorlib40(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var pdbStream = new MemoryStream();
+            c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            var pdbImage = pdbStream.ToImmutable();
 
-        using var metadata = new PinnedMetadata(pdbImage);
-        var mdReader = metadata.Reader;
-        var writer = new StringWriter();
-        var mdVisualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
-        mdVisualizer.WriteImportScope();
+            using var metadata = new PinnedMetadata(pdbImage);
+            var mdReader = metadata.Reader;
+            var writer = new StringWriter();
+            var mdVisualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+            mdVisualizer.WriteImportScope();
 
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 ImportScope (index: 0x35, size: 36): 
 ========================================================================
    Parent                    Imports                                      
@@ -3340,5 +3340,6 @@ ImportScope (index: 0x35, size: 36):
 8: 0x35000007 (ImportScope)  nil                                                                 
 9: 0x35000008 (ImportScope)  'System.Collections'
 ", writer.ToString());
+        }
     }
 }

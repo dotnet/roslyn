@@ -4,12 +4,13 @@
 
 #nullable disable
 
-namespace Roslyn.Test.Utilities;
-
-public static class EqualityUnit
+namespace Roslyn.Test.Utilities
 {
-    public static EqualityUnit<T> Create<T>(T value)
+    public static class EqualityUnit
     {
-        return new EqualityUnit<T>(value);
+        public static EqualityUnit<T> Create<T>(T value)
+        {
+            return new EqualityUnit<T>(value);
+        }
     }
 }

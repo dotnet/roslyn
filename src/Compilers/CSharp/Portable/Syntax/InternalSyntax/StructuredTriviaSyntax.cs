@@ -6,20 +6,21 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal abstract partial class StructuredTriviaSyntax : CSharpSyntaxNode
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal StructuredTriviaSyntax(SyntaxKind kind, DiagnosticInfo[] diagnostics = null, SyntaxAnnotation[] annotations = null)
-        : base(kind, diagnostics, annotations)
+    internal abstract partial class StructuredTriviaSyntax : CSharpSyntaxNode
     {
-        SetFlags(NodeFlags.ContainsStructuredTrivia);
-
-        if (this.Kind == SyntaxKind.SkippedTokensTrivia)
+        internal StructuredTriviaSyntax(SyntaxKind kind, DiagnosticInfo[] diagnostics = null, SyntaxAnnotation[] annotations = null)
+            : base(kind, diagnostics, annotations)
         {
-            SetFlags(NodeFlags.ContainsSkippedText);
-        }
-    }
+            SetFlags(NodeFlags.ContainsStructuredTrivia);
 
-    public sealed override bool IsStructuredTrivia => true;
+            if (this.Kind == SyntaxKind.SkippedTokensTrivia)
+            {
+                SetFlags(NodeFlags.ContainsSkippedText);
+            }
+        }
+
+        public sealed override bool IsStructuredTrivia => true;
+    }
 }

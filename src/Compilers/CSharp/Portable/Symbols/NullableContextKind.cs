@@ -6,80 +6,81 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Used by symbol implementations (source and metadata) to represent the value
-/// that was mapped from, or will be mapped to a [NullableContext] attribute.
-/// </summary>
-internal enum NullableContextKind : byte
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Uninitialized state
+    /// Used by symbol implementations (source and metadata) to represent the value
+    /// that was mapped from, or will be mapped to a [NullableContext] attribute.
     /// </summary>
-    Unknown = 0,
-
-    /// <summary>
-    /// No [NullableContext] attribute
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// [NullableContext(0)]
-    /// </summary>
-    Oblivious,
-
-    /// <summary>
-    /// [NullableContext(1)]
-    /// </summary>
-    NotAnnotated,
-
-    /// <summary>
-    /// [NullableContext(2)]
-    /// </summary>
-    Annotated,
-}
-
-internal static class NullableContextExtensions
-{
-    internal static bool TryGetByte(this NullableContextKind kind, out byte? value)
+    internal enum NullableContextKind : byte
     {
-        switch (kind)
-        {
-            case NullableContextKind.Unknown:
-                value = null;
-                return false;
-            case NullableContextKind.None:
-                value = null;
-                return true;
-            case NullableContextKind.Oblivious:
-                value = NullableAnnotationExtensions.ObliviousAttributeValue;
-                return true;
-            case NullableContextKind.NotAnnotated:
-                value = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                return true;
-            case NullableContextKind.Annotated:
-                value = NullableAnnotationExtensions.AnnotatedAttributeValue;
-                return true;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(kind);
-        }
+        /// <summary>
+        /// Uninitialized state
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// No [NullableContext] attribute
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// [NullableContext(0)]
+        /// </summary>
+        Oblivious,
+
+        /// <summary>
+        /// [NullableContext(1)]
+        /// </summary>
+        NotAnnotated,
+
+        /// <summary>
+        /// [NullableContext(2)]
+        /// </summary>
+        Annotated,
     }
 
-    internal static NullableContextKind ToNullableContextFlags(this byte? value)
+    internal static class NullableContextExtensions
     {
-        switch (value)
+        internal static bool TryGetByte(this NullableContextKind kind, out byte? value)
         {
-            case null:
-                return NullableContextKind.None;
-            case NullableAnnotationExtensions.ObliviousAttributeValue:
-                return NullableContextKind.Oblivious;
-            case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
-                return NullableContextKind.NotAnnotated;
-            case NullableAnnotationExtensions.AnnotatedAttributeValue:
-                return NullableContextKind.Annotated;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(value);
+            switch (kind)
+            {
+                case NullableContextKind.Unknown:
+                    value = null;
+                    return false;
+                case NullableContextKind.None:
+                    value = null;
+                    return true;
+                case NullableContextKind.Oblivious:
+                    value = NullableAnnotationExtensions.ObliviousAttributeValue;
+                    return true;
+                case NullableContextKind.NotAnnotated:
+                    value = NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                    return true;
+                case NullableContextKind.Annotated:
+                    value = NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    return true;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
+        }
+
+        internal static NullableContextKind ToNullableContextFlags(this byte? value)
+        {
+            switch (value)
+            {
+                case null:
+                    return NullableContextKind.None;
+                case NullableAnnotationExtensions.ObliviousAttributeValue:
+                    return NullableContextKind.Oblivious;
+                case NullableAnnotationExtensions.NotAnnotatedAttributeValue:
+                    return NullableContextKind.NotAnnotated;
+                case NullableAnnotationExtensions.AnnotatedAttributeValue:
+                    return NullableContextKind.Annotated;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(value);
+            }
         }
     }
 }

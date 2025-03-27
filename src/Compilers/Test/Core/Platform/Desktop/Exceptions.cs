@@ -11,33 +11,34 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper;
 
-namespace Roslyn.Test.Utilities.Desktop;
-
-[Serializable]
-public class RuntimePeVerifyException : Exception
+namespace Roslyn.Test.Utilities.Desktop
 {
-    public string Output { get; }
-    public string ExePath { get; }
-
-    protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
+    [Serializable]
+    public class RuntimePeVerifyException : Exception
     {
-        Output = info.GetString(nameof(Output));
-        ExePath = info.GetString(nameof(ExePath));
-    }
+        public string Output { get; }
+        public string ExePath { get; }
 
-    public RuntimePeVerifyException(string output, string exePath)
-        : base(GetMessageFromResult(output, exePath))
-    {
-        Output = output;
-        ExePath = exePath;
-    }
+        protected RuntimePeVerifyException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            Output = info.GetString(nameof(Output));
+            ExePath = info.GetString(nameof(ExePath));
+        }
 
-    public override void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        base.GetObjectData(info, context);
-        info.AddValue(nameof(Output), Output);
-        info.AddValue(nameof(ExePath), ExePath);
+        public RuntimePeVerifyException(string output, string exePath)
+            : base(GetMessageFromResult(output, exePath))
+        {
+            Output = output;
+            ExePath = exePath;
+        }
+
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            info.AddValue(nameof(Output), Output);
+            info.AddValue(nameof(ExePath), ExePath);
+        }
     }
 }
 #endif

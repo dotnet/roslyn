@@ -14,18 +14,18 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests;
-
-public class AccessibilityTests : ExpressionCompilerTestBase
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
-    /// <summary>
-    /// Do not allow calling accessors directly.
-    /// (This is consistent with the native EE.)
-    /// </summary>
-    [Fact]
-    public void NotReferencable()
+    public class AccessibilityTests : ExpressionCompilerTestBase
     {
-        var source =
+        /// <summary>
+        /// Do not allow calling accessors directly.
+        /// (This is consistent with the native EE.)
+        /// </summary>
+        [Fact]
+        public void NotReferencable()
+        {
+            var source =
 @"class C
 {
     object P { get { return null; } }
@@ -33,22 +33,22 @@ public class AccessibilityTests : ExpressionCompilerTestBase
     {
     }
 }";
-        ResultProperties resultProperties;
-        string error;
-        var testData = Evaluate(
-            source,
-            OutputKind.DynamicallyLinkedLibrary,
-            methodName: "C.M",
-            expr: "this.get_P()",
-            resultProperties: out resultProperties,
-            error: out error);
-        Assert.Equal("error CS0571: 'C.P.get': cannot explicitly call operator or accessor", error);
-    }
+            ResultProperties resultProperties;
+            string error;
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "this.get_P()",
+                resultProperties: out resultProperties,
+                error: out error);
+            Assert.Equal("error CS0571: 'C.P.get': cannot explicitly call operator or accessor", error);
+        }
 
-    [Fact]
-    public void ParametersAndReturnType_PrivateType()
-    {
-        var source =
+        [Fact]
+        public void ParametersAndReturnType_PrivateType()
+        {
+            var source =
 @"class A
 {
     private struct S { }
@@ -63,12 +63,12 @@ class B
     {
     }
 }";
-        var testData = Evaluate(
-            source,
-            OutputKind.DynamicallyLinkedLibrary,
-            methodName: "B.M",
-            expr: "F(new A.S())");
-        testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "B.M",
+                expr: "F(new A.S())");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       15 (0xf)
   .maxstack  1
@@ -79,12 +79,12 @@ class B
   IL_0009:  call       ""A.S B.F<A.S>(A.S)""
   IL_000e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void ParametersAndReturnType_DifferentCompilation()
-    {
-        var source =
+        [Fact]
+        public void ParametersAndReturnType_DifferentCompilation()
+        {
+            var source =
 @"class C
 {
     static T F<T>(T t)
@@ -95,12 +95,12 @@ class B
     {
     }
 }";
-        var testData = Evaluate(
-            source,
-            OutputKind.DynamicallyLinkedLibrary,
-            methodName: "C.M",
-            expr: "F(new { P = 1 })");
-        testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "F(new { P = 1 })");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -109,18 +109,18 @@ class B
   IL_0006:  call       ""<anonymous type: int P> C.F<<anonymous type: int P>>(<anonymous type: int P>)""
   IL_000b:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// The compiler generates calls to the least derived virtual method while
-    /// the EE calls the most derived method. However, the difference will be
-    /// observable only in cases where C# and CLR diff in how overrides are
-    /// determined (when override differs by ref/out or modopt for instance).
-    /// </summary>
-    [Fact]
-    public void ProtectedAndInternalVirtualCalls()
-    {
-        var source =
+        /// <summary>
+        /// The compiler generates calls to the least derived virtual method while
+        /// the EE calls the most derived method. However, the difference will be
+        /// observable only in cases where C# and CLR diff in how overrides are
+        /// determined (when override differs by ref/out or modopt for instance).
+        /// </summary>
+        [Fact]
+        public void ProtectedAndInternalVirtualCalls()
+        {
+            var source =
 @"internal class A
 {
     protected virtual object M(object o) { return o; }
@@ -138,21 +138,21 @@ internal class C : B
         return this.M(this.P);
     }
 }";
-        var compilation0 = CreateCompilation(
-            source,
-            options: TestOptions.DebugDll,
-            assemblyName: Guid.NewGuid().ToString("D"));
+            var compilation0 = CreateCompilation(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: Guid.NewGuid().ToString("D"));
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("this.M(this.P)", out error, testData);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("this.M(this.P)", out error, testData);
 
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -164,13 +164,13 @@ internal class C : B
   IL_000c:  ret
 }
 ");
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void InferredTypeArguments_DifferentCompilation()
-    {
-        var source =
+        [Fact]
+        public void InferredTypeArguments_DifferentCompilation()
+        {
+            var source =
 @"class C
 {
     static object F<T, U>(T t, U u)
@@ -182,12 +182,12 @@ internal class C : B
     {
     }
 }";
-        var testData = Evaluate(
-            source,
-            OutputKind.DynamicallyLinkedLibrary,
-            methodName: "C.M",
-            expr: "F(new { A = 2 }, new { B = 3 })"); // new and existing types
-        testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.M",
+                expr: "F(new { A = 2 }, new { B = 3 })"); // new and existing types
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       18 (0x12)
   .maxstack  2
@@ -198,5 +198,6 @@ internal class C : B
   IL_000c:  call       ""object C.F<<anonymous type: int A>, <anonymous type: int B>>(<anonymous type: int A>, <anonymous type: int B>)""
   IL_0011:  ret
 }");
+        }
     }
 }

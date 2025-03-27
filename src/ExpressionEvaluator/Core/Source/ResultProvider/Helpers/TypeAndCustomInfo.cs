@@ -9,36 +9,37 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal readonly struct TypeAndCustomInfo
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    public readonly DkmClrType ClrType;
-    public readonly DkmClrCustomTypeInfo Info;
-
-    public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
+    internal readonly struct TypeAndCustomInfo
     {
-        Debug.Assert(type != null); // Can only be null in the default instance.
-        ClrType = type;
-        Info = info;
-    }
+        public readonly DkmClrType ClrType;
+        public readonly DkmClrCustomTypeInfo Info;
 
-    public Type Type
-    {
-        get
+        public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
         {
-            var t = ClrType?.GetLmrType();
+            Debug.Assert(type != null); // Can only be null in the default instance.
+            ClrType = type;
+            Info = info;
+        }
 
-            //TODO: Sometimes we get byref types here when dealing with ref-returning members.
-            //      That probably should not happen.
-            //      For now we will just unwrap unexpected byrefs
-            if (t?.IsByRef == true)
+        public Type Type
+        {
+            get
             {
-                t = t.GetElementType();
-                Debug.Assert(!t.IsByRef, "double byref type?");
-            }
+                var t = ClrType?.GetLmrType();
 
-            return t;
+                //TODO: Sometimes we get byref types here when dealing with ref-returning members.
+                //      That probably should not happen.
+                //      For now we will just unwrap unexpected byrefs
+                if (t?.IsByRef == true)
+                {
+                    t = t.GetElementType();
+                    Debug.Assert(!t.IsByRef, "double byref type?");
+                }
+
+                return t;
+            }
         }
     }
 }

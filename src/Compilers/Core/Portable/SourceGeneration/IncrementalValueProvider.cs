@@ -6,46 +6,47 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Represents a provider of a single value that can be transformed as part of constructing an execution pipeline
-/// </summary>
-/// <remarks>
-/// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
-/// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
-/// are then used to create transforms over the data that creates the actual pipeline.
-/// </remarks>
-/// <typeparam name="TValue">The type of value that this source provides access to</typeparam>
-public readonly struct IncrementalValueProvider<TValue>
+namespace Microsoft.CodeAnalysis
 {
-    internal readonly IIncrementalGeneratorNode<TValue> Node;
-    internal readonly bool CatchAnalyzerExceptions;
-
-    internal IncrementalValueProvider(IIncrementalGeneratorNode<TValue> node, bool catchAnalyzerExceptions)
+    /// <summary>
+    /// Represents a provider of a single value that can be transformed as part of constructing an execution pipeline
+    /// </summary>
+    /// <remarks>
+    /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
+    /// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
+    /// are then used to create transforms over the data that creates the actual pipeline.
+    /// </remarks>
+    /// <typeparam name="TValue">The type of value that this source provides access to</typeparam>
+    public readonly struct IncrementalValueProvider<TValue>
     {
-        this.Node = node;
-        this.CatchAnalyzerExceptions = catchAnalyzerExceptions;
+        internal readonly IIncrementalGeneratorNode<TValue> Node;
+        internal readonly bool CatchAnalyzerExceptions;
+
+        internal IncrementalValueProvider(IIncrementalGeneratorNode<TValue> node, bool catchAnalyzerExceptions)
+        {
+            this.Node = node;
+            this.CatchAnalyzerExceptions = catchAnalyzerExceptions;
+        }
     }
-}
 
-/// <summary>
-/// Represents a provider of multiple values that can be transformed to construct an execution pipeline
-/// </summary>
-/// <remarks>
-/// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
-/// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
-/// are then used to create transforms over the data that creates the actual pipeline.
-/// </remarks>
-/// <typeparam name="TValues">The type of value that this source provides access to</typeparam>
-public readonly struct IncrementalValuesProvider<TValues>
-{
-    internal readonly IIncrementalGeneratorNode<TValues> Node;
-    internal readonly bool CatchAnalyzerExceptions;
-
-    internal IncrementalValuesProvider(IIncrementalGeneratorNode<TValues> node, bool catchAnalyzerExceptions)
+    /// <summary>
+    /// Represents a provider of multiple values that can be transformed to construct an execution pipeline
+    /// </summary>
+    /// <remarks>
+    /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
+    /// will receive a set of value providers when constructing its execution pipeline. A set of extension methods
+    /// are then used to create transforms over the data that creates the actual pipeline.
+    /// </remarks>
+    /// <typeparam name="TValues">The type of value that this source provides access to</typeparam>
+    public readonly struct IncrementalValuesProvider<TValues>
     {
-        this.Node = node;
-        this.CatchAnalyzerExceptions = catchAnalyzerExceptions;
+        internal readonly IIncrementalGeneratorNode<TValues> Node;
+        internal readonly bool CatchAnalyzerExceptions;
+
+        internal IncrementalValuesProvider(IIncrementalGeneratorNode<TValues> node, bool catchAnalyzerExceptions)
+        {
+            this.Node = node;
+            this.CatchAnalyzerExceptions = catchAnalyzerExceptions;
+        }
     }
 }

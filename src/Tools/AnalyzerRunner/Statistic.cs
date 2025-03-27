@@ -4,28 +4,29 @@
 
 #nullable disable
 
-namespace AnalyzerRunner;
-
-internal readonly struct Statistic
+namespace AnalyzerRunner
 {
-    public Statistic(int numberOfNodes, int numberOfTokens, int numberOfTrivia)
+    internal readonly struct Statistic
     {
-        this.NumberofNodes = numberOfNodes;
-        this.NumberOfTokens = numberOfTokens;
-        this.NumberOfTrivia = numberOfTrivia;
-    }
+        public Statistic(int numberOfNodes, int numberOfTokens, int numberOfTrivia)
+        {
+            this.NumberofNodes = numberOfNodes;
+            this.NumberOfTokens = numberOfTokens;
+            this.NumberOfTrivia = numberOfTrivia;
+        }
 
-    public int NumberofNodes { get; }
+        public int NumberofNodes { get; }
 
-    public int NumberOfTokens { get; }
+        public int NumberOfTokens { get; }
 
-    public int NumberOfTrivia { get; }
+        public int NumberOfTrivia { get; }
 
-    public static Statistic operator +(Statistic statistic1, Statistic statistic2)
-    {
-        return new Statistic(
-            statistic1.NumberofNodes + statistic2.NumberofNodes,
-            statistic1.NumberOfTokens + statistic2.NumberOfTokens,
-            statistic1.NumberOfTrivia + statistic2.NumberOfTrivia);
+        public static Statistic operator +(Statistic statistic1, Statistic statistic2)
+        {
+            return new Statistic(
+                statistic1.NumberofNodes + statistic2.NumberofNodes,
+                statistic1.NumberOfTokens + statistic2.NumberOfTokens,
+                statistic1.NumberOfTrivia + statistic2.NumberOfTrivia);
+        }
     }
 }

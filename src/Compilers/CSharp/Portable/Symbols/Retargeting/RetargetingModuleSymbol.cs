@@ -15,311 +15,312 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-
-/// <summary>
-/// Represents a primary module of a <see cref="RetargetingAssemblySymbol"/>. Essentially this is a wrapper around 
-/// another <see cref="SourceModuleSymbol"/> that is responsible for retargeting symbols from one assembly to another. 
-/// It can retarget symbols for multiple assemblies at the same time.
-/// 
-/// Here is how retargeting is implemented in general:
-/// - Symbols from underlying module are substituted with retargeting symbols.
-/// - Symbols from referenced assemblies that can be reused as is (i.e. don't have to be retargeted) are
-///   used as is.
-/// - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
-/// </summary>
-internal sealed partial class RetargetingModuleSymbol : NonMissingModuleSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
     /// <summary>
-    /// Owning <see cref="RetargetingAssemblySymbol"/>.
+    /// Represents a primary module of a <see cref="RetargetingAssemblySymbol"/>. Essentially this is a wrapper around 
+    /// another <see cref="SourceModuleSymbol"/> that is responsible for retargeting symbols from one assembly to another. 
+    /// It can retarget symbols for multiple assemblies at the same time.
+    /// 
+    /// Here is how retargeting is implemented in general:
+    /// - Symbols from underlying module are substituted with retargeting symbols.
+    /// - Symbols from referenced assemblies that can be reused as is (i.e. don't have to be retargeted) are
+    ///   used as is.
+    /// - Symbols from referenced assemblies that must be retargeted are substituted with result of retargeting.
     /// </summary>
-    private readonly RetargetingAssemblySymbol _retargetingAssembly;
+    internal sealed partial class RetargetingModuleSymbol : NonMissingModuleSymbol
+    {
+        /// <summary>
+        /// Owning <see cref="RetargetingAssemblySymbol"/>.
+        /// </summary>
+        private readonly RetargetingAssemblySymbol _retargetingAssembly;
 
-    /// <summary>
-    /// The underlying <see cref="ModuleSymbol"/>, cannot be another <see cref="RetargetingModuleSymbol"/>.
-    /// </summary>
-    private readonly SourceModuleSymbol _underlyingModule;
+        /// <summary>
+        /// The underlying <see cref="ModuleSymbol"/>, cannot be another <see cref="RetargetingModuleSymbol"/>.
+        /// </summary>
+        private readonly SourceModuleSymbol _underlyingModule;
 
-    /// <summary>
-    /// The map that captures information about what assembly should be retargeted 
-    /// to what assembly. Key is the <see cref="AssemblySymbol"/> referenced by the underlying module,
-    /// value is the corresponding <see cref="AssemblySymbol"/> referenced by this module, and corresponding
-    /// retargeting map for symbols.
-    /// </summary>
-    private readonly Dictionary<AssemblySymbol, DestinationData> _retargetingAssemblyMap =
-        new Dictionary<AssemblySymbol, DestinationData>();
+        /// <summary>
+        /// The map that captures information about what assembly should be retargeted 
+        /// to what assembly. Key is the <see cref="AssemblySymbol"/> referenced by the underlying module,
+        /// value is the corresponding <see cref="AssemblySymbol"/> referenced by this module, and corresponding
+        /// retargeting map for symbols.
+        /// </summary>
+        private readonly Dictionary<AssemblySymbol, DestinationData> _retargetingAssemblyMap =
+            new Dictionary<AssemblySymbol, DestinationData>();
 
 #nullable enable
 
-    private struct DestinationData
-    {
-        public AssemblySymbol To;
-        private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _symbolMap;
+        private struct DestinationData
+        {
+            public AssemblySymbol To;
+            private ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol>? _symbolMap;
 
-        public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
-    }
+            public ConcurrentDictionary<NamedTypeSymbol, NamedTypeSymbol> SymbolMap => LazyInitializer.EnsureInitialized(ref _symbolMap);
+        }
 
 #nullable disable
 
-    internal readonly RetargetingSymbolTranslator RetargetingTranslator;
+        internal readonly RetargetingSymbolTranslator RetargetingTranslator;
 
-    /// <summary>
-    /// Retargeted custom attributes
-    /// </summary>
-    private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        /// <summary>
+        /// Retargeted custom attributes
+        /// </summary>
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    /// <param name="retargetingAssembly">
-    /// Owning assembly.
-    /// </param>
-    /// <param name="underlyingModule">
-    /// The underlying ModuleSymbol, cannot be another RetargetingModuleSymbol.
-    /// </param>
-    public RetargetingModuleSymbol(RetargetingAssemblySymbol retargetingAssembly, SourceModuleSymbol underlyingModule)
-    {
-        Debug.Assert((object)retargetingAssembly != null);
-        Debug.Assert((object)underlyingModule != null);
-
-        _retargetingAssembly = retargetingAssembly;
-        _underlyingModule = underlyingModule;
-        this.RetargetingTranslator = new RetargetingSymbolTranslator(this);
-
-        _createRetargetingMethod = CreateRetargetingMethod;
-        _createRetargetingNamespace = CreateRetargetingNamespace;
-        _createRetargetingNamedType = CreateRetargetingNamedType;
-        _createRetargetingField = CreateRetargetingField;
-        _createRetargetingProperty = CreateRetargetingProperty;
-        _createRetargetingEvent = CreateRetargetingEvent;
-        _createRetargetingTypeParameter = CreateRetargetingTypeParameter;
-    }
-
-    internal override int Ordinal
-    {
-        get
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="retargetingAssembly">
+        /// Owning assembly.
+        /// </param>
+        /// <param name="underlyingModule">
+        /// The underlying ModuleSymbol, cannot be another RetargetingModuleSymbol.
+        /// </param>
+        public RetargetingModuleSymbol(RetargetingAssemblySymbol retargetingAssembly, SourceModuleSymbol underlyingModule)
         {
-            Debug.Assert(_underlyingModule.Ordinal == 0); // Always a source module
-            return 0;
+            Debug.Assert((object)retargetingAssembly != null);
+            Debug.Assert((object)underlyingModule != null);
+
+            _retargetingAssembly = retargetingAssembly;
+            _underlyingModule = underlyingModule;
+            this.RetargetingTranslator = new RetargetingSymbolTranslator(this);
+
+            _createRetargetingMethod = CreateRetargetingMethod;
+            _createRetargetingNamespace = CreateRetargetingNamespace;
+            _createRetargetingNamedType = CreateRetargetingNamedType;
+            _createRetargetingField = CreateRetargetingField;
+            _createRetargetingProperty = CreateRetargetingProperty;
+            _createRetargetingEvent = CreateRetargetingEvent;
+            _createRetargetingTypeParameter = CreateRetargetingTypeParameter;
         }
-    }
 
-    internal override Machine Machine
-    {
-        get
+        internal override int Ordinal
         {
-            return _underlyingModule.Machine;
+            get
+            {
+                Debug.Assert(_underlyingModule.Ordinal == 0); // Always a source module
+                return 0;
+            }
         }
-    }
 
-    internal override bool Bit32Required
-    {
-        get
+        internal override Machine Machine
         {
-            return _underlyingModule.Bit32Required;
+            get
+            {
+                return _underlyingModule.Machine;
+            }
         }
-    }
 
-    /// <summary>
-    /// The underlying ModuleSymbol, cannot be another RetargetingModuleSymbol.
-    /// </summary>
-    public SourceModuleSymbol UnderlyingModule
-    {
-        get
+        internal override bool Bit32Required
         {
-            return _underlyingModule;
+            get
+            {
+                return _underlyingModule.Bit32Required;
+            }
         }
-    }
 
-    public override NamespaceSymbol GlobalNamespace
-    {
-        get
+        /// <summary>
+        /// The underlying ModuleSymbol, cannot be another RetargetingModuleSymbol.
+        /// </summary>
+        public SourceModuleSymbol UnderlyingModule
         {
-            return RetargetingTranslator.Retarget(_underlyingModule.GlobalNamespace);
+            get
+            {
+                return _underlyingModule;
+            }
         }
-    }
 
-    public override bool IsImplicitlyDeclared
-    {
-        get { return _underlyingModule.IsImplicitlyDeclared; }
-    }
-
-    public override string Name
-    {
-        get
+        public override NamespaceSymbol GlobalNamespace
         {
-            return _underlyingModule.Name;
+            get
+            {
+                return RetargetingTranslator.Retarget(_underlyingModule.GlobalNamespace);
+            }
         }
-    }
 
-    public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-    {
-        return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-    }
-
-    public override Symbol ContainingSymbol
-    {
-        get
+        public override bool IsImplicitlyDeclared
         {
-            return _retargetingAssembly;
+            get { return _underlyingModule.IsImplicitlyDeclared; }
         }
-    }
 
-    public override AssemblySymbol ContainingAssembly
-    {
-        get
+        public override string Name
         {
-            return _retargetingAssembly;
+            get
+            {
+                return _underlyingModule.Name;
+            }
         }
-    }
 
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _underlyingModule.Locations;
+            return _underlyingModule.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
-    }
 
-    /// <summary>
-    /// A helper method for ReferenceManager to set AssemblySymbols for assemblies 
-    /// referenced by this module.
-    /// </summary>
-    internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
-    {
-        base.SetReferences(moduleReferences, originatingSourceAssemblyDebugOnly);
-
-        // Build the retargeting map
-        _retargetingAssemblyMap.Clear();
-
-        ImmutableArray<AssemblySymbol> underlyingBoundReferences = _underlyingModule.GetReferencedAssemblySymbols();
-        ImmutableArray<AssemblySymbol> referencedAssemblySymbols = moduleReferences.Symbols;
-
-        Debug.Assert(referencedAssemblySymbols.Length == moduleReferences.Identities.Length);
-        Debug.Assert(referencedAssemblySymbols.Length <= underlyingBoundReferences.Length); // Linked references are filtered out.
-
-        int i, j;
-        for (i = 0, j = 0; i < referencedAssemblySymbols.Length; i++, j++)
+        public override Symbol ContainingSymbol
         {
-            // Skip linked assemblies for source module
-            while (underlyingBoundReferences[j].IsLinked)
+            get
+            {
+                return _retargetingAssembly;
+            }
+        }
+
+        public override AssemblySymbol ContainingAssembly
+        {
+            get
+            {
+                return _retargetingAssembly;
+            }
+        }
+
+        public override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return _underlyingModule.Locations;
+            }
+        }
+
+        /// <summary>
+        /// A helper method for ReferenceManager to set AssemblySymbols for assemblies 
+        /// referenced by this module.
+        /// </summary>
+        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
+        {
+            base.SetReferences(moduleReferences, originatingSourceAssemblyDebugOnly);
+
+            // Build the retargeting map
+            _retargetingAssemblyMap.Clear();
+
+            ImmutableArray<AssemblySymbol> underlyingBoundReferences = _underlyingModule.GetReferencedAssemblySymbols();
+            ImmutableArray<AssemblySymbol> referencedAssemblySymbols = moduleReferences.Symbols;
+
+            Debug.Assert(referencedAssemblySymbols.Length == moduleReferences.Identities.Length);
+            Debug.Assert(referencedAssemblySymbols.Length <= underlyingBoundReferences.Length); // Linked references are filtered out.
+
+            int i, j;
+            for (i = 0, j = 0; i < referencedAssemblySymbols.Length; i++, j++)
+            {
+                // Skip linked assemblies for source module
+                while (underlyingBoundReferences[j].IsLinked)
+                {
+                    j++;
+                }
+
+#if DEBUG
+                var identityComparer = _underlyingModule.DeclaringCompilation.Options.AssemblyIdentityComparer;
+                var definitionIdentity = ReferenceEquals(referencedAssemblySymbols[i], originatingSourceAssemblyDebugOnly) ?
+                        new AssemblyIdentity(name: originatingSourceAssemblyDebugOnly.Name) :
+                        referencedAssemblySymbols[i].Identity;
+
+                Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], definitionIdentity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+                Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], underlyingBoundReferences[j].Identity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+#endif
+
+                if (!ReferenceEquals(referencedAssemblySymbols[i], underlyingBoundReferences[j]))
+                {
+                    DestinationData destinationData;
+
+                    if (!_retargetingAssemblyMap.TryGetValue(underlyingBoundReferences[j], out destinationData))
+                    {
+                        _retargetingAssemblyMap.Add(underlyingBoundReferences[j],
+                            new DestinationData { To = referencedAssemblySymbols[i] });
+                    }
+                    else
+                    {
+                        Debug.Assert(ReferenceEquals(destinationData.To, referencedAssemblySymbols[i]));
+                    }
+                }
+            }
+
+#if DEBUG
+            while (j < underlyingBoundReferences.Length && underlyingBoundReferences[j].IsLinked)
             {
                 j++;
             }
 
-#if DEBUG
-            var identityComparer = _underlyingModule.DeclaringCompilation.Options.AssemblyIdentityComparer;
-            var definitionIdentity = ReferenceEquals(referencedAssemblySymbols[i], originatingSourceAssemblyDebugOnly) ?
-                    new AssemblyIdentity(name: originatingSourceAssemblyDebugOnly.Name) :
-                    referencedAssemblySymbols[i].Identity;
-
-            Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], definitionIdentity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
-            Debug.Assert(identityComparer.Compare(moduleReferences.Identities[i], underlyingBoundReferences[j].Identity) != AssemblyIdentityComparer.ComparisonResult.NotEquivalent);
+            Debug.Assert(j == underlyingBoundReferences.Length);
 #endif
+        }
 
-            if (!ReferenceEquals(referencedAssemblySymbols[i], underlyingBoundReferences[j]))
+        internal bool RetargetingDefinitions(AssemblySymbol from, out AssemblySymbol to)
+        {
+            DestinationData destination;
+
+            if (!_retargetingAssemblyMap.TryGetValue(from, out destination))
             {
-                DestinationData destinationData;
+                to = null;
+                return false;
+            }
 
-                if (!_retargetingAssemblyMap.TryGetValue(underlyingBoundReferences[j], out destinationData))
-                {
-                    _retargetingAssemblyMap.Add(underlyingBoundReferences[j],
-                        new DestinationData { To = referencedAssemblySymbols[i] });
-                }
-                else
-                {
-                    Debug.Assert(ReferenceEquals(destinationData.To, referencedAssemblySymbols[i]));
-                }
+            to = destination.To;
+            return true;
+        }
+
+        internal override ICollection<string> TypeNames
+        {
+            get
+            {
+                return _underlyingModule.TypeNames;
             }
         }
 
-#if DEBUG
-        while (j < underlyingBoundReferences.Length && underlyingBoundReferences[j].IsLinked)
+        internal override ICollection<string> NamespaceNames
         {
-            j++;
+            get
+            {
+                return _underlyingModule.NamespaceNames;
+            }
         }
 
-        Debug.Assert(j == underlyingBoundReferences.Length);
-#endif
-    }
-
-    internal bool RetargetingDefinitions(AssemblySymbol from, out AssemblySymbol to)
-    {
-        DestinationData destination;
-
-        if (!_retargetingAssemblyMap.TryGetValue(from, out destination))
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            to = null;
-            return false;
+            return RetargetingTranslator.GetRetargetedAttributes(_underlyingModule.GetAttributes(), ref _lazyCustomAttributes);
         }
 
-        to = destination.To;
-        return true;
-    }
-
-    internal override ICollection<string> TypeNames
-    {
-        get
+        internal override bool HasAssemblyCompilationRelaxationsAttribute
         {
-            return _underlyingModule.TypeNames;
+            get
+            {
+                return _underlyingModule.HasAssemblyCompilationRelaxationsAttribute;
+            }
         }
-    }
 
-    internal override ICollection<string> NamespaceNames
-    {
-        get
+        internal override bool HasAssemblyRuntimeCompatibilityAttribute
         {
-            return _underlyingModule.NamespaceNames;
+            get
+            {
+                return _underlyingModule.HasAssemblyRuntimeCompatibilityAttribute;
+            }
         }
-    }
 
-    public override ImmutableArray<CSharpAttributeData> GetAttributes()
-    {
-        return RetargetingTranslator.GetRetargetedAttributes(_underlyingModule.GetAttributes(), ref _lazyCustomAttributes);
-    }
-
-    internal override bool HasAssemblyCompilationRelaxationsAttribute
-    {
-        get
+        internal override CharSet? DefaultMarshallingCharSet
         {
-            return _underlyingModule.HasAssemblyCompilationRelaxationsAttribute;
+            get
+            {
+                return _underlyingModule.DefaultMarshallingCharSet;
+            }
         }
-    }
 
-    internal override bool HasAssemblyRuntimeCompatibilityAttribute
-    {
-        get
+        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
-            return _underlyingModule.HasAssemblyRuntimeCompatibilityAttribute;
+            get { return null; }
         }
-    }
 
-    internal override CharSet? DefaultMarshallingCharSet
-    {
-        get
+        public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
+
+        public sealed override bool AreLocalsZeroed
         {
-            return _underlyingModule.DefaultMarshallingCharSet;
+            get
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
-    }
 
-    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-    {
-        get { return null; }
-    }
-
-    public override ModuleMetadata GetMetadata() => _underlyingModule.GetMetadata();
-
-    public sealed override bool AreLocalsZeroed
-    {
-        get
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
+        internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
 
 #nullable enable
-    internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
-        => _underlyingModule.ObsoleteAttributeData;
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+            => _underlyingModule.ObsoleteAttributeData;
+    }
 }

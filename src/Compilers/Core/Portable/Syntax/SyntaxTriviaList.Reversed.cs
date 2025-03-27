@@ -9,151 +9,152 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-public partial struct SyntaxTriviaList
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// Reversed enumerable.
-    /// </summary>
-    public readonly struct Reversed : IEnumerable<SyntaxTrivia>, IEquatable<Reversed>
+    public partial struct SyntaxTriviaList
     {
-        private readonly SyntaxTriviaList _list;
-
-        public Reversed(SyntaxTriviaList list)
+        /// <summary>
+        /// Reversed enumerable.
+        /// </summary>
+        public readonly struct Reversed : IEnumerable<SyntaxTrivia>, IEquatable<Reversed>
         {
-            _list = list;
-        }
+            private readonly SyntaxTriviaList _list;
 
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(in _list);
-        }
-
-        IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
-        {
-            if (_list.Count == 0)
+            public Reversed(SyntaxTriviaList list)
             {
-                return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
+                _list = list;
             }
 
-            return new ReversedEnumeratorImpl(in _list);
-        }
-
-        IEnumerator
-            IEnumerable.GetEnumerator()
-        {
-            if (_list.Count == 0)
+            public Enumerator GetEnumerator()
             {
-                return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
+                return new Enumerator(in _list);
             }
 
-            return new ReversedEnumeratorImpl(in _list);
-        }
-
-        public override int GetHashCode()
-        {
-            return _list.GetHashCode();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is Reversed && Equals((Reversed)obj);
-        }
-
-        public bool Equals(Reversed other)
-        {
-            return _list.Equals(other._list);
-        }
-
-        [StructLayout(LayoutKind.Auto)]
-        public struct Enumerator
-        {
-            private readonly SyntaxToken _token;
-            private readonly GreenNode? _singleNodeOrList;
-            private readonly int _baseIndex;
-            private readonly int _count;
-
-            private int _index;
-            private GreenNode? _current;
-            private int _position;
-
-            internal Enumerator(in SyntaxTriviaList list)
-                : this()
+            IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
             {
-                if (list.Node is object)
+                if (_list.Count == 0)
                 {
-                    _token = list.Token;
-                    _singleNodeOrList = list.Node;
-                    _baseIndex = list.Index;
-                    _count = list.Count;
-
-                    _index = _count;
-                    _current = null;
-
-                    var last = list.Last();
-                    _position = last.Position + last.FullWidth;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                if (_count == 0 || _index <= 0)
-                {
-                    _current = null;
-                    return false;
+                    return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
                 }
 
-                Debug.Assert(_singleNodeOrList is object);
-                _index--;
-
-                _current = GetGreenNodeAt(_singleNodeOrList, _index);
-                Debug.Assert(_current is object);
-                _position -= _current.FullWidth;
-
-                return true;
+                return new ReversedEnumeratorImpl(in _list);
             }
 
-            public SyntaxTrivia Current
+            IEnumerator
+                IEnumerable.GetEnumerator()
             {
-                get
+                if (_list.Count == 0)
                 {
-                    if (_current == null)
+                    return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
+                }
+
+                return new ReversedEnumeratorImpl(in _list);
+            }
+
+            public override int GetHashCode()
+            {
+                return _list.GetHashCode();
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is Reversed && Equals((Reversed)obj);
+            }
+
+            public bool Equals(Reversed other)
+            {
+                return _list.Equals(other._list);
+            }
+
+            [StructLayout(LayoutKind.Auto)]
+            public struct Enumerator
+            {
+                private readonly SyntaxToken _token;
+                private readonly GreenNode? _singleNodeOrList;
+                private readonly int _baseIndex;
+                private readonly int _count;
+
+                private int _index;
+                private GreenNode? _current;
+                private int _position;
+
+                internal Enumerator(in SyntaxTriviaList list)
+                    : this()
+                {
+                    if (list.Node is object)
                     {
-                        throw new InvalidOperationException();
+                        _token = list.Token;
+                        _singleNodeOrList = list.Node;
+                        _baseIndex = list.Index;
+                        _count = list.Count;
+
+                        _index = _count;
+                        _current = null;
+
+                        var last = list.Last();
+                        _position = last.Position + last.FullWidth;
+                    }
+                }
+
+                public bool MoveNext()
+                {
+                    if (_count == 0 || _index <= 0)
+                    {
+                        _current = null;
+                        return false;
                     }
 
-                    return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
+                    Debug.Assert(_singleNodeOrList is object);
+                    _index--;
+
+                    _current = GetGreenNodeAt(_singleNodeOrList, _index);
+                    Debug.Assert(_current is object);
+                    _position -= _current.FullWidth;
+
+                    return true;
+                }
+
+                public SyntaxTrivia Current
+                {
+                    get
+                    {
+                        if (_current == null)
+                        {
+                            throw new InvalidOperationException();
+                        }
+
+                        return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
+                    }
                 }
             }
-        }
 
-        private class ReversedEnumeratorImpl : IEnumerator<SyntaxTrivia>
-        {
-            private Enumerator _enumerator;
-
-            // SyntaxTriviaList is a relatively big struct so is passed as ref
-            internal ReversedEnumeratorImpl(in SyntaxTriviaList list)
+            private class ReversedEnumeratorImpl : IEnumerator<SyntaxTrivia>
             {
-                _enumerator = new Enumerator(in list);
-            }
+                private Enumerator _enumerator;
 
-            public SyntaxTrivia Current => _enumerator.Current;
+                // SyntaxTriviaList is a relatively big struct so is passed as ref
+                internal ReversedEnumeratorImpl(in SyntaxTriviaList list)
+                {
+                    _enumerator = new Enumerator(in list);
+                }
 
-            object IEnumerator.Current => _enumerator.Current;
+                public SyntaxTrivia Current => _enumerator.Current;
 
-            public bool MoveNext()
-            {
-                return _enumerator.MoveNext();
-            }
+                object IEnumerator.Current => _enumerator.Current;
 
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
+                public bool MoveNext()
+                {
+                    return _enumerator.MoveNext();
+                }
 
-            public void Dispose()
-            {
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
+
+                public void Dispose()
+                {
+                }
             }
         }
     }

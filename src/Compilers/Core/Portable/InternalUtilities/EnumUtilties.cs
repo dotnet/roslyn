@@ -7,32 +7,33 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities;
-
-internal static class EnumUtilities
+namespace Roslyn.Utilities
 {
-    internal static T[] GetValues<T>() where T : struct
+    internal static class EnumUtilities
     {
-        return (T[])Enum.GetValues(typeof(T));
-    }
+        internal static T[] GetValues<T>() where T : struct
+        {
+            return (T[])Enum.GetValues(typeof(T));
+        }
 
 #if DEBUG
-    internal static bool ContainsAllValues<T>(int mask) where T : struct, Enum, IConvertible
-    {
-        foreach (T value in GetValues<T>())
+        internal static bool ContainsAllValues<T>(int mask) where T : struct, Enum, IConvertible
         {
-            int val = value.ToInt32(null);
-            if ((val & mask) != val)
+            foreach (T value in GetValues<T>())
             {
-                return false;
+                int val = value.ToInt32(null);
+                if ((val & mask) != val)
+                {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
-    }
 
-    internal static bool ContainsValue<T>(T value) where T : struct, Enum
-    {
-        return Array.IndexOf(GetValues<T>(), value) >= 0;
-    }
+        internal static bool ContainsValue<T>(T value) where T : struct, Enum
+        {
+            return Array.IndexOf(GetValues<T>(), value) >= 0;
+        }
 #endif
+    }
 }

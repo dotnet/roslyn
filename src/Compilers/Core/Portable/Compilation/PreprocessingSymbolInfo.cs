@@ -5,42 +5,43 @@
 using Roslyn.Utilities;
 using System;
 
-namespace Microsoft.CodeAnalysis;
-
-public readonly struct PreprocessingSymbolInfo : IEquatable<PreprocessingSymbolInfo>
+namespace Microsoft.CodeAnalysis
 {
-    internal static readonly PreprocessingSymbolInfo None = new PreprocessingSymbolInfo(null, false);
-
-    /// <summary>
-    /// The symbol that was referred to by the identifier, if any. 
-    /// </summary>
-    public IPreprocessingSymbol? Symbol { get; }
-
-    /// <summary>
-    /// Returns true if this preprocessing symbol is defined at the identifier position.
-    /// </summary>
-    public bool IsDefined { get; }
-
-    internal PreprocessingSymbolInfo(IPreprocessingSymbol? symbol, bool isDefined)
-        : this()
+    public readonly struct PreprocessingSymbolInfo : IEquatable<PreprocessingSymbolInfo>
     {
-        this.Symbol = symbol;
-        this.IsDefined = isDefined;
-    }
+        internal static readonly PreprocessingSymbolInfo None = new PreprocessingSymbolInfo(null, false);
 
-    public bool Equals(PreprocessingSymbolInfo other)
-    {
-        return object.Equals(this.Symbol, other.Symbol)
-            && object.Equals(this.IsDefined, other.IsDefined);
-    }
+        /// <summary>
+        /// The symbol that was referred to by the identifier, if any. 
+        /// </summary>
+        public IPreprocessingSymbol? Symbol { get; }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is PreprocessingSymbolInfo p && this.Equals(p);
-    }
+        /// <summary>
+        /// Returns true if this preprocessing symbol is defined at the identifier position.
+        /// </summary>
+        public bool IsDefined { get; }
 
-    public override int GetHashCode()
-    {
-        return Hash.Combine(this.IsDefined, Hash.Combine(this.Symbol, 0));
+        internal PreprocessingSymbolInfo(IPreprocessingSymbol? symbol, bool isDefined)
+            : this()
+        {
+            this.Symbol = symbol;
+            this.IsDefined = isDefined;
+        }
+
+        public bool Equals(PreprocessingSymbolInfo other)
+        {
+            return object.Equals(this.Symbol, other.Symbol)
+                && object.Equals(this.IsDefined, other.IsDefined);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is PreprocessingSymbolInfo p && this.Equals(p);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(this.IsDefined, Hash.Combine(this.Symbol, 0));
+        }
     }
 }

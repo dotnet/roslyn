@@ -6,19 +6,20 @@
 
 using System.Text;
 
-namespace Roslyn.Test.Utilities;
-
-public static class EncodingExtensions
+namespace Roslyn.Test.Utilities
 {
-    public static byte[] GetBytesWithPreamble(this Encoding encoding, string text)
+    public static class EncodingExtensions
     {
-        var preamble = encoding.GetPreamble();
-        var content = encoding.GetBytes(text);
+        public static byte[] GetBytesWithPreamble(this Encoding encoding, string text)
+        {
+            var preamble = encoding.GetPreamble();
+            var content = encoding.GetBytes(text);
 
-        byte[] bytes = new byte[preamble.Length + content.Length];
-        preamble.CopyTo(bytes, 0);
-        content.CopyTo(bytes, preamble.Length);
+            byte[] bytes = new byte[preamble.Length + content.Length];
+            preamble.CopyTo(bytes, 0);
+            content.CopyTo(bytes, preamble.Length);
 
-        return bytes;
+            return bytes;
+        }
     }
 }

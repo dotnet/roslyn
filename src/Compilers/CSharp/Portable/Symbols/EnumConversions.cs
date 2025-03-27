@@ -6,38 +6,39 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal static partial class EnumConversions
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal static TypeKind ToTypeKind(this DeclarationKind kind)
+    internal static partial class EnumConversions
     {
-        switch (kind)
+        internal static TypeKind ToTypeKind(this DeclarationKind kind)
         {
-            case DeclarationKind.Class:
-            case DeclarationKind.Script:
-            case DeclarationKind.ImplicitClass:
-            case DeclarationKind.Record:
-                return TypeKind.Class;
+            switch (kind)
+            {
+                case DeclarationKind.Class:
+                case DeclarationKind.Script:
+                case DeclarationKind.ImplicitClass:
+                case DeclarationKind.Record:
+                    return TypeKind.Class;
 
-            case DeclarationKind.Submission:
-                return TypeKind.Submission;
+                case DeclarationKind.Submission:
+                    return TypeKind.Submission;
 
-            case DeclarationKind.Delegate:
-                return TypeKind.Delegate;
+                case DeclarationKind.Delegate:
+                    return TypeKind.Delegate;
 
-            case DeclarationKind.Enum:
-                return TypeKind.Enum;
+                case DeclarationKind.Enum:
+                    return TypeKind.Enum;
 
-            case DeclarationKind.Interface:
-                return TypeKind.Interface;
+                case DeclarationKind.Interface:
+                    return TypeKind.Interface;
 
-            case DeclarationKind.Struct:
-            case DeclarationKind.RecordStruct:
-                return TypeKind.Struct;
+                case DeclarationKind.Struct:
+                case DeclarationKind.RecordStruct:
+                    return TypeKind.Struct;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(kind);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
+            }
         }
     }
 }

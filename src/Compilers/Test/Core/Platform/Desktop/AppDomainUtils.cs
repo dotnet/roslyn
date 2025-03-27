@@ -9,51 +9,52 @@ using System;
 using System.IO;
 using System.Reflection;
 
-namespace Roslyn.Test.Utilities.Desktop;
-
-public static class AppDomainUtils
+namespace Roslyn.Test.Utilities.Desktop
 {
-    private static readonly object s_lock = new object();
-    private static bool s_hookedResolve;
-
-    public static AppDomain Create(string name = null, string basePath = null)
+    public static class AppDomainUtils
     {
-        name = name ?? "Custom AppDomain";
-        basePath = basePath ?? Path.GetDirectoryName(typeof(AppDomainUtils).Assembly.Location);
+        private static readonly object s_lock = new object();
+        private static bool s_hookedResolve;
 
-        lock (s_lock)
+        public static AppDomain Create(string name = null, string basePath = null)
         {
-            if (!s_hookedResolve)
+            name = name ?? "Custom AppDomain";
+            basePath = basePath ?? Path.GetDirectoryName(typeof(AppDomainUtils).Assembly.Location);
+
+            lock (s_lock)
             {
-                AppDomain.CurrentDomain.AssemblyResolve += OnResolve;
-                s_hookedResolve = true;
+                if (!s_hookedResolve)
+                {
+                    AppDomain.CurrentDomain.AssemblyResolve += OnResolve;
+                    s_hookedResolve = true;
+                }
             }
+
+            return AppDomain.CreateDomain(name, null, new AppDomainSetup()
+            {
+                ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
+                ApplicationBase = basePath
+            });
         }
 
-        return AppDomain.CreateDomain(name, null, new AppDomainSetup()
+        /// <summary>
+        /// When run under xunit without AppDomains all DLLs get loaded via the AssemblyResolve
+        /// event.  In some cases the xunit, AppDomain marshalling, xunit doesn't fully hook
+        /// the event and we need to do it for our assemblies.
+        /// </summary>
+        private static Assembly OnResolve(object sender, ResolveEventArgs e)
         {
-            ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
-            ApplicationBase = basePath
-        });
-    }
+            var assemblyName = new AssemblyName(e.Name);
+            var fullPath = Path.Combine(
+                Path.GetDirectoryName(typeof(AppDomainUtils).Assembly.Location),
+                assemblyName.Name + ".dll");
+            if (File.Exists(fullPath))
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
 
-    /// <summary>
-    /// When run under xunit without AppDomains all DLLs get loaded via the AssemblyResolve
-    /// event.  In some cases the xunit, AppDomain marshalling, xunit doesn't fully hook
-    /// the event and we need to do it for our assemblies.
-    /// </summary>
-    private static Assembly OnResolve(object sender, ResolveEventArgs e)
-    {
-        var assemblyName = new AssemblyName(e.Name);
-        var fullPath = Path.Combine(
-            Path.GetDirectoryName(typeof(AppDomainUtils).Assembly.Location),
-            assemblyName.Name + ".dll");
-        if (File.Exists(fullPath))
-        {
-            return Assembly.LoadFrom(fullPath);
+            return null;
         }
-
-        return null;
     }
 }
 #endif

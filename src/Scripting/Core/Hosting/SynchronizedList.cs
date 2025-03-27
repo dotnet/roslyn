@@ -7,117 +7,118 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal class SynchronizedList<T> : IList<T>
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    private readonly object _guard = new object();
-    private readonly List<T> _list = new List<T>();
-
-    public T this[int index]
+    internal class SynchronizedList<T> : IList<T>
     {
-        get
+        private readonly object _guard = new object();
+        private readonly List<T> _list = new List<T>();
+
+        public T this[int index]
         {
-            lock (_guard)
+            get
             {
-                return _list[index];
+                lock (_guard)
+                {
+                    return _list[index];
+                }
+            }
+
+            set
+            {
+                lock (_guard)
+                {
+                    _list[index] = value;
+                }
             }
         }
 
-        set
+        public int Count
+        {
+            get
+            {
+                lock (_guard)
+                {
+                    return _list.Count;
+                }
+            }
+        }
+
+        public bool IsReadOnly => false;
+
+        public void Add(T item)
         {
             lock (_guard)
             {
-                _list[index] = value;
+                _list.Add(item);
             }
         }
-    }
 
-    public int Count
-    {
-        get
+        public void Clear()
         {
             lock (_guard)
             {
-                return _list.Count;
+                _list.Clear();
             }
         }
-    }
 
-    public bool IsReadOnly => false;
-
-    public void Add(T item)
-    {
-        lock (_guard)
+        public bool Contains(T item)
         {
-            _list.Add(item);
+            lock (_guard)
+            {
+                return _list.Contains(item);
+            }
         }
-    }
 
-    public void Clear()
-    {
-        lock (_guard)
+        public void CopyTo(T[] array, int arrayIndex)
         {
-            _list.Clear();
+            lock (_guard)
+            {
+                _list.CopyTo(array, arrayIndex);
+            }
         }
-    }
 
-    public bool Contains(T item)
-    {
-        lock (_guard)
+        public IEnumerator<T> GetEnumerator()
         {
-            return _list.Contains(item);
+            lock (_guard)
+            {
+                // make a copy to ensure thread-safe enumeration
+                return ((IEnumerable<T>)_list.ToArray()).GetEnumerator();
+            }
         }
-    }
 
-    public void CopyTo(T[] array, int arrayIndex)
-    {
-        lock (_guard)
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public int IndexOf(T item)
         {
-            _list.CopyTo(array, arrayIndex);
+            lock (_guard)
+            {
+                return _list.IndexOf(item);
+            }
         }
-    }
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        lock (_guard)
+        public void Insert(int index, T item)
         {
-            // make a copy to ensure thread-safe enumeration
-            return ((IEnumerable<T>)_list.ToArray()).GetEnumerator();
+            lock (_guard)
+            {
+                _list.Insert(index, item);
+            }
         }
-    }
 
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public int IndexOf(T item)
-    {
-        lock (_guard)
+        public bool Remove(T item)
         {
-            return _list.IndexOf(item);
+            lock (_guard)
+            {
+                return _list.Remove(item);
+            }
         }
-    }
 
-    public void Insert(int index, T item)
-    {
-        lock (_guard)
+        public void RemoveAt(int index)
         {
-            _list.Insert(index, item);
-        }
-    }
-
-    public bool Remove(T item)
-    {
-        lock (_guard)
-        {
-            return _list.Remove(item);
-        }
-    }
-
-    public void RemoveAt(int index)
-    {
-        lock (_guard)
-        {
-            _list.RemoveAt(index);
+            lock (_guard)
+            {
+                _list.RemoveAt(index);
+            }
         }
     }
 }

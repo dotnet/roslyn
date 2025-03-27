@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal readonly struct CSharpMetadataContext
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal readonly CSharpCompilation Compilation;
-    internal readonly EvaluationContext? EvaluationContext;
-
-    internal CSharpMetadataContext(CSharpCompilation compilation, EvaluationContext? evaluationContext = null)
+    internal readonly struct CSharpMetadataContext
     {
-        Compilation = compilation;
-        EvaluationContext = evaluationContext;
+        internal readonly CSharpCompilation Compilation;
+        internal readonly EvaluationContext? EvaluationContext;
+
+        internal CSharpMetadataContext(CSharpCompilation compilation, EvaluationContext? evaluationContext = null)
+        {
+            Compilation = compilation;
+            EvaluationContext = evaluationContext;
+        }
     }
 }

@@ -5,21 +5,22 @@
 using System.IO;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Text;
-
-internal abstract class SourceTextWriter : TextWriter
+namespace Microsoft.CodeAnalysis.Text
 {
-    public abstract SourceText ToSourceText();
-
-    public static SourceTextWriter Create(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
+    internal abstract class SourceTextWriter : TextWriter
     {
-        if (length < SourceText.LargeObjectHeapLimitInChars)
+        public abstract SourceText ToSourceText();
+
+        public static SourceTextWriter Create(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int length)
         {
-            return new StringTextWriter(encoding, checksumAlgorithm, length);
-        }
-        else
-        {
-            return new LargeTextWriter(encoding, checksumAlgorithm, length);
+            if (length < SourceText.LargeObjectHeapLimitInChars)
+            {
+                return new StringTextWriter(encoding, checksumAlgorithm, length);
+            }
+            else
+            {
+                return new LargeTextWriter(encoding, checksumAlgorithm, length);
+            }
         }
     }
 }

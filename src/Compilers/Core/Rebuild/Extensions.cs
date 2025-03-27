@@ -8,28 +8,29 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace Microsoft.CodeAnalysis.Rebuild;
-
-public static class Extensions
+namespace Microsoft.CodeAnalysis.Rebuild
 {
-    internal static void SkipNullTerminator(ref this BlobReader blobReader)
+    public static class Extensions
     {
-        var b = blobReader.ReadByte();
-        if (b != '\0')
+        internal static void SkipNullTerminator(ref this BlobReader blobReader)
         {
-            throw new InvalidDataException(string.Format(RebuildResources.Encountered_unexpected_byte_0_when_expecting_a_null_terminator, b));
-        }
-    }
-
-    public static MetadataReader? GetEmbeddedPdbMetadataReader(this PEReader peReader)
-    {
-        var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-        if (entry.Type == DebugDirectoryEntryType.Unknown)
-        {
-            return null;
+            var b = blobReader.ReadByte();
+            if (b != '\0')
+            {
+                throw new InvalidDataException(string.Format(RebuildResources.Encountered_unexpected_byte_0_when_expecting_a_null_terminator, b));
+            }
         }
 
-        var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-        return provider.GetMetadataReader();
+        public static MetadataReader? GetEmbeddedPdbMetadataReader(this PEReader peReader)
+        {
+            var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            if (entry.Type == DebugDirectoryEntryType.Unknown)
+            {
+                return null;
+            }
+
+            var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
+            return provider.GetMetadataReader();
+        }
     }
 }

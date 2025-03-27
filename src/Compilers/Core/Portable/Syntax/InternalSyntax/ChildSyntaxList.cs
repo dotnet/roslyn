@@ -2,70 +2,71 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-internal partial struct ChildSyntaxList
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    private readonly GreenNode? _node;
-    private int _count;
-
-    internal ChildSyntaxList(GreenNode node)
+    internal partial struct ChildSyntaxList
     {
-        _node = node;
-        _count = -1;
-    }
+        private readonly GreenNode? _node;
+        private int _count;
 
-    public int Count
-    {
-        get
+        internal ChildSyntaxList(GreenNode node)
         {
-            if (_count == -1)
+            _node = node;
+            _count = -1;
+        }
+
+        public int Count
+        {
+            get
             {
-                _count = this.CountNodes();
+                if (_count == -1)
+                {
+                    _count = this.CountNodes();
+                }
+
+                return _count;
+            }
+        }
+
+        private int CountNodes()
+        {
+            int n = 0;
+            var enumerator = this.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                n++;
             }
 
-            return _count;
-        }
-    }
-
-    private int CountNodes()
-    {
-        int n = 0;
-        var enumerator = this.GetEnumerator();
-        while (enumerator.MoveNext())
-        {
-            n++;
+            return n;
         }
 
-        return n;
-    }
-
-    // for debugging
+        // for debugging
 #pragma warning disable IDE0051 // Remove unused private members
-    private GreenNode[] Nodes
+        private GreenNode[] Nodes
 #pragma warning restore IDE0051 // Remove unused private members
-    {
-        get
         {
-            var result = new GreenNode[this.Count];
-            var i = 0;
-
-            foreach (var n in this)
+            get
             {
-                result[i++] = n;
+                var result = new GreenNode[this.Count];
+                var i = 0;
+
+                foreach (var n in this)
+                {
+                    result[i++] = n;
+                }
+
+                return result;
             }
-
-            return result;
         }
-    }
 
-    public Enumerator GetEnumerator()
-    {
-        return new Enumerator(_node);
-    }
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(_node);
+        }
 
-    public Reversed Reverse()
-    {
-        return new Reversed(_node);
+        public Reversed Reverse()
+        {
+            return new Reversed(_node);
+        }
     }
 }

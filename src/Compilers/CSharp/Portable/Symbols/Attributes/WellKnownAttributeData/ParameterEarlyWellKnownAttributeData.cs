@@ -4,26 +4,27 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Information early-decoded from well-known custom attributes applied on a parameter.
-/// </summary>
-internal sealed class ParameterEarlyWellKnownAttributeData : CommonParameterEarlyWellKnownAttributeData
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private bool _hasUnscopedRefAttribute;
-    public bool HasUnscopedRefAttribute
+    /// <summary>
+    /// Information early-decoded from well-known custom attributes applied on a parameter.
+    /// </summary>
+    internal sealed class ParameterEarlyWellKnownAttributeData : CommonParameterEarlyWellKnownAttributeData
     {
-        get
+        private bool _hasUnscopedRefAttribute;
+        public bool HasUnscopedRefAttribute
         {
-            VerifySealed(expected: true);
-            return _hasUnscopedRefAttribute;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasUnscopedRefAttribute = value;
-            SetDataStored();
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasUnscopedRefAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasUnscopedRefAttribute = value;
+                SetDataStored();
+            }
         }
     }
 }

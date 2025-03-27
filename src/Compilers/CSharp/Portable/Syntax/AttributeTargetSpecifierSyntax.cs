@@ -6,12 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal AttributeLocation GetAttributeLocation()
+    public sealed partial class AttributeTargetSpecifierSyntax : CSharpSyntaxNode
     {
-        return this.Identifier.ToAttributeLocation();
+        internal AttributeLocation GetAttributeLocation()
+        {
+            return this.Identifier.ToAttributeLocation();
+        }
     }
 }

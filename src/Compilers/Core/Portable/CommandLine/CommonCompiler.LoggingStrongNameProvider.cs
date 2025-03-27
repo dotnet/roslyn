@@ -4,34 +4,35 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis;
-
-internal abstract partial class CommonCompiler
+namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LoggingStrongNameFileSystem : StrongNameFileSystem
+    internal abstract partial class CommonCompiler
     {
-        private readonly TouchedFileLogger? _loggerOpt;
-
-        public LoggingStrongNameFileSystem(TouchedFileLogger? logger, string? customTempPath)
-            : base(customTempPath)
+        internal sealed class LoggingStrongNameFileSystem : StrongNameFileSystem
         {
-            _loggerOpt = logger;
-        }
+            private readonly TouchedFileLogger? _loggerOpt;
 
-        internal override bool FileExists(string? fullPath)
-        {
-            if (fullPath != null)
+            public LoggingStrongNameFileSystem(TouchedFileLogger? logger, string? customTempPath)
+                : base(customTempPath)
             {
-                _loggerOpt?.AddRead(fullPath);
+                _loggerOpt = logger;
             }
 
-            return base.FileExists(fullPath);
-        }
+            internal override bool FileExists(string? fullPath)
+            {
+                if (fullPath != null)
+                {
+                    _loggerOpt?.AddRead(fullPath);
+                }
 
-        internal override byte[] ReadAllBytes(string fullPath)
-        {
-            _loggerOpt?.AddRead(fullPath);
-            return base.ReadAllBytes(fullPath);
+                return base.FileExists(fullPath);
+            }
+
+            internal override byte[] ReadAllBytes(string fullPath)
+            {
+                _loggerOpt?.AddRead(fullPath);
+                return base.ReadAllBytes(fullPath);
+            }
         }
     }
 }

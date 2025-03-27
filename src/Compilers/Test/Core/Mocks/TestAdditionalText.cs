@@ -7,24 +7,25 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Roslyn.Test.Utilities;
-
-public sealed class TestAdditionalText : AdditionalText
+namespace Roslyn.Test.Utilities
 {
-    private readonly SourceText? _text;
-
-    public TestAdditionalText(string path, SourceText? text)
+    public sealed class TestAdditionalText : AdditionalText
     {
-        Path = path;
-        _text = text;
+        private readonly SourceText? _text;
+
+        public TestAdditionalText(string path, SourceText? text)
+        {
+            Path = path;
+            _text = text;
+        }
+
+        public TestAdditionalText(string text = "", Encoding? encoding = null, string path = "dummy", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+            : this(path, new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm))
+        {
+        }
+
+        public override string Path { get; }
+
+        public override SourceText? GetText(CancellationToken cancellationToken = default) => _text;
     }
-
-    public TestAdditionalText(string text = "", Encoding? encoding = null, string path = "dummy", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        : this(path, new StringText(text, encoding, checksumAlgorithm: checksumAlgorithm))
-    {
-    }
-
-    public override string Path { get; }
-
-    public override SourceText? GetText(CancellationToken cancellationToken = default) => _text;
 }

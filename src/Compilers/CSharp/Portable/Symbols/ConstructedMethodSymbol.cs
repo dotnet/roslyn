@@ -9,26 +9,27 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
-
-    internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
-        : base(containingSymbol: constructedFrom.ContainingSymbol,
-               map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
-               originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
-               constructedFrom: constructedFrom)
+    internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
     {
-        _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
-    }
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
 
-    public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
-    {
-        get
+        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
+            : base(containingSymbol: constructedFrom.ContainingSymbol,
+                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
+                   originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
+                   constructedFrom: constructedFrom)
         {
-            return _typeArgumentsWithAnnotations;
+            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
+        }
+
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
+        {
+            get
+            {
+                return _typeArgumentsWithAnnotations;
+            }
         }
     }
 }

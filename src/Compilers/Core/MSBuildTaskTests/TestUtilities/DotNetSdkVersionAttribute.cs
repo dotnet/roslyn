@@ -4,19 +4,20 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
-
-/// <summary>
-/// Attribute added to the test assembly during build. 
-/// Captures the version of dotnet SDK the build is targeting.
-/// </summary>
-[AttributeUsage(AttributeTargets.Assembly)]
-public sealed class DotNetSdkVersionAttribute : Attribute
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    public string Version { get; }
-
-    public DotNetSdkVersionAttribute(string version)
+    /// <summary>
+    /// Attribute added to the test assembly during build. 
+    /// Captures the version of dotnet SDK the build is targeting.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Assembly)]
+    public sealed class DotNetSdkVersionAttribute : Attribute
     {
-        Version = version;
+        public string Version { get; }
+
+        public DotNetSdkVersionAttribute(string version)
+        {
+            Version = version;
+        }
     }
 }

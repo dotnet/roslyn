@@ -13,13 +13,14 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-
-public interface IDkmClrResultProvider
+namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
-    void GetResult(DkmClrValue clrValue, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo customTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine);
-    void GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine);
-    void GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine);
-    string GetUnderlyingString(DkmEvaluationResult result);
-    DkmClrValue GetClrValue(DkmSuccessEvaluationResult successResult);
+    public interface IDkmClrResultProvider
+    {
+        void GetResult(DkmClrValue clrValue, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo customTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine);
+        void GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine);
+        void GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine);
+        string GetUnderlyingString(DkmEvaluationResult result);
+        DkmClrValue GetClrValue(DkmSuccessEvaluationResult successResult);
+    }
 }

@@ -8,13 +8,14 @@
 using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 
-namespace Roslyn.Test.Utilities.Desktop;
-
-public sealed class DesktopRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
+namespace Roslyn.Test.Utilities.Desktop
 {
-    public IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies)
+    public sealed class DesktopRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
     {
-        return new DesktopRuntimeEnvironment(additionalDependencies);
+        public IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies)
+        {
+            return new DesktopRuntimeEnvironment(additionalDependencies);
+        }
     }
 }
 

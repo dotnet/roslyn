@@ -9,43 +9,44 @@ using System.Collections.Specialized;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
-
-public sealed class BuildServerControllerTests : IDisposable
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public void Dispose()
+    public sealed class BuildServerControllerTests : IDisposable
     {
-        NamedPipeTestUtil.DisposeAll();
-    }
-
-    public sealed class GetKeepAliveTimeoutTests
-    {
-        private readonly NameValueCollection _appSettings = new NameValueCollection();
-        private readonly BuildServerController _controller;
-
-        public GetKeepAliveTimeoutTests(ITestOutputHelper testOutputHelper)
+        public void Dispose()
         {
-            _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
+            NamedPipeTestUtil.DisposeAll();
         }
 
-        [Fact]
-        public void Simple()
+        public sealed class GetKeepAliveTimeoutTests
         {
-            _appSettings[BuildServerController.KeepAliveSettingName] = "42";
-            Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveTimeout());
-        }
+            private readonly NameValueCollection _appSettings = new NameValueCollection();
+            private readonly BuildServerController _controller;
 
-        [Fact]
-        public void InvalidNumber()
-        {
-            _appSettings[BuildServerController.KeepAliveSettingName] = "dog";
-            Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
-        }
+            public GetKeepAliveTimeoutTests(ITestOutputHelper testOutputHelper)
+            {
+                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
+            }
 
-        [Fact]
-        public void NoSetting()
-        {
-            Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+            [Fact]
+            public void Simple()
+            {
+                _appSettings[BuildServerController.KeepAliveSettingName] = "42";
+                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveTimeout());
+            }
+
+            [Fact]
+            public void InvalidNumber()
+            {
+                _appSettings[BuildServerController.KeepAliveSettingName] = "dog";
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+            }
+
+            [Fact]
+            public void NoSetting()
+            {
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+            }
         }
     }
 }

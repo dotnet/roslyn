@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE;
-
-public class HasUnsupportedMetadata : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
-    [Fact()]
-    public void Test1()
+    public class HasUnsupportedMetadata : CSharpTestBase
     {
-        var iLSource = @"
+        [Fact()]
+        public void Test1()
+        {
+            var iLSource = @"
 .assembly extern NotReferenced {}
 
 .class public auto ansi sealed D1`1<T>
@@ -155,39 +155,39 @@ public class HasUnsupportedMetadata : CSharpTestBase
 } // end of class C3
 ";
 
-        var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
-        var c3 = compilation1.GetTypeByMetadataName("C3");
+            var c3 = compilation1.GetTypeByMetadataName("C3");
 
-        Assert.Null(c3.GetUseSiteDiagnostic());
-        Assert.False(c3.HasUnsupportedMetadata);
-        Assert.False(c3.ContainingSymbol.HasUnsupportedMetadata);
+            Assert.Null(c3.GetUseSiteDiagnostic());
+            Assert.False(c3.HasUnsupportedMetadata);
+            Assert.False(c3.ContainingSymbol.HasUnsupportedMetadata);
 
-        var f1 = c3.GetMembers("F1").Single();
-        Assert.NotNull(f1.GetUseSiteDiagnostic());
-        Assert.False(f1.HasUnsupportedMetadata);
+            var f1 = c3.GetMembers("F1").Single();
+            Assert.NotNull(f1.GetUseSiteDiagnostic());
+            Assert.False(f1.HasUnsupportedMetadata);
 
-        var m1 = c3.GetMembers("M1").Single();
-        Assert.NotNull(m1.GetUseSiteDiagnostic());
-        Assert.False(m1.HasUnsupportedMetadata);
+            var m1 = c3.GetMembers("M1").Single();
+            Assert.NotNull(m1.GetUseSiteDiagnostic());
+            Assert.False(m1.HasUnsupportedMetadata);
 
-        var x = ((MethodSymbol)m1).Parameters[0];
-        Assert.Null(x.GetUseSiteDiagnostic());
-        Assert.False(x.HasUnsupportedMetadata);
+            var x = ((MethodSymbol)m1).Parameters[0];
+            Assert.Null(x.GetUseSiteDiagnostic());
+            Assert.False(x.HasUnsupportedMetadata);
 
-        var e1 = c3.GetMembers("E1").Single();
-        Assert.NotNull(e1.GetUseSiteDiagnostic());
-        Assert.False(e1.HasUnsupportedMetadata);
+            var e1 = c3.GetMembers("E1").Single();
+            Assert.NotNull(e1.GetUseSiteDiagnostic());
+            Assert.False(e1.HasUnsupportedMetadata);
 
-        var p1 = c3.GetMembers("P1").Single();
-        Assert.NotNull(p1.GetUseSiteDiagnostic());
-        Assert.False(p1.HasUnsupportedMetadata);
-    }
+            var p1 = c3.GetMembers("P1").Single();
+            Assert.NotNull(p1.GetUseSiteDiagnostic());
+            Assert.False(p1.HasUnsupportedMetadata);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void Test2()
-    {
-        var iLSource = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void Test2()
+        {
+            var iLSource = @"
 .assembly extern NotReferenced {}
 
 .class public auto ansi sealed D1`1<T>
@@ -359,48 +359,49 @@ public class HasUnsupportedMetadata : CSharpTestBase
 } // end of class X
 ";
 
-        var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
+            var compilation1 = CreateCompilationWithILAndMscorlib40("", iLSource);
 
-        var c3 = compilation1.GetTypeByMetadataName("C3");
+            var c3 = compilation1.GetTypeByMetadataName("C3");
 
-        Assert.Null(c3.GetUseSiteDiagnostic());
-        Assert.False(c3.HasUnsupportedMetadata);
-        Assert.False(c3.ContainingSymbol.HasUnsupportedMetadata);
+            Assert.Null(c3.GetUseSiteDiagnostic());
+            Assert.False(c3.HasUnsupportedMetadata);
+            Assert.False(c3.ContainingSymbol.HasUnsupportedMetadata);
 
-        var f1 = c3.GetMembers("F1").Single();
-        Assert.NotNull(f1.GetUseSiteDiagnostic());
-        Assert.True(f1.HasUnsupportedMetadata);
+            var f1 = c3.GetMembers("F1").Single();
+            Assert.NotNull(f1.GetUseSiteDiagnostic());
+            Assert.True(f1.HasUnsupportedMetadata);
 
-        var m1 = c3.GetMembers("M1").Single();
-        Assert.NotNull(m1.GetUseSiteDiagnostic());
-        Assert.True(m1.HasUnsupportedMetadata);
+            var m1 = c3.GetMembers("M1").Single();
+            Assert.NotNull(m1.GetUseSiteDiagnostic());
+            Assert.True(m1.HasUnsupportedMetadata);
 
-        var x = ((MethodSymbol)m1).Parameters[0];
-        Assert.Null(x.GetUseSiteDiagnostic());
-        Assert.True(x.HasUnsupportedMetadata);
+            var x = ((MethodSymbol)m1).Parameters[0];
+            Assert.Null(x.GetUseSiteDiagnostic());
+            Assert.True(x.HasUnsupportedMetadata);
 
-        var e1 = c3.GetMembers("E1").Single();
-        Assert.NotNull(e1.GetUseSiteDiagnostic());
-        Assert.True(e1.HasUnsupportedMetadata);
+            var e1 = c3.GetMembers("E1").Single();
+            Assert.NotNull(e1.GetUseSiteDiagnostic());
+            Assert.True(e1.HasUnsupportedMetadata);
 
-        var p1 = c3.GetMembers("P1").Single();
-        Assert.NotNull(p1.GetUseSiteDiagnostic());
-        Assert.True(p1.HasUnsupportedMetadata);
+            var p1 = c3.GetMembers("P1").Single();
+            Assert.NotNull(p1.GetUseSiteDiagnostic());
+            Assert.True(p1.HasUnsupportedMetadata);
 
-        //
+            //
 
-        var vector = compilation1.GetTypeByMetadataName("Microsoft.VisualC.StlClr.IVector`1");
-        //unsupported MD in members doesn't propagate up to the type.
-        Assert.False(vector.HasUnsupportedMetadata);
+            var vector = compilation1.GetTypeByMetadataName("Microsoft.VisualC.StlClr.IVector`1");
+            //unsupported MD in members doesn't propagate up to the type.
+            Assert.False(vector.HasUnsupportedMetadata);
 
-        //unsupported MD in the return type should propagate up to the method.
-        var begin = vector.GetMember("begin");
-        Assert.True(begin.HasUnsupportedMetadata);
+            //unsupported MD in the return type should propagate up to the method.
+            var begin = vector.GetMember("begin");
+            Assert.True(begin.HasUnsupportedMetadata);
 
-        //
+            //
 
-        var typeX = compilation1.GetTypeByMetadataName("X");
-        //unsupported MD in members doesn't propagate up to the type.
-        Assert.False(typeX.HasUnsupportedMetadata);
+            var typeX = compilation1.GetTypeByMetadataName("X");
+            //unsupported MD in members doesn't propagate up to the type.
+            Assert.False(typeX.HasUnsupportedMetadata);
+        }
     }
 }

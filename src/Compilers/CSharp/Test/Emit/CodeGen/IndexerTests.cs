@@ -14,128 +14,128 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class IndexerTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    #region Declarations
-
-    [Fact]
-    public void ReadWriteIndexer()
+    public class IndexerTests : CSharpTestBase
     {
-        var text = @"
+        #region Declarations
+
+        [Fact]
+        public void ReadWriteIndexer()
+        {
+            var text = @"
 class C
 {
     public int this[int x] { get { return x; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
-                Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
+                    Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void ReadOnlyIndexer()
-    {
-        var text = @"
+        [Fact]
+        public void ReadOnlyIndexer()
+        {
+            var text = @"
 class C
 {
     public int this[int x, int y] { get { return x; } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readonly instance System.Int32 Item(System.Int32 x, System.Int32 y)"),
-                Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x, System.Int32 y) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readonly instance System.Int32 Item(System.Int32 x, System.Int32 y)"),
+                    Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item(System.Int32 x, System.Int32 y) cil managed")
+                });
+        }
 
-    [Fact]
-    public void WriteOnlyIndexer()
-    {
-        var text = @"
+        [Fact]
+        public void WriteOnlyIndexer()
+        {
+            var text = @"
 class C
 {
     public int this[int x, int y, int z] { set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property writeonly instance System.Int32 Item(System.Int32 x, System.Int32 y, System.Int32 z)"),
-                Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 y, System.Int32 z, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property writeonly instance System.Int32 Item(System.Int32 x, System.Int32 y, System.Int32 z)"),
+                    Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(System.Int32 x, System.Int32 y, System.Int32 z, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void GenericIndexer()
-    {
-        var text = @"
+        [Fact]
+        public void GenericIndexer()
+        {
+            var text = @"
 class C<T>
 {
     public T this[T x] { get { return x; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C`1", "Item", ".property readwrite instance T Item(T x)"),
-                Signature("C`1", "get_Item", ".method public hidebysig specialname instance T get_Item(T x) cil managed"),
-                Signature("C`1", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(T x, T value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C`1", "Item", ".property readwrite instance T Item(T x)"),
+                    Signature("C`1", "get_Item", ".method public hidebysig specialname instance T get_Item(T x) cil managed"),
+                    Signature("C`1", "set_Item", ".method public hidebysig specialname instance System.Void set_Item(T x, T value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void IndexerWithOptionalParameters()
-    {
-        var text = @"
+        [Fact]
+        public void IndexerWithOptionalParameters()
+        {
+            var text = @"
 class C
 {
     public int this[int x = 1, int y = 2] { get { return x; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2)"),
-                Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2)"),
+                    Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([opt] System.Int32 x = 1, [opt] System.Int32 y = 2, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void IndexerWithParameterArray()
-    {
-        var text = @"
+        [Fact]
+        public void IndexerWithParameterArray()
+        {
+            var text = @"
 class C
 {
     public int this[params int[] x] { get { return 0; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item([System.ParamArrayAttribute()] System.Int32[] x)"),
-                Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([System.ParamArrayAttribute()] System.Int32[] x) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([System.ParamArrayAttribute()] System.Int32[] x, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item([System.ParamArrayAttribute()] System.Int32[] x)"),
+                    Signature("C", "get_Item", ".method public hidebysig specialname instance System.Int32 get_Item([System.ParamArrayAttribute()] System.Int32[] x) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig specialname instance System.Void set_Item([System.ParamArrayAttribute()] System.Int32[] x, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void ExplicitInterfaceImplementation()
-    {
-        var text = @"
+        [Fact]
+        public void ExplicitInterfaceImplementation()
+        {
+            var text = @"
 interface I
 {
     int this[int x] { get; set; }
@@ -146,40 +146,40 @@ class C : I
     int I.this[int x] { get { return 0; } set { } }
 }
 ";
-        System.Action<ModuleSymbol> validator = module =>
+            System.Action<ModuleSymbol> validator = module =>
+            {
+                // Can't use ValidateIndexer because explicit implementations aren't indexers in metadata.
+
+                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var indexer = @class.GetMembers().Where(member => member.Kind == SymbolKind.Property).Cast<PropertySymbol>().Single();
+
+                Assert.False(indexer.IsIndexer);
+                Assert.True(indexer.MustCallMethodsDirectly); //since has parameters, but isn't an indexer
+                Assert.Equal(Accessibility.Private, indexer.DeclaredAccessibility);
+                Assert.False(indexer.IsStatic);
+
+                var getMethod = indexer.GetMethod;
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, getMethod.MethodKind); //since CallMethodsDirectly
+                Assert.Equal("System.Int32 C.I.get_Item(System.Int32 x)", getMethod.ToTestDisplayString());
+                getMethod.CheckAccessorModifiers(indexer);
+
+                var setMethod = indexer.SetMethod;
+                Assert.Equal(MethodKind.ExplicitInterfaceImplementation, setMethod.MethodKind); //since CallMethodsDirectly
+                Assert.Equal("void C.I.set_Item(System.Int32 x, System.Int32 value)", setMethod.ToTestDisplayString());
+                setMethod.CheckAccessorModifiers(indexer);
+            };
+            var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
+            {
+                Signature("C", "I.Item", ".property readwrite System.Int32 I.Item(System.Int32 x)"),
+                Signature("C", "I.get_Item", ".method private hidebysig newslot specialname virtual final instance System.Int32 I.get_Item(System.Int32 x) cil managed"),
+                Signature("C", "I.set_Item", ".method private hidebysig newslot specialname virtual final instance System.Void I.set_Item(System.Int32 x, System.Int32 value) cil managed")
+            });
+        }
+
+        [Fact]
+        public void ImplicitInterfaceImplementation()
         {
-            // Can't use ValidateIndexer because explicit implementations aren't indexers in metadata.
-
-            var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var indexer = @class.GetMembers().Where(member => member.Kind == SymbolKind.Property).Cast<PropertySymbol>().Single();
-
-            Assert.False(indexer.IsIndexer);
-            Assert.True(indexer.MustCallMethodsDirectly); //since has parameters, but isn't an indexer
-            Assert.Equal(Accessibility.Private, indexer.DeclaredAccessibility);
-            Assert.False(indexer.IsStatic);
-
-            var getMethod = indexer.GetMethod;
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, getMethod.MethodKind); //since CallMethodsDirectly
-            Assert.Equal("System.Int32 C.I.get_Item(System.Int32 x)", getMethod.ToTestDisplayString());
-            getMethod.CheckAccessorModifiers(indexer);
-
-            var setMethod = indexer.SetMethod;
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, setMethod.MethodKind); //since CallMethodsDirectly
-            Assert.Equal("void C.I.set_Item(System.Int32 x, System.Int32 value)", setMethod.ToTestDisplayString());
-            setMethod.CheckAccessorModifiers(indexer);
-        };
-        var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
-        {
-            Signature("C", "I.Item", ".property readwrite System.Int32 I.Item(System.Int32 x)"),
-            Signature("C", "I.get_Item", ".method private hidebysig newslot specialname virtual final instance System.Int32 I.get_Item(System.Int32 x) cil managed"),
-            Signature("C", "I.set_Item", ".method private hidebysig newslot specialname virtual final instance System.Void I.set_Item(System.Int32 x, System.Int32 value) cil managed")
-        });
-    }
-
-    [Fact]
-    public void ImplicitInterfaceImplementation()
-    {
-        var text = @"
+            var text = @"
 interface I
 {
     int this[int x] { get; set; }
@@ -190,20 +190,20 @@ class C : I
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
-                Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
+                    Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void Overriding()
-    {
-        var text = @"
+        [Fact]
+        public void Overriding()
+        {
+            var text = @"
 class B
 {
     public virtual int this[int x] { get { return 0; } set { } }
@@ -214,20 +214,20 @@ class C : B
     public override sealed int this[int x] { get { return 0; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-            expectedSignatures: new[]
-            {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
-                Signature("C", "get_Item", ".method public hidebysig specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-            });
-    }
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
+                    Signature("C", "get_Item", ".method public hidebysig specialname virtual final instance System.Int32 get_Item(System.Int32 x) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig specialname virtual final instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
+                });
+        }
 
-    [Fact]
-    public void Hiding()
-    {
-        var text = @"
+        [Fact]
+        public void Hiding()
+        {
+            var text = @"
 class B
 {
     public virtual int this[int x] { get { return 0; } set { } }
@@ -238,58 +238,58 @@ class C : B
     public new virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-        var compVerifier = CompileAndVerify(text,
-            symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
-            expectedSignatures: new[]
+            var compVerifier = CompileAndVerify(text,
+                symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
+                expectedSignatures: new[]
+                {
+                    Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
+                    Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual instance System.Int32 get_Item(System.Int32 x) cil managed"),
+                    Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
+                });
+        }
+
+        // NOTE: assumes there's a single indexer (type = int) in a type C.
+        private static void ValidateIndexer(ModuleSymbol module, string getterDisplayString, string setterDisplayString)
+        {
+            var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var indexer = @class.Indexers.Single();
+
+            Assert.Equal(SymbolKind.Property, indexer.Kind);
+            Assert.True(indexer.IsIndexer);
+            Assert.False(indexer.MustCallMethodsDirectly);
+            Assert.Equal(Accessibility.Public, indexer.DeclaredAccessibility);
+            Assert.False(indexer.IsStatic);
+
+            var getMethod = indexer.GetMethod;
+            if (getterDisplayString == null)
             {
-                Signature("C", "Item", ".property readwrite instance System.Int32 Item(System.Int32 x)"),
-                Signature("C", "get_Item", ".method public hidebysig newslot specialname virtual instance System.Int32 get_Item(System.Int32 x) cil managed"),
-                Signature("C", "set_Item", ".method public hidebysig newslot specialname virtual instance System.Void set_Item(System.Int32 x, System.Int32 value) cil managed")
-            });
-    }
+                Assert.Null(getMethod);
+            }
+            else
+            {
+                Assert.Equal(MethodKind.PropertyGet, getMethod.MethodKind);
+                Assert.Equal(getterDisplayString, getMethod.ToTestDisplayString());
+                getMethod.CheckAccessorShape(indexer);
+            }
 
-    // NOTE: assumes there's a single indexer (type = int) in a type C.
-    private static void ValidateIndexer(ModuleSymbol module, string getterDisplayString, string setterDisplayString)
-    {
-        var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-        var indexer = @class.Indexers.Single();
-
-        Assert.Equal(SymbolKind.Property, indexer.Kind);
-        Assert.True(indexer.IsIndexer);
-        Assert.False(indexer.MustCallMethodsDirectly);
-        Assert.Equal(Accessibility.Public, indexer.DeclaredAccessibility);
-        Assert.False(indexer.IsStatic);
-
-        var getMethod = indexer.GetMethod;
-        if (getterDisplayString == null)
-        {
-            Assert.Null(getMethod);
-        }
-        else
-        {
-            Assert.Equal(MethodKind.PropertyGet, getMethod.MethodKind);
-            Assert.Equal(getterDisplayString, getMethod.ToTestDisplayString());
-            getMethod.CheckAccessorShape(indexer);
+            var setMethod = indexer.SetMethod;
+            if (setterDisplayString == null)
+            {
+                Assert.Null(setMethod);
+            }
+            else
+            {
+                Assert.Equal(MethodKind.PropertySet, setMethod.MethodKind);
+                Assert.Equal(setterDisplayString, setMethod.ToTestDisplayString());
+                setMethod.CheckAccessorShape(indexer);
+            }
         }
 
-        var setMethod = indexer.SetMethod;
-        if (setterDisplayString == null)
-        {
-            Assert.Null(setMethod);
-        }
-        else
-        {
-            Assert.Equal(MethodKind.PropertySet, setMethod.MethodKind);
-            Assert.Equal(setterDisplayString, setMethod.ToTestDisplayString());
-            setMethod.CheckAccessorShape(indexer);
-        }
-    }
+        #endregion Declarations
 
-    #endregion Declarations
+        #region Lowering
 
-    #region Lowering
-
-    private const string TypeWithIndexers = @"
+        private const string TypeWithIndexers = @"
 public class C
 {
     public static int Goo(int x)
@@ -330,10 +330,10 @@ public class C
 }
 ";
 
-    [Fact]
-    public void LoweringRead()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringRead()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -375,7 +375,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,
 1,2,10,20,
 1,2,10,20,
@@ -385,12 +385,12 @@ class Test
 1,2,3,10,20,30,
 1,2,3,10,20,30,
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringReadIL()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringReadIL()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -420,9 +420,9 @@ class Test
     }
 }
 ";
-        var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
-        compVerifier.VerifyIL("Test.Main", @"
+            compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      111 (0x6f)
   .maxstack  4
@@ -478,12 +478,12 @@ class Test
   IL_006e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringAssignment()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringAssignment()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -524,7 +524,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,3,10,20,30,
 1,2,3,10,20,30,
 1,2,3,10,20,30,
@@ -534,12 +534,12 @@ class Test
 1,2,3,4,10,20,30,40,
 1,2,3,4,10,20,30,40,
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringAssignmentIL()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringAssignmentIL()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -568,9 +568,9 @@ class Test
     }
 }
 ";
-        var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
-        compVerifier.VerifyIL("Test.Main", @"
+            compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      111 (0x6f)
   .maxstack  4
@@ -626,12 +626,12 @@ class Test
   IL_006e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringIncrement()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringIncrement()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -672,7 +672,7 @@ class Test
     }
 }
 ";
-        var compVerifier = CompileAndVerify(text, expectedOutput: @"
+            var compVerifier = CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
@@ -682,12 +682,12 @@ class Test
 1,2,3,10,20,30,10,20,30,-2,
 1,2,3,10,20,30,10,20,30,-2,
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringIncrementIL()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringIncrementIL()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -716,9 +716,9 @@ class Test
     }
 }
 ";
-        var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
-        compVerifier.VerifyIL("Test.Main", @"
+            compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      207 (0xcf)
   .maxstack  5
@@ -839,12 +839,12 @@ class Test
   IL_00ce:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringCompoundAssignment()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringCompoundAssignment()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -885,7 +885,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,3,10,20,0,
 1,2,10,20,3,10,20,0,
 1,2,10,20,3,10,20,0,
@@ -895,12 +895,12 @@ class Test
 1,2,3,10,20,30,4,10,20,30,37,
 1,2,3,10,20,30,4,10,20,30,37,
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringCompoundAssignmentIL()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringCompoundAssignmentIL()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static void Main()
@@ -941,9 +941,9 @@ class Test
     }
 }
 ";
-        var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
-        compVerifier.VerifyIL("Test.Main", @"
+            compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      243 (0xf3)
   .maxstack  6
@@ -1067,12 +1067,12 @@ class Test
   IL_00f2:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LoweringComplex()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void LoweringComplex()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     static C NewC() 
@@ -1088,15 +1088,15 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"
+            CompileAndVerify(text, expectedOutput: @"
 N,1,N,2,20,9,N,3,N,4,40,9,30,-49,N,5,6,N,7,70,9,50,60,-79,50,60,-79,-2,30,-49,16,-29,10,16,
 ");
-    }
+        }
 
-    [Fact]
-    public void BoxingParameterArrayArguments()
-    {
-        var text = TypeWithIndexers + @"
+        [Fact]
+        public void BoxingParameterArrayArguments()
+        {
+            var text = TypeWithIndexers + @"
 class Test
 {
     int this[params object[] args] { get { return args.Length; } }
@@ -1107,9 +1107,9 @@ class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text, expectedOutput: @"2");
+            var verifier = CompileAndVerify(text, expectedOutput: @"2");
 
-        verifier.VerifyIL("Test.Main", @"
+            verifier.VerifyIL("Test.Main", @"
 {
   // Code size       40 (0x28)
   .maxstack  5
@@ -1131,12 +1131,12 @@ class Test
   IL_0027:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
-    {
-        var text = @"
+        [Fact]
+        public void IndexerOverrideNotAllAccessors_DefaultParameterValues()
+        {
+            var text = @"
 using System;
 
 class Base
@@ -1175,7 +1175,7 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput:
+            CompileAndVerify(text, expectedOutput:
 @"Base.get y: 1
 Base.set y: 1
 Base.get y: 1
@@ -1183,70 +1183,70 @@ Override.set y: 2
 Base.get y: 1
 Override.set y: 1
 ");
-    }
+        }
 
-    #endregion Lowering
+        #endregion Lowering
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
-    public void MissingDefaultMemberAttribute_01()
-    {
-        var text1 = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_01()
+        {
+            var text1 = @"
 public interface I1
 {
     public I1 this[I1 args] { get; }
 }
 ";
-        var comp1 = CreateCompilation(text1);
-        comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
 
-        comp1.VerifyDiagnostics(
-            // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
-            //     public I1 this[I1 args] { get; }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
-            );
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
 
-        comp1 = CreateCompilation(text1);
-        comp1.MakeTypeMissing(WellKnownType.System_Reflection_DefaultMemberAttribute);
+            comp1 = CreateCompilation(text1);
+            comp1.MakeTypeMissing(WellKnownType.System_Reflection_DefaultMemberAttribute);
 
-        comp1.VerifyDiagnostics(
-            // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
-            //     public I1 this[I1 args] { get; }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
-            );
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
 
-        comp1 = CreateCompilation(text1);
-        comp1.VerifyEmitDiagnostics();
-    }
+            comp1 = CreateCompilation(text1);
+            comp1.VerifyEmitDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
-    public void MissingDefaultMemberAttribute_02()
-    {
-        var text1 = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_02()
+        {
+            var text1 = @"
 public interface I1
 {
     public I1 this[I1 args] { get; }
 }
 ";
-        var comp1 = CreateCompilation(text1);
+            var comp1 = CreateCompilation(text1);
 
-        var text2 = @"
+            var text2 = @"
 class C : I1
 {
     I1 I1.this[I1 args] => throw null;
 }
 ";
-        var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
-        comp2.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
-        comp2.VerifyEmitDiagnostics();
-    }
+            var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
+            comp2.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            comp2.VerifyEmitDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
-    public void MissingDefaultMemberAttribute_03()
-    {
-        var text1 = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_03()
+        {
+            var text1 = @"
 using System.Collections.Generic;
 
 class Program
@@ -1257,8 +1257,9 @@ class Program
     }
 }
 ";
-        var comp1 = CreateCompilation(text1);
-        comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
-        CompileAndVerify(comp1).VerifyDiagnostics();
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
     }
 }

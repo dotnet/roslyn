@@ -7,110 +7,111 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Information decoded from early well-known custom attributes applied on a type.
-/// </summary>
-internal abstract class CommonTypeEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+namespace Microsoft.CodeAnalysis
 {
-    #region AttributeUsageAttribute
-    private AttributeUsageInfo _attributeUsageInfo = AttributeUsageInfo.Null;
-    public AttributeUsageInfo AttributeUsageInfo
+    /// <summary>
+    /// Information decoded from early well-known custom attributes applied on a type.
+    /// </summary>
+    internal abstract class CommonTypeEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
-        get
+        #region AttributeUsageAttribute
+        private AttributeUsageInfo _attributeUsageInfo = AttributeUsageInfo.Null;
+        public AttributeUsageInfo AttributeUsageInfo
         {
-            return _attributeUsageInfo;
+            get
+            {
+                return _attributeUsageInfo;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(_attributeUsageInfo.IsNull);
+                Debug.Assert(!value.IsNull);
+                _attributeUsageInfo = value;
+                SetDataStored();
+            }
         }
-        set
+        #endregion
+
+        #region ComImportAttribute
+        private bool _hasComImportAttribute;
+        public bool HasComImportAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasComImportAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasComImportAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region ConditionalAttribute
+        private ImmutableArray<string> _lazyConditionalSymbols = ImmutableArray<string>.Empty;
+
+        public void AddConditionalSymbol(string name)
         {
             VerifySealed(expected: false);
-            Debug.Assert(_attributeUsageInfo.IsNull);
-            Debug.Assert(!value.IsNull);
-            _attributeUsageInfo = value;
+            _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
             SetDataStored();
         }
-    }
-    #endregion
 
-    #region ComImportAttribute
-    private bool _hasComImportAttribute;
-    public bool HasComImportAttribute
-    {
-        get
+        public ImmutableArray<string> ConditionalSymbols
         {
-            VerifySealed(expected: true);
-            return _hasComImportAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _lazyConditionalSymbols;
+            }
         }
-        set
+        #endregion
+
+        #region ObsoleteAttribute
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ObsoleteAttributeData
         {
-            VerifySealed(expected: false);
-            _hasComImportAttribute = value;
-            SetDataStored();
-        }
-    }
-    #endregion
+            get
+            {
+                VerifySealed(expected: true);
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
 
-    #region ConditionalAttribute
-    private ImmutableArray<string> _lazyConditionalSymbols = ImmutableArray<string>.Empty;
+                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                    return;
 
-    public void AddConditionalSymbol(string name)
-    {
-        VerifySealed(expected: false);
-        _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
-        SetDataStored();
-    }
-
-    public ImmutableArray<string> ConditionalSymbols
-    {
-        get
-        {
-            VerifySealed(expected: true);
-            return _lazyConditionalSymbols;
-        }
-    }
-    #endregion
-
-    #region ObsoleteAttribute
-    private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-    public ObsoleteAttributeData ObsoleteAttributeData
-    {
-        get
-        {
-            VerifySealed(expected: true);
-            return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            Debug.Assert(value != null);
-            Debug.Assert(!value.IsUninitialized);
-
-            if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                _obsoleteAttributeData = value;
+                SetDataStored();
                 return;
+            }
+        }
+        #endregion
 
-            _obsoleteAttributeData = value;
-            SetDataStored();
-            return;
-        }
-    }
-    #endregion
-
-    #region CodeAnalysisEmbeddedAttribute
-    private bool _hasCodeAnalysisEmbeddedAttribute;
-    public bool HasCodeAnalysisEmbeddedAttribute
-    {
-        get
+        #region CodeAnalysisEmbeddedAttribute
+        private bool _hasCodeAnalysisEmbeddedAttribute;
+        public bool HasCodeAnalysisEmbeddedAttribute
         {
-            VerifySealed(expected: true);
-            return _hasCodeAnalysisEmbeddedAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCodeAnalysisEmbeddedAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCodeAnalysisEmbeddedAttribute = value;
+                SetDataStored();
+            }
         }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasCodeAnalysisEmbeddedAttribute = value;
-            SetDataStored();
-        }
+        #endregion
     }
-    #endregion
 }

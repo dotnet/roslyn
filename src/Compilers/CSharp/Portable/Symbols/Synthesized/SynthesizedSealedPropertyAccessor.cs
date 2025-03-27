@@ -13,348 +13,349 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// If a sealed override property defines fewer accessors than the
-/// original virtual property, it is necessary to synthesize a sealed
-/// accessor so that the accessor will not be overridable from metadata.
-/// </summary>
-internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly PropertySymbol _property;
-    private readonly MethodSymbol _overriddenAccessor;
-    private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-    public SynthesizedSealedPropertyAccessor(PropertySymbol property, MethodSymbol overriddenAccessor)
+    /// <summary>
+    /// If a sealed override property defines fewer accessors than the
+    /// original virtual property, it is necessary to synthesize a sealed
+    /// accessor so that the accessor will not be overridable from metadata.
+    /// </summary>
+    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
     {
-        Debug.Assert((object)property != null);
-        Debug.Assert(property.IsSealed);
-        Debug.Assert((object)overriddenAccessor != null);
+        private readonly PropertySymbol _property;
+        private readonly MethodSymbol _overriddenAccessor;
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        _property = property;
-        _overriddenAccessor = overriddenAccessor;
-        _parameters = SynthesizedParameterSymbol.DeriveParameters(overriddenAccessor, this);
-    }
-
-    internal MethodSymbol OverriddenAccessor
-    {
-        get
+        public SynthesizedSealedPropertyAccessor(PropertySymbol property, MethodSymbol overriddenAccessor)
         {
-            return _overriddenAccessor;
+            Debug.Assert((object)property != null);
+            Debug.Assert(property.IsSealed);
+            Debug.Assert((object)overriddenAccessor != null);
+
+            _property = property;
+            _overriddenAccessor = overriddenAccessor;
+            _parameters = SynthesizedParameterSymbol.DeriveParameters(overriddenAccessor, this);
         }
-    }
 
-    public override Symbol ContainingSymbol
-    {
-        get
+        internal MethodSymbol OverriddenAccessor
         {
-            return _property.ContainingType;
-        }
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
-        {
-            return ImmutableArray<Location>.Empty;
-        }
-    }
-
-    public override Accessibility DeclaredAccessibility
-    {
-        get
-        {
-            Accessibility overriddenAccessibility = _overriddenAccessor.DeclaredAccessibility;
-            switch (overriddenAccessibility)
+            get
             {
-                case Accessibility.ProtectedOrInternal:
-                    if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
-                    {
-                        // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
-                        // but it's not clear why.  It seems like it would make more sense to just correct
-                        // the accessibility of the synthesized override, the same way a programmer would if
-                        // it existed in source.
-
-                        return Accessibility.Protected;
-                    }
-                    break;
-
-                case Accessibility.ProtectedAndInternal:
-                    if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
-                    {
-                        // Of course this must trigger an error later, as you cannot override a private
-                        // protected member from another assembly.
-                        return Accessibility.Private;
-                    }
-                    break;
+                return _overriddenAccessor;
             }
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                return _property.ContainingType;
+            }
+        }
+
+        public override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray<Location>.Empty;
+            }
+        }
+
+        public override Accessibility DeclaredAccessibility
+        {
+            get
+            {
+                Accessibility overriddenAccessibility = _overriddenAccessor.DeclaredAccessibility;
+                switch (overriddenAccessibility)
+                {
+                    case Accessibility.ProtectedOrInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // NOTE: Dev10 actually reports ERR_CantChangeAccessOnOverride (CS0507) in this case,
+                            // but it's not clear why.  It seems like it would make more sense to just correct
+                            // the accessibility of the synthesized override, the same way a programmer would if
+                            // it existed in source.
+
+                            return Accessibility.Protected;
+                        }
+                        break;
+
+                    case Accessibility.ProtectedAndInternal:
+                        if (!this.ContainingAssembly.HasInternalAccessTo(_overriddenAccessor.ContainingAssembly))
+                        {
+                            // Of course this must trigger an error later, as you cannot override a private
+                            // protected member from another assembly.
+                            return Accessibility.Private;
+                        }
+                        break;
+                }
 
 #if DEBUG
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref discardedUseSiteInfo));
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(_overriddenAccessor, this.ContainingType, ref discardedUseSiteInfo));
 #endif
-            return overriddenAccessibility;
+                return overriddenAccessibility;
+            }
         }
-    }
 
-    public override bool IsStatic
-    {
-        get
+        public override bool IsStatic
         {
-            return false; //this is an override
+            get
+            {
+                return false; //this is an override
+            }
         }
-    }
 
-    public override bool IsAsync
-    {
-        get
+        public override bool IsAsync
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    public override bool IsVirtual
-    {
-        get
+        public override bool IsVirtual
         {
-            return false; //this is an override
+            get
+            {
+                return false; //this is an override
+            }
         }
-    }
 
-    internal override Cci.CallingConvention CallingConvention
-    {
-        get
+        internal override Cci.CallingConvention CallingConvention
         {
-            return _overriddenAccessor.CallingConvention;
+            get
+            {
+                return _overriddenAccessor.CallingConvention;
+            }
         }
-    }
 
-    public override MethodKind MethodKind
-    {
-        get
+        public override MethodKind MethodKind
         {
-            return _overriddenAccessor.MethodKind;
+            get
+            {
+                return _overriddenAccessor.MethodKind;
+            }
         }
-    }
 
-    public override int Arity
-    {
-        get
+        public override int Arity
         {
-            return 0;
+            get
+            {
+                return 0;
+            }
         }
-    }
 
-    public override bool IsExtensionMethod
-    {
-        get
+        public override bool IsExtensionMethod
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    public override bool HidesBaseMethodsByName
-    {
-        get
+        public override bool HidesBaseMethodsByName
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    public override bool IsVararg
-    {
-        get
+        public override bool IsVararg
         {
-            return _overriddenAccessor.IsVararg;
+            get
+            {
+                return _overriddenAccessor.IsVararg;
+            }
         }
-    }
 
-    public override bool ReturnsVoid
-    {
-        get
+        public override bool ReturnsVoid
         {
-            return _overriddenAccessor.ReturnsVoid;
+            get
+            {
+                return _overriddenAccessor.ReturnsVoid;
+            }
         }
-    }
 
-    public override RefKind RefKind
-    {
-        get
+        public override RefKind RefKind
         {
-            return _overriddenAccessor.RefKind;
+            get
+            {
+                return _overriddenAccessor.RefKind;
+            }
         }
-    }
 
-    public override TypeWithAnnotations ReturnTypeWithAnnotations
-    {
-        get
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
-            return _overriddenAccessor.ReturnTypeWithAnnotations;
+            get
+            {
+                return _overriddenAccessor.ReturnTypeWithAnnotations;
+            }
         }
-    }
 
-    public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+        public override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-    public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
 
-    public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
-    {
-        get
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
-            return ImmutableArray<TypeWithAnnotations>.Empty;
+            get
+            {
+                return ImmutableArray<TypeWithAnnotations>.Empty;
+            }
         }
-    }
 
-    public override ImmutableArray<TypeParameterSymbol> TypeParameters
-    {
-        get
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            return ImmutableArray<TypeParameterSymbol>.Empty;
+            get
+            {
+                return ImmutableArray<TypeParameterSymbol>.Empty;
+            }
         }
-    }
 
-    public override ImmutableArray<ParameterSymbol> Parameters
-    {
-        get
+        public override ImmutableArray<ParameterSymbol> Parameters
         {
-            return _parameters;
+            get
+            {
+                return _parameters;
+            }
         }
-    }
 
-    internal override bool IsExplicitInterfaceImplementation
-    {
-        get { return false; }
-    }
-
-    public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-    {
-        get
+        internal override bool IsExplicitInterfaceImplementation
         {
-            return ImmutableArray<MethodSymbol>.Empty;
+            get { return false; }
         }
-    }
 
-    public override ImmutableArray<CustomModifier> RefCustomModifiers
-    {
-        get
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
-            return _overriddenAccessor.RefCustomModifiers;
+            get
+            {
+                return ImmutableArray<MethodSymbol>.Empty;
+            }
         }
-    }
 
-    public override Symbol AssociatedSymbol
-    {
-        get
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            return _property;
+            get
+            {
+                return _overriddenAccessor.RefCustomModifiers;
+            }
         }
-    }
 
-    public override bool IsOverride
-    {
-        get
+        public override Symbol AssociatedSymbol
         {
-            return true;
+            get
+            {
+                return _property;
+            }
         }
-    }
 
-    public override bool IsAbstract
-    {
-        get
+        public override bool IsOverride
         {
-            return false;
+            get
+            {
+                return true;
+            }
         }
-    }
 
-    public override bool IsSealed
-    {
-        get
+        public override bool IsAbstract
         {
-            return true;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    public override bool IsExtern
-    {
-        get
+        public override bool IsSealed
         {
-            return false;
+            get
+            {
+                return true;
+            }
         }
-    }
 
-    public override string Name
-    {
-        get
+        public override bool IsExtern
         {
-            return _overriddenAccessor.Name;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    internal override bool HasSpecialName
-    {
-        get
+        public override string Name
         {
-            return true;
+            get
+            {
+                return _overriddenAccessor.Name;
+            }
         }
-    }
 
-    internal override System.Reflection.MethodImplAttributes ImplementationAttributes
-    {
-        get
+        internal override bool HasSpecialName
         {
-            return default(System.Reflection.MethodImplAttributes);
+            get
+            {
+                return true;
+            }
         }
-    }
 
-    internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
-    {
-        return true;
-    }
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                return default(System.Reflection.MethodImplAttributes);
+            }
+        }
 
-    internal override bool IsMetadataFinal
-    {
-        get
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return true;
         }
-    }
 
-    internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
-    {
-        return false;
-    }
+        internal override bool IsMetadataFinal
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-    internal override bool RequiresSecurityObject
-    {
-        get
+        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
-    }
 
-    public override DllImportData GetDllImportData()
-    {
-        return null;
-    }
+        internal override bool RequiresSecurityObject
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-    internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
-    {
-        get { return null; }
-    }
+        public override DllImportData GetDllImportData()
+        {
+            return null;
+        }
 
-    internal override bool HasDeclarativeSecurity
-    {
-        get { return false; }
-    }
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        {
+            get { return null; }
+        }
 
-    internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override bool HasDeclarativeSecurity
+        {
+            get { return false; }
+        }
 
-    internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-    {
-        return ImmutableArray<string>.Empty;
+        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+        {
+            return ImmutableArray<string>.Empty;
+        }
     }
 }

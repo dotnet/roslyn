@@ -11,16 +11,17 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public readonly struct DkmCompilerId
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public readonly Guid LanguageId;
-    public readonly Guid VendorId;
-
-    public DkmCompilerId(Guid vendorId, Guid languageId)
+    public readonly struct DkmCompilerId
     {
-        VendorId = vendorId;
-        LanguageId = languageId;
+        public readonly Guid LanguageId;
+        public readonly Guid VendorId;
+
+        public DkmCompilerId(Guid vendorId, Guid languageId)
+        {
+            VendorId = vendorId;
+            LanguageId = languageId;
+        }
     }
 }

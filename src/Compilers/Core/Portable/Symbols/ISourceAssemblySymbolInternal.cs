@@ -4,18 +4,19 @@
 
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Symbols;
-
-internal interface ISourceAssemblySymbolInternal : IAssemblySymbolInternal
+namespace Microsoft.CodeAnalysis.Symbols
 {
-    AssemblyFlags AssemblyFlags { get; }
+    internal interface ISourceAssemblySymbolInternal : IAssemblySymbolInternal
+    {
+        AssemblyFlags AssemblyFlags { get; }
 
-    /// <summary>
-    /// The contents of the AssemblySignatureKeyAttribute
-    /// </summary>
-    string? SignatureKey { get; }
+        /// <summary>
+        /// The contents of the AssemblySignatureKeyAttribute
+        /// </summary>
+        string? SignatureKey { get; }
 
-    AssemblyHashAlgorithm HashAlgorithm { get; }
+        AssemblyHashAlgorithm HashAlgorithm { get; }
 
-    bool InternalsAreVisible { get; }
+        bool InternalsAreVisible { get; }
+    }
 }

@@ -4,20 +4,21 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-/// <summary>
-/// A wrapper for a solution that can be used by Razor for OOP services that communicate via MessagePack
-/// </summary>
-[DataContract]
-internal readonly struct RazorPinnedSolutionInfoWrapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [DataMember(Order = 0)]
-    internal readonly Checksum UnderlyingObject;
+    /// <summary>
+    /// A wrapper for a solution that can be used by Razor for OOP services that communicate via MessagePack
+    /// </summary>
+    [DataContract]
+    internal readonly struct RazorPinnedSolutionInfoWrapper
+    {
+        [DataMember(Order = 0)]
+        internal readonly Checksum UnderlyingObject;
 
-    public RazorPinnedSolutionInfoWrapper(Checksum underlyingObject)
-        => UnderlyingObject = underlyingObject;
+        public RazorPinnedSolutionInfoWrapper(Checksum underlyingObject)
+            => UnderlyingObject = underlyingObject;
 
-    public static implicit operator RazorPinnedSolutionInfoWrapper(Checksum info)
-        => new(info);
+        public static implicit operator RazorPinnedSolutionInfoWrapper(Checksum info)
+            => new(info);
+    }
 }

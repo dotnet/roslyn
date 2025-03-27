@@ -5,12 +5,13 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundITuplePattern
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private partial void Validate()
+    internal partial class BoundITuplePattern
     {
-        Debug.Assert(NarrowedType.IsCompilerServicesTopLevelType() && NarrowedType.Name == "ITuple");
+        private partial void Validate()
+        {
+            Debug.Assert(NarrowedType.IsCompilerServicesTopLevelType() && NarrowedType.Name == "ITuple");
+        }
     }
 }

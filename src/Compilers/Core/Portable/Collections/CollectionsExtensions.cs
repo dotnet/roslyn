@@ -6,22 +6,23 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class CollectionsExtensions
+namespace Microsoft.CodeAnalysis
 {
-    internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ICollection<T>? collection)
+    internal static class CollectionsExtensions
     {
-        return collection == null || collection.Count == 0;
-    }
+        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ICollection<T>? collection)
+        {
+            return collection == null || collection.Count == 0;
+        }
 
-    internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this IReadOnlyCollection<T>? collection)
-    {
-        return collection == null || collection.Count == 0;
-    }
+        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this IReadOnlyCollection<T>? collection)
+        {
+            return collection == null || collection.Count == 0;
+        }
 
-    internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ImmutableHashSet<T>? hashSet)
-    {
-        return hashSet == null || hashSet.Count == 0;
+        internal static bool IsNullOrEmpty<T>([NotNullWhen(returnValue: false)] this ImmutableHashSet<T>? hashSet)
+        {
+            return hashSet == null || hashSet.Count == 0;
+        }
     }
 }

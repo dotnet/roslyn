@@ -9,183 +9,184 @@ using System.Diagnostics;
 using System.Threading;
 using Cci = Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.Emit.NoPia;
-
-internal abstract partial class EmbeddedTypesManager<
-    TPEModuleBuilder,
-    TModuleCompilationState,
-    TEmbeddedTypesManager,
-    TSyntaxNode,
-    TAttributeData,
-    TSymbol,
-    TAssemblySymbol,
-    TNamedTypeSymbol,
-    TFieldSymbol,
-    TMethodSymbol,
-    TEventSymbol,
-    TPropertySymbol,
-    TParameterSymbol,
-    TTypeParameterSymbol,
-    TEmbeddedType,
-    TEmbeddedField,
-    TEmbeddedMethod,
-    TEmbeddedEvent,
-    TEmbeddedProperty,
-    TEmbeddedParameter,
-    TEmbeddedTypeParameter>
+namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal abstract class CommonEmbeddedEvent : CommonEmbeddedMember<TEventSymbol>, Cci.IEventDefinition
+    internal abstract partial class EmbeddedTypesManager<
+        TPEModuleBuilder,
+        TModuleCompilationState,
+        TEmbeddedTypesManager,
+        TSyntaxNode,
+        TAttributeData,
+        TSymbol,
+        TAssemblySymbol,
+        TNamedTypeSymbol,
+        TFieldSymbol,
+        TMethodSymbol,
+        TEventSymbol,
+        TPropertySymbol,
+        TParameterSymbol,
+        TTypeParameterSymbol,
+        TEmbeddedType,
+        TEmbeddedField,
+        TEmbeddedMethod,
+        TEmbeddedEvent,
+        TEmbeddedProperty,
+        TEmbeddedParameter,
+        TEmbeddedTypeParameter>
     {
-        private readonly TEmbeddedMethod _adder;
-        private readonly TEmbeddedMethod _remover;
-        private readonly TEmbeddedMethod _caller;
-
-        private int _isUsedForComAwareEventBinding;
-
-        protected CommonEmbeddedEvent(TEventSymbol underlyingEvent, TEmbeddedMethod adder, TEmbeddedMethod remover, TEmbeddedMethod caller) :
-            base(underlyingEvent)
+        internal abstract class CommonEmbeddedEvent : CommonEmbeddedMember<TEventSymbol>, Cci.IEventDefinition
         {
-            Debug.Assert(adder != null || remover != null);
+            private readonly TEmbeddedMethod _adder;
+            private readonly TEmbeddedMethod _remover;
+            private readonly TEmbeddedMethod _caller;
 
-            _adder = adder;
-            _remover = remover;
-            _caller = caller;
-        }
+            private int _isUsedForComAwareEventBinding;
 
-        internal override TEmbeddedTypesManager TypeManager
-        {
-            get
+            protected CommonEmbeddedEvent(TEventSymbol underlyingEvent, TEmbeddedMethod adder, TEmbeddedMethod remover, TEmbeddedMethod caller) :
+                base(underlyingEvent)
             {
-                return AnAccessor.TypeManager;
+                Debug.Assert(adder != null || remover != null);
+
+                _adder = adder;
+                _remover = remover;
+                _caller = caller;
             }
-        }
 
-        protected abstract bool IsRuntimeSpecial { get; }
-        protected abstract bool IsSpecialName { get; }
-        protected abstract Cci.ITypeReference GetType(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
-        protected abstract TEmbeddedType ContainingType { get; }
-        protected abstract Cci.TypeMemberVisibility Visibility { get; }
-        protected abstract string Name { get; }
-
-        public TEventSymbol UnderlyingEvent
-        {
-            get
+            internal override TEmbeddedTypesManager TypeManager
             {
-                return this.UnderlyingSymbol;
+                get
+                {
+                    return AnAccessor.TypeManager;
+                }
             }
-        }
 
-        protected abstract void EmbedCorrespondingComEventInterfaceMethodInternal(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding);
+            protected abstract bool IsRuntimeSpecial { get; }
+            protected abstract bool IsSpecialName { get; }
+            protected abstract Cci.ITypeReference GetType(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+            protected abstract TEmbeddedType ContainingType { get; }
+            protected abstract Cci.TypeMemberVisibility Visibility { get; }
+            protected abstract string Name { get; }
 
-        internal void EmbedCorrespondingComEventInterfaceMethod(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding)
-        {
-            if (_isUsedForComAwareEventBinding == 0 &&
-                (!isUsedForComAwareEventBinding ||
-                 Interlocked.CompareExchange(ref _isUsedForComAwareEventBinding, 1, 0) == 0))
+            public TEventSymbol UnderlyingEvent
             {
+                get
+                {
+                    return this.UnderlyingSymbol;
+                }
+            }
+
+            protected abstract void EmbedCorrespondingComEventInterfaceMethodInternal(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding);
+
+            internal void EmbedCorrespondingComEventInterfaceMethod(TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool isUsedForComAwareEventBinding)
+            {
+                if (_isUsedForComAwareEventBinding == 0 &&
+                    (!isUsedForComAwareEventBinding ||
+                     Interlocked.CompareExchange(ref _isUsedForComAwareEventBinding, 1, 0) == 0))
+                {
+                    Debug.Assert(!isUsedForComAwareEventBinding || _isUsedForComAwareEventBinding != 0);
+
+                    EmbedCorrespondingComEventInterfaceMethodInternal(syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding);
+                }
+
                 Debug.Assert(!isUsedForComAwareEventBinding || _isUsedForComAwareEventBinding != 0);
-
-                EmbedCorrespondingComEventInterfaceMethodInternal(syntaxNodeOpt, diagnostics, isUsedForComAwareEventBinding);
             }
 
-            Debug.Assert(!isUsedForComAwareEventBinding || _isUsedForComAwareEventBinding != 0);
-        }
-
-        Cci.IMethodReference Cci.IEventDefinition.Adder
-        {
-            get { return _adder; }
-        }
-
-        Cci.IMethodReference Cci.IEventDefinition.Remover
-        {
-            get { return _remover; }
-        }
-
-        Cci.IMethodReference Cci.IEventDefinition.Caller
-        {
-            get { return _caller; }
-        }
-
-        IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
-        {
-            if (_adder != null)
+            Cci.IMethodReference Cci.IEventDefinition.Adder
             {
-                yield return _adder;
+                get { return _adder; }
             }
 
-            if (_remover != null)
+            Cci.IMethodReference Cci.IEventDefinition.Remover
             {
-                yield return _remover;
+                get { return _remover; }
             }
 
-            if (_caller != null)
+            Cci.IMethodReference Cci.IEventDefinition.Caller
             {
-                yield return _caller;
+                get { return _caller; }
             }
-        }
 
-        bool Cci.IEventDefinition.IsRuntimeSpecial
-        {
-            get
+            IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
             {
-                return IsRuntimeSpecial;
+                if (_adder != null)
+                {
+                    yield return _adder;
+                }
+
+                if (_remover != null)
+                {
+                    yield return _remover;
+                }
+
+                if (_caller != null)
+                {
+                    yield return _caller;
+                }
             }
-        }
 
-        bool Cci.IEventDefinition.IsSpecialName
-        {
-            get
+            bool Cci.IEventDefinition.IsRuntimeSpecial
             {
-                return IsSpecialName;
+                get
+                {
+                    return IsRuntimeSpecial;
+                }
             }
-        }
 
-        Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
-        {
-            return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
-        }
-
-        protected TEmbeddedMethod AnAccessor
-        {
-            get
+            bool Cci.IEventDefinition.IsSpecialName
             {
-                return _adder ?? _remover;
+                get
+                {
+                    return IsSpecialName;
+                }
             }
-        }
 
-        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-        {
-            get { return ContainingType; }
-        }
-
-        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-        {
-            get
+            Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
             {
-                return Visibility;
+                return GetType((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
-        }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
-        {
-            return ContainingType;
-        }
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IEventDefinition)this);
-        }
-
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return this;
-        }
-
-        string Cci.INamedEntity.Name
-        {
-            get
+            protected TEmbeddedMethod AnAccessor
             {
-                return Name;
+                get
+                {
+                    return _adder ?? _remover;
+                }
+            }
+
+            Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
+            {
+                get { return ContainingType; }
+            }
+
+            Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
+            {
+                get
+                {
+                    return Visibility;
+                }
+            }
+
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+            {
+                return ContainingType;
+            }
+
+            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+            {
+                visitor.Visit((Cci.IEventDefinition)this);
+            }
+
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+            {
+                return this;
+            }
+
+            string Cci.INamedEntity.Name
+            {
+                get
+                {
+                    return Name;
+                }
             }
         }
     }

@@ -11,80 +11,81 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal abstract class StateMachineTypeSymbol : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private ImmutableArray<CSharpAttributeData> _attributes;
-    public readonly MethodSymbol KickoffMethod;
-
-    public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
-        : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), kickoffMethod)
+    internal abstract class StateMachineTypeSymbol : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        Debug.Assert(kickoffMethod != null);
-        this.KickoffMethod = kickoffMethod;
-    }
+        private ImmutableArray<CSharpAttributeData> _attributes;
+        public readonly MethodSymbol KickoffMethod;
 
-    private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
-    {
-        return slotAllocatorOpt?.PreviousStateMachineTypeName ??
-               GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
-    }
-
-    public override Symbol ContainingSymbol
-    {
-        get { return KickoffMethod.ContainingType; }
-    }
-
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-    {
-        get
+        public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
+            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), kickoffMethod)
         {
-            // MoveNext method contains user code from the async/iterator method:
-            return true;
+            Debug.Assert(kickoffMethod != null);
+            this.KickoffMethod = kickoffMethod;
         }
-    }
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-    {
-        get { return KickoffMethod; }
-    }
-
-    public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
-    {
-        if (_attributes.IsDefault)
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
         {
-            Debug.Assert(base.GetAttributes().Length == 0);
+            return slotAllocatorOpt?.PreviousStateMachineTypeName ??
+                   GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
+        }
 
-            ArrayBuilder<CSharpAttributeData> builder = null;
+        public override Symbol ContainingSymbol
+        {
+            get { return KickoffMethod.ContainingType; }
+        }
 
-            // Inherit some attributes from the container of the kickoff method
-            var kickoffType = KickoffMethod.ContainingType;
-            foreach (var attribute in kickoffType.GetAttributes())
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get
             {
-                if (attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
-                    attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
-                {
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<CSharpAttributeData>.GetInstance(2); // only 2 different attributes are inherited at the moment
-                    }
+                // MoveNext method contains user code from the async/iterator method:
+                return true;
+            }
+        }
 
-                    builder.Add(attribute);
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return KickoffMethod; }
+        }
+
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            if (_attributes.IsDefault)
+            {
+                Debug.Assert(base.GetAttributes().Length == 0);
+
+                ArrayBuilder<CSharpAttributeData> builder = null;
+
+                // Inherit some attributes from the container of the kickoff method
+                var kickoffType = KickoffMethod.ContainingType;
+                foreach (var attribute in kickoffType.GetAttributes())
+                {
+                    if (attribute.IsTargetAttribute(AttributeDescription.DebuggerNonUserCodeAttribute) ||
+                        attribute.IsTargetAttribute(AttributeDescription.DebuggerStepThroughAttribute))
+                    {
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<CSharpAttributeData>.GetInstance(2); // only 2 different attributes are inherited at the moment
+                        }
+
+                        builder.Add(attribute);
+                    }
                 }
+
+                ImmutableInterlocked.InterlockedCompareExchange(ref _attributes,
+                                                                builder == null ? ImmutableArray<CSharpAttributeData>.Empty : builder.ToImmutableAndFree(),
+                                                                default(ImmutableArray<CSharpAttributeData>));
             }
 
-            ImmutableInterlocked.InterlockedCompareExchange(ref _attributes,
-                                                            builder == null ? ImmutableArray<CSharpAttributeData>.Empty : builder.ToImmutableAndFree(),
-                                                            default(ImmutableArray<CSharpAttributeData>));
+            return _attributes;
         }
 
-        return _attributes;
+        public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
     }
-
-    public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
-
-    internal override bool HasCodeAnalysisEmbeddedAttribute => false;
-
-    internal override bool HasCompilerLoweringPreserveAttribute => false;
 }

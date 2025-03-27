@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IIfStatement : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementSimpleIf()
+    public class IOperationTests_IIfStatement : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementSimpleIf()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -31,7 +31,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -47,20 +47,20 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0219: The variable 'condition' is assigned but its value is never used
-            //         bool condition = false;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementSimpleIfWithElse()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementSimpleIfWithElse()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -77,7 +77,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -100,23 +100,23 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0162: Unreachable code detected
-            //             condition = false;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
-            // CS0219: The variable 'condition' is assigned but its value is never used
-            //         bool condition = false;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0162: Unreachable code detected
+                //             condition = false;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementSimpleIfWithConditionEvaluationTrue()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementSimpleIfWithConditionEvaluationTrue()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -130,7 +130,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (1 == 1) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, Constant: True) (Syntax: '1 == 1')
@@ -150,21 +150,21 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (1 ==
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0219: The variable 'condition' is assigned but its value is never used
-            //         bool condition = false;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementSimpleIfNested1()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementSimpleIfNested1()
+        {
+            string source = @"
 using System;
 class P
 {
@@ -185,7 +185,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
@@ -228,16 +228,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementSimpleIfNested2()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementSimpleIfNested2()
+        {
+            string source = @"
 using System;
 class P
 {
@@ -257,7 +257,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm > 10')
@@ -300,16 +300,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m > 
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithMultipleCondition()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithMultipleCondition()
+        {
+            string source = @"
 using System;
 class P
 {
@@ -325,7 +325,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >= n  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'm >= n && m >= p')
@@ -356,16 +356,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (m >=
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithElseIfCondition()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithElseIfCondition()
+        {
+            string source = @"
 using System;
 class P
 {
@@ -389,7 +389,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 20) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'n > 20')
@@ -442,16 +442,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (n > 
                       InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithElseIfConditionOutVar()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithElseIfConditionOutVar()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -464,7 +464,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.Try ... , s ={s}"");')
   Condition: 
     IInvocationOperation (System.Boolean System.Int32.TryParse(System.String s, out System.Int32 result)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'int.TryPars ...  out var i)')
@@ -545,16 +545,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (int.
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithOutVar()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithOutVar()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -577,7 +577,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... eLine(A());')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -598,16 +598,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementExplicitEmbeddedOutVar()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementExplicitEmbeddedOutVar()
+        {
+            string source = @"
 class P
 {
     private void M()
@@ -627,7 +627,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -659,16 +659,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementImplicitEmbeddedOutVar()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementImplicitEmbeddedOutVar()
+        {
+            string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -687,7 +687,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ...  int i, 1);')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -715,16 +715,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithConditionPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithConditionPattern()
+        {
+            string source = @"
 using System;
 
 class P
@@ -740,7 +740,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj is  ... }')
   Condition: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'obj is string str')
@@ -763,16 +763,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (obj 
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithPattern()
+        {
+            string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -789,7 +789,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... A(25);')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -810,16 +810,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithEmbeddedPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithEmbeddedPattern()
+        {
+            string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -840,7 +840,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -868,16 +868,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
-    public void IIfstatementWithIfMissing()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithIfMissing()
+        {
+            string source = @"
 using System;
 
 class P
@@ -891,7 +891,7 @@ class P
 /*</bind>*/    }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>*/e ... }')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
@@ -925,35 +925,35 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(7,6): error CS8641: 'else' cannot start a statement.
-            //     {
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
-            // file.cs(7,6): error CS1003: Syntax error, '(' expected
-            //     {
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(7, 6),
-            // file.cs(7,6): error CS1525: Invalid expression term 'else'
-            //     {
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
-            // file.cs(7,6): error CS1026: ) expected
-            //     {
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
-            // file.cs(7,6): error CS1525: Invalid expression term 'else'
-            //     {
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
-            // file.cs(7,6): error CS1002: ; expected
-            //     {
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 6)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,6): error CS8641: 'else' cannot start a statement.
+                //     {
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
+                // file.cs(7,6): error CS1003: Syntax error, '(' expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(7, 6),
+                // file.cs(7,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
+                // file.cs(7,6): error CS1026: ) expected
+                //     {
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
+                // file.cs(7,6): error CS1525: Invalid expression term 'else'
+                //     {
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
+                // file.cs(7,6): error CS1002: ; expected
+                //     {
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 6)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
-    public void IIfstatementWithDoubleElse()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithDoubleElse()
+        {
+            string source = @"
 using System;
 
 class P
@@ -981,7 +981,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (flag) ... }')
     Condition: 
@@ -1030,35 +1030,35 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(20,14): error CS8641: 'else' cannot start a statement.
-            //             }
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
-            // file.cs(20,14): error CS1003: Syntax error, '(' expected
-            //             }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(20, 14),
-            // file.cs(20,14): error CS1525: Invalid expression term 'else'
-            //             }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
-            // file.cs(20,14): error CS1026: ) expected
-            //             }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(20, 14),
-            // file.cs(20,14): error CS1525: Invalid expression term 'else'
-            //             }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
-            // file.cs(20,14): error CS1002: ; expected
-            //             }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(20, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(20,14): error CS8641: 'else' cannot start a statement.
+                //             }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
+                // file.cs(20,14): error CS1003: Syntax error, '(' expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(20, 14),
+                // file.cs(20,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
+                // file.cs(20,14): error CS1026: ) expected
+                //             }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(20, 14),
+                // file.cs(20,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
+                // file.cs(20,14): error CS1002: ; expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(20, 14)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
-    public void IIfstatementWithElseKeywordPlacedAsIfEmbeddedStatement()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithElseKeywordPlacedAsIfEmbeddedStatement()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1077,7 +1077,7 @@ class P
 /*</bind>*/    }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (flag) ... }')
   Condition: 
     IParameterReferenceOperation: flag (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'flag')
@@ -1102,35 +1102,35 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(12,28): error CS8641: 'else' cannot start a statement.
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
-            // file.cs(12,28): error CS1003: Syntax error, '(' expected
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 28),
-            // file.cs(12,28): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
-            // file.cs(12,28): error CS1026: ) expected
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 28),
-            // file.cs(12,28): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
-            // file.cs(12,28): error CS1002: ; expected
-            //         /*<bind>*/if (flag)
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 28)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,28): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
+                // file.cs(12,28): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 28),
+                // file.cs(12,28): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
+                // file.cs(12,28): error CS1026: ) expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 28),
+                // file.cs(12,28): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
+                // file.cs(12,28): error CS1002: ; expected
+                //         /*<bind>*/if (flag)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 28)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
-    public void IIfstatementWithIfKeywordMissingAndDoubleElseKeywordsPresent()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
+        public void IIfstatementWithIfKeywordMissingAndDoubleElseKeywordsPresent()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1153,7 +1153,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'else ... }')
     Condition: 
@@ -1184,53 +1184,53 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'Op')
               Arguments(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(12,20): error CS8641: 'else' cannot start a statement.
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
-            // file.cs(12,20): error CS1003: Syntax error, '(' expected
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 20),
-            // file.cs(12,20): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
-            // file.cs(12,20): error CS1026: ) expected
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 20),
-            // file.cs(12,20): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
-            // file.cs(12,20): error CS1002: ; expected
-            //         /*<bind>*/{
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 20),
-            // file.cs(15,14): error CS8641: 'else' cannot start a statement.
-            //             }
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
-            // file.cs(15,14): error CS1003: Syntax error, '(' expected
-            //             }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(15, 14),
-            // file.cs(15,14): error CS1525: Invalid expression term 'else'
-            //             }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
-            // file.cs(15,14): error CS1026: ) expected
-            //             }
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(15, 14),
-            // file.cs(15,14): error CS1525: Invalid expression term 'else'
-            //             }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
-            // file.cs(15,14): error CS1002: ; expected
-            //             }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(15, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,20): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
+                // file.cs(12,20): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 20),
+                // file.cs(12,20): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
+                // file.cs(12,20): error CS1026: ) expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(12, 20),
+                // file.cs(12,20): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
+                // file.cs(12,20): error CS1002: ; expected
+                //         /*<bind>*/{
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 20),
+                // file.cs(15,14): error CS8641: 'else' cannot start a statement.
+                //             }
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
+                // file.cs(15,14): error CS1003: Syntax error, '(' expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(15, 14),
+                // file.cs(15,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
+                // file.cs(15,14): error CS1026: ) expected
+                //             }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(15, 14),
+                // file.cs(15,14): error CS1525: Invalid expression term 'else'
+                //             }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
+                // file.cs(15,14): error CS1002: ; expected
+                //             }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(15, 14)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithElseMissing()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithElseMissing()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1247,7 +1247,7 @@ class P
 /*</bind>*/    }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (obj is  ... else')
   Condition: 
     IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'obj is string str')
@@ -1273,23 +1273,23 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
         IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
           Children(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1525: Invalid expression term '}'
-            //         else
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(14, 13),
-            // CS1002: ; expected
-            //         else
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term '}'
+                //         else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(14, 13),
+                // CS1002: ; expected
+                //         else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithConditionMissing()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithConditionMissing()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1308,7 +1308,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if () ... }')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -1332,23 +1332,23 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1525: Invalid expression term ')'
-            //         /*<bind>*/if ()
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 23),
-            // CS0219: The variable 'a' is assigned but its value is never used
-            //         int a = 1;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(8, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ')'
+                //         /*<bind>*/if ()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 23),
+                // CS0219: The variable 'a' is assigned but its value is never used
+                //         int a = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(8, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithStatementMissing()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithStatementMissing()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1363,7 +1363,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (a == 1) ... else')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a == 1')
@@ -1389,41 +1389,41 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(10,30): error CS8641: 'else' cannot start a statement.
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
-            // file.cs(10,30): error CS1003: Syntax error, '(' expected
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 30),
-            // file.cs(10,30): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
-            // file.cs(10,30): error CS1026: ) expected
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(10, 30),
-            // file.cs(10,30): error CS1525: Invalid expression term 'else'
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
-            // file.cs(10,30): error CS1002: ; expected
-            //         /*<bind>*/if (a == 1)
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 30),
-            // file.cs(11,13): error CS1525: Invalid expression term '}'
-            //         else
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(11, 13),
-            // file.cs(11,13): error CS1002: ; expected
-            //         else
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(10,30): error CS8641: 'else' cannot start a statement.
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
+                // file.cs(10,30): error CS1003: Syntax error, '(' expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 30),
+                // file.cs(10,30): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
+                // file.cs(10,30): error CS1026: ) expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(10, 30),
+                // file.cs(10,30): error CS1525: Invalid expression term 'else'
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
+                // file.cs(10,30): error CS1002: ; expected
+                //         /*<bind>*/if (a == 1)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 30),
+                // file.cs(11,13): error CS1525: Invalid expression term '}'
+                //         else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(11, 13),
+                // file.cs(11,13): error CS1002: ; expected
+                //         else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithFuncCall()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithFuncCall()
+        {
+            string source = @"
 using System;
 
 class P
@@ -1445,7 +1445,7 @@ class P
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true) ... B();')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -1464,20 +1464,20 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (true
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: P, IsImplicit) (Syntax: 'B')
           Arguments(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0162: Unreachable code detected
-            //             B();/*</bind>*/
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "B").WithLocation(11, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0162: Unreachable code detected
+                //             B();/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "B").WithLocation(11, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
-    public void IIfstatementWithDynamic()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17601, "https://github.com/dotnet/roslyn/issues/17601")]
+        public void IIfstatementWithDynamic()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1493,7 +1493,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.GetTy ... }')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd.GetType() ... ).Equals(x)')
@@ -1536,16 +1536,16 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (d.Ge
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_01()
+        {
+            string source = @"
 class P
 {
     void M()
@@ -1558,7 +1558,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1600,20 +1600,20 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0219: The variable 'condition' is assigned but its value is never used
-            //         bool condition = false;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_02()
+        {
+            string source = @"
 class P
 {
     void M()
@@ -1630,7 +1630,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1672,23 +1672,23 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(13,13): warning CS0162: Unreachable code detected
-            //             condition = true;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
-            // file.cs(6,14): warning CS0219: The variable 'condition' is assigned but its value is never used
-            //         bool condition = false;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(13,13): warning CS0162: Unreachable code detected
+                //             condition = true;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "condition").WithLocation(13, 13),
+                // file.cs(6,14): warning CS0219: The variable 'condition' is assigned but its value is never used
+                //         bool condition = false;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "condition").WithArguments("condition").WithLocation(6, 14)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_03()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_03()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b)
@@ -1704,7 +1704,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1750,16 +1750,16 @@ Block[B5] - Exit
     Predecessors: [B3] [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_04()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_04()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool result)
@@ -1776,7 +1776,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1829,16 +1829,16 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_05()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_05()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool b, bool result)
@@ -1854,7 +1854,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1926,16 +1926,16 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_06()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_06()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool result)
@@ -1952,7 +1952,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2005,16 +2005,16 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_07()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_07()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool d , bool e, bool result)
@@ -2027,7 +2027,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2082,16 +2082,16 @@ Block[B7] - Exit
     Predecessors: [B4] [B5] [B6]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_08()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_08()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool d , bool e, bool result)
@@ -2104,7 +2104,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2159,16 +2159,16 @@ Block[B7] - Exit
     Predecessors: [B3] [B4] [B5] [B6]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_09()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_09()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool d , bool e, bool result)
@@ -2181,7 +2181,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2236,16 +2236,16 @@ Block[B7] - Exit
     Predecessors: [B2] [B4] [B5] [B6]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_10()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_10()
+        {
+            string source = @"
 class P
 {
     void M(object a, object b, object c, object d , object e, object f, bool result)
@@ -2260,7 +2260,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2453,16 +2453,16 @@ Block[B14] - Exit
     Predecessors: [B8] [B12] [B13]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_11()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_11()
+        {
+            string source = @"
 class P
 {
     void M(bool a, P b, P c, bool result)
@@ -2475,7 +2475,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2538,20 +2538,20 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(6,13): error CS0029: Cannot implicitly convert type 'P' to 'bool'
-            //         if (a ? b : c)
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("P", "bool").WithLocation(6, 13)
-        };
+            var expectedDiagnostics = new[] {
+                // file.cs(6,13): error CS0029: Cannot implicitly convert type 'P' to 'bool'
+                //         if (a ? b : c)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("P", "bool").WithLocation(6, 13)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_12()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_12()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool b, bool result)
@@ -2567,7 +2567,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2639,16 +2639,16 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_13()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_13()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool? b, bool c, bool result)
@@ -2660,7 +2660,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2751,16 +2751,16 @@ Block[B7] - Exit
     Predecessors: [B2] [B4] [B5] [B6]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_14()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_14()
+        {
+            string source = @"
 class P
 {
     void M(object a, object b, object c, object d, bool result)
@@ -2776,7 +2776,7 @@ class P
     static bool? GetNullableBool(object x) => false;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2939,16 +2939,16 @@ Block[B12] - Exit
     Predecessors: [B6] [B10] [B11]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_15()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_15()
+        {
+            string source = @"
 class P
 {
     void M(P a, P b, bool result)
@@ -2961,7 +2961,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3037,20 +3037,20 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(6,13): error CS0029: Cannot implicitly convert type 'P' to 'bool'
-            //         if (a ?? b)
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ?? b").WithArguments("P", "bool").WithLocation(6, 13)
-        };
+            var expectedDiagnostics = new[] {
+                // file.cs(6,13): error CS0029: Cannot implicitly convert type 'P' to 'bool'
+                //         if (a ?? b)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ?? b").WithArguments("P", "bool").WithLocation(6, 13)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_16()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_16()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool b, bool result)
@@ -3066,7 +3066,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -3133,16 +3133,16 @@ class P
         Predecessors: [B4] [B5]
         Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_17()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_17()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool result)
@@ -3158,7 +3158,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -3209,16 +3209,16 @@ class P
         Predecessors: [B4] [B5]
         Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_18()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_18()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool result)
@@ -3234,7 +3234,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -3285,16 +3285,16 @@ class P
         Predecessors: [B4] [B5]
         Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_19()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_19()
+        {
+            string source = @"
 class P
 {
     void M(bool result, System.Exception a, System.Exception b)
@@ -3310,7 +3310,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3403,20 +3403,20 @@ Block[B8] - Exit [UnReachable]
     Predecessors: [B6] [B7]
     Statements (0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(6,13): error CS8115: A throw expression is not allowed in this context.
-            //         if (throw null)
-            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 13)
-        };
+            var expectedDiagnostics = new[] {
+                // file.cs(6,13): error CS8115: A throw expression is not allowed in this context.
+                //         if (throw null)
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 13)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_20()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_20()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool b, bool result)
@@ -3428,7 +3428,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -3490,16 +3490,16 @@ class P
         Predecessors: [B2] [B4] [B5]
         Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_21()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_21()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool d, bool result)
@@ -3512,7 +3512,7 @@ class P
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3560,16 +3560,16 @@ Block[B6] - Exit
     Predecessors: [B2] [B3] [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_22()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_22()
+        {
+            string source = @"
 class P
 {
     void M(bool? a, bool b, bool c, bool result)
@@ -3581,7 +3581,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3648,16 +3648,16 @@ Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_24()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_24()
+        {
+            string source = @"
 class P
 {
     void M(dynamic a, bool result)
@@ -3669,7 +3669,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3698,16 +3698,16 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_25()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_25()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b)
@@ -3723,7 +3723,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3765,16 +3765,16 @@ Block[B5] - Exit
     Predecessors: [B2] [B3] [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IfFlow_26()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_26()
+        {
+            string source = @"
 class P
 {
     void M(bool a, bool b, bool c)
@@ -3794,7 +3794,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3847,8 +3847,9 @@ Block[B6] - Exit
     Predecessors: [B2] [B4] [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

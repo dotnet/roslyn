@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenTypeOfTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Fact]
-    public void TestTypeofSimple()
+    public class CodeGenTypeOfTests : CSharpTestBase
     {
-        var source = @"
+        [Fact]
+        public void TestTypeofSimple()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -27,9 +27,9 @@ class C
         System.Console.WriteLine(typeof(C));
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: "C");
-        comp.VerifyDiagnostics();
-        comp.VerifyIL("C.Main", @"{
+            var comp = CompileAndVerify(source, expectedOutput: "C");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"{
   // Code size       16 (0x10)
   .maxstack  1
   IL_0000:  ldtoken    ""C""
@@ -37,12 +37,12 @@ class C
   IL_000a:  call       ""void System.Console.WriteLine(object)""
   IL_000f:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofNonGeneric()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofNonGeneric()
+        {
+            var source = @"
 namespace Source
 {
     class Class { }
@@ -74,7 +74,7 @@ class Program
         System.Console.WriteLine(typeof(void));
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Source.Class
 Source.Struct
 Source.Enum
@@ -87,9 +87,9 @@ System.IFormattable
 System.Math
 System.Void");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Program.Main", @"{
+            comp.VerifyIL("Program.Main", @"{
   // Code size      166 (0xa6)
   .maxstack  1
   IL_0000:  ldtoken    ""Source.Class""
@@ -127,12 +127,12 @@ System.Void");
   IL_00a0:  call       ""void System.Console.WriteLine(object)""
   IL_00a5:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofGeneric()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofGeneric()
+        {
+            var source = @"
 class Class1<T> { }
 class Class2<T, U> { }
 
@@ -147,15 +147,15 @@ class Program
         System.Console.WriteLine(typeof(Class2<Class1<int>, Class1<long>>));
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Class1`1[System.Int32]
 Class1`1[Class1`1[System.Int32]]
 Class2`2[System.Int32,System.Int64]
 Class2`2[Class1`1[System.Int32],Class1`1[System.Int64]]");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Program.Main", @"{
+            comp.VerifyIL("Program.Main", @"{
   // Code size       61 (0x3d)
   .maxstack  1
   IL_0000:  ldtoken    ""Class1<int>""
@@ -172,12 +172,12 @@ Class2`2[Class1`1[System.Int32],Class1`1[System.Int64]]");
   IL_0037:  call       ""void System.Console.WriteLine(object)""
   IL_003c:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofTypeParameter()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofTypeParameter()
+        {
+            var source = @"
 class Class<T>
 {
     public static void Print()
@@ -204,7 +204,7 @@ class Program
         Class<Class<int>>.Print<Class<long>>();
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 System.Int32
 Class`1[System.Int32]
 Class`1[System.Int32]
@@ -214,9 +214,9 @@ Class`1[System.Int64]
 Class`1[System.Int64]
 Class`1[Class`1[System.Int64]]");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Class<T>.Print", @"{
+            comp.VerifyIL("Class<T>.Print", @"{
   // Code size       31 (0x1f)
   .maxstack  1
   IL_0000:  ldtoken    ""T""
@@ -228,7 +228,7 @@ Class`1[Class`1[System.Int64]]");
   IL_001e:  ret       
 }");
 
-        comp.VerifyIL("Class<T>.Print<U>", @"{
+            comp.VerifyIL("Class<T>.Print<U>", @"{
   // Code size       31 (0x1f)
   .maxstack  1
   IL_0000:  ldtoken    ""U""
@@ -239,12 +239,12 @@ Class`1[Class`1[System.Int64]]");
   IL_0019:  call       ""void System.Console.WriteLine(object)""
   IL_001e:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofUnboundGeneric()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofUnboundGeneric()
+        {
+            var source = @"
 class Class1<T> { }
 class Class2<T, U> { }
 
@@ -256,13 +256,13 @@ class Program
         System.Console.WriteLine(typeof(Class2<,>));
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Class1`1[T]
 Class2`2[T,U]");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Program.Main", @"{
+            comp.VerifyIL("Program.Main", @"{
   // Code size       31 (0x1f)
   .maxstack  1
   IL_0000:  ldtoken    ""Class1<T>""
@@ -273,13 +273,13 @@ Class2`2[T,U]");
   IL_0019:  call       ""void System.Console.WriteLine(object)""
   IL_001e:  ret       
 }");
-    }
+        }
 
-    [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
-    [Fact]
-    public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_01()
-    {
-        var source = @"
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [Fact]
+        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_01()
+        {
+            var source = @"
 using System;
 
 class D<T> : C, I1, I2<T, int> { }
@@ -318,7 +318,7 @@ class C
         Console.WriteLine(typeof(K<>).BaseType);
     }
 }";
-        var expected = @"C+E
+            var expected = @"C+E
 C
 I1
 I2`2[T,System.Int32]
@@ -329,17 +329,17 @@ I2`2[T,System.Int32]
 H`2+E[T,U]
 H`2[T,System.Int32]";
 
-        var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
 
-        comp.VerifyDiagnostics();
-    }
+            comp.VerifyDiagnostics();
+        }
 
-    [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
-    [WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850")]
-    [Fact]
-    public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_02()
-    {
-        var source = @"
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [WorkItem(9850, "https://github.com/dotnet/roslyn/issues/9850")]
+        [Fact]
+        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_02()
+        {
+            var source = @"
 using System;
 
 class C
@@ -379,7 +379,7 @@ class D<T> : C { }
 class F<T> : C<T> { }
 class G<T> : C<int> { }
 ";
-        var expected = @"C+E
+            var expected = @"C+E
 C`1+E[U]
 C`1+E[U]
 True
@@ -388,16 +388,16 @@ C`1+E`1[U,V]
 C`1+E`1[U,V]
 True";
 
-        var comp = CompileAndVerify(source, expectedOutput: expected);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
 
-        comp.VerifyDiagnostics();
-    }
+            comp.VerifyDiagnostics();
+        }
 
-    [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
-    [Fact]
-    public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_Attribute()
-    {
-        var source = @"
+        [WorkItem(542581, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542581")]
+        [Fact]
+        public void TestTypeofInheritedNestedTypeThroughUnboundGeneric_Attribute()
+        {
+            var source = @"
 using System;
 
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
@@ -433,13 +433,13 @@ class C
     }
 }";
 
-        var comp = CompileAndVerify(source, expectedOutput: "");
-    }
+            var comp = CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [Fact]
-    public void TestTypeofArray()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofArray()
+        {
+            var source = @"
 class Class1<T> { }
 
 class Program
@@ -459,7 +459,7 @@ class Program
         Print<long>();
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 System.Int32[]
 System.Int32[,]
 System.Int32[][]
@@ -467,9 +467,9 @@ System.Int64[]
 Class1`1[System.Int64][]
 Class1`1[System.Int32][]");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Program.Print<U>", @"{
+            comp.VerifyIL("Program.Print<U>", @"{
   // Code size       91 (0x5b)
   .maxstack  1
   IL_0000:  ldtoken    ""int[]""
@@ -492,12 +492,12 @@ Class1`1[System.Int32][]");
   IL_0055:  call       ""void System.Console.WriteLine(object)""
   IL_005a:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofNested()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofNested()
+        {
+            var source = @"
 class Outer<T>
 {
     public static void Print()
@@ -529,7 +529,7 @@ class Program
         Outer<long>.Print();
     }
 }";
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Outer`1+Inner`1[T,U]
 Outer`1+Inner`1[System.Int64,System.Int64]
 Outer`1+Inner`1[System.Int64,System.Int32]
@@ -539,9 +539,9 @@ Outer`1+Inner`1[System.Int64,System.Int32]
 Outer`1+Inner`1[System.Int32,System.Int64]
 Outer`1+Inner`1[System.Int32,System.Int32]");
 
-        comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics();
 
-        comp.VerifyIL("Outer<T>.Print", @"{
+            comp.VerifyIL("Outer<T>.Print", @"{
   // Code size      121 (0x79)
   .maxstack  1
   IL_0000:  ldtoken    ""Outer<T>.Inner<U>""
@@ -570,12 +570,12 @@ Outer`1+Inner`1[System.Int32,System.Int32]");
   IL_0073:  call       ""void System.Console.WriteLine(object)""
   IL_0078:  ret       
 }");
-    }
+        }
 
-    [Fact]
-    public void TestTypeofInLambda()
-    {
-        var source = @"
+        [Fact]
+        public void TestTypeofInLambda()
+        {
+            var source = @"
 using System;
 
 public class Outer<T>
@@ -615,7 +615,7 @@ class Program
     }
 }";
 
-        var comp = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 1
 System.Int32
 System.Char
@@ -629,14 +629,14 @@ Outer`1+Inner`1[System.Int32,System.Int32]
 Outer`1+Inner`1[System.Int32,System.Char]
 Outer`1+Inner`1[System.Int32,System.Byte]");
 
-        comp.VerifyDiagnostics();
-    }
+            comp.VerifyDiagnostics();
+        }
 
-    [WorkItem(541600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
-    [Fact]
-    public void TestTypeOfAlias4TypeMemberOfGeneric()
-    {
-        var source = @"
+        [WorkItem(541600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541600")]
+        [Fact]
+        public void TestTypeOfAlias4TypeMemberOfGeneric()
+        {
+            var source = @"
 using System;
 using MyTestClass = TestClass<string>;
 
@@ -657,14 +657,14 @@ public class mem178
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
-    }
+            CompileAndVerify(source, expectedOutput: @"TestClass`1+TestEnum[System.String]");
+        }
 
-    [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
-    [Fact]
-    public void TestTypeOfAlias5TypeMemberOfGeneric()
-    {
-        var source = @"
+        [WorkItem(541618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541618")]
+        [Fact]
+        public void TestTypeOfAlias5TypeMemberOfGeneric()
+        {
+            var source = @"
 using OuterOfString = Outer<string>;
 using OuterOfInt = Outer<int>;
 public class Outer<T>
@@ -679,7 +679,8 @@ public class Program
     }
 }
 ";
-        // NOTE: this is the Dev10 output.  Change to false if we decide to take a breaking change.
-        CompileAndVerify(source, expectedOutput: @"True");
+            // NOTE: this is the Dev10 output.  Change to false if we decide to take a breaking change.
+            CompileAndVerify(source, expectedOutput: @"True");
+        }
     }
 }

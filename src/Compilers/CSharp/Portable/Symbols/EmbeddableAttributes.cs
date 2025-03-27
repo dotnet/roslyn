@@ -4,20 +4,21 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-[Flags]
-internal enum EmbeddableAttributes
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    IsReadOnlyAttribute = 0x01,
-    IsByRefLikeAttribute = 0x02,
-    IsUnmanagedAttribute = 0x04,
-    NullableAttribute = 0x08,
-    NullableContextAttribute = 0x10,
-    NullablePublicOnlyAttribute = 0x20,
-    NativeIntegerAttribute = 0x40,
-    ScopedRefAttribute = 0x80,
-    RefSafetyRulesAttribute = 0x100,
-    RequiresLocationAttribute = 0x200,
-    ParamCollectionAttribute = 0x400,
+    [Flags]
+    internal enum EmbeddableAttributes
+    {
+        IsReadOnlyAttribute = 0x01,
+        IsByRefLikeAttribute = 0x02,
+        IsUnmanagedAttribute = 0x04,
+        NullableAttribute = 0x08,
+        NullableContextAttribute = 0x10,
+        NullablePublicOnlyAttribute = 0x20,
+        NativeIntegerAttribute = 0x40,
+        ScopedRefAttribute = 0x80,
+        RefSafetyRulesAttribute = 0x100,
+        RequiresLocationAttribute = 0x200,
+        ParamCollectionAttribute = 0x400,
+    }
 }

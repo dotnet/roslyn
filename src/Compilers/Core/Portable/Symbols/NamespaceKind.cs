@@ -4,14 +4,15 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Describes the kind of the namespace extent.
-/// </summary>
-public enum NamespaceKind
+namespace Microsoft.CodeAnalysis
 {
-    Module = 1,
-    Assembly = 2,
-    Compilation = 3
+    /// <summary>
+    /// Describes the kind of the namespace extent.
+    /// </summary>
+    public enum NamespaceKind
+    {
+        Module = 1,
+        Assembly = 2,
+        Compilation = 3
+    }
 }

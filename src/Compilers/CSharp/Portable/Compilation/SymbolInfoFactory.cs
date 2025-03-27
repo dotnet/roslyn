@@ -12,50 +12,51 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal static class SymbolInfoFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal static SymbolInfo Create(ImmutableArray<Symbol> symbols, LookupResultKind resultKind, bool isDynamic)
-        => Create(OneOrMany.Create(symbols.NullToEmpty()), resultKind, isDynamic);
-
-    internal static SymbolInfo Create(OneOrMany<Symbol> symbols, LookupResultKind resultKind, bool isDynamic)
+    internal static class SymbolInfoFactory
     {
-        if (isDynamic)
+        internal static SymbolInfo Create(ImmutableArray<Symbol> symbols, LookupResultKind resultKind, bool isDynamic)
+            => Create(OneOrMany.Create(symbols.NullToEmpty()), resultKind, isDynamic);
+
+        internal static SymbolInfo Create(OneOrMany<Symbol> symbols, LookupResultKind resultKind, bool isDynamic)
         {
-            if (symbols.Count == 1)
+            if (isDynamic)
             {
-                return new SymbolInfo(symbols[0].GetPublicSymbol(), CandidateReason.LateBound);
+                if (symbols.Count == 1)
+                {
+                    return new SymbolInfo(symbols[0].GetPublicSymbol(), CandidateReason.LateBound);
+                }
+                else
+                {
+                    return new SymbolInfo(getPublicSymbols(symbols), CandidateReason.LateBound);
+                }
+            }
+            else if (resultKind == LookupResultKind.Viable)
+            {
+                if (symbols.Count > 0)
+                {
+                    Debug.Assert(symbols.Count == 1);
+                    return new SymbolInfo(symbols[0].GetPublicSymbol());
+                }
+                else
+                {
+                    return SymbolInfo.None;
+                }
             }
             else
             {
-                return new SymbolInfo(getPublicSymbols(symbols), CandidateReason.LateBound);
+                return new SymbolInfo(getPublicSymbols(symbols), (symbols.Count > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
             }
-        }
-        else if (resultKind == LookupResultKind.Viable)
-        {
-            if (symbols.Count > 0)
-            {
-                Debug.Assert(symbols.Count == 1);
-                return new SymbolInfo(symbols[0].GetPublicSymbol());
-            }
-            else
-            {
-                return SymbolInfo.None;
-            }
-        }
-        else
-        {
-            return new SymbolInfo(getPublicSymbols(symbols), (symbols.Count > 0) ? resultKind.ToCandidateReason() : CandidateReason.None);
-        }
 
-        static ImmutableArray<ISymbol> getPublicSymbols(OneOrMany<Symbol> symbols)
-        {
-            var result = ArrayBuilder<ISymbol>.GetInstance(symbols.Count);
-            foreach (var symbol in symbols)
-                result.Add(symbol.GetPublicSymbol());
+            static ImmutableArray<ISymbol> getPublicSymbols(OneOrMany<Symbol> symbols)
+            {
+                var result = ArrayBuilder<ISymbol>.GetInstance(symbols.Count);
+                foreach (var symbol in symbols)
+                    result.Add(symbol.GetPublicSymbol());
 
-            return result.ToImmutableAndFree();
+                return result.ToImmutableAndFree();
+            }
         }
     }
 }

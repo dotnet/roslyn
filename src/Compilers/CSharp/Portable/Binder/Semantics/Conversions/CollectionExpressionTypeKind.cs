@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal enum CollectionExpressionTypeKind
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    None = 0,
-    Array,
-    Span,
-    ReadOnlySpan,
-    CollectionBuilder,
-    ImplementsIEnumerable,
-    ArrayInterface,
+    internal enum CollectionExpressionTypeKind
+    {
+        None = 0,
+        Array,
+        Span,
+        ReadOnlySpan,
+        CollectionBuilder,
+        ImplementsIEnumerable,
+        ArrayInterface,
+    }
 }

@@ -9,104 +9,105 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal partial class
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
+{
+    internal partial class
 #if DEBUG
-    ArrayTypeSymbolAdapter : SymbolAdapter,
+        ArrayTypeSymbolAdapter : SymbolAdapter,
 #else
-    ArrayTypeSymbol :
+        ArrayTypeSymbol :
 #endif 
-    Cci.IArrayTypeReference
-{
-    Cci.ITypeReference Cci.IArrayTypeReference.GetElementType(EmitContext context)
+        Cci.IArrayTypeReference
     {
-        PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
-        TypeWithAnnotations elementType = AdaptedArrayTypeSymbol.ElementTypeWithAnnotations;
-        var type = moduleBeingBuilt.Translate(elementType.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
-
-        if (elementType.CustomModifiers.Length == 0)
+        Cci.ITypeReference Cci.IArrayTypeReference.GetElementType(EmitContext context)
         {
-            return type;
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+
+            TypeWithAnnotations elementType = AdaptedArrayTypeSymbol.ElementTypeWithAnnotations;
+            var type = moduleBeingBuilt.Translate(elementType.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
+
+            if (elementType.CustomModifiers.Length == 0)
+            {
+                return type;
+            }
+            else
+            {
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(elementType.CustomModifiers));
+            }
         }
-        else
+
+        bool Cci.IArrayTypeReference.IsSZArray
         {
-            return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(elementType.CustomModifiers));
+            get
+            {
+                return AdaptedArrayTypeSymbol.IsSZArray;
+            }
         }
+
+        ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => AdaptedArrayTypeSymbol.LowerBounds;
+        int Cci.IArrayTypeReference.Rank => AdaptedArrayTypeSymbol.Rank;
+        ImmutableArray<int> Cci.IArrayTypeReference.Sizes => AdaptedArrayTypeSymbol.Sizes;
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit((Cci.IArrayTypeReference)this);
+        }
+
+        bool Cci.ITypeReference.IsEnum => false;
+        bool Cci.ITypeReference.IsValueType => false;
+
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
+
+        Cci.ITypeDefinition? Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
+        Cci.IGenericMethodParameterReference? Cci.ITypeReference.AsGenericMethodParameterReference => null;
+        Cci.IGenericTypeInstanceReference? Cci.ITypeReference.AsGenericTypeInstanceReference => null;
+        Cci.IGenericTypeParameterReference? Cci.ITypeReference.AsGenericTypeParameterReference => null;
+        Cci.INamespaceTypeDefinition? Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
+        Cci.INamespaceTypeReference? Cci.ITypeReference.AsNamespaceTypeReference => null;
+        Cci.INestedTypeDefinition? Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
+        Cci.INestedTypeReference? Cci.ITypeReference.AsNestedTypeReference => null;
+        Cci.ISpecializedNestedTypeReference? Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
+        Cci.ITypeDefinition? Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
+        Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context) => null;
     }
 
-    bool Cci.IArrayTypeReference.IsSZArray
+    internal partial class ArrayTypeSymbol
     {
-        get
-        {
-            return AdaptedArrayTypeSymbol.IsSZArray;
-        }
-    }
-
-    ImmutableArray<int> Cci.IArrayTypeReference.LowerBounds => AdaptedArrayTypeSymbol.LowerBounds;
-    int Cci.IArrayTypeReference.Rank => AdaptedArrayTypeSymbol.Rank;
-    ImmutableArray<int> Cci.IArrayTypeReference.Sizes => AdaptedArrayTypeSymbol.Sizes;
-
-    void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit((Cci.IArrayTypeReference)this);
-    }
-
-    bool Cci.ITypeReference.IsEnum => false;
-    bool Cci.ITypeReference.IsValueType => false;
-
-    TypeDefinitionHandle Cci.ITypeReference.TypeDef => default(TypeDefinitionHandle);
-    Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode => Cci.PrimitiveTypeCode.NotPrimitive;
-
-    Cci.ITypeDefinition? Cci.ITypeReference.GetResolvedType(EmitContext context) => null;
-    Cci.IGenericMethodParameterReference? Cci.ITypeReference.AsGenericMethodParameterReference => null;
-    Cci.IGenericTypeInstanceReference? Cci.ITypeReference.AsGenericTypeInstanceReference => null;
-    Cci.IGenericTypeParameterReference? Cci.ITypeReference.AsGenericTypeParameterReference => null;
-    Cci.INamespaceTypeDefinition? Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => null;
-    Cci.INamespaceTypeReference? Cci.ITypeReference.AsNamespaceTypeReference => null;
-    Cci.INestedTypeDefinition? Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context) => null;
-    Cci.INestedTypeReference? Cci.ITypeReference.AsNestedTypeReference => null;
-    Cci.ISpecializedNestedTypeReference? Cci.ITypeReference.AsSpecializedNestedTypeReference => null;
-    Cci.ITypeDefinition? Cci.ITypeReference.AsTypeDefinition(EmitContext context) => null;
-    Cci.IDefinition? Cci.IReference.AsDefinition(EmitContext context) => null;
-}
-
-internal partial class ArrayTypeSymbol
-{
 #if DEBUG
-    private ArrayTypeSymbolAdapter? _lazyAdapter;
+        private ArrayTypeSymbolAdapter? _lazyAdapter;
 
-    protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
 
-    internal new ArrayTypeSymbolAdapter GetCciAdapter()
-    {
-        if (_lazyAdapter is null)
+        internal new ArrayTypeSymbolAdapter GetCciAdapter()
         {
-            return InterlockedOperations.Initialize(ref _lazyAdapter, new ArrayTypeSymbolAdapter(this));
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new ArrayTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
         }
-
-        return _lazyAdapter;
-    }
 #else
-    internal ArrayTypeSymbol AdaptedArrayTypeSymbol => this;
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol => this;
 
-    internal new ArrayTypeSymbol GetCciAdapter()
-    {
-        return this;
-    }
+        internal new ArrayTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
 #endif
-}
-
-#if DEBUG
-internal partial class ArrayTypeSymbolAdapter
-{
-    internal ArrayTypeSymbolAdapter(ArrayTypeSymbol underlyingArrayTypeSymbol)
-    {
-        AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol;
     }
 
-    internal sealed override Symbol AdaptedSymbol => AdaptedArrayTypeSymbol;
-    internal ArrayTypeSymbol AdaptedArrayTypeSymbol { get; }
-}
+#if DEBUG
+    internal partial class ArrayTypeSymbolAdapter
+    {
+        internal ArrayTypeSymbolAdapter(ArrayTypeSymbol underlyingArrayTypeSymbol)
+        {
+            AdaptedArrayTypeSymbol = underlyingArrayTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedArrayTypeSymbol;
+        internal ArrayTypeSymbol AdaptedArrayTypeSymbol { get; }
+    }
 #endif 
+}

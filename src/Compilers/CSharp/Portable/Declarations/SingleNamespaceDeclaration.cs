@@ -6,81 +6,82 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal class SingleNamespaceDeclaration : SingleNamespaceOrTypeDeclaration
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<SingleNamespaceOrTypeDeclaration> _children;
-
-    protected SingleNamespaceDeclaration(
-        string name,
-        SyntaxReference syntaxReference,
-        SourceLocation nameLocation,
-        ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
-        ImmutableArray<Diagnostic> diagnostics)
-        : base(name, syntaxReference, nameLocation, diagnostics)
+    internal class SingleNamespaceDeclaration : SingleNamespaceOrTypeDeclaration
     {
-        _children = children;
-    }
+        private readonly ImmutableArray<SingleNamespaceOrTypeDeclaration> _children;
 
-    public override DeclarationKind Kind
-    {
-        get
+        protected SingleNamespaceDeclaration(
+            string name,
+            SyntaxReference syntaxReference,
+            SourceLocation nameLocation,
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
-            return DeclarationKind.Namespace;
+            _children = children;
         }
-    }
 
-    protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
-    {
-        return _children;
-    }
-
-    public virtual bool HasGlobalUsings
-    {
-        get
+        public override DeclarationKind Kind
         {
-            return false;
+            get
+            {
+                return DeclarationKind.Namespace;
+            }
         }
-    }
 
-    public virtual bool HasUsings
-    {
-        get
+        protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
         {
-            return false;
+            return _children;
         }
-    }
 
-    public virtual bool HasExternAliases
-    {
-        get
+        public virtual bool HasGlobalUsings
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    public static SingleNamespaceDeclaration Create(
-        string name,
-        bool hasUsings,
-        bool hasExternAliases,
-        SyntaxReference syntaxReference,
-        SourceLocation nameLocation,
-        ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
-        ImmutableArray<Diagnostic> diagnostics)
-    {
-        // By far the most common case is "no usings and no extern aliases", so optimize for
-        // that to minimize space. The other cases are not frequent enough to warrant their own
-        // custom types.
-        if (!hasUsings && !hasExternAliases)
+        public virtual bool HasUsings
         {
-            return new SingleNamespaceDeclaration(
-                name, syntaxReference, nameLocation, children, diagnostics);
+            get
+            {
+                return false;
+            }
         }
-        else
+
+        public virtual bool HasExternAliases
         {
-            return new SingleNamespaceDeclarationEx(
-                name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children, diagnostics);
+            get
+            {
+                return false;
+            }
+        }
+
+        public static SingleNamespaceDeclaration Create(
+            string name,
+            bool hasUsings,
+            bool hasExternAliases,
+            SyntaxReference syntaxReference,
+            SourceLocation nameLocation,
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+        {
+            // By far the most common case is "no usings and no extern aliases", so optimize for
+            // that to minimize space. The other cases are not frequent enough to warrant their own
+            // custom types.
+            if (!hasUsings && !hasExternAliases)
+            {
+                return new SingleNamespaceDeclaration(
+                    name, syntaxReference, nameLocation, children, diagnostics);
+            }
+            else
+            {
+                return new SingleNamespaceDeclarationEx(
+                    name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children, diagnostics);
+            }
         }
     }
 }

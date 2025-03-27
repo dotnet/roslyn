@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class PropertyTests : EmitMetadataTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-    [CompilerTrait(CompilerFeature.ExpressionBody)]
-    public void ExpressionBodedProperty()
+    public class PropertyTests : EmitMetadataTestBase
     {
-        var source = @"
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        [CompilerTrait(CompilerFeature.ExpressionBody)]
+        public void ExpressionBodedProperty()
+        {
+            var source = @"
 class C
 {
     public int x;
@@ -27,9 +27,9 @@ class C
         get => x;
     }
 }";
-        var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("C.X.get", @"
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("C.X.get", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -38,7 +38,7 @@ class C
   IL_0006:  ret
 }
 ");
-        verifier.VerifyIL("C.X.set", @"
+            verifier.VerifyIL("C.X.set", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -48,5 +48,6 @@ class C
   IL_0007:  ret
 }
 ");
+        }
     }
 }

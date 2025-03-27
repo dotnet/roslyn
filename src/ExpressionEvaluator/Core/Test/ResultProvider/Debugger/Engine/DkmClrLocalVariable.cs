@@ -9,14 +9,15 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Clr;
-
-public class DkmClrLocalVariable
+namespace Microsoft.VisualStudio.Debugger.Clr
 {
-    public string Name { get; }
-
-    internal DkmClrLocalVariable(string name)
+    public class DkmClrLocalVariable
     {
-        Name = name;
+        public string Name { get; }
+
+        internal DkmClrLocalVariable(string name)
+        {
+            Name = name;
+        }
     }
 }

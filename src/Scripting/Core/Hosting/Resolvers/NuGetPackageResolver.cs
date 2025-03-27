@@ -8,43 +8,44 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal abstract class NuGetPackageResolver
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    private const string ReferencePrefix = "nuget:";
-
-    /// <summary>
-    /// Syntax is "nuget:name[/version]".
-    /// </summary>
-    internal static bool TryParsePackageReference(string reference, out string name, out string version)
+    internal abstract class NuGetPackageResolver
     {
-        if (reference.StartsWith(ReferencePrefix, StringComparison.Ordinal))
+        private const string ReferencePrefix = "nuget:";
+
+        /// <summary>
+        /// Syntax is "nuget:name[/version]".
+        /// </summary>
+        internal static bool TryParsePackageReference(string reference, out string name, out string version)
         {
-            var parts = reference[ReferencePrefix.Length..].Split('/');
-            Debug.Assert(parts.Length > 0);
-            name = parts[0];
-            if (name.Length > 0)
+            if (reference.StartsWith(ReferencePrefix, StringComparison.Ordinal))
             {
-                switch (parts.Length)
+                var parts = reference[ReferencePrefix.Length..].Split('/');
+                Debug.Assert(parts.Length > 0);
+                name = parts[0];
+                if (name.Length > 0)
                 {
-                    case 1:
-                        version = string.Empty;
-                        return true;
-                    case 2:
-                        version = parts[1];
-                        if (version.Length > 0)
-                        {
+                    switch (parts.Length)
+                    {
+                        case 1:
+                            version = string.Empty;
                             return true;
-                        }
-                        break;
+                        case 2:
+                            version = parts[1];
+                            if (version.Length > 0)
+                            {
+                                return true;
+                            }
+                            break;
+                    }
                 }
             }
+            name = null;
+            version = null;
+            return false;
         }
-        name = null;
-        version = null;
-        return false;
-    }
 
-    internal abstract ImmutableArray<string> ResolveNuGetPackage(string packageName, string packageVersion);
+        internal abstract ImmutableArray<string> ResolveNuGetPackage(string packageName, string packageVersion);
+    }
 }

@@ -8,140 +8,141 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed partial class AnonymousTypeManager
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// Represents an anonymous type template's type parameter.
-    /// </summary>
-    internal sealed class AnonymousTypeParameterSymbol : TypeParameterSymbol
+    internal sealed partial class AnonymousTypeManager
     {
-        private readonly AnonymousTypeOrDelegateTemplateSymbol _container;
-        private readonly int _ordinal;
-        private readonly string _name;
-        private readonly bool _allowsRefLikeType;
-
-        public AnonymousTypeParameterSymbol(AnonymousTypeOrDelegateTemplateSymbol container, int ordinal, string name, bool allowsRefLikeType)
+        /// <summary>
+        /// Represents an anonymous type template's type parameter.
+        /// </summary>
+        internal sealed class AnonymousTypeParameterSymbol : TypeParameterSymbol
         {
-            Debug.Assert((object)container != null);
-            Debug.Assert(!string.IsNullOrEmpty(name));
+            private readonly AnonymousTypeOrDelegateTemplateSymbol _container;
+            private readonly int _ordinal;
+            private readonly string _name;
+            private readonly bool _allowsRefLikeType;
 
-            _container = container;
-            _ordinal = ordinal;
-            _name = name;
-            _allowsRefLikeType = allowsRefLikeType;
-        }
-
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
+            public AnonymousTypeParameterSymbol(AnonymousTypeOrDelegateTemplateSymbol container, int ordinal, string name, bool allowsRefLikeType)
             {
-                return TypeParameterKind.Type;
+                Debug.Assert((object)container != null);
+                Debug.Assert(!string.IsNullOrEmpty(name));
+
+                _container = container;
+                _ordinal = ordinal;
+                _name = name;
+                _allowsRefLikeType = allowsRefLikeType;
             }
-        }
 
-        public override ImmutableArray<Location> Locations
-        {
-            get { return ImmutableArray<Location>.Empty; }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
+            public override TypeParameterKind TypeParameterKind
             {
-                return ImmutableArray<SyntaxReference>.Empty;
+                get
+                {
+                    return TypeParameterKind.Type;
+                }
             }
-        }
 
-        public override int Ordinal
-        {
-            get { return _ordinal; }
-        }
+            public override ImmutableArray<Location> Locations
+            {
+                get { return ImmutableArray<Location>.Empty; }
+            }
 
-        public override string Name
-        {
-            get { return _name; }
-        }
+            public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            {
+                get
+                {
+                    return ImmutableArray<SyntaxReference>.Empty;
+                }
+            }
 
-        public override bool HasConstructorConstraint
-        {
-            get { return false; }
-        }
+            public override int Ordinal
+            {
+                get { return _ordinal; }
+            }
 
-        public override bool HasReferenceTypeConstraint
-        {
-            get { return false; }
-        }
+            public override string Name
+            {
+                get { return _name; }
+            }
 
-        public override bool IsReferenceTypeFromConstraintTypes
-        {
-            get { return false; }
-        }
+            public override bool HasConstructorConstraint
+            {
+                get { return false; }
+            }
 
-        internal override bool? ReferenceTypeConstraintIsNullable
-        {
-            get { return false; }
-        }
+            public override bool HasReferenceTypeConstraint
+            {
+                get { return false; }
+            }
 
-        public override bool HasNotNullConstraint => false;
+            public override bool IsReferenceTypeFromConstraintTypes
+            {
+                get { return false; }
+            }
 
-        internal override bool? IsNotNullable => null;
+            internal override bool? ReferenceTypeConstraintIsNullable
+            {
+                get { return false; }
+            }
 
-        public override bool HasValueTypeConstraint
-        {
-            get { return false; }
-        }
+            public override bool HasNotNullConstraint => false;
 
-        public override bool AllowsRefLikeType => _allowsRefLikeType;
+            internal override bool? IsNotNullable => null;
 
-        public override bool IsValueTypeFromConstraintTypes
-        {
-            get { return false; }
-        }
+            public override bool HasValueTypeConstraint
+            {
+                get { return false; }
+            }
 
-        public override bool HasUnmanagedTypeConstraint
-        {
-            get { return false; }
-        }
+            public override bool AllowsRefLikeType => _allowsRefLikeType;
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+            public override bool IsValueTypeFromConstraintTypes
+            {
+                get { return false; }
+            }
 
-        public override VarianceKind Variance
-        {
-            get { return VarianceKind.None; }
-        }
+            public override bool HasUnmanagedTypeConstraint
+            {
+                get { return false; }
+            }
 
-        internal override void EnsureAllConstraintsAreResolved()
-        {
-        }
+            public override bool IsImplicitlyDeclared
+            {
+                get { return true; }
+            }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return ImmutableArray<TypeWithAnnotations>.Empty;
-        }
+            public override VarianceKind Variance
+            {
+                get { return VarianceKind.None; }
+            }
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _container; }
-        }
+            internal override void EnsureAllConstraintsAreResolved()
+            {
+            }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
+            internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return ImmutableArray<TypeWithAnnotations>.Empty;
+            }
 
-        internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return null;
-        }
+            public override Symbol ContainingSymbol
+            {
+                get { return _container; }
+            }
 
-        internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return null;
+            internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return null;
+            }
+
+            internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+            {
+                return null;
+            }
         }
     }
 }

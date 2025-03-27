@@ -5,151 +5,152 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-// Avoid implementing IEnumerable so we do not get any unintentional boxing.
-internal readonly struct SyntaxDiagnosticInfoList
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    private readonly GreenNode _node;
-
-    internal SyntaxDiagnosticInfoList(GreenNode node)
+    // Avoid implementing IEnumerable so we do not get any unintentional boxing.
+    internal readonly struct SyntaxDiagnosticInfoList
     {
-        _node = node;
-    }
+        private readonly GreenNode _node;
 
-    public Enumerator GetEnumerator()
-    {
-        return new Enumerator(_node);
-    }
-
-    internal bool Any(Func<DiagnosticInfo, bool> predicate)
-    {
-        var enumerator = GetEnumerator();
-        while (enumerator.MoveNext())
+        internal SyntaxDiagnosticInfoList(GreenNode node)
         {
-            if (predicate(enumerator.Current))
-                return true;
+            _node = node;
         }
 
-        return false;
-    }
-
-    public struct Enumerator
-    {
-        private struct NodeIteration
+        public Enumerator GetEnumerator()
         {
-            internal readonly GreenNode Node;
-            internal int DiagnosticIndex;
-            internal int SlotIndex;
-
-            internal NodeIteration(GreenNode node)
-            {
-                this.Node = node;
-                this.SlotIndex = -1;
-                this.DiagnosticIndex = -1;
-            }
+            return new Enumerator(_node);
         }
 
-        private NodeIteration[]? _stack;
-        private int _count;
-
-        public DiagnosticInfo Current { get; private set; }
-
-        internal Enumerator(GreenNode node)
+        internal bool Any(Func<DiagnosticInfo, bool> predicate)
         {
-            Current = null!;
-            _stack = null;
-            _count = 0;
-            if (node != null && node.ContainsDiagnostics)
+            var enumerator = GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                _stack = new NodeIteration[8];
-                this.PushNodeOrToken(node);
-            }
-        }
-
-        public bool MoveNext()
-        {
-            while (_count > 0)
-            {
-                var diagIndex = _stack![_count - 1].DiagnosticIndex;
-                var node = _stack[_count - 1].Node;
-                var diags = node.GetDiagnostics();
-                if (diagIndex < diags.Length - 1)
-                {
-                    diagIndex++;
-                    Current = diags[diagIndex];
-                    _stack[_count - 1].DiagnosticIndex = diagIndex;
+                if (predicate(enumerator.Current))
                     return true;
-                }
-
-                var slotIndex = _stack[_count - 1].SlotIndex;
-tryAgain:
-                if (slotIndex < node.SlotCount - 1)
-                {
-                    slotIndex++;
-                    var child = node.GetSlot(slotIndex);
-                    if (child == null || !child.ContainsDiagnostics)
-                    {
-                        goto tryAgain;
-                    }
-
-                    _stack[_count - 1].SlotIndex = slotIndex;
-                    this.PushNodeOrToken(child);
-                }
-                else
-                {
-                    this.Pop();
-                }
             }
 
             return false;
         }
 
-        private void PushNodeOrToken(GreenNode node)
+        public struct Enumerator
         {
-            if (node.IsToken)
+            private struct NodeIteration
             {
-                this.PushToken(node);
-            }
-            else
-            {
-                this.Push(node);
-            }
-        }
+                internal readonly GreenNode Node;
+                internal int DiagnosticIndex;
+                internal int SlotIndex;
 
-        private void PushToken(GreenNode token)
-        {
-            var trailing = token.GetTrailingTriviaCore();
-            if (trailing != null)
-            {
-                this.Push(trailing);
+                internal NodeIteration(GreenNode node)
+                {
+                    this.Node = node;
+                    this.SlotIndex = -1;
+                    this.DiagnosticIndex = -1;
+                }
             }
 
-            this.Push(token);
-            var leading = token.GetLeadingTriviaCore();
-            if (leading != null)
+            private NodeIteration[]? _stack;
+            private int _count;
+
+            public DiagnosticInfo Current { get; private set; }
+
+            internal Enumerator(GreenNode node)
             {
-                this.Push(leading);
+                Current = null!;
+                _stack = null;
+                _count = 0;
+                if (node != null && node.ContainsDiagnostics)
+                {
+                    _stack = new NodeIteration[8];
+                    this.PushNodeOrToken(node);
+                }
             }
-        }
 
-        private void Push(GreenNode node)
-        {
-            RoslynDebug.Assert(_stack is object);
-            if (_count >= _stack.Length)
+            public bool MoveNext()
             {
-                var tmp = new NodeIteration[_stack.Length * 2];
-                Array.Copy(_stack, tmp, _stack.Length);
-                _stack = tmp;
+                while (_count > 0)
+                {
+                    var diagIndex = _stack![_count - 1].DiagnosticIndex;
+                    var node = _stack[_count - 1].Node;
+                    var diags = node.GetDiagnostics();
+                    if (diagIndex < diags.Length - 1)
+                    {
+                        diagIndex++;
+                        Current = diags[diagIndex];
+                        _stack[_count - 1].DiagnosticIndex = diagIndex;
+                        return true;
+                    }
+
+                    var slotIndex = _stack[_count - 1].SlotIndex;
+tryAgain:
+                    if (slotIndex < node.SlotCount - 1)
+                    {
+                        slotIndex++;
+                        var child = node.GetSlot(slotIndex);
+                        if (child == null || !child.ContainsDiagnostics)
+                        {
+                            goto tryAgain;
+                        }
+
+                        _stack[_count - 1].SlotIndex = slotIndex;
+                        this.PushNodeOrToken(child);
+                    }
+                    else
+                    {
+                        this.Pop();
+                    }
+                }
+
+                return false;
             }
 
-            _stack[_count] = new NodeIteration(node);
-            _count++;
-        }
+            private void PushNodeOrToken(GreenNode node)
+            {
+                if (node.IsToken)
+                {
+                    this.PushToken(node);
+                }
+                else
+                {
+                    this.Push(node);
+                }
+            }
 
-        private void Pop()
-        {
-            _count--;
+            private void PushToken(GreenNode token)
+            {
+                var trailing = token.GetTrailingTriviaCore();
+                if (trailing != null)
+                {
+                    this.Push(trailing);
+                }
+
+                this.Push(token);
+                var leading = token.GetLeadingTriviaCore();
+                if (leading != null)
+                {
+                    this.Push(leading);
+                }
+            }
+
+            private void Push(GreenNode node)
+            {
+                RoslynDebug.Assert(_stack is object);
+                if (_count >= _stack.Length)
+                {
+                    var tmp = new NodeIteration[_stack.Length * 2];
+                    Array.Copy(_stack, tmp, _stack.Length);
+                    _stack = tmp;
+                }
+
+                _stack[_count] = new NodeIteration(node);
+                _count++;
+            }
+
+            private void Pop()
+            {
+                _count--;
+            }
         }
     }
 }

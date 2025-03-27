@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IIncrementOrDecrementOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IncrementOrDecrementFlow_01()
+    public class IOperationTests_IIncrementOrDecrementOperation : SemanticModelTestBase
     {
-        string source = @"
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IncrementOrDecrementFlow_01()
+        {
+            string source = @"
 class C
 {
     void M(int i, int j)
@@ -29,9 +29,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -53,14 +53,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void IncrementOrDecrementFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IncrementOrDecrementFlow_02()
+        {
+            string source = @"
 class C
 {
     void M(D x, D y)
@@ -71,9 +71,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -137,7 +137,8 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
+    }
 }

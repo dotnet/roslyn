@@ -9,14 +9,15 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal static class RazorClassifierAccessor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(Document document, TextSpan textSpan, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
+    internal static class RazorClassifierAccessor
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        return Classifier.GetClassifiedSpans(
-            document.Project.Solution.Services, document.Project, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
+        public static async Task<IEnumerable<ClassifiedSpan>> GetClassifiedSpansAsync(Document document, TextSpan textSpan, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return Classifier.GetClassifiedSpans(
+                document.Project.Solution.Services, document.Project, semanticModel, textSpan, options.UnderlyingObject, cancellationToken);
+        }
     }
 }

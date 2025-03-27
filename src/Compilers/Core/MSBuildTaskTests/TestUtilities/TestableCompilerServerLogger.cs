@@ -5,12 +5,13 @@
 using System;
 using Microsoft.CodeAnalysis.CommandLine;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
-
-internal sealed class TestableCompilerServerLogger : ICompilerServerLogger
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities
 {
-    public bool IsLogging { get; set; }
-    public Action<string> LogFunc { get; set; } = delegate { throw new InvalidOperationException(); };
+    internal sealed class TestableCompilerServerLogger : ICompilerServerLogger
+    {
+        public bool IsLogging { get; set; }
+        public Action<string> LogFunc { get; set; } = delegate { throw new InvalidOperationException(); };
 
-    public void Log(string message) => LogFunc(message);
+        public void Log(string message) => LogFunc(message);
+    }
 }

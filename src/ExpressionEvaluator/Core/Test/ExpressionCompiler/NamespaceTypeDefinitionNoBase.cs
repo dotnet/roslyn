@@ -10,134 +10,135 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
-
-internal sealed class NamespaceTypeDefinitionNoBase : INamespaceTypeDefinition
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    internal readonly INamespaceTypeDefinition UnderlyingType;
-
-    internal NamespaceTypeDefinitionNoBase(INamespaceTypeDefinition underlyingType)
+    internal sealed class NamespaceTypeDefinitionNoBase : INamespaceTypeDefinition
     {
-        UnderlyingType = underlyingType;
-    }
+        internal readonly INamespaceTypeDefinition UnderlyingType;
 
-    bool IDefinition.IsEncDeleted => false;
+        internal NamespaceTypeDefinitionNoBase(INamespaceTypeDefinition underlyingType)
+        {
+            UnderlyingType = underlyingType;
+        }
 
-    ushort ITypeDefinition.Alignment => UnderlyingType.Alignment;
+        bool IDefinition.IsEncDeleted => false;
 
-    IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference => UnderlyingType.AsGenericMethodParameterReference;
+        ushort ITypeDefinition.Alignment => UnderlyingType.Alignment;
 
-    IGenericTypeInstanceReference ITypeReference.AsGenericTypeInstanceReference => UnderlyingType.AsGenericTypeInstanceReference;
+        IGenericMethodParameterReference ITypeReference.AsGenericMethodParameterReference => UnderlyingType.AsGenericMethodParameterReference;
 
-    IGenericTypeParameterReference ITypeReference.AsGenericTypeParameterReference => UnderlyingType.AsGenericTypeParameterReference;
+        IGenericTypeInstanceReference ITypeReference.AsGenericTypeInstanceReference => UnderlyingType.AsGenericTypeInstanceReference;
 
-    INamespaceTypeReference ITypeReference.AsNamespaceTypeReference => UnderlyingType.AsNamespaceTypeReference;
+        IGenericTypeParameterReference ITypeReference.AsGenericTypeParameterReference => UnderlyingType.AsGenericTypeParameterReference;
 
-    INestedTypeReference ITypeReference.AsNestedTypeReference => UnderlyingType.AsNestedTypeReference;
+        INamespaceTypeReference ITypeReference.AsNamespaceTypeReference => UnderlyingType.AsNamespaceTypeReference;
 
-    ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference => UnderlyingType.AsSpecializedNestedTypeReference;
+        INestedTypeReference ITypeReference.AsNestedTypeReference => UnderlyingType.AsNestedTypeReference;
 
-    IEnumerable<IEventDefinition> ITypeDefinition.GetEvents(EmitContext context) => UnderlyingType.GetEvents(context);
+        ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference => UnderlyingType.AsSpecializedNestedTypeReference;
 
-    ushort INamedTypeReference.GenericParameterCount => 0;
+        IEnumerable<IEventDefinition> ITypeDefinition.GetEvents(EmitContext context) => UnderlyingType.GetEvents(context);
 
-    ushort ITypeDefinition.GenericParameterCount => 0;
+        ushort INamedTypeReference.GenericParameterCount => 0;
 
-    IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters => UnderlyingType.GenericParameters;
+        ushort ITypeDefinition.GenericParameterCount => 0;
 
-    bool ITypeDefinition.HasDeclarativeSecurity => UnderlyingType.HasDeclarativeSecurity;
+        IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters => UnderlyingType.GenericParameters;
 
-    bool ITypeDefinition.IsAbstract => UnderlyingType.IsAbstract;
+        bool ITypeDefinition.HasDeclarativeSecurity => UnderlyingType.HasDeclarativeSecurity;
 
-    bool ITypeDefinition.IsBeforeFieldInit => UnderlyingType.IsBeforeFieldInit;
+        bool ITypeDefinition.IsAbstract => UnderlyingType.IsAbstract;
 
-    bool ITypeDefinition.IsComObject => UnderlyingType.IsComObject;
+        bool ITypeDefinition.IsBeforeFieldInit => UnderlyingType.IsBeforeFieldInit;
 
-    bool ITypeReference.IsEnum => UnderlyingType.IsEnum;
+        bool ITypeDefinition.IsComObject => UnderlyingType.IsComObject;
 
-    bool ITypeDefinition.IsGeneric => UnderlyingType.IsGeneric;
+        bool ITypeReference.IsEnum => UnderlyingType.IsEnum;
 
-    bool ITypeDefinition.IsInterface => UnderlyingType.IsInterface;
+        bool ITypeDefinition.IsGeneric => UnderlyingType.IsGeneric;
 
-    bool ITypeDefinition.IsDelegate => UnderlyingType.IsDelegate;
+        bool ITypeDefinition.IsInterface => UnderlyingType.IsInterface;
 
-    bool INamespaceTypeDefinition.IsPublic => UnderlyingType.IsPublic;
+        bool ITypeDefinition.IsDelegate => UnderlyingType.IsDelegate;
 
-    bool ITypeDefinition.IsRuntimeSpecial => UnderlyingType.IsRuntimeSpecial;
+        bool INamespaceTypeDefinition.IsPublic => UnderlyingType.IsPublic;
 
-    bool ITypeDefinition.IsSealed => UnderlyingType.IsSealed;
+        bool ITypeDefinition.IsRuntimeSpecial => UnderlyingType.IsRuntimeSpecial;
 
-    bool ITypeDefinition.IsSerializable => UnderlyingType.IsSerializable;
+        bool ITypeDefinition.IsSealed => UnderlyingType.IsSealed;
 
-    bool ITypeDefinition.IsSpecialName => UnderlyingType.IsSpecialName;
+        bool ITypeDefinition.IsSerializable => UnderlyingType.IsSerializable;
 
-    bool ITypeReference.IsValueType => UnderlyingType.IsValueType;
+        bool ITypeDefinition.IsSpecialName => UnderlyingType.IsSpecialName;
 
-    bool ITypeDefinition.IsWindowsRuntimeImport => UnderlyingType.IsWindowsRuntimeImport;
+        bool ITypeReference.IsValueType => UnderlyingType.IsValueType;
 
-    LayoutKind ITypeDefinition.Layout => UnderlyingType.Layout;
+        bool ITypeDefinition.IsWindowsRuntimeImport => UnderlyingType.IsWindowsRuntimeImport;
 
-    bool INamedTypeReference.MangleName => UnderlyingType.MangleName;
+        LayoutKind ITypeDefinition.Layout => UnderlyingType.Layout;
+
+        bool INamedTypeReference.MangleName => UnderlyingType.MangleName;
 
 #nullable enable
-    string? INamedTypeReference.AssociatedFileIdentifier => UnderlyingType.AssociatedFileIdentifier;
+        string? INamedTypeReference.AssociatedFileIdentifier => UnderlyingType.AssociatedFileIdentifier;
 #nullable disable
 
-    string INamedEntity.Name => UnderlyingType.Name;
+        string INamedEntity.Name => UnderlyingType.Name;
 
-    string INamespaceTypeReference.NamespaceName => UnderlyingType.NamespaceName;
+        string INamespaceTypeReference.NamespaceName => UnderlyingType.NamespaceName;
 
-    IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes => UnderlyingType.SecurityAttributes;
+        IEnumerable<SecurityAttribute> ITypeDefinition.SecurityAttributes => UnderlyingType.SecurityAttributes;
 
-    uint ITypeDefinition.SizeOf => UnderlyingType.SizeOf;
+        uint ITypeDefinition.SizeOf => UnderlyingType.SizeOf;
 
-    CharSet ITypeDefinition.StringFormat => UnderlyingType.StringFormat;
+        CharSet ITypeDefinition.StringFormat => UnderlyingType.StringFormat;
 
-    TypeDefinitionHandle ITypeReference.TypeDef => UnderlyingType.TypeDef;
+        TypeDefinitionHandle ITypeReference.TypeDef => UnderlyingType.TypeDef;
 
-    IDefinition IReference.AsDefinition(EmitContext context) => UnderlyingType.AsDefinition(context);
+        IDefinition IReference.AsDefinition(EmitContext context) => UnderlyingType.AsDefinition(context);
 
-    INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => UnderlyingType.AsNamespaceTypeDefinition(context);
+        INamespaceTypeDefinition ITypeReference.AsNamespaceTypeDefinition(EmitContext context) => UnderlyingType.AsNamespaceTypeDefinition(context);
 
-    INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context) => UnderlyingType.AsNestedTypeDefinition(context);
+        INestedTypeDefinition ITypeReference.AsNestedTypeDefinition(EmitContext context) => UnderlyingType.AsNestedTypeDefinition(context);
 
-    ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context) => UnderlyingType.AsTypeDefinition(context);
+        ITypeDefinition ITypeReference.AsTypeDefinition(EmitContext context) => UnderlyingType.AsTypeDefinition(context);
 
-    void IReference.Dispatch(MetadataVisitor visitor) => UnderlyingType.Dispatch(visitor);
+        void IReference.Dispatch(MetadataVisitor visitor) => UnderlyingType.Dispatch(visitor);
 
-    IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context) => UnderlyingType.GetAttributes(context);
+        IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context) => UnderlyingType.GetAttributes(context);
 
-    ITypeReference ITypeDefinition.GetBaseClass(EmitContext context) => null;
+        ITypeReference ITypeDefinition.GetBaseClass(EmitContext context) => null;
 
-    IEnumerable<Cci.MethodImplementation> ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context) => UnderlyingType.GetExplicitImplementationOverrides(context);
+        IEnumerable<Cci.MethodImplementation> ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context) => UnderlyingType.GetExplicitImplementationOverrides(context);
 
-    IEnumerable<IFieldDefinition> ITypeDefinition.GetFields(EmitContext context) => UnderlyingType.GetFields(context);
+        IEnumerable<IFieldDefinition> ITypeDefinition.GetFields(EmitContext context) => UnderlyingType.GetFields(context);
 
-    IEnumerable<IMethodDefinition> ITypeDefinition.GetMethods(EmitContext context) => UnderlyingType.GetMethods(context);
+        IEnumerable<IMethodDefinition> ITypeDefinition.GetMethods(EmitContext context) => UnderlyingType.GetMethods(context);
 
-    IEnumerable<INestedTypeDefinition> ITypeDefinition.GetNestedTypes(EmitContext context) => UnderlyingType.GetNestedTypes(context);
+        IEnumerable<INestedTypeDefinition> ITypeDefinition.GetNestedTypes(EmitContext context) => UnderlyingType.GetNestedTypes(context);
 
-    IEnumerable<IPropertyDefinition> ITypeDefinition.GetProperties(EmitContext context) => UnderlyingType.GetProperties(context);
+        IEnumerable<IPropertyDefinition> ITypeDefinition.GetProperties(EmitContext context) => UnderlyingType.GetProperties(context);
 
-    ITypeDefinition ITypeReference.GetResolvedType(EmitContext context) => UnderlyingType.GetResolvedType(context);
+        ITypeDefinition ITypeReference.GetResolvedType(EmitContext context) => UnderlyingType.GetResolvedType(context);
 
-    IUnitReference INamespaceTypeReference.GetUnit(EmitContext context) => UnderlyingType.GetUnit(context);
+        IUnitReference INamespaceTypeReference.GetUnit(EmitContext context) => UnderlyingType.GetUnit(context);
 
-    IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context) => UnderlyingType.Interfaces(context);
+        IEnumerable<TypeReferenceWithAttributes> ITypeDefinition.Interfaces(EmitContext context) => UnderlyingType.Interfaces(context);
 
-    Cci.PrimitiveTypeCode ITypeReference.TypeCode => UnderlyingType.TypeCode;
+        Cci.PrimitiveTypeCode ITypeReference.TypeCode => UnderlyingType.TypeCode;
 
-    Symbols.ISymbolInternal IReference.GetInternalSymbol() => null;
+        Symbols.ISymbolInternal IReference.GetInternalSymbol() => null;
 
-    public sealed override bool Equals(object obj)
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
-    }
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    public sealed override int GetHashCode()
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

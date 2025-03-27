@@ -5,106 +5,107 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// Result of binding an AssemblyRef to an AssemblyDef. 
-    /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal readonly struct AssemblyReferenceBinding
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
-        private readonly AssemblyIdentity? _referenceIdentity;
-        private readonly int _definitionIndex;
-        private readonly int _versionDifference;
-
         /// <summary>
-        /// Failed binding.
+        /// Result of binding an AssemblyRef to an AssemblyDef. 
         /// </summary>
-        public AssemblyReferenceBinding(AssemblyIdentity referenceIdentity)
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        internal readonly struct AssemblyReferenceBinding
         {
-            Debug.Assert(referenceIdentity != null);
+            private readonly AssemblyIdentity? _referenceIdentity;
+            private readonly int _definitionIndex;
+            private readonly int _versionDifference;
 
-            _referenceIdentity = referenceIdentity;
-            _definitionIndex = -1;
-            _versionDifference = 0;
-        }
-
-        /// <summary>
-        /// Successful binding.
-        /// </summary>
-        public AssemblyReferenceBinding(AssemblyIdentity referenceIdentity, int definitionIndex, int versionDifference = 0)
-        {
-            Debug.Assert(referenceIdentity != null);
-            Debug.Assert(definitionIndex >= 0);
-            Debug.Assert(versionDifference >= -1 && versionDifference <= +1);
-
-            _referenceIdentity = referenceIdentity;
-            _definitionIndex = definitionIndex;
-            _versionDifference = versionDifference;
-        }
-
-        /// <summary>
-        /// Returns true if the reference was matched with the identity of the assembly being built.
-        /// </summary>
-        internal bool BoundToAssemblyBeingBuilt
-        {
-            get { return _definitionIndex == 0; }
-        }
-
-        /// <summary>
-        /// True if the definition index is available (reference was successfully matched with the definition).
-        /// </summary>
-        internal bool IsBound
-        {
-            get
+            /// <summary>
+            /// Failed binding.
+            /// </summary>
+            public AssemblyReferenceBinding(AssemblyIdentity referenceIdentity)
             {
-                return _definitionIndex >= 0;
-            }
-        }
+                Debug.Assert(referenceIdentity != null);
 
-        /// <summary>
-        ///  0 if the reference is equivalent to the definition.
-        /// -1 if version of the matched definition is lower than version of the reference, but the reference otherwise matches the definition.
-        /// +1 if version of the matched definition is higher than version of the reference, but the reference otherwise matches the definition.
-        ///   
-        /// Undefined unless <see cref="IsBound"/> is true.
-        /// </summary>
-        internal int VersionDifference
-        {
-            get
+                _referenceIdentity = referenceIdentity;
+                _definitionIndex = -1;
+                _versionDifference = 0;
+            }
+
+            /// <summary>
+            /// Successful binding.
+            /// </summary>
+            public AssemblyReferenceBinding(AssemblyIdentity referenceIdentity, int definitionIndex, int versionDifference = 0)
             {
-                Debug.Assert(IsBound);
-                return _versionDifference;
-            }
-        }
+                Debug.Assert(referenceIdentity != null);
+                Debug.Assert(definitionIndex >= 0);
+                Debug.Assert(versionDifference >= -1 && versionDifference <= +1);
 
-        /// <summary>
-        /// Index into assembly definition list.
-        /// Undefined unless <see cref="IsBound"/> is true.
-        /// </summary>
-        internal int DefinitionIndex
-        {
-            get
+                _referenceIdentity = referenceIdentity;
+                _definitionIndex = definitionIndex;
+                _versionDifference = versionDifference;
+            }
+
+            /// <summary>
+            /// Returns true if the reference was matched with the identity of the assembly being built.
+            /// </summary>
+            internal bool BoundToAssemblyBeingBuilt
             {
-                Debug.Assert(IsBound);
-                return _definitionIndex;
+                get { return _definitionIndex == 0; }
             }
-        }
 
-        internal AssemblyIdentity? ReferenceIdentity
-        {
-            get
+            /// <summary>
+            /// True if the definition index is available (reference was successfully matched with the definition).
+            /// </summary>
+            internal bool IsBound
             {
-                return _referenceIdentity;
+                get
+                {
+                    return _definitionIndex >= 0;
+                }
             }
-        }
 
-        private string GetDebuggerDisplay()
-        {
-            var displayName = ReferenceIdentity?.GetDisplayName() ?? "";
-            return IsBound ? displayName + " -> #" + DefinitionIndex + (VersionDifference != 0 ? " VersionDiff=" + VersionDifference : "") : "unbound";
+            /// <summary>
+            ///  0 if the reference is equivalent to the definition.
+            /// -1 if version of the matched definition is lower than version of the reference, but the reference otherwise matches the definition.
+            /// +1 if version of the matched definition is higher than version of the reference, but the reference otherwise matches the definition.
+            ///   
+            /// Undefined unless <see cref="IsBound"/> is true.
+            /// </summary>
+            internal int VersionDifference
+            {
+                get
+                {
+                    Debug.Assert(IsBound);
+                    return _versionDifference;
+                }
+            }
+
+            /// <summary>
+            /// Index into assembly definition list.
+            /// Undefined unless <see cref="IsBound"/> is true.
+            /// </summary>
+            internal int DefinitionIndex
+            {
+                get
+                {
+                    Debug.Assert(IsBound);
+                    return _definitionIndex;
+                }
+            }
+
+            internal AssemblyIdentity? ReferenceIdentity
+            {
+                get
+                {
+                    return _referenceIdentity;
+                }
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                var displayName = ReferenceIdentity?.GetDisplayName() ?? "";
+                return IsBound ? displayName + " -> #" + DefinitionIndex + (VersionDifference != 0 ? " VersionDiff=" + VersionDifference : "") : "unbound";
+            }
         }
     }
 }

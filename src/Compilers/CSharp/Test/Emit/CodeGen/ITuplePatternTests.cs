@@ -9,17 +9,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-[CompilerTrait(CompilerFeature.Patterns)]
-public class ITuplePatternTests : EmitMetadataTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
+    [CompilerTrait(CompilerFeature.Patterns)]
+    public class ITuplePatternTests : EmitMetadataTestBase
     {
-        return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
-    }
+        protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
+        {
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+        }
 
-    private const string _iTupleSource = @"
+        private const string _iTupleSource = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple
@@ -30,10 +30,10 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-    [Fact]
-    public void ITupleFromObject_01()
-    {
-        var source =
+        [Fact]
+        public void ITupleFromObject_01()
+        {
+            var source =
 @"using System;
 using System.Runtime.CompilerServices;
 public class C : ITuple
@@ -50,11 +50,11 @@ public class C : ITuple
     }
 }
 ";
-        var compilation = CreatePatternCompilation(source);
-        compilation.VerifyDiagnostics();
-        var expectedOutput = @"True";
-        var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        compVerifier.VerifyIL("C.M",
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
 @"{
   // Code size       97 (0x61)
   .maxstack  2
@@ -108,12 +108,12 @@ public class C : ITuple
   IL_005f:  ldc.i4.0
   IL_0060:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void ITupleFromObject_02()
-    {
-        var source =
+        [Fact]
+        public void ITupleFromObject_02()
+        {
+            var source =
 @"using System;
 using System.Runtime.CompilerServices;
 public class C : ITuple
@@ -134,11 +134,11 @@ public class C : ITuple
     }
 }
 ";
-        var compilation = CreatePatternCompilation(source);
-        compilation.VerifyDiagnostics();
-        var expectedOutput = @"True";
-        var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
-        compVerifier.VerifyIL("C.M",
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"True";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M",
 @"{
   // Code size       98 (0x62)
   .maxstack  2
@@ -193,12 +193,12 @@ public class C : ITuple
   IL_0060:  ldc.i4.0
   IL_0061:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
-    public void IndexerOverrideLacksAccessor()
-    {
-        var source = @"
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void IndexerOverrideLacksAccessor()
+        {
+            var source = @"
 #nullable enable
 using System.Runtime.CompilerServices;
 
@@ -226,8 +226,8 @@ class C : Base, ITuple
   }
 }
 ";
-        var verifier = CompileAndVerify(CreatePatternCompilation(source, TestOptions.DebugDll));
-        verifier.VerifyIL("C.M", @"
+            var verifier = CompileAndVerify(CreatePatternCompilation(source, TestOptions.DebugDll));
+            verifier.VerifyIL("C.M", @"
   {
       // Code size      110 (0x6e)
       .maxstack  2
@@ -291,6 +291,7 @@ class C : Base, ITuple
       IL_006b:  ldloc.s    V_7
       IL_006d:  ret
     }");
-    }
+        }
 
+    }
 }

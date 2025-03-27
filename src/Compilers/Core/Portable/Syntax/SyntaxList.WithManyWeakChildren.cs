@@ -5,53 +5,54 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Syntax;
-
-internal partial class SyntaxList
+namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal sealed class WithManyWeakChildren : SyntaxList
+    internal partial class SyntaxList
     {
-        private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
-
-        // We calculate and store the positions of all children here. This way, getting the position
-        // of all children is O(N) [N being the list size], otherwise it is O(N^2) because getting
-        // the position of a child later requires traversing all previous siblings.
-        private readonly int[] _childPositions;
-
-        internal WithManyWeakChildren(InternalSyntax.SyntaxList.WithManyChildrenBase green, SyntaxNode parent, int position)
-            : base(green, parent, position)
+        internal sealed class WithManyWeakChildren : SyntaxList
         {
-            int count = green.SlotCount;
-            _children = new ArrayElement<WeakReference<SyntaxNode>?>[count];
+            private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
 
-            var childOffsets = new int[count];
+            // We calculate and store the positions of all children here. This way, getting the position
+            // of all children is O(N) [N being the list size], otherwise it is O(N^2) because getting
+            // the position of a child later requires traversing all previous siblings.
+            private readonly int[] _childPositions;
 
-            int childPosition = position;
-            var greenChildren = green.children;
-            for (int i = 0; i < childOffsets.Length; ++i)
+            internal WithManyWeakChildren(InternalSyntax.SyntaxList.WithManyChildrenBase green, SyntaxNode parent, int position)
+                : base(green, parent, position)
             {
-                childOffsets[i] = childPosition;
-                childPosition += greenChildren[i].Value.FullWidth;
+                int count = green.SlotCount;
+                _children = new ArrayElement<WeakReference<SyntaxNode>?>[count];
+
+                var childOffsets = new int[count];
+
+                int childPosition = position;
+                var greenChildren = green.children;
+                for (int i = 0; i < childOffsets.Length; ++i)
+                {
+                    childOffsets[i] = childPosition;
+                    childPosition += greenChildren[i].Value.FullWidth;
+                }
+
+                _childPositions = childOffsets;
             }
 
-            _childPositions = childOffsets;
-        }
+            internal override int GetChildPosition(int index)
+            {
+                return _childPositions[index];
+            }
 
-        internal override int GetChildPosition(int index)
-        {
-            return _childPositions[index];
-        }
+            internal override SyntaxNode GetNodeSlot(int index)
+            {
+                return GetWeakRedElement(ref _children[index].Value, index);
+            }
 
-        internal override SyntaxNode GetNodeSlot(int index)
-        {
-            return GetWeakRedElement(ref _children[index].Value, index);
-        }
-
-        internal override SyntaxNode? GetCachedSlot(int index)
-        {
-            SyntaxNode? value = null;
-            _children[index].Value?.TryGetTarget(out value);
-            return value;
+            internal override SyntaxNode? GetCachedSlot(int index)
+            {
+                SyntaxNode? value = null;
+                _children[index].Value?.TryGetTarget(out value);
+                return value;
+            }
         }
     }
 }

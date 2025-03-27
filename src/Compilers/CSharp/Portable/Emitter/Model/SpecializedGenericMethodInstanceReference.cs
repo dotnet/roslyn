@@ -9,51 +9,52 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-/// <summary>
-/// Represents a generic method of a generic type instantiation, closed over type parameters.
-/// e.g. 
-/// A{T}.M{S}()
-/// A.B{T}.C.M{S}()
-/// </summary>
-internal sealed class SpecializedGenericMethodInstanceReference : SpecializedMethodReference, Cci.IGenericMethodInstanceReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    private readonly SpecializedMethodReference _genericMethod;
-
-    public SpecializedGenericMethodInstanceReference(MethodSymbol underlyingMethod)
-        : base(underlyingMethod)
+    /// <summary>
+    /// Represents a generic method of a generic type instantiation, closed over type parameters.
+    /// e.g. 
+    /// A{T}.M{S}()
+    /// A.B{T}.C.M{S}()
+    /// </summary>
+    internal sealed class SpecializedGenericMethodInstanceReference : SpecializedMethodReference, Cci.IGenericMethodInstanceReference
     {
-        Debug.Assert(PEModuleBuilder.IsGenericType(underlyingMethod.ContainingType) && underlyingMethod.ContainingType.IsDefinition);
-        _genericMethod = new SpecializedMethodReference(underlyingMethod);
-    }
+        private readonly SpecializedMethodReference _genericMethod;
 
-    IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
-    {
-        PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-
-        foreach (var arg in UnderlyingMethod.TypeArgumentsWithAnnotations)
+        public SpecializedGenericMethodInstanceReference(MethodSymbol underlyingMethod)
+            : base(underlyingMethod)
         {
-            Debug.Assert(arg.CustomModifiers.IsEmpty);
-            yield return moduleBeingBuilt.Translate(arg.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+            Debug.Assert(PEModuleBuilder.IsGenericType(underlyingMethod.ContainingType) && underlyingMethod.ContainingType.IsDefinition);
+            _genericMethod = new SpecializedMethodReference(underlyingMethod);
         }
-    }
 
-    Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
-    {
-        return _genericMethod;
-    }
-
-    public override Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
-    {
-        get
+        IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
         {
-            return this;
-        }
-    }
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
-    public override void Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit((Cci.IGenericMethodInstanceReference)this);
+            foreach (var arg in UnderlyingMethod.TypeArgumentsWithAnnotations)
+            {
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+            }
+        }
+
+        Cci.IMethodReference Cci.IGenericMethodInstanceReference.GetGenericMethod(EmitContext context)
+        {
+            return _genericMethod;
+        }
+
+        public override Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
+        {
+            get
+            {
+                return this;
+            }
+        }
+
+        public override void Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit((Cci.IGenericMethodInstanceReference)this);
+        }
     }
 }

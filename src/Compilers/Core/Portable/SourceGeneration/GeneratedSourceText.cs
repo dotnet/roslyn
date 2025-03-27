@@ -6,20 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// A source text created by an <see cref="ISourceGenerator"/>
-/// </summary>
-internal readonly struct GeneratedSourceText
+namespace Microsoft.CodeAnalysis
 {
-    public SourceText Text { get; }
-
-    public string HintName { get; }
-
-    public GeneratedSourceText(string hintName, SourceText text)
+    /// <summary>
+    /// A source text created by an <see cref="ISourceGenerator"/>
+    /// </summary>
+    internal readonly struct GeneratedSourceText
     {
-        this.Text = text;
-        this.HintName = hintName;
+        public SourceText Text { get; }
+
+        public string HintName { get; }
+
+        public GeneratedSourceText(string hintName, SourceText text)
+        {
+            this.Text = text;
+            this.HintName = hintName;
+        }
     }
 }

@@ -7,19 +7,20 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal sealed class RazorRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static readonly RazorRemoteServiceCallbackDispatcherRegistry Empty = new(Array.Empty<(Type, RazorRemoteServiceCallbackDispatcher)>());
-
-    private readonly ImmutableDictionary<Type, RazorRemoteServiceCallbackDispatcher> _lazyDispatchers;
-
-    public RazorRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, RazorRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
+    internal sealed class RazorRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
     {
-        _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
-    }
+        public static readonly RazorRemoteServiceCallbackDispatcherRegistry Empty = new(Array.Empty<(Type, RazorRemoteServiceCallbackDispatcher)>());
 
-    IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
-        => _lazyDispatchers[serviceType];
+        private readonly ImmutableDictionary<Type, RazorRemoteServiceCallbackDispatcher> _lazyDispatchers;
+
+        public RazorRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, RazorRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
+        {
+            _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
+        }
+
+        IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
+            => _lazyDispatchers[serviceType];
+    }
 }

@@ -7,12 +7,13 @@
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal static class DkmClrValueFlagsExtensions
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static bool IsError(this DkmClrValue value)
+    internal static class DkmClrValueFlagsExtensions
     {
-        return (value.ValueFlags & DkmClrValueFlags.Error) != 0;
+        internal static bool IsError(this DkmClrValue value)
+        {
+            return (value.ValueFlags & DkmClrValueFlags.Error) != 0;
+        }
     }
 }

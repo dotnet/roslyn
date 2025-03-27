@@ -10,242 +10,243 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using Cci = Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.Emit.NoPia;
-
-internal abstract partial class EmbeddedTypesManager<
-    TPEModuleBuilder,
-    TModuleCompilationState,
-    TEmbeddedTypesManager,
-    TSyntaxNode,
-    TAttributeData,
-    TSymbol,
-    TAssemblySymbol,
-    TNamedTypeSymbol,
-    TFieldSymbol,
-    TMethodSymbol,
-    TEventSymbol,
-    TPropertySymbol,
-    TParameterSymbol,
-    TTypeParameterSymbol,
-    TEmbeddedType,
-    TEmbeddedField,
-    TEmbeddedMethod,
-    TEmbeddedEvent,
-    TEmbeddedProperty,
-    TEmbeddedParameter,
-    TEmbeddedTypeParameter>
+namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal abstract class CommonEmbeddedTypeParameter : Cci.IEmbeddedDefinition, Cci.IGenericMethodParameter
+    internal abstract partial class EmbeddedTypesManager<
+        TPEModuleBuilder,
+        TModuleCompilationState,
+        TEmbeddedTypesManager,
+        TSyntaxNode,
+        TAttributeData,
+        TSymbol,
+        TAssemblySymbol,
+        TNamedTypeSymbol,
+        TFieldSymbol,
+        TMethodSymbol,
+        TEventSymbol,
+        TPropertySymbol,
+        TParameterSymbol,
+        TTypeParameterSymbol,
+        TEmbeddedType,
+        TEmbeddedField,
+        TEmbeddedMethod,
+        TEmbeddedEvent,
+        TEmbeddedProperty,
+        TEmbeddedParameter,
+        TEmbeddedTypeParameter>
     {
-        public readonly TEmbeddedMethod ContainingMethod;
-        public readonly TTypeParameterSymbol UnderlyingTypeParameter;
-
-        protected CommonEmbeddedTypeParameter(TEmbeddedMethod containingMethod, TTypeParameterSymbol underlyingTypeParameter)
+        internal abstract class CommonEmbeddedTypeParameter : Cci.IEmbeddedDefinition, Cci.IGenericMethodParameter
         {
-            this.ContainingMethod = containingMethod;
-            this.UnderlyingTypeParameter = underlyingTypeParameter;
-        }
+            public readonly TEmbeddedMethod ContainingMethod;
+            public readonly TTypeParameterSymbol UnderlyingTypeParameter;
 
-        public bool IsEncDeleted
-            => false;
-
-        protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
-        protected abstract bool MustBeReferenceType { get; }
-        protected abstract bool MustBeValueType { get; }
-        protected abstract bool AllowsRefLikeType { get; }
-        protected abstract bool MustHaveDefaultConstructor { get; }
-        protected abstract string Name { get; }
-        protected abstract ushort Index { get; }
-
-        Cci.IMethodDefinition Cci.IGenericMethodParameter.DefiningMethod
-        {
-            get
+            protected CommonEmbeddedTypeParameter(TEmbeddedMethod containingMethod, TTypeParameterSymbol underlyingTypeParameter)
             {
-                return ContainingMethod;
+                this.ContainingMethod = containingMethod;
+                this.UnderlyingTypeParameter = underlyingTypeParameter;
             }
-        }
 
-        IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
-        {
-            return GetConstraints(context);
-        }
+            public bool IsEncDeleted
+                => false;
 
-        bool Cci.IGenericParameter.MustBeReferenceType
-        {
-            get
+            protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
+            protected abstract bool MustBeReferenceType { get; }
+            protected abstract bool MustBeValueType { get; }
+            protected abstract bool AllowsRefLikeType { get; }
+            protected abstract bool MustHaveDefaultConstructor { get; }
+            protected abstract string Name { get; }
+            protected abstract ushort Index { get; }
+
+            Cci.IMethodDefinition Cci.IGenericMethodParameter.DefiningMethod
             {
-                return MustBeReferenceType;
+                get
+                {
+                    return ContainingMethod;
+                }
             }
-        }
 
-        bool Cci.IGenericParameter.MustBeValueType
-        {
-            get
+            IEnumerable<Cci.TypeReferenceWithAttributes> Cci.IGenericParameter.GetConstraints(EmitContext context)
             {
-                return MustBeValueType;
+                return GetConstraints(context);
             }
-        }
 
-        bool Cci.IGenericParameter.AllowsRefLikeType
-        {
-            get
+            bool Cci.IGenericParameter.MustBeReferenceType
             {
-                return AllowsRefLikeType;
+                get
+                {
+                    return MustBeReferenceType;
+                }
             }
-        }
 
-        bool Cci.IGenericParameter.MustHaveDefaultConstructor
-        {
-            get
+            bool Cci.IGenericParameter.MustBeValueType
             {
-                return MustHaveDefaultConstructor;
+                get
+                {
+                    return MustBeValueType;
+                }
             }
-        }
 
-        Cci.TypeParameterVariance Cci.IGenericParameter.Variance
-        {
-            get
+            bool Cci.IGenericParameter.AllowsRefLikeType
             {
-                // Method type parameters are not variant
-                return Cci.TypeParameterVariance.NonVariant;
+                get
+                {
+                    return AllowsRefLikeType;
+                }
             }
-        }
 
-        Cci.IGenericMethodParameter Cci.IGenericParameter.AsGenericMethodParameter
-        {
-            get
+            bool Cci.IGenericParameter.MustHaveDefaultConstructor
             {
-                return this;
+                get
+                {
+                    return MustHaveDefaultConstructor;
+                }
             }
-        }
 
-        Cci.IGenericTypeParameter Cci.IGenericParameter.AsGenericTypeParameter
-        {
-            get
+            Cci.TypeParameterVariance Cci.IGenericParameter.Variance
+            {
+                get
+                {
+                    // Method type parameters are not variant
+                    return Cci.TypeParameterVariance.NonVariant;
+                }
+            }
+
+            Cci.IGenericMethodParameter Cci.IGenericParameter.AsGenericMethodParameter
+            {
+                get
+                {
+                    return this;
+                }
+            }
+
+            Cci.IGenericTypeParameter Cci.IGenericParameter.AsGenericTypeParameter
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
+            bool Cci.ITypeReference.IsEnum
+            {
+                get { return false; }
+            }
+
+            bool Cci.ITypeReference.IsValueType
+            {
+                get { return false; }
+            }
+
+            Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
             {
                 return null;
             }
-        }
 
-        bool Cci.ITypeReference.IsEnum
-        {
-            get { return false; }
-        }
-
-        bool Cci.ITypeReference.IsValueType
-        {
-            get { return false; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
-        {
-            get
+            Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
             {
-                return Cci.PrimitiveTypeCode.NotPrimitive;
+                get
+                {
+                    return Cci.PrimitiveTypeCode.NotPrimitive;
+                }
             }
-        }
 
-        TypeDefinitionHandle Cci.ITypeReference.TypeDef
-        {
-            get { return default(TypeDefinitionHandle); }
-        }
-
-        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
-        {
-            get { return this; }
-        }
-
-        Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
-        {
-            get { return null; }
-        }
-
-        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
-        {
-            get { return null; }
-        }
-
-        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
-        {
-            get { return null; }
-        }
-
-        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            // TODO:
-            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-        }
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return null;
-        }
-
-        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
-
-        string Cci.INamedEntity.Name
-        {
-            get { return Name; }
-        }
-
-        ushort Cci.IParameterListEntry.Index
-        {
-            get
+            TypeDefinitionHandle Cci.ITypeReference.TypeDef
             {
-                return Index;
+                get { return default(TypeDefinitionHandle); }
             }
-        }
 
-        Cci.IMethodReference Cci.IGenericMethodParameterReference.DefiningMethod
-        {
-            get { return ContainingMethod; }
-        }
+            Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
+            {
+                get { return this; }
+            }
 
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
+            Cci.IGenericTypeInstanceReference Cci.ITypeReference.AsGenericTypeInstanceReference
+            {
+                get { return null; }
+            }
 
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
+            Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
+            {
+                get { return null; }
+            }
+
+            Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
+            {
+                return null;
+            }
+
+            Cci.INamespaceTypeReference Cci.ITypeReference.AsNamespaceTypeReference
+            {
+                get { return null; }
+            }
+
+            Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
+            {
+                return null;
+            }
+
+            Cci.INestedTypeReference Cci.ITypeReference.AsNestedTypeReference
+            {
+                get { return null; }
+            }
+
+            Cci.ISpecializedNestedTypeReference Cci.ITypeReference.AsSpecializedNestedTypeReference
+            {
+                get { return null; }
+            }
+
+            Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
+            {
+                return null;
+            }
+
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+            {
+                // TODO:
+                return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+            }
+
+            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+            {
+                return null;
+            }
+
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
+            string Cci.INamedEntity.Name
+            {
+                get { return Name; }
+            }
+
+            ushort Cci.IParameterListEntry.Index
+            {
+                get
+                {
+                    return Index;
+                }
+            }
+
+            Cci.IMethodReference Cci.IGenericMethodParameterReference.DefiningMethod
+            {
+                get { return ContainingMethod; }
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 }

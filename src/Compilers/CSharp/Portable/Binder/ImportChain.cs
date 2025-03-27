@@ -11,150 +11,151 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-internal sealed class ImportChain : Cci.IImportScope
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public readonly Imports Imports;
-    public readonly ImportChain ParentOpt;
-
-    public ImportChain(Imports imports, ImportChain parentOpt)
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    internal sealed class ImportChain : Cci.IImportScope
     {
-        Debug.Assert(imports != null);
+        public readonly Imports Imports;
+        public readonly ImportChain ParentOpt;
 
-        Imports = imports;
-        ParentOpt = parentOpt;
-    }
-
-    private string GetDebuggerDisplay()
-    {
-        return $"{Imports.GetDebuggerDisplay()} ^ {ParentOpt?.GetHashCode() ?? 0}";
-    }
-
-    ImmutableArray<Cci.UsedNamespaceOrType> Cci.IImportScope.GetUsedNamespaces(EmitContext context)
-    {
-        bool result = ((Emit.PEModuleBuilder)context.Module).TryGetTranslatedImports(this, out ImmutableArray<Cci.UsedNamespaceOrType> imports);
-        // The imports should have been translated during code gen.
-        Debug.Assert(result);
-        Debug.Assert(!imports.IsDefault);
-        return imports;
-    }
-
-    public Cci.IImportScope Translate(Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
-    {
-        for (var scope = this; scope != null; scope = scope.ParentOpt)
+        public ImportChain(Imports imports, ImportChain parentOpt)
         {
-            if (moduleBuilder.TryGetTranslatedImports(scope, out _))
-            {
-                break;
-            }
+            Debug.Assert(imports != null);
 
-            moduleBuilder.GetOrAddTranslatedImports(scope, scope.TranslateImports(moduleBuilder, diagnostics));
+            Imports = imports;
+            ParentOpt = parentOpt;
         }
 
-        return this;
-    }
-
-    private ImmutableArray<Cci.UsedNamespaceOrType> TranslateImports(Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
-    {
-        var usedNamespaces = ArrayBuilder<Cci.UsedNamespaceOrType>.GetInstance();
-
-        // NOTE: order based on dev12: extern aliases, then usings, then aliases namespaces and types
-
-        ImmutableArray<AliasAndExternAliasDirective> externAliases = Imports.ExternAliases;
-        if (!externAliases.IsDefault)
+        private string GetDebuggerDisplay()
         {
-            foreach (var alias in externAliases)
-            {
-                usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateExternAlias(alias.Alias.Name));
-            }
+            return $"{Imports.GetDebuggerDisplay()} ^ {ParentOpt?.GetHashCode() ?? 0}";
         }
 
-        ImmutableArray<NamespaceOrTypeAndUsingDirective> usings = Imports.Usings;
-        if (!usings.IsDefault)
+        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IImportScope.GetUsedNamespaces(EmitContext context)
         {
-            foreach (var nsOrType in usings)
-            {
-                NamespaceOrTypeSymbol namespaceOrType = nsOrType.NamespaceOrType;
-                if (namespaceOrType.IsNamespace)
-                {
-                    var ns = (NamespaceSymbol)namespaceOrType;
-                    var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
-                    usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef));
-                }
-                else if (!namespaceOrType.ContainingAssembly.IsLinked)
-                {
-                    // We skip alias imports of embedded types to be consistent with imports of aliased embedded types and with VB.
-                    var typeRef = GetTypeReference((TypeSymbol)namespaceOrType, nsOrType.UsingDirective, moduleBuilder, diagnostics);
-                    usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef));
-                }
-            }
+            bool result = ((Emit.PEModuleBuilder)context.Module).TryGetTranslatedImports(this, out ImmutableArray<Cci.UsedNamespaceOrType> imports);
+            // The imports should have been translated during code gen.
+            Debug.Assert(result);
+            Debug.Assert(!imports.IsDefault);
+            return imports;
         }
 
-        ImmutableDictionary<string, AliasAndUsingDirective> aliasSymbols = Imports.UsingAliases;
-        if (!aliasSymbols.IsEmpty)
+        public Cci.IImportScope Translate(Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
         {
-            var aliases = ArrayBuilder<string>.GetInstance(aliasSymbols.Count);
-            aliases.AddRange(aliasSymbols.Keys);
-            aliases.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic.
-
-            foreach (var alias in aliases)
+            for (var scope = this; scope != null; scope = scope.ParentOpt)
             {
-                var aliasAndUsingDirective = aliasSymbols[alias];
-                var symbol = aliasAndUsingDirective.Alias;
-                var syntax = aliasAndUsingDirective.UsingDirective;
-                Debug.Assert(!symbol.IsExtern);
-
-                NamespaceOrTypeSymbol target = symbol.Target;
-                if (target.Kind == SymbolKind.Namespace)
+                if (moduleBuilder.TryGetTranslatedImports(scope, out _))
                 {
-                    var ns = (NamespaceSymbol)target;
-                    var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
-                    usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef, alias));
+                    break;
                 }
-                else if (target is NamedTypeSymbol { ContainingAssembly.IsLinked: false } or not NamedTypeSymbol)
+
+                moduleBuilder.GetOrAddTranslatedImports(scope, scope.TranslateImports(moduleBuilder, diagnostics));
+            }
+
+            return this;
+        }
+
+        private ImmutableArray<Cci.UsedNamespaceOrType> TranslateImports(Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
+        {
+            var usedNamespaces = ArrayBuilder<Cci.UsedNamespaceOrType>.GetInstance();
+
+            // NOTE: order based on dev12: extern aliases, then usings, then aliases namespaces and types
+
+            ImmutableArray<AliasAndExternAliasDirective> externAliases = Imports.ExternAliases;
+            if (!externAliases.IsDefault)
+            {
+                foreach (var alias in externAliases)
                 {
-                    // We skip alias imports of embedded types to avoid breaking existing code that imports types
-                    // that can't be embedded but doesn't use them anywhere else in the code.  Note, this is only
-                    // done for named types.  Other sorts of type symbols (arrays, etc.) are allowed through.
-                    var typeRef = GetTypeReference((TypeSymbol)target, syntax, moduleBuilder, diagnostics);
-                    usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
+                    usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateExternAlias(alias.Alias.Name));
                 }
             }
 
-            aliases.Free();
-        }
-
-        return usedNamespaces.ToImmutableAndFree();
-    }
-
-    private static Cci.ITypeReference GetTypeReference(TypeSymbol type, SyntaxNode syntaxNode, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
-    {
-        return moduleBuilder.Translate(type, syntaxNode, diagnostics);
-    }
-
-    private static Cci.IAssemblyReference TryGetAssemblyScope(NamespaceSymbol @namespace, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
-    {
-        AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
-        if ((object)containingAssembly != null && (object)containingAssembly != moduleBuilder.CommonCompilation.Assembly)
-        {
-            var referenceManager = ((CSharpCompilation)moduleBuilder.CommonCompilation).GetBoundReferenceManager();
-
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            ImmutableArray<NamespaceOrTypeAndUsingDirective> usings = Imports.Usings;
+            if (!usings.IsDefault)
             {
-                if ((object)referenceManager.ReferencedAssemblies[i] == containingAssembly)
+                foreach (var nsOrType in usings)
                 {
-                    if (!referenceManager.DeclarationsAccessibleWithoutAlias(i))
+                    NamespaceOrTypeSymbol namespaceOrType = nsOrType.NamespaceOrType;
+                    if (namespaceOrType.IsNamespace)
                     {
-                        return moduleBuilder.Translate(containingAssembly, diagnostics);
+                        var ns = (NamespaceSymbol)namespaceOrType;
+                        var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef));
+                    }
+                    else if (!namespaceOrType.ContainingAssembly.IsLinked)
+                    {
+                        // We skip alias imports of embedded types to be consistent with imports of aliased embedded types and with VB.
+                        var typeRef = GetTypeReference((TypeSymbol)namespaceOrType, nsOrType.UsingDirective, moduleBuilder, diagnostics);
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef));
                     }
                 }
             }
+
+            ImmutableDictionary<string, AliasAndUsingDirective> aliasSymbols = Imports.UsingAliases;
+            if (!aliasSymbols.IsEmpty)
+            {
+                var aliases = ArrayBuilder<string>.GetInstance(aliasSymbols.Count);
+                aliases.AddRange(aliasSymbols.Keys);
+                aliases.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic.
+
+                foreach (var alias in aliases)
+                {
+                    var aliasAndUsingDirective = aliasSymbols[alias];
+                    var symbol = aliasAndUsingDirective.Alias;
+                    var syntax = aliasAndUsingDirective.UsingDirective;
+                    Debug.Assert(!symbol.IsExtern);
+
+                    NamespaceOrTypeSymbol target = symbol.Target;
+                    if (target.Kind == SymbolKind.Namespace)
+                    {
+                        var ns = (NamespaceSymbol)target;
+                        var assemblyRef = TryGetAssemblyScope(ns, moduleBuilder, diagnostics);
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateNamespace(ns.GetCciAdapter(), assemblyRef, alias));
+                    }
+                    else if (target is NamedTypeSymbol { ContainingAssembly.IsLinked: false } or not NamedTypeSymbol)
+                    {
+                        // We skip alias imports of embedded types to avoid breaking existing code that imports types
+                        // that can't be embedded but doesn't use them anywhere else in the code.  Note, this is only
+                        // done for named types.  Other sorts of type symbols (arrays, etc.) are allowed through.
+                        var typeRef = GetTypeReference((TypeSymbol)target, syntax, moduleBuilder, diagnostics);
+                        usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateType(typeRef, alias));
+                    }
+                }
+
+                aliases.Free();
+            }
+
+            return usedNamespaces.ToImmutableAndFree();
         }
 
-        return null;
-    }
+        private static Cci.ITypeReference GetTypeReference(TypeSymbol type, SyntaxNode syntaxNode, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
+        {
+            return moduleBuilder.Translate(type, syntaxNode, diagnostics);
+        }
 
-    Cci.IImportScope Cci.IImportScope.Parent => ParentOpt;
+        private static Cci.IAssemblyReference TryGetAssemblyScope(NamespaceSymbol @namespace, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
+        {
+            AssemblySymbol containingAssembly = @namespace.ContainingAssembly;
+            if ((object)containingAssembly != null && (object)containingAssembly != moduleBuilder.CommonCompilation.Assembly)
+            {
+                var referenceManager = ((CSharpCompilation)moduleBuilder.CommonCompilation).GetBoundReferenceManager();
+
+                for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+                {
+                    if ((object)referenceManager.ReferencedAssemblies[i] == containingAssembly)
+                    {
+                        if (!referenceManager.DeclarationsAccessibleWithoutAlias(i))
+                        {
+                            return moduleBuilder.Translate(containingAssembly, diagnostics);
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        Cci.IImportScope Cci.IImportScope.Parent => ParentOpt;
+    }
 }

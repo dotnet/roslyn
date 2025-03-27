@@ -7,49 +7,50 @@ using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
-
-internal sealed class Module : IDisposable
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    private readonly PEReader? _reader;
-
-    public readonly string? Name;
-    public int MetadataAccessCount { get; private set; }
-
-    internal Module(ImmutableArray<byte> metadata, string? name = null)
+    internal sealed class Module : IDisposable
     {
-        Name = name;
-        _reader = metadata.IsDefault ? null : new PEReader(metadata);
-    }
+        private readonly PEReader? _reader;
 
-    internal unsafe bool TryGetMetadata(out byte* pointer, out int length)
-    {
-        MetadataAccessCount++;
+        public readonly string? Name;
+        public int MetadataAccessCount { get; private set; }
 
-        if (_reader == null)
+        internal Module(ImmutableArray<byte> metadata, string? name = null)
         {
-            pointer = null;
-            length = 0;
-            return false;
+            Name = name;
+            _reader = metadata.IsDefault ? null : new PEReader(metadata);
         }
 
-        var block = _reader.GetMetadata();
-        pointer = block.Pointer;
-        length = block.Length;
-        return true;
-    }
-
-    internal unsafe MetadataReader? GetMetadataReader()
-    {
-        if (_reader == null)
+        internal unsafe bool TryGetMetadata(out byte* pointer, out int length)
         {
-            return null;
+            MetadataAccessCount++;
+
+            if (_reader == null)
+            {
+                pointer = null;
+                length = 0;
+                return false;
+            }
+
+            var block = _reader.GetMetadata();
+            pointer = block.Pointer;
+            length = block.Length;
+            return true;
         }
 
-        var block = _reader.GetMetadata();
-        return new MetadataReader(block.Pointer, block.Length);
-    }
+        internal unsafe MetadataReader? GetMetadataReader()
+        {
+            if (_reader == null)
+            {
+                return null;
+            }
 
-    void IDisposable.Dispose()
-        => _reader?.Dispose();
+            var block = _reader.GetMetadata();
+            return new MetadataReader(block.Pointer, block.Length);
+        }
+
+        void IDisposable.Dispose()
+            => _reader?.Dispose();
+    }
 }

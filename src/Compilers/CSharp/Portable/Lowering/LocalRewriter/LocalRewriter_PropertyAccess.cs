@@ -8,99 +8,100 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+    internal sealed partial class LocalRewriter
     {
-        return VisitPropertyAccess(node, isLeftOfAssignment: false);
-    }
-
-    private BoundExpression VisitPropertyAccess(BoundPropertyAccess node, bool isLeftOfAssignment)
-    {
-        var rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
-        return MakePropertyAccess(node.Syntax, rewrittenReceiverOpt, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
-    }
-
-    private BoundExpression MakePropertyAccess(
-        SyntaxNode syntax,
-        BoundExpression? rewrittenReceiverOpt,
-        PropertySymbol propertySymbol,
-        LookupResultKind resultKind,
-        TypeSymbol type,
-        bool isLeftOfAssignment,
-        BoundPropertyAccess? oldNodeOpt = null)
-    {
-        // check for System.Array.[Length|LongLength] on a single dimensional array,
-        // we have a special node for such cases.
-        if (rewrittenReceiverOpt is { Type: { TypeKind: TypeKind.Array } } && !isLeftOfAssignment)
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
-            var asArrayType = (ArrayTypeSymbol)rewrittenReceiverOpt.Type;
-            if (asArrayType.IsSZArray)
+            return VisitPropertyAccess(node, isLeftOfAssignment: false);
+        }
+
+        private BoundExpression VisitPropertyAccess(BoundPropertyAccess node, bool isLeftOfAssignment)
+        {
+            var rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+            return MakePropertyAccess(node.Syntax, rewrittenReceiverOpt, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
+        }
+
+        private BoundExpression MakePropertyAccess(
+            SyntaxNode syntax,
+            BoundExpression? rewrittenReceiverOpt,
+            PropertySymbol propertySymbol,
+            LookupResultKind resultKind,
+            TypeSymbol type,
+            bool isLeftOfAssignment,
+            BoundPropertyAccess? oldNodeOpt = null)
+        {
+            // check for System.Array.[Length|LongLength] on a single dimensional array,
+            // we have a special node for such cases.
+            if (rewrittenReceiverOpt is { Type: { TypeKind: TypeKind.Array } } && !isLeftOfAssignment)
             {
-                // NOTE: we are not interested in potential badness of Array.Length property.
-                // If it is bad reference compare will not succeed.
-                if (ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
-                    !_inExpressionLambda && ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
+                var asArrayType = (ArrayTypeSymbol)rewrittenReceiverOpt.Type;
+                if (asArrayType.IsSZArray)
                 {
-                    return new BoundArrayLength(syntax, rewrittenReceiverOpt, type);
+                    // NOTE: we are not interested in potential badness of Array.Length property.
+                    // If it is bad reference compare will not succeed.
+                    if (ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
+                        !_inExpressionLambda && ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
+                    {
+                        return new BoundArrayLength(syntax, rewrittenReceiverOpt, type);
+                    }
                 }
+            }
+
+            if (isLeftOfAssignment && propertySymbol.RefKind == RefKind.None)
+            {
+                // This is a property set access. We return a BoundPropertyAccess node here.
+                // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+
+                return oldNodeOpt != null ?
+                    oldNodeOpt.Update(rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type);
+            }
+            else
+            {
+                // This is a property get access
+                return MakePropertyGetAccess(syntax, rewrittenReceiverOpt, propertySymbol, oldNodeOpt);
             }
         }
 
-        if (isLeftOfAssignment && propertySymbol.RefKind == RefKind.None)
+        private BoundExpression MakePropertyGetAccess(SyntaxNode syntax, BoundExpression? rewrittenReceiver, PropertySymbol property, BoundPropertyAccess? oldNodeOpt)
         {
-            // This is a property set access. We return a BoundPropertyAccess node here.
-            // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
-
-            return oldNodeOpt != null ?
-                oldNodeOpt.Update(rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type) :
-                new BoundPropertyAccess(syntax, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type);
+            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, default, null, oldNodeOpt);
         }
-        else
+
+        private BoundExpression MakePropertyGetAccess(
+            SyntaxNode syntax,
+            BoundExpression? rewrittenReceiver,
+            PropertySymbol property,
+            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            MethodSymbol? getMethodOpt = null,
+            BoundPropertyAccess? oldNodeOpt = null)
         {
-            // This is a property get access
-            return MakePropertyGetAccess(syntax, rewrittenReceiverOpt, propertySymbol, oldNodeOpt);
-        }
-    }
+            if (_inExpressionLambda && rewrittenArguments.IsEmpty)
+            {
+                Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
+                return oldNodeOpt != null ?
+                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type);
+            }
+            else
+            {
+                var getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
 
-    private BoundExpression MakePropertyGetAccess(SyntaxNode syntax, BoundExpression? rewrittenReceiver, PropertySymbol property, BoundPropertyAccess? oldNodeOpt)
-    {
-        return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, default, null, oldNodeOpt);
-    }
+                Debug.Assert(getMethod is { });
+                Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
+                Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
 
-    private BoundExpression MakePropertyGetAccess(
-        SyntaxNode syntax,
-        BoundExpression? rewrittenReceiver,
-        PropertySymbol property,
-        ImmutableArray<BoundExpression> rewrittenArguments,
-        ImmutableArray<RefKind> argumentRefKindsOpt,
-        MethodSymbol? getMethodOpt = null,
-        BoundPropertyAccess? oldNodeOpt = null)
-    {
-        if (_inExpressionLambda && rewrittenArguments.IsEmpty)
-        {
-            Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
-            return oldNodeOpt != null ?
-                oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type) :
-                new BoundPropertyAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type);
-        }
-        else
-        {
-            var getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
-
-            Debug.Assert(getMethod is { });
-            Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);
-            Debug.Assert(getMethodOpt is null || ReferenceEquals(getMethod, getMethodOpt));
-
-            return BoundCall.Synthesized(
-                syntax,
-                rewrittenReceiver,
-                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
-                getMethod,
-                rewrittenArguments,
-                argumentRefKindsOpt);
+                return BoundCall.Synthesized(
+                    syntax,
+                    rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    getMethod,
+                    rewrittenArguments,
+                    argumentRefKindsOpt);
+            }
         }
     }
 }

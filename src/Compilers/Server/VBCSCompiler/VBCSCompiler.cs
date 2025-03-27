@@ -7,48 +7,49 @@ using System;
 using System.Collections.Specialized;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.CompilerServer;
-
-internal static class VBCSCompiler
+namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    public static int Main(string[] args)
+    internal static class VBCSCompiler
     {
-        using var logger = new CompilerServerLogger("VBCSCompiler");
-
-        NameValueCollection appSettings;
-        try
+        public static int Main(string[] args)
         {
+            using var logger = new CompilerServerLogger("VBCSCompiler");
+
+            NameValueCollection appSettings;
+            try
+            {
 #if BOOTSTRAP
-            ExitingTraceListener.Install(logger);
+                ExitingTraceListener.Install(logger);
 #endif
 
 #if NET472
-            appSettings = System.Configuration.ConfigurationManager.AppSettings;
+                appSettings = System.Configuration.ConfigurationManager.AppSettings;
 #else
-            // Do not use AppSettings on non-desktop platforms
-            appSettings = new NameValueCollection();
+                // Do not use AppSettings on non-desktop platforms
+                appSettings = new NameValueCollection();
 #endif
-        }
-        catch (Exception ex)
-        {
-            // It is possible for AppSettings to throw when the application or machine configuration 
-            // is corrupted.  This should not prevent the server from starting, but instead just revert
-            // to the default configuration.
-            appSettings = new NameValueCollection();
-            logger.LogException(ex, "Error loading application settings");
-        }
+            }
+            catch (Exception ex)
+            {
+                // It is possible for AppSettings to throw when the application or machine configuration 
+                // is corrupted.  This should not prevent the server from starting, but instead just revert
+                // to the default configuration.
+                appSettings = new NameValueCollection();
+                logger.LogException(ex, "Error loading application settings");
+            }
 
-        try
-        {
-            var controller = new BuildServerController(appSettings, logger);
-            return controller.Run(args);
-        }
-        catch (Exception e)
-        {
-            // Assume the exception was the result of a missing compiler assembly.
-            logger.LogException(e, "Cannot start server");
-        }
+            try
+            {
+                var controller = new BuildServerController(appSettings, logger);
+                return controller.Run(args);
+            }
+            catch (Exception e)
+            {
+                // Assume the exception was the result of a missing compiler assembly.
+                logger.LogException(e, "Cannot start server");
+            }
 
-        return CommonCompiler.Failed;
+            return CommonCompiler.Failed;
+        }
     }
 }

@@ -5,12 +5,13 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-partial class BoundDynamicObjectCreationExpression
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override MethodSymbol? Constructor => null;
-    public override bool Expanded => false;
-    public override ImmutableArray<int> ArgsToParamsOpt => default;
-    public override BitVector DefaultArguments => default;
+    partial class BoundDynamicObjectCreationExpression
+    {
+        public override MethodSymbol? Constructor => null;
+        public override bool Expanded => false;
+        public override ImmutableArray<int> ArgsToParamsOpt => default;
+        public override BitVector DefaultArguments => default;
+    }
 }

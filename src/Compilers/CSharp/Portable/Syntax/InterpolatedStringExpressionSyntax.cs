@@ -4,13 +4,14 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-public partial class SyntaxFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken)
-        => InterpolatedStringExpression(stringStartToken, Token(SyntaxKind.InterpolatedStringEndToken));
+    public partial class SyntaxFactory
+    {
+        public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken)
+            => InterpolatedStringExpression(stringStartToken, Token(SyntaxKind.InterpolatedStringEndToken));
 
-    public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents)
-        => InterpolatedStringExpression(stringStartToken, contents, Token(SyntaxKind.InterpolatedStringEndToken));
+        public static InterpolatedStringExpressionSyntax InterpolatedStringExpression(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents)
+            => InterpolatedStringExpression(stringStartToken, contents, Token(SyntaxKind.InterpolatedStringEndToken));
+    }
 }

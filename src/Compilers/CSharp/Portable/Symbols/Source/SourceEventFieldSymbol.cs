@@ -10,61 +10,62 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A delegate field associated with a <see cref="SourceFieldLikeEventSymbol"/>.
-/// </summary>
-/// <remarks>
-/// SourceFieldSymbol takes care of the initializer (plus "var" in the interactive case).
-/// </remarks>
-internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbolFromDeclarator
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly SourceEventSymbol _associatedEvent;
-
-    internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag discardedDiagnostics)
-        : base(associatedEvent.containingType,
-               declaratorSyntax,
-               (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private,
-               modifierErrors: true,
-               diagnostics: discardedDiagnostics)
+    /// <summary>
+    /// A delegate field associated with a <see cref="SourceFieldLikeEventSymbol"/>.
+    /// </summary>
+    /// <remarks>
+    /// SourceFieldSymbol takes care of the initializer (plus "var" in the interactive case).
+    /// </remarks>
+    internal sealed class SourceEventFieldSymbol : SourceMemberFieldSymbolFromDeclarator
     {
-        _associatedEvent = associatedEvent;
-    }
+        private readonly SourceEventSymbol _associatedEvent;
 
-    public override bool IsImplicitlyDeclared
-    {
-        get
+        internal SourceEventFieldSymbol(SourceEventSymbol associatedEvent, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag discardedDiagnostics)
+            : base(associatedEvent.containingType,
+                   declaratorSyntax,
+                   (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private,
+                   modifierErrors: true,
+                   diagnostics: discardedDiagnostics)
         {
-            return true;
+            _associatedEvent = associatedEvent;
         }
-    }
 
-    protected override IAttributeTargetSymbol AttributeOwner
-    {
-        get
+        public override bool IsImplicitlyDeclared
         {
-            return _associatedEvent;
+            get
+            {
+                return true;
+            }
         }
-    }
 
-    public override Symbol AssociatedSymbol
-    {
-        get
+        protected override IAttributeTargetSymbol AttributeOwner
         {
-            return _associatedEvent;
+            get
+            {
+                return _associatedEvent;
+            }
         }
-    }
 
-    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-    {
-        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        public override Symbol AssociatedSymbol
+        {
+            get
+            {
+                return _associatedEvent;
+            }
+        }
 
-        var compilation = this.DeclaringCompilation;
-        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-        // Dev11 doesn't synthesize this attribute, the debugger has a knowledge 
-        // of special name C# compiler uses for backing fields, which is not desirable.
-        AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
+            // Dev11 doesn't synthesize this attribute, the debugger has a knowledge 
+            // of special name C# compiler uses for backing fields, which is not desirable.
+            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute());
+        }
     }
 }

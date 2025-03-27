@@ -12,15 +12,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IFieldReferenceExpression : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
-    public void FieldReference_Attribute()
+    public class IOperationTests_IFieldReferenceExpression : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
+        public void FieldReference_Attribute()
+        {
+            string source = @"
 using System.Diagnostics;
 
 class C
@@ -33,7 +33,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Conditional(field)')
   IObjectCreationOperation (Constructor: System.Diagnostics.ConditionalAttribute..ctor(System.String conditionString)) (OperationKind.ObjectCreation, Type: System.Diagnostics.ConditionalAttribute, IsImplicit) (Syntax: 'Conditional(field)')
     Arguments(1):
@@ -46,16 +46,16 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Conditional(
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_OutVar_Script()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_OutVar_Script()
+        {
+            string source = @"
 public void M2(out int i )
 {
     i = 0;
@@ -63,26 +63,26 @@ public void M2(out int i )
 
 M2(out /*<bind>*/int i/*</bind>*/);
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int i')
   IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
     Instance Receiver: 
       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
-            parseOptions: TestOptions.Script);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Script);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_DeconstructionDeclaration_Script()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_DeconstructionDeclaration_Script()
+        {
+            string source = @"
 /*<bind>*/(int i1, int i2)/*</bind>*/ = (1, 2);
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(int i1, int i2)')
   NaturalType: (System.Int32 i1, System.Int32 i2)
   Elements(2):
@@ -95,17 +95,17 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
           Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
-            parseOptions: TestOptions.Script);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Script);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_InferenceOutVar_Script()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_InferenceOutVar_Script()
+        {
+            string source = @"
 public void M2(out int i )
 {
     i = 0;
@@ -113,26 +113,26 @@ public void M2(out int i )
 
 M2(out /*<bind>*/var i/*</bind>*/);
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
   IFieldReferenceOperation: System.Int32 Script.i (IsDeclaration: True) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
     Instance Receiver: 
       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
-            parseOptions: TestOptions.Script);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Script);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_InferenceDeconstructionDeclaration_Script()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_InferenceDeconstructionDeclaration_Script()
+        {
+            string source = @"
 /*<bind>*/(var i1, var i2)/*</bind>*/ = (1, 2);
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(var i1, var i2)')
   NaturalType: (System.Int32 i1, System.Int32 i2)
   Elements(2):
@@ -145,20 +145,20 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
           Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
-            parseOptions: TestOptions.Script);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Script);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_InferenceDeconstructionDeclaration_AlternateSyntax_Script()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_InferenceDeconstructionDeclaration_AlternateSyntax_Script()
+        {
+            string source = @"
 /*<bind>*/var (i1, i2)/*</bind>*/ = (1, 2);
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: 'var (i1, i2)')
   ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) (Syntax: '(i1, i2)')
     NaturalType: (System.Int32 i1, System.Int32 i2)
@@ -170,18 +170,18 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
           Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
-            parseOptions: TestOptions.Script);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Script);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
-    [Fact]
-    public void IFieldReferenceExpression_ImplicitThis()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_ImplicitThis()
+        {
+            string source = @"
 class C
 {
     int i;
@@ -192,22 +192,22 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'i')
   Instance Receiver: 
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
-    [Fact]
-    public void IFieldReferenceExpression_ExplicitThis()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_ExplicitThis()
+        {
+            string source = @"
 class C
 {
     int i;
@@ -218,22 +218,22 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'this.i')
   Instance Receiver: 
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
-    [Fact]
-    public void IFieldReferenceExpression_base()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(7582, "https://github.com/dotnet/roslyn/issues/7582")]
+        [Fact]
+        public void IFieldReferenceExpression_base()
+        {
+            string source = @"
 class C
 {
     protected int i;
@@ -247,21 +247,21 @@ class B : C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'base.i')
   Instance Receiver: 
     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'base')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_IndexingFixed_Unmovable()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Unmovable()
+        {
+            string source = @"
 
 unsafe struct S1
 {
@@ -278,7 +278,7 @@ unsafe class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
     IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
@@ -290,16 +290,16 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReferenceExpression_IndexingFixed_Movable()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReferenceExpression_IndexingFixed_Movable()
+        {
+            string source = @"
 
 unsafe struct S1
 {
@@ -316,7 +316,7 @@ unsafe class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
     IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
@@ -330,16 +330,16 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) 
   Right: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReference_StaticFieldWithInstanceReceiver()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_StaticFieldWithInstanceReceiver()
+        {
+            string source = @"
 class C
 {
     static int i;
@@ -351,28 +351,28 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'c.i')
   Instance Receiver: 
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'c')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         var i1 = /*<bind>*/c.i/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.i").WithArguments("C.i").WithLocation(9, 28),
-            // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-            //     static int i;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         var i1 = /*<bind>*/c.i/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.i").WithArguments("C.i").WithLocation(9, 28),
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReference_StaticFieldInObjectInitializer_NoInstance()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_StaticFieldInObjectInitializer_NoInstance()
+        {
+            string source = @"
 class C
 {
     static int i1;
@@ -382,28 +382,28 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i1 (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
   Instance Receiver: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1914: Static field or property 'C.i1' cannot be assigned in an object initializer
-            //         var c = new C { /*<bind>*/i1/*</bind>*/ = 1 };
-            Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "i1").WithArguments("C.i1").WithLocation(7, 35),
-            // CS0414: The field 'C.i1' is assigned but its value is never used
-            //     static int i1;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(4, 16)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1914: Static field or property 'C.i1' cannot be assigned in an object initializer
+                //         var c = new C { /*<bind>*/i1/*</bind>*/ = 1 };
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "i1").WithArguments("C.i1").WithLocation(7, 35),
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     static int i1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(4, 16)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReference_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_StaticField()
+        {
+            string source = @"
 class C
 {
     static int i;
@@ -414,25 +414,25 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'C.i')
   Instance Receiver: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-            //     static int i;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     static int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IFieldReference_InstanceField_InvalidAccessOffOfClass()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IFieldReference_InstanceField_InvalidAccessOffOfClass()
+        {
+            string source = @"
 class C
 {
     int i;
@@ -443,29 +443,29 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'C.i')
   Instance Receiver: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0120: An object reference is required for the non-static field, method, or property 'C.i'
-            //         var i1 = /*<bind>*/C.i/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "C.i").WithArguments("C.i").WithLocation(8, 28),
-            // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
-            //     int i;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 9)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'C.i'
+                //         var i1 = /*<bind>*/C.i/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "C.i").WithArguments("C.i").WithLocation(8, 28),
+                // CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+                //     int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 9)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void FieldReference_NoControlFlow()
-    {
-        // Verify mix of field references with implicit/explicit/null instance in lvalue/rvalue contexts.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FieldReference_NoControlFlow()
+        {
+            // Verify mix of field references with implicit/explicit/null instance in lvalue/rvalue contexts.
+            string source = @"
 class C
 {
     int i;
@@ -477,7 +477,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -519,16 +519,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void FieldReference_ControlFlowInReceiver()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FieldReference_ControlFlowInReceiver()
+        {
+            string source = @"
 class C
 {
     public int i = 0;
@@ -538,7 +538,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -614,16 +614,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void FieldReference_ControlFlowInReceiver_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FieldReference_ControlFlowInReceiver_StaticField()
+        {
+            string source = @"
 class C
 {
     public static int i = 0;
@@ -634,7 +634,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -666,24 +666,24 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(7,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         p1 = c1.i;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.i").WithArguments("C.i").WithLocation(7, 14),
-            // file.cs(8,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         p2 = (c1 ?? c2).i;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).i").WithArguments("C.i").WithLocation(8, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p1 = c1.i;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.i").WithArguments("C.i").WithLocation(7, 14),
+                // file.cs(8,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p2 = (c1 ?? c2).i;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).i").WithArguments("C.i").WithLocation(8, 14)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [Fact]
-    [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
-    public void NullableFieldReference()
-    {
-        var program = @"
+        [Fact]
+        [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
+        public void NullableFieldReference()
+        {
+            var program = @"
 class C<T>
 {
     private C<T> _field;
@@ -693,26 +693,27 @@ class C<T>
     }
 }";
 
-        var compWithoutNullable = CreateCompilation(program);
-        var compWithNullable = CreateCompilation(program, options: WithNullableEnable());
+            var compWithoutNullable = CreateCompilation(program);
+            var compWithNullable = CreateCompilation(program, options: WithNullableEnable());
 
-        testCore(compWithoutNullable);
-        testCore(compWithNullable);
+            testCore(compWithoutNullable);
+            testCore(compWithNullable);
 
-        static void testCore(CSharpCompilation comp)
-        {
-            var syntaxTree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(syntaxTree);
-            var root = syntaxTree.GetRoot();
-            var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
-            var classSym = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl);
-            var fieldSym = classSym.GetMembers("_field").Single();
+            static void testCore(CSharpCompilation comp)
+            {
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var root = syntaxTree.GetRoot();
+                var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+                var classSym = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl);
+                var fieldSym = classSym.GetMembers("_field").Single();
 
-            var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
-            var methodBlockOperation = model.GetOperation(methodDecl);
-            var fieldReferenceOperation = methodBlockOperation.Descendants().OfType<IFieldReferenceOperation>().Single();
-            Assert.True(fieldSym.Equals(fieldReferenceOperation.Field));
-            Assert.Equal(fieldSym.GetHashCode(), fieldReferenceOperation.Field.GetHashCode());
+                var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+                var methodBlockOperation = model.GetOperation(methodDecl);
+                var fieldReferenceOperation = methodBlockOperation.Descendants().OfType<IFieldReferenceOperation>().Single();
+                Assert.True(fieldSym.Equals(fieldReferenceOperation.Field));
+                Assert.Equal(fieldSym.GetHashCode(), fieldReferenceOperation.Field.GetHashCode());
+            }
         }
     }
 }

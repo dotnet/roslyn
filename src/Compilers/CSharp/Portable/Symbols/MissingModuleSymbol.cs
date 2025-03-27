@@ -15,229 +15,230 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A <see cref="MissingModuleSymbol"/> is a special kind of <see cref="ModuleSymbol"/> that represents
-/// a module that couldn't be found.
-/// </summary>
-internal class MissingModuleSymbol : ModuleSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    protected readonly AssemblySymbol assembly;
-    protected readonly int ordinal;
-    protected readonly MissingNamespaceSymbol globalNamespace;
-
-    public MissingModuleSymbol(AssemblySymbol assembly, int ordinal)
+    /// <summary>
+    /// A <see cref="MissingModuleSymbol"/> is a special kind of <see cref="ModuleSymbol"/> that represents
+    /// a module that couldn't be found.
+    /// </summary>
+    internal class MissingModuleSymbol : ModuleSymbol
     {
-        Debug.Assert((object)assembly != null);
-        Debug.Assert(ordinal >= -1);
+        protected readonly AssemblySymbol assembly;
+        protected readonly int ordinal;
+        protected readonly MissingNamespaceSymbol globalNamespace;
 
-        this.assembly = assembly;
-        this.ordinal = ordinal;
-        globalNamespace = new MissingNamespaceSymbol(this);
-    }
-
-    internal override int Ordinal
-    {
-        get
+        public MissingModuleSymbol(AssemblySymbol assembly, int ordinal)
         {
-            return ordinal;
-        }
-    }
+            Debug.Assert((object)assembly != null);
+            Debug.Assert(ordinal >= -1);
 
-    internal override Machine Machine
-    {
-        get
-        {
-            return Machine.I386;
-        }
-    }
-
-    internal override bool Bit32Required
-    {
-        get
-        {
-            return false;
-        }
-    }
-
-    internal sealed override bool IsMissing
-    {
-        get
-        {
-            return true;
-        }
-    }
-
-    public override string Name
-    {
-        get
-        {
-            // Once we switch to a non-hardcoded name, GetHashCode/Equals should be adjusted.
-            return "<Missing Module>";
-        }
-    }
-
-    public override AssemblySymbol ContainingAssembly
-    {
-        get
-        {
-            return assembly;
-        }
-    }
-
-    public override Symbol ContainingSymbol
-    {
-        get
-        {
-            return assembly;
-        }
-    }
-
-    public override NamespaceSymbol GlobalNamespace
-    {
-        get
-        {
-            return globalNamespace;
-        }
-    }
-
-    public override int GetHashCode()
-    {
-        return assembly.GetHashCode();
-    }
-
-    public override bool Equals(Symbol obj, TypeCompareKind compareKind)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
+            this.assembly = assembly;
+            this.ordinal = ordinal;
+            globalNamespace = new MissingNamespaceSymbol(this);
         }
 
-        MissingModuleSymbol other = obj as MissingModuleSymbol;
-
-        return (object)other != null && assembly.Equals(other.assembly, compareKind);
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        internal override int Ordinal
         {
-            return ImmutableArray<Location>.Empty;
+            get
+            {
+                return ordinal;
+            }
         }
-    }
 
-    internal override ICollection<string> NamespaceNames
-    {
-        get
+        internal override Machine Machine
         {
-            return SpecializedCollections.EmptyCollection<string>();
+            get
+            {
+                return Machine.I386;
+            }
         }
-    }
 
-    internal override ICollection<string> TypeNames
-    {
-        get
+        internal override bool Bit32Required
         {
-            return SpecializedCollections.EmptyCollection<string>();
+            get
+            {
+                return false;
+            }
         }
-    }
+
+        internal sealed override bool IsMissing
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                // Once we switch to a non-hardcoded name, GetHashCode/Equals should be adjusted.
+                return "<Missing Module>";
+            }
+        }
+
+        public override AssemblySymbol ContainingAssembly
+        {
+            get
+            {
+                return assembly;
+            }
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                return assembly;
+            }
+        }
+
+        public override NamespaceSymbol GlobalNamespace
+        {
+            get
+            {
+                return globalNamespace;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return assembly.GetHashCode();
+        }
+
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            MissingModuleSymbol other = obj as MissingModuleSymbol;
+
+            return (object)other != null && assembly.Equals(other.assembly, compareKind);
+        }
+
+        public override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return ImmutableArray<Location>.Empty;
+            }
+        }
+
+        internal override ICollection<string> NamespaceNames
+        {
+            get
+            {
+                return SpecializedCollections.EmptyCollection<string>();
+            }
+        }
+
+        internal override ICollection<string> TypeNames
+        {
+            get
+            {
+                return SpecializedCollections.EmptyCollection<string>();
+            }
+        }
 
 #nullable enable
-    internal override NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
-    {
-        return null;
-    }
+        internal override NamedTypeSymbol? LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
+        {
+            return null;
+        }
 #nullable disable
 
-    internal override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
-    {
-        return ImmutableArray<AssemblyIdentity>.Empty;
-    }
+        internal override ImmutableArray<AssemblyIdentity> GetReferencedAssemblies()
+        {
+            return ImmutableArray<AssemblyIdentity>.Empty;
+        }
 
-    internal override ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols()
-    {
-        return ImmutableArray<AssemblySymbol>.Empty;
-    }
+        internal override ImmutableArray<AssemblySymbol> GetReferencedAssemblySymbols()
+        {
+            return ImmutableArray<AssemblySymbol>.Empty;
+        }
 
-    internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override void SetReferences(ModuleReferences<AssemblySymbol> moduleReferences, SourceAssemblySymbol originatingSourceAssemblyDebugOnly)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override bool HasUnifiedReferences
-    {
-        get { return false; }
-    }
+        internal override bool HasUnifiedReferences
+        {
+            get { return false; }
+        }
 
-    internal override bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override bool GetUnificationUseSiteDiagnostic(ref DiagnosticInfo result, TypeSymbol dependentType)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override bool HasAssemblyCompilationRelaxationsAttribute
-    {
-        get { return false; }
-    }
+        internal override bool HasAssemblyCompilationRelaxationsAttribute
+        {
+            get { return false; }
+        }
 
-    internal override bool HasAssemblyRuntimeCompatibilityAttribute
-    {
-        get { return false; }
-    }
+        internal override bool HasAssemblyRuntimeCompatibilityAttribute
+        {
+            get { return false; }
+        }
 
-    internal override CharSet? DefaultMarshallingCharSet
-    {
-        get { return null; }
-    }
+        internal override CharSet? DefaultMarshallingCharSet
+        {
+            get { return null; }
+        }
 
-    public override ModuleMetadata GetMetadata() => null;
+        public override ModuleMetadata GetMetadata() => null;
 
-    public sealed override bool AreLocalsZeroed
-    {
-        get { throw ExceptionUtilities.Unreachable(); }
-    }
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
 
-    internal sealed override bool UseUpdatedEscapeRules => false;
+        internal sealed override bool UseUpdatedEscapeRules => false;
 
 #nullable enable
-    internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
 #nullable disable
-}
-
-internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol
-{
-    private readonly string _name;
-
-    public MissingModuleSymbolWithName(AssemblySymbol assembly, string name)
-        : base(assembly, ordinal: -1)
-    {
-        Debug.Assert(name != null);
-
-        _name = name;
     }
 
-    public override string Name
+    internal sealed class MissingModuleSymbolWithName : MissingModuleSymbol
     {
-        get
+        private readonly string _name;
+
+        public MissingModuleSymbolWithName(AssemblySymbol assembly, string name)
+            : base(assembly, ordinal: -1)
         {
-            return _name;
-        }
-    }
+            Debug.Assert(name != null);
 
-    public override int GetHashCode()
-    {
-        return Hash.Combine(assembly.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(_name));
-    }
-
-    public override bool Equals(Symbol obj, TypeCompareKind compareKind)
-    {
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
+            _name = name;
         }
 
-        MissingModuleSymbolWithName other = obj as MissingModuleSymbolWithName;
+        public override string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
 
-        return (object)other != null && assembly.Equals(other.assembly, compareKind) && string.Equals(_name, other._name, StringComparison.OrdinalIgnoreCase);
+        public override int GetHashCode()
+        {
+            return Hash.Combine(assembly.GetHashCode(), StringComparer.OrdinalIgnoreCase.GetHashCode(_name));
+        }
+
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            MissingModuleSymbolWithName other = obj as MissingModuleSymbolWithName;
+
+            return (object)other != null && assembly.Equals(other.assembly, compareKind) && string.Equals(_name, other._name, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

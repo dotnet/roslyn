@@ -15,14 +15,14 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class AttributeTests_StructLayout : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void Pack()
+    public class AttributeTests_StructLayout : CSharpTestBase
     {
-        var source = @"
+        [Fact]
+        public void Pack()
+        {
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -36,36 +36,36 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = 64 )] class Pack64  {}
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = 128)] class Pack128 {}
 ";
-        const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
+            const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
 
-        CompileAndVerify(source, assemblyValidator: (assembly) =>
-        {
-            var metadataReader = assembly.GetMetadataReader();
-
-            Assert.Equal(9, metadataReader.GetTableRowCount(TableIndex.ClassLayout));
-
-            foreach (var typeHandle in metadataReader.TypeDefinitions)
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var type = metadataReader.GetTypeDefinition(typeHandle);
+                var metadataReader = assembly.GetMetadataReader();
 
-                var layout = type.GetLayout();
-                if (!layout.IsDefault)
+                Assert.Equal(9, metadataReader.GetTableRowCount(TableIndex.ClassLayout));
+
+                foreach (var typeHandle in metadataReader.TypeDefinitions)
                 {
-                    Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
-                    string typeName = metadataReader.GetString(type.Name);
+                    var type = metadataReader.GetTypeDefinition(typeHandle);
 
-                    int expectedAlignment = int.Parse(typeName.Substring("Pack".Length));
-                    Assert.Equal(expectedAlignment, layout.PackingSize);
-                    Assert.Equal(1, layout.Size);
+                    var layout = type.GetLayout();
+                    if (!layout.IsDefault)
+                    {
+                        Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
+                        string typeName = metadataReader.GetString(type.Name);
+
+                        int expectedAlignment = int.Parse(typeName.Substring("Pack".Length));
+                        Assert.Equal(expectedAlignment, layout.PackingSize);
+                        Assert.Equal(1, layout.Size);
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void SizeAndPack()
-    {
-        var verifiable = @" 
+        [Fact]
+        public void SizeAndPack()
+        {
+            var verifiable = @" 
 using System;
 using System.Runtime.InteropServices;
 
@@ -111,8 +111,8 @@ class Structs
 	[StructLayout(LayoutKind.Auto)] struct A { int a; }
 }";
 
-        // peverify reports errors, but the types can be loaded and used:
-        var unverifiable = @" 
+            // peverify reports errors, but the types can be loaded and used:
+            var unverifiable = @" 
 using System;
 using System.Runtime.InteropServices;
 
@@ -136,8 +136,8 @@ class Structs
     [StructLayout(LayoutKind.Auto, Pack = 1, Size = 10)] struct A_P1_S10 {}
 }
 ";
-        // types can't be loaded as they are too big:
-        var unloadable = @"
+            // types can't be loaded as they are too big:
+            var unloadable = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -155,76 +155,76 @@ class Structs
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = Int32.MaxValue)] struct E_P1_S2147483647 {}
 }
 ";
-        Action<PEAssembly> validator = (assembly) =>
-        {
-            var metadataReader = assembly.GetMetadataReader();
-
-            foreach (var typeHandle in metadataReader.TypeDefinitions)
+            Action<PEAssembly> validator = (assembly) =>
             {
-                var type = metadataReader.GetTypeDefinition(typeHandle);
+                var metadataReader = assembly.GetMetadataReader();
 
-                var layout = type.GetLayout();
-                if (layout.IsDefault)
+                foreach (var typeHandle in metadataReader.TypeDefinitions)
                 {
-                    continue;
-                }
+                    var type = metadataReader.GetTypeDefinition(typeHandle);
 
-                string typeName = metadataReader.GetString(type.Name);
-                bool isValueType = (type.Attributes & TypeAttributes.Sealed) != 0;
-
-                uint expectedSize = 0;
-                ushort expectedPack = 0;
-                TypeAttributes expectedKind = TypeAttributes.AutoLayout;
-
-                if (typeName != "Structs" && typeName != "Classes")
-                {
-                    foreach (var part in typeName.Split('_'))
+                    var layout = type.GetLayout();
+                    if (layout.IsDefault)
                     {
-                        switch (part[0])
+                        continue;
+                    }
+
+                    string typeName = metadataReader.GetString(type.Name);
+                    bool isValueType = (type.Attributes & TypeAttributes.Sealed) != 0;
+
+                    uint expectedSize = 0;
+                    ushort expectedPack = 0;
+                    TypeAttributes expectedKind = TypeAttributes.AutoLayout;
+
+                    if (typeName != "Structs" && typeName != "Classes")
+                    {
+                        foreach (var part in typeName.Split('_'))
                         {
-                            case 'A':
-                                expectedKind = TypeAttributes.AutoLayout;
-                                break;
+                            switch (part[0])
+                            {
+                                case 'A':
+                                    expectedKind = TypeAttributes.AutoLayout;
+                                    break;
 
-                            case 'E':
-                                expectedKind = TypeAttributes.ExplicitLayout;
-                                break;
+                                case 'E':
+                                    expectedKind = TypeAttributes.ExplicitLayout;
+                                    break;
 
-                            case 'Q':
-                                expectedKind = TypeAttributes.SequentialLayout;
-                                break;
+                                case 'Q':
+                                    expectedKind = TypeAttributes.SequentialLayout;
+                                    break;
 
-                            case 'P':
-                                expectedPack = ushort.Parse(part.Substring(1));
-                                break;
+                                case 'P':
+                                    expectedPack = ushort.Parse(part.Substring(1));
+                                    break;
 
-                            case 'S':
-                                expectedSize = uint.Parse(part.Substring(1));
-                                break;
+                                case 'S':
+                                    expectedSize = uint.Parse(part.Substring(1));
+                                    break;
+                            }
                         }
                     }
+
+                    // unlike Dev10, we don't add ClassLayout if .pack == 0 & .size == 0
+                    Assert.False(expectedPack == 0 && expectedSize == 0, "Either expectedPack or expectedSize should be non-zero");
+
+                    Assert.Equal(expectedPack, layout.PackingSize);
+                    Assert.Equal(expectedSize, (uint)layout.Size);
+                    Assert.Equal(expectedKind, type.Attributes & TypeAttributes.LayoutMask);
                 }
+            };
 
-                // unlike Dev10, we don't add ClassLayout if .pack == 0 & .size == 0
-                Assert.False(expectedPack == 0 && expectedSize == 0, "Either expectedPack or expectedSize should be non-zero");
+            CompileAndVerify(verifiable, assemblyValidator: validator);
+            CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.FailsPEVerify);
 
-                Assert.Equal(expectedPack, layout.PackingSize);
-                Assert.Equal(expectedSize, (uint)layout.Size);
-                Assert.Equal(expectedKind, type.Attributes & TypeAttributes.LayoutMask);
-            }
-        };
+            // CLR limitation on type size, not a RefEmit bug:
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.FailsPEVerify);
+        }
 
-        CompileAndVerify(verifiable, assemblyValidator: validator);
-        CompileAndVerify(unverifiable, assemblyValidator: validator, verify: Verification.FailsPEVerify);
-
-        // CLR limitation on type size, not a RefEmit bug:
-        CompileAndVerify(unloadable, assemblyValidator: validator, verify: Verification.FailsPEVerify);
-    }
-
-    [Fact]
-    public void Pack_Errors()
-    {
-        var source = @"
+        [Fact]
+        public void Pack_Errors()
+        {
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -236,40 +236,40 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = 512  )] class P512   {}
 [StructLayout(LayoutKind.Sequential, Size = 1, Pack = Int32.MaxValue  )] class PMax   {}
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = -1").WithArguments("Pack"),
-            // (6,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 3").WithArguments("Pack"),
-            // (7,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 5").WithArguments("Pack"),
-            // (8,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 6").WithArguments("Pack"),
-            // (9,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 256").WithArguments("Pack"),
-            // (10,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 512").WithArguments("Pack"),
-            // (11,48): error CS0599: Invalid value for named attribute argument 'Pack'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = Int32.MaxValue").WithArguments("Pack"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = -1").WithArguments("Pack"),
+                // (6,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 3").WithArguments("Pack"),
+                // (7,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 5").WithArguments("Pack"),
+                // (8,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 6").WithArguments("Pack"),
+                // (9,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 256").WithArguments("Pack"),
+                // (10,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = 512").WithArguments("Pack"),
+                // (11,48): error CS0599: Invalid value for named attribute argument 'Pack'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Pack = Int32.MaxValue").WithArguments("Pack"));
+        }
 
-    [Fact]
-    public void Size_Errors()
-    {
-        var source = @"
+        [Fact]
+        public void Size_Errors()
+        {
+            var source = @"
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential, Size = -1)] class S {}
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,38): error CS0599: Invalid value for named attribute argument 'Size'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Size = -1").WithArguments("Size"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS0599: Invalid value for named attribute argument 'Size'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "Size = -1").WithArguments("Size"));
+        }
 
-    [Fact]
-    public void LayoutAndCharSet_Errors()
-    {
-        var source = @"
+        [Fact]
+        public void LayoutAndCharSet_Errors()
+        {
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -288,33 +288,33 @@ public class C4 { }
 [StructLayout(LayoutKind.Sequential, CharSet = (CharSet)Int32.MaxValue)]
 public class C5 { }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
-            Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)(-1)").WithArguments("StructLayout"),
-            // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
-            Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)4").WithArguments("StructLayout"),
-            // (11,38): error CS0599: Invalid value for named attribute argument 'CharSet'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)(-1)").WithArguments("CharSet"),
-            // (14,38): error CS0599: Invalid value for named attribute argument 'CharSet'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)5").WithArguments("CharSet"),
-            // (17,38): error CS0599: Invalid value for named attribute argument 'CharSet'
-            Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)Int32.MaxValue").WithArguments("CharSet"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)(-1)").WithArguments("StructLayout"),
+                // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)4").WithArguments("StructLayout"),
+                // (11,38): error CS0599: Invalid value for named attribute argument 'CharSet'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)(-1)").WithArguments("CharSet"),
+                // (14,38): error CS0599: Invalid value for named attribute argument 'CharSet'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)5").WithArguments("CharSet"),
+                // (17,38): error CS0599: Invalid value for named attribute argument 'CharSet'
+                Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet = (CharSet)Int32.MaxValue").WithArguments("CharSet"));
+        }
 
-    /// <summary>
-    /// CLI spec (22.8 ClassLayout):
-    ///  "A type has layout if it is marked SequentialLayout or ExplicitLayout. 
-    ///   If any type within an inheritance chain has layout, then so shall all its base classes, 
-    ///   up to the one that descends immediately from System.ValueType (if it exists in the type's hierarchy); 
-    ///   otherwise, from System.Object."
-    ///   
-    /// But this rule is only enforced by the loader, not by the compiler.
-    /// TODO: should we report an error?
-    /// </summary>
-    [Fact]
-    public void Inheritance()
-    {
-        string source = @"
+        /// <summary>
+        /// CLI spec (22.8 ClassLayout):
+        ///  "A type has layout if it is marked SequentialLayout or ExplicitLayout. 
+        ///   If any type within an inheritance chain has layout, then so shall all its base classes, 
+        ///   up to the one that descends immediately from System.ValueType (if it exists in the type's hierarchy); 
+        ///   otherwise, from System.Object."
+        ///   
+        /// But this rule is only enforced by the loader, not by the compiler.
+        /// TODO: should we report an error?
+        /// </summary>
+        [Fact]
+        public void Inheritance()
+        {
+            string source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -335,15 +335,15 @@ public class C : B
     public int e, f;
 }
 ";
-        // type C can't be loaded
-        CompileAndVerify(source, verify: Verification.FailsPEVerify);
-    }
+            // type C can't be loaded
+            CompileAndVerify(source, verify: Verification.FailsPEVerify);
+        }
 
-    [Fact]
-    [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
-    public void ExplicitFieldLayout()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ExplicitFieldLayout()
+        {
+            string source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -357,41 +357,41 @@ public class A
     event Action b;
 }
 ";
-        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
-        {
-            var reader = assembly.GetMetadataReader();
-            Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
-
-            foreach (var fieldHandle in reader.FieldDefinitions)
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
-                var field = reader.GetFieldDefinition(fieldHandle);
-                string name = reader.GetString(field.Name);
+                var reader = assembly.GetMetadataReader();
+                Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
 
-                int expectedOffset;
-                switch (name)
+                foreach (var fieldHandle in reader.FieldDefinitions)
                 {
-                    case "a":
-                        expectedOffset = 4;
-                        break;
+                    var field = reader.GetFieldDefinition(fieldHandle);
+                    string name = reader.GetString(field.Name);
 
-                    case "b":
-                        expectedOffset = 8;
-                        break;
+                    int expectedOffset;
+                    switch (name)
+                    {
+                        case "a":
+                            expectedOffset = 4;
+                            break;
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(name);
+                        case "b":
+                            expectedOffset = 8;
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+
+                    Assert.Equal(expectedOffset, field.GetOffset());
                 }
+            });
+        }
 
-                Assert.Equal(expectedOffset, field.GetOffset());
-            }
-        });
-    }
-
-    [Fact]
-    [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
-    public void ExplicitFieldLayout_OnBackingField()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ExplicitFieldLayout_OnBackingField()
+        {
+            string source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -405,47 +405,47 @@ public struct A
     event Action b;
 }
 ";
-        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
-        {
-            var reader = assembly.GetMetadataReader();
-            Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
-
-            foreach (var fieldHandle in reader.FieldDefinitions)
+            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyValidator: (assembly) =>
             {
-                var field = reader.GetFieldDefinition(fieldHandle);
-                string name = reader.GetString(field.Name);
+                var reader = assembly.GetMetadataReader();
+                Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
 
-                int expectedOffset;
-                switch (name)
+                foreach (var fieldHandle in reader.FieldDefinitions)
                 {
-                    case "<a>k__BackingField":
-                        expectedOffset = 4;
-                        break;
+                    var field = reader.GetFieldDefinition(fieldHandle);
+                    string name = reader.GetString(field.Name);
 
-                    case "b":
-                        expectedOffset = 8;
-                        break;
+                    int expectedOffset;
+                    switch (name)
+                    {
+                        case "<a>k__BackingField":
+                            expectedOffset = 4;
+                            break;
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(name);
+                        case "b":
+                            expectedOffset = 8;
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
+
+                    Assert.Equal(expectedOffset, field.GetOffset());
                 }
+            });
+        }
 
-                Assert.Equal(expectedOffset, field.GetOffset());
-            }
-        });
-    }
-
-    /// <summary>
-    /// CLI spec (22.16 FieldLayout):
-    ///  - Offset shall be zero or more.
-    ///  - The Type whose Fields are described by each row of the FieldLayout table shall have Flags.ExplicitLayout.
-    ///  - Flags.Static for the row in the Field table indexed by Field shall be non-static
-    ///  - Every Field of an ExplicitLayout Type shall be given an offset; that is, it shall have a row in the FieldLayout table
-    /// </summary>
-    [Fact]
-    public void ExplicitFieldLayout_Errors()
-    {
-        string source = @"
+        /// <summary>
+        /// CLI spec (22.16 FieldLayout):
+        ///  - Offset shall be zero or more.
+        ///  - The Type whose Fields are described by each row of the FieldLayout table shall have Flags.ExplicitLayout.
+        ///  - Flags.Static for the row in the Field table indexed by Field shall be non-static
+        ///  - Every Field of an ExplicitLayout Type shall be given an offset; that is, it shall have a row in the FieldLayout table
+        /// </summary>
+        [Fact]
+        public void ExplicitFieldLayout_Errors()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Auto)]
@@ -496,46 +496,46 @@ enum En
     A = 1
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
-            //     [FieldOffset(4)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(7, 6),
-            // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
-            //     [FieldOffset(4)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
-            // (17,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
-            //     [FieldOffset(-1)]
-            Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(17, 18),
-            // (17,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
-            //     [FieldOffset(-1)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(17, 6),
-            // (24,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
-            //     [FieldOffset(-1)]
-            Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(24, 18),
-            // (27,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
-            //     [FieldOffset(5)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(27, 6),
-            // (30,9): error CS0625: 'E.c1': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-            //     int c1, c2;
-            Diagnostic(ErrorCode.ERR_MissingStructOffset, "c1").WithArguments("E.c1").WithLocation(30, 9),
-            // (30,13): error CS0625: 'E.c2': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
-            //     int c1, c2;
-            Diagnostic(ErrorCode.ERR_MissingStructOffset, "c2").WithArguments("E.c2").WithLocation(30, 13),
-            // (39,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
-            //     [FieldOffset(-1)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(39, 6),
-            // (42,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
-            //     [FieldOffset(5)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(42, 6),
-            // (48,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
-            //     [FieldOffset(5)]
-            Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(48, 6));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(7, 6),
+                // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(4)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6),
+                // (17,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
+                //     [FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(17, 18),
+                // (17,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(17, 6),
+                // (24,18): error CS0591: Invalid value for argument to 'FieldOffset' attribute
+                //     [FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "-1").WithArguments("FieldOffset").WithLocation(24, 18),
+                // (27,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
+                //     [FieldOffset(5)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(27, 6),
+                // (30,9): error CS0625: 'E.c1': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //     int c1, c2;
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "c1").WithArguments("E.c1").WithLocation(30, 9),
+                // (30,13): error CS0625: 'E.c2': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                //     int c1, c2;
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "c2").WithArguments("E.c2").WithLocation(30, 13),
+                // (39,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
+                //     [FieldOffset(-1)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(39, 6),
+                // (42,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
+                //     [FieldOffset(5)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(42, 6),
+                // (48,6): error CS0637: The FieldOffset attribute is not allowed on static or const fields
+                //     [FieldOffset(5)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "FieldOffset").WithLocation(48, 6));
+        }
 
-    [Fact, WorkItem(546660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem(546662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
-    public void SequentialLayout_Partials()
-    {
-        string source = @"
+        [Fact, WorkItem(546660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546660"), WorkItem(546662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546662")]
+        public void SequentialLayout_Partials()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential)]  // error
@@ -581,15 +581,15 @@ partial struct S
     public int x;
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
-            Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,15): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
+                Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C"));
+        }
 
-    [Fact, WorkItem(631467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
-    public void SequentialLayout_Partials_02()
-    {
-        string source = @"
+        [Fact, WorkItem(631467, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631467")]
+        public void SequentialLayout_Partials_02()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential)]
@@ -602,124 +602,125 @@ partial struct C
 {
     public int y;
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void ReadingFromMetadata()
-    {
-        // the image is missing a record in ClassLayout table
-        using (var module = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.ClassLayout))
+        [Fact]
+        public void ReadingFromMetadata()
         {
-            var reader = module.Module.GetMetadataReader();
-
-            foreach (var typeHandle in reader.TypeDefinitions)
+            // the image is missing a record in ClassLayout table
+            using (var module = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.ClassLayout))
             {
-                var type = reader.GetTypeDefinition(typeHandle);
-                var name = reader.GetString(type.Name);
+                var reader = module.Module.GetMetadataReader();
 
-                bool badLayout = false;
-                System.Reflection.Metadata.TypeLayout mdLayout;
-                try
+                foreach (var typeHandle in reader.TypeDefinitions)
                 {
-                    mdLayout = type.GetLayout();
-                }
-                catch (BadImageFormatException)
-                {
-                    badLayout = true;
-                    mdLayout = default(System.Reflection.Metadata.TypeLayout);
-                }
+                    var type = reader.GetTypeDefinition(typeHandle);
+                    var name = reader.GetString(type.Name);
 
-                bool hasClassLayout = !mdLayout.IsDefault;
-                TypeLayout layout = module.Module.GetTypeLayout(typeHandle);
-                switch (name)
-                {
-                    case "<Module>":
-                        Assert.False(hasClassLayout);
-                        Assert.Equal(default(TypeLayout), layout);
-                        Assert.False(badLayout);
-                        break;
+                    bool badLayout = false;
+                    System.Reflection.Metadata.TypeLayout mdLayout;
+                    try
+                    {
+                        mdLayout = type.GetLayout();
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        badLayout = true;
+                        mdLayout = default(System.Reflection.Metadata.TypeLayout);
+                    }
 
-                    case "S1":
-                    case "S2":
-                        // invalid size/pack value
-                        Assert.False(hasClassLayout);
-                        Assert.True(badLayout);
-                        break;
+                    bool hasClassLayout = !mdLayout.IsDefault;
+                    TypeLayout layout = module.Module.GetTypeLayout(typeHandle);
+                    switch (name)
+                    {
+                        case "<Module>":
+                            Assert.False(hasClassLayout);
+                            Assert.Equal(default(TypeLayout), layout);
+                            Assert.False(badLayout);
+                            break;
 
-                    case "S3":
-                        Assert.True(hasClassLayout);
-                        Assert.Equal(1, mdLayout.Size);
-                        Assert.Equal(2, mdLayout.PackingSize);
-                        Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 2), layout);
-                        Assert.False(badLayout);
-                        break;
+                        case "S1":
+                        case "S2":
+                            // invalid size/pack value
+                            Assert.False(hasClassLayout);
+                            Assert.True(badLayout);
+                            break;
 
-                    case "S4":
-                        Assert.True(hasClassLayout);
-                        Assert.Equal(unchecked((int)0x12345678), mdLayout.Size);
-                        Assert.Equal(0, mdLayout.PackingSize);
-                        Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0x12345678, alignment: 0), layout);
-                        Assert.False(badLayout);
-                        break;
+                        case "S3":
+                            Assert.True(hasClassLayout);
+                            Assert.Equal(1, mdLayout.Size);
+                            Assert.Equal(2, mdLayout.PackingSize);
+                            Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 2), layout);
+                            Assert.False(badLayout);
+                            break;
 
-                    case "S5":
-                        // doesn't have layout
-                        Assert.False(hasClassLayout);
-                        Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0, alignment: 0), layout);
-                        Assert.False(badLayout);
-                        break;
+                        case "S4":
+                            Assert.True(hasClassLayout);
+                            Assert.Equal(unchecked((int)0x12345678), mdLayout.Size);
+                            Assert.Equal(0, mdLayout.PackingSize);
+                            Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0x12345678, alignment: 0), layout);
+                            Assert.False(badLayout);
+                            break;
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(name);
+                        case "S5":
+                            // doesn't have layout
+                            Assert.False(hasClassLayout);
+                            Assert.Equal(new TypeLayout(LayoutKind.Sequential, size: 0, alignment: 0), layout);
+                            Assert.False(badLayout);
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(name);
+                    }
                 }
             }
         }
-    }
 
-    private void VerifyStructLayout(string source, bool hasInstanceFields)
-    {
-        CompileAndVerify(source, assemblyValidator: (assembly) =>
+        private void VerifyStructLayout(string source, bool hasInstanceFields)
         {
-            var reader = assembly.GetMetadataReader();
-            var type = reader.TypeDefinitions
-                .Select(handle => reader.GetTypeDefinition(handle))
-                .Where(typeDef => reader.GetString(typeDef.Name) == "S")
-                .Single();
-
-            var layout = type.GetLayout();
-            if (!hasInstanceFields)
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
+                var reader = assembly.GetMetadataReader();
+                var type = reader.TypeDefinitions
+                    .Select(handle => reader.GetTypeDefinition(handle))
+                    .Where(typeDef => reader.GetString(typeDef.Name) == "S")
+                    .Single();
 
-                Assert.False(layout.IsDefault);
-                Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
-                Assert.Equal(0, layout.PackingSize);
-                Assert.Equal(1, layout.Size);
-            }
-            else
-            {
-                Assert.True(layout.IsDefault);
-            }
-        });
-    }
+                var layout = type.GetLayout();
+                if (!hasInstanceFields)
+                {
+                    const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
 
-    [Fact]
-    public void Bug1075326()
-    {
-        // no instance fields
-        VerifyStructLayout(@"struct S {}", hasInstanceFields: false);
-        VerifyStructLayout(@"struct S { static int f; }", hasInstanceFields: false);
-        VerifyStructLayout(@"struct S { static int P { get; set; } }", hasInstanceFields: false);
-        VerifyStructLayout(@"struct S { int P { set { } } }", hasInstanceFields: false);
-        VerifyStructLayout(@"struct S { static int P { set { } } }", hasInstanceFields: false);
-        VerifyStructLayout(@"delegate void D(); struct S { static event D D; }", hasInstanceFields: false);
-        VerifyStructLayout(@"delegate void D(); struct S { event D D { add { } remove { } } }", hasInstanceFields: false);
-        VerifyStructLayout(@"delegate void D(); struct S { static event D D { add { } remove { } } }", hasInstanceFields: false);
+                    Assert.False(layout.IsDefault);
+                    Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
+                    Assert.Equal(0, layout.PackingSize);
+                    Assert.Equal(1, layout.Size);
+                }
+                else
+                {
+                    Assert.True(layout.IsDefault);
+                }
+            });
+        }
 
-        // instance fields
-        VerifyStructLayout(@"struct S { int f; }", hasInstanceFields: true);
-        VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
-        VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
+        [Fact]
+        public void Bug1075326()
+        {
+            // no instance fields
+            VerifyStructLayout(@"struct S {}", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int f; }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int P { get; set; } }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { int P { set { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int P { set { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { static event D D; }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { event D D { add { } remove { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { static event D D { add { } remove { } } }", hasInstanceFields: false);
+
+            // instance fields
+            VerifyStructLayout(@"struct S { int f; }", hasInstanceFields: true);
+            VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
+            VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
+        }
     }
 }

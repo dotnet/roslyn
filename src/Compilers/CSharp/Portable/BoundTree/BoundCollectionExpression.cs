@@ -2,44 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundCollectionExpressionBase
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    /// <summary>
-    /// Returns true if the collection expression contains any spreads.
-    /// </summary>
-    /// <param name="numberIncludingLastSpread">The number of elements up to and including the
-    /// last spread element. If the length of the collection expression is known, this is the number
-    /// of elements evaluated before any are added to the collection instance in lowering.</param>
-    /// <param name="hasKnownLength">True if all the spread elements are countable.</param>
-    internal bool HasSpreadElements(out int numberIncludingLastSpread, out bool hasKnownLength)
+    internal partial class BoundCollectionExpressionBase
     {
-        hasKnownLength = true;
-        numberIncludingLastSpread = 0;
-        for (int i = 0; i < Elements.Length; i++)
+        /// <summary>
+        /// Returns true if the collection expression contains any spreads.
+        /// </summary>
+        /// <param name="numberIncludingLastSpread">The number of elements up to and including the
+        /// last spread element. If the length of the collection expression is known, this is the number
+        /// of elements evaluated before any are added to the collection instance in lowering.</param>
+        /// <param name="hasKnownLength">True if all the spread elements are countable.</param>
+        internal bool HasSpreadElements(out int numberIncludingLastSpread, out bool hasKnownLength)
         {
-            if (Elements[i] is BoundCollectionExpressionSpreadElement spreadElement)
+            hasKnownLength = true;
+            numberIncludingLastSpread = 0;
+            for (int i = 0; i < Elements.Length; i++)
             {
-                numberIncludingLastSpread = i + 1;
-                if (spreadElement.LengthOrCount is null)
+                if (Elements[i] is BoundCollectionExpressionSpreadElement spreadElement)
                 {
-                    hasKnownLength = false;
+                    numberIncludingLastSpread = i + 1;
+                    if (spreadElement.LengthOrCount is null)
+                    {
+                        hasKnownLength = false;
+                    }
                 }
             }
+            return numberIncludingLastSpread > 0;
         }
-        return numberIncludingLastSpread > 0;
-    }
 
-    public new bool IsParamsArrayOrCollection
-    {
-        get
+        public new bool IsParamsArrayOrCollection
         {
-            return base.IsParamsArrayOrCollection;
-        }
-        init
-        {
-            base.IsParamsArrayOrCollection = value;
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
         }
     }
 }

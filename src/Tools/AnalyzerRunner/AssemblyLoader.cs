@@ -7,18 +7,19 @@
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace AnalyzerRunner;
-
-internal class AssemblyLoader : IAnalyzerAssemblyLoader
+namespace AnalyzerRunner
 {
-    public static AssemblyLoader Instance = new AssemblyLoader();
-
-    public void AddDependencyLocation(string fullPath)
+    internal class AssemblyLoader : IAnalyzerAssemblyLoader
     {
-    }
+        public static AssemblyLoader Instance = new AssemblyLoader();
 
-    public Assembly LoadFromPath(string fullPath)
-    {
-        return Assembly.LoadFrom(fullPath);
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            return Assembly.LoadFrom(fullPath);
+        }
     }
 }

@@ -5,30 +5,31 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class GeneratorSyntaxWalker
+namespace Microsoft.CodeAnalysis
 {
-    private readonly ISyntaxContextReceiver _syntaxReceiver;
-    private readonly ISyntaxHelper _syntaxHelper;
-
-    internal GeneratorSyntaxWalker(
-        ISyntaxContextReceiver syntaxReceiver,
-        ISyntaxHelper syntaxHelper)
+    internal sealed class GeneratorSyntaxWalker
     {
-        _syntaxReceiver = syntaxReceiver;
-        _syntaxHelper = syntaxHelper;
-    }
+        private readonly ISyntaxContextReceiver _syntaxReceiver;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-    public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
-    {
-        Debug.Assert(model is not null
-                     && model.Value.SyntaxTree == node.SyntaxTree);
-
-        foreach (var child in node.DescendantNodesAndSelf())
+        internal GeneratorSyntaxWalker(
+            ISyntaxContextReceiver syntaxReceiver,
+            ISyntaxHelper syntaxHelper)
         {
-            Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
-            _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
+            _syntaxReceiver = syntaxReceiver;
+            _syntaxHelper = syntaxHelper;
+        }
+
+        public void VisitWithModel(Lazy<SemanticModel>? model, SyntaxNode node)
+        {
+            Debug.Assert(model is not null
+                         && model.Value.SyntaxTree == node.SyntaxTree);
+
+            foreach (var child in node.DescendantNodesAndSelf())
+            {
+                Debug.Assert(model.Value.SyntaxTree == child.SyntaxTree);
+                _syntaxReceiver.OnVisitSyntaxNode(new GeneratorSyntaxContext(child, model, _syntaxHelper));
+            }
         }
     }
 }

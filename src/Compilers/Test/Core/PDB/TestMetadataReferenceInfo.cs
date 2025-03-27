@@ -14,73 +14,74 @@ using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities.PDB;
-
-internal class TestMetadataReferenceInfo : IDisposable
+namespace Roslyn.Test.Utilities.PDB
 {
-    public readonly Compilation Compilation;
-    public readonly TestMetadataReference MetadataReference;
-    public readonly MetadataReferenceInfo MetadataReferenceInfo;
-    private bool _disposedValue;
-    private readonly MemoryStream _emitStream;
-    private readonly PEReader _peReader;
-
-    public TestMetadataReferenceInfo(
-        MemoryStream emitStream,
-        Compilation compilation,
-        TestMetadataReference metadataReference,
-        string fullPath)
+    internal class TestMetadataReferenceInfo : IDisposable
     {
-        _emitStream = emitStream;
-        _peReader = new PEReader(emitStream);
-        Compilation = compilation;
-        MetadataReference = metadataReference;
+        public readonly Compilation Compilation;
+        public readonly TestMetadataReference MetadataReference;
+        public readonly MetadataReferenceInfo MetadataReferenceInfo;
+        private bool _disposedValue;
+        private readonly MemoryStream _emitStream;
+        private readonly PEReader _peReader;
 
-        var metadataReader = _peReader.GetMetadataReader();
-        var moduleDefinition = metadataReader.GetModuleDefinition();
-
-        MetadataReferenceInfo = new MetadataReferenceInfo(
-            _peReader.PEHeaders.CoffHeader.TimeDateStamp,
-            _peReader.PEHeaders.PEHeader.SizeOfImage,
-            PathUtilities.GetFileName(fullPath),
-            metadataReader.GetGuid(moduleDefinition.Mvid),
-            metadataReference.Properties.Aliases,
-            metadataReference.Properties.Kind,
-            metadataReference.Properties.EmbedInteropTypes);
-    }
-
-    public static TestMetadataReferenceInfo Create(Compilation compilation, string fullPath, EmitOptions emitOptions)
-    {
-        var emitStream = compilation.EmitToStream(emitOptions);
-
-        var metadata = AssemblyMetadata.CreateFromStream(emitStream);
-        var metadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
-
-        return new TestMetadataReferenceInfo(
-            emitStream,
-            compilation,
-            metadataReference,
-            fullPath);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposedValue)
+        public TestMetadataReferenceInfo(
+            MemoryStream emitStream,
+            Compilation compilation,
+            TestMetadataReference metadataReference,
+            string fullPath)
         {
-            if (disposing)
-            {
-                _peReader.Dispose();
-                _emitStream.Dispose();
-            }
+            _emitStream = emitStream;
+            _peReader = new PEReader(emitStream);
+            Compilation = compilation;
+            MetadataReference = metadataReference;
 
-            _disposedValue = true;
+            var metadataReader = _peReader.GetMetadataReader();
+            var moduleDefinition = metadataReader.GetModuleDefinition();
+
+            MetadataReferenceInfo = new MetadataReferenceInfo(
+                _peReader.PEHeaders.CoffHeader.TimeDateStamp,
+                _peReader.PEHeaders.PEHeader.SizeOfImage,
+                PathUtilities.GetFileName(fullPath),
+                metadataReader.GetGuid(moduleDefinition.Mvid),
+                metadataReference.Properties.Aliases,
+                metadataReference.Properties.Kind,
+                metadataReference.Properties.EmbedInteropTypes);
         }
-    }
 
-    public void Dispose()
-    {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        public static TestMetadataReferenceInfo Create(Compilation compilation, string fullPath, EmitOptions emitOptions)
+        {
+            var emitStream = compilation.EmitToStream(emitOptions);
+
+            var metadata = AssemblyMetadata.CreateFromStream(emitStream);
+            var metadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
+
+            return new TestMetadataReferenceInfo(
+                emitStream,
+                compilation,
+                metadataReference,
+                fullPath);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _peReader.Dispose();
+                    _emitStream.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

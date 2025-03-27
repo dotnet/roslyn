@@ -8,85 +8,86 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class RootSingleNamespaceDeclaration : SingleNamespaceDeclaration
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<ReferenceDirective> _referenceDirectives;
-    private readonly bool _hasAssemblyAttributes;
-    private readonly bool _hasGlobalUsings;
-    private readonly bool _hasUsings;
-    private readonly bool _hasExternAliases;
-
-    /// <summary>
-    /// Any special attributes we may be referencing directly through a global using alias in the file.
-    /// <c>global using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
-    /// </summary>
-    public QuickAttributes GlobalAliasedQuickAttributes { get; }
-
-    public RootSingleNamespaceDeclaration(
-        bool hasGlobalUsings,
-        bool hasUsings,
-        bool hasExternAliases,
-        SyntaxReference treeNode,
-        ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
-        ImmutableArray<ReferenceDirective> referenceDirectives,
-        bool hasAssemblyAttributes,
-        ImmutableArray<Diagnostic> diagnostics,
-        QuickAttributes globalAliasedQuickAttributes)
-        : base(string.Empty,
-               treeNode,
-               nameLocation: new SourceLocation(treeNode),
-               children: children,
-               diagnostics: diagnostics)
+    internal sealed class RootSingleNamespaceDeclaration : SingleNamespaceDeclaration
     {
-        Debug.Assert(!referenceDirectives.IsDefault);
+        private readonly ImmutableArray<ReferenceDirective> _referenceDirectives;
+        private readonly bool _hasAssemblyAttributes;
+        private readonly bool _hasGlobalUsings;
+        private readonly bool _hasUsings;
+        private readonly bool _hasExternAliases;
 
-        _referenceDirectives = referenceDirectives;
-        _hasAssemblyAttributes = hasAssemblyAttributes;
-        _hasGlobalUsings = hasGlobalUsings;
-        _hasUsings = hasUsings;
-        _hasExternAliases = hasExternAliases;
-        GlobalAliasedQuickAttributes = globalAliasedQuickAttributes;
-    }
+        /// <summary>
+        /// Any special attributes we may be referencing directly through a global using alias in the file.
+        /// <c>global using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
+        /// </summary>
+        public QuickAttributes GlobalAliasedQuickAttributes { get; }
 
-    public ImmutableArray<ReferenceDirective> ReferenceDirectives
-    {
-        get
+        public RootSingleNamespaceDeclaration(
+            bool hasGlobalUsings,
+            bool hasUsings,
+            bool hasExternAliases,
+            SyntaxReference treeNode,
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<ReferenceDirective> referenceDirectives,
+            bool hasAssemblyAttributes,
+            ImmutableArray<Diagnostic> diagnostics,
+            QuickAttributes globalAliasedQuickAttributes)
+            : base(string.Empty,
+                   treeNode,
+                   nameLocation: new SourceLocation(treeNode),
+                   children: children,
+                   diagnostics: diagnostics)
         {
-            return _referenceDirectives;
+            Debug.Assert(!referenceDirectives.IsDefault);
+
+            _referenceDirectives = referenceDirectives;
+            _hasAssemblyAttributes = hasAssemblyAttributes;
+            _hasGlobalUsings = hasGlobalUsings;
+            _hasUsings = hasUsings;
+            _hasExternAliases = hasExternAliases;
+            GlobalAliasedQuickAttributes = globalAliasedQuickAttributes;
         }
-    }
 
-    public bool HasAssemblyAttributes
-    {
-        get
+        public ImmutableArray<ReferenceDirective> ReferenceDirectives
         {
-            return _hasAssemblyAttributes;
+            get
+            {
+                return _referenceDirectives;
+            }
         }
-    }
 
-    public override bool HasGlobalUsings
-    {
-        get
+        public bool HasAssemblyAttributes
         {
-            return _hasGlobalUsings;
+            get
+            {
+                return _hasAssemblyAttributes;
+            }
         }
-    }
 
-    public override bool HasUsings
-    {
-        get
+        public override bool HasGlobalUsings
         {
-            return _hasUsings;
+            get
+            {
+                return _hasGlobalUsings;
+            }
         }
-    }
 
-    public override bool HasExternAliases
-    {
-        get
+        public override bool HasUsings
         {
-            return _hasExternAliases;
+            get
+            {
+                return _hasUsings;
+            }
+        }
+
+        public override bool HasExternAliases
+        {
+            get
+            {
+                return _hasExternAliases;
+            }
         }
     }
 }

@@ -5,37 +5,38 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeGen;
-
-internal readonly struct LocalSlotDebugInfo : IEquatable<LocalSlotDebugInfo>
+namespace Microsoft.CodeAnalysis.CodeGen
 {
-    public readonly SynthesizedLocalKind SynthesizedKind;
-    public readonly LocalDebugId Id;
-
-    public LocalSlotDebugInfo(SynthesizedLocalKind synthesizedKind, LocalDebugId id)
+    internal readonly struct LocalSlotDebugInfo : IEquatable<LocalSlotDebugInfo>
     {
-        this.SynthesizedKind = synthesizedKind;
-        this.Id = id;
-    }
+        public readonly SynthesizedLocalKind SynthesizedKind;
+        public readonly LocalDebugId Id;
 
-    public bool Equals(LocalSlotDebugInfo other)
-    {
-        return this.SynthesizedKind == other.SynthesizedKind
-            && this.Id.Equals(other.Id);
-    }
+        public LocalSlotDebugInfo(SynthesizedLocalKind synthesizedKind, LocalDebugId id)
+        {
+            this.SynthesizedKind = synthesizedKind;
+            this.Id = id;
+        }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is LocalSlotDebugInfo && Equals((LocalSlotDebugInfo)obj);
-    }
+        public bool Equals(LocalSlotDebugInfo other)
+        {
+            return this.SynthesizedKind == other.SynthesizedKind
+                && this.Id.Equals(other.Id);
+        }
 
-    public override int GetHashCode()
-    {
-        return Hash.Combine((int)SynthesizedKind, Id.GetHashCode());
-    }
+        public override bool Equals(object? obj)
+        {
+            return obj is LocalSlotDebugInfo && Equals((LocalSlotDebugInfo)obj);
+        }
 
-    public override string ToString()
-    {
-        return SynthesizedKind.ToString() + " " + Id.ToString();
+        public override int GetHashCode()
+        {
+            return Hash.Combine((int)SynthesizedKind, Id.GetHashCode());
+        }
+
+        public override string ToString()
+        {
+            return SynthesizedKind.ToString() + " " + Id.ToString();
+        }
     }
 }

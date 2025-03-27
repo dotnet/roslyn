@@ -5,30 +5,31 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundSwitchExpression
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation, out LabelSymbol? defaultLabel)
+    internal partial class BoundSwitchExpression
     {
-        defaultLabel = this.DefaultLabel;
-
-        BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-        if (decisionDag.ContainsAnySynthesizedNodes())
+        public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation, out LabelSymbol? defaultLabel)
         {
-            decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(
-                compilation,
-                this.Syntax,
-                this.Expression,
-                this.SwitchArms,
-                // there's no default label if the original switch is exhaustive.
-                // we generate a new label here because the new dag might not be.
-                defaultLabel ??= new GeneratedLabelSymbol("default"),
-                BindingDiagnosticBag.Discarded,
-                forLowering: true);
-            Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-        }
+            defaultLabel = this.DefaultLabel;
 
-        return decisionDag;
+            BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
+            if (decisionDag.ContainsAnySynthesizedNodes())
+            {
+                decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(
+                    compilation,
+                    this.Syntax,
+                    this.Expression,
+                    this.SwitchArms,
+                    // there's no default label if the original switch is exhaustive.
+                    // we generate a new label here because the new dag might not be.
+                    defaultLabel ??= new GeneratedLabelSymbol("default"),
+                    BindingDiagnosticBag.Discarded,
+                    forLowering: true);
+                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+            }
+
+            return decisionDag;
+        }
     }
 }

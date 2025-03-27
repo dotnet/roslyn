@@ -6,25 +6,26 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    protected enum OverflowChecks
+    internal partial class Binder
     {
-        /// <summary>
-        /// Outside of <c>checked</c>, <c>unchecked</c> expression/block.
-        /// </summary>
-        Implicit,
+        protected enum OverflowChecks
+        {
+            /// <summary>
+            /// Outside of <c>checked</c>, <c>unchecked</c> expression/block.
+            /// </summary>
+            Implicit,
 
-        /// <summary>
-        /// Within <c>unchecked</c> expression/block.
-        /// </summary>
-        Disabled,
+            /// <summary>
+            /// Within <c>unchecked</c> expression/block.
+            /// </summary>
+            Disabled,
 
-        /// <summary>
-        /// Within <c>checked</c> expression/block.
-        /// </summary>
-        Enabled
+            /// <summary>
+            /// Within <c>checked</c> expression/block.
+            /// </summary>
+            Enabled
+        }
     }
 }

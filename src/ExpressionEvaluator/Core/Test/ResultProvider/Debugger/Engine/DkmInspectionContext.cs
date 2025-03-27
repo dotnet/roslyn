@@ -14,83 +14,84 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-//
-// Summary:
-//     Options and target context to use while performing the inspection operation.
-[Guid("0807c826-3338-dd99-2f3a-202ba8fb9da7")]
-public class DkmInspectionContext
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public static DkmInspectionContext Create(
-        DkmInspectionSession InspectionSession,
-        DkmRuntimeInstance RuntimeInstance,
-        DkmThread Thread,
-        uint Timeout,
-        DkmEvaluationFlags EvaluationFlags,
-        DkmFuncEvalFlags FuncEvalFlags,
-        uint Radix,
-        DkmLanguage Language,
-        DkmRawReturnValue ReturnValue,
-        DkmCompiledVisualizationData AdditionalVisualizationData,
-        DkmCompiledVisualizationDataPriority AdditionalVisualizationDataPriority,
-        ReadOnlyCollection<DkmRawReturnValueContainer> ReturnValues)
+    //
+    // Summary:
+    //     Options and target context to use while performing the inspection operation.
+    [Guid("0807c826-3338-dd99-2f3a-202ba8fb9da7")]
+    public class DkmInspectionContext
     {
-        return new DkmInspectionContext(InspectionSession, EvaluationFlags, Radix, RuntimeInstance);
+        public static DkmInspectionContext Create(
+            DkmInspectionSession InspectionSession,
+            DkmRuntimeInstance RuntimeInstance,
+            DkmThread Thread,
+            uint Timeout,
+            DkmEvaluationFlags EvaluationFlags,
+            DkmFuncEvalFlags FuncEvalFlags,
+            uint Radix,
+            DkmLanguage Language,
+            DkmRawReturnValue ReturnValue,
+            DkmCompiledVisualizationData AdditionalVisualizationData,
+            DkmCompiledVisualizationDataPriority AdditionalVisualizationDataPriority,
+            ReadOnlyCollection<DkmRawReturnValueContainer> ReturnValues)
+        {
+            return new DkmInspectionContext(InspectionSession, EvaluationFlags, Radix, RuntimeInstance);
+        }
+
+        internal DkmInspectionContext(DkmInspectionSession inspectionSession, DkmEvaluationFlags evaluationFlags, uint radix, DkmRuntimeInstance runtimeInstance)
+        {
+            this.InspectionSession = inspectionSession;
+            this.EvaluationFlags = evaluationFlags;
+            this.Radix = radix;
+            this.RuntimeInstance = runtimeInstance ?? DkmClrRuntimeInstance.DefaultRuntime;
+        }
+
+        public readonly DkmInspectionSession InspectionSession;
+        public readonly DkmRuntimeInstance RuntimeInstance;
+        public readonly DkmThread Thread;
+        public readonly uint Timeout;
+        public readonly DkmEvaluationFlags EvaluationFlags;
+        public readonly DkmFuncEvalFlags FuncEvalFlags;
+        public readonly uint Radix;
+        public readonly DkmLanguage Language;
+        public readonly DkmRawReturnValue ReturnValue;
+        public readonly DkmCompiledVisualizationData AdditionalVisualizationData;
+        public readonly DkmCompiledVisualizationDataPriority AdditionalVisualizationDataPriority;
+        public readonly ReadOnlyCollection<DkmRawReturnValueContainer> ReturnValues;
+
+        public string GetTypeName(DkmClrType ClrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> FormatSpecifiers)
+        {
+            return InspectionSession.InvokeFormatter(this, MethodId.GetTypeName, f => f.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers));
+        }
+
+        public DkmInspectionContext WithProperties(uint Timeout, DkmEvaluationFlags EvaluationFlags, DkmFuncEvalFlags FuncEvalFlags, uint Radix)
+        {
+            return new DkmInspectionContext(
+                this.InspectionSession,
+                EvaluationFlags,
+                Radix,
+                this.RuntimeInstance);
+        }
     }
 
-    internal DkmInspectionContext(DkmInspectionSession inspectionSession, DkmEvaluationFlags evaluationFlags, uint radix, DkmRuntimeInstance runtimeInstance)
+    public enum DkmFuncEvalFlags
     {
-        this.InspectionSession = inspectionSession;
-        this.EvaluationFlags = evaluationFlags;
-        this.Radix = radix;
-        this.RuntimeInstance = runtimeInstance ?? DkmClrRuntimeInstance.DefaultRuntime;
     }
 
-    public readonly DkmInspectionSession InspectionSession;
-    public readonly DkmRuntimeInstance RuntimeInstance;
-    public readonly DkmThread Thread;
-    public readonly uint Timeout;
-    public readonly DkmEvaluationFlags EvaluationFlags;
-    public readonly DkmFuncEvalFlags FuncEvalFlags;
-    public readonly uint Radix;
-    public readonly DkmLanguage Language;
-    public readonly DkmRawReturnValue ReturnValue;
-    public readonly DkmCompiledVisualizationData AdditionalVisualizationData;
-    public readonly DkmCompiledVisualizationDataPriority AdditionalVisualizationDataPriority;
-    public readonly ReadOnlyCollection<DkmRawReturnValueContainer> ReturnValues;
-
-    public string GetTypeName(DkmClrType ClrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> FormatSpecifiers)
+    public class DkmRawReturnValue
     {
-        return InspectionSession.InvokeFormatter(this, MethodId.GetTypeName, f => f.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers));
     }
 
-    public DkmInspectionContext WithProperties(uint Timeout, DkmEvaluationFlags EvaluationFlags, DkmFuncEvalFlags FuncEvalFlags, uint Radix)
+    public class DkmCompiledVisualizationData
     {
-        return new DkmInspectionContext(
-            this.InspectionSession,
-            EvaluationFlags,
-            Radix,
-            this.RuntimeInstance);
     }
-}
 
-public enum DkmFuncEvalFlags
-{
-}
+    public class DkmCompiledVisualizationDataPriority
+    {
+    }
 
-public class DkmRawReturnValue
-{
-}
-
-public class DkmCompiledVisualizationData
-{
-}
-
-public class DkmCompiledVisualizationDataPriority
-{
-}
-
-public class DkmRawReturnValueContainer
-{
+    public class DkmRawReturnValueContainer
+    {
+    }
 }

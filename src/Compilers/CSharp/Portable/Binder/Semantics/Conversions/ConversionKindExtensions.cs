@@ -5,105 +5,106 @@
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.ConversionKind;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal static class ConversionKindExtensions
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public static bool IsDynamic(this ConversionKind conversionKind)
+    internal static class ConversionKindExtensions
     {
-        return conversionKind == ImplicitDynamic || conversionKind == ExplicitDynamic;
-    }
-
-    // Is the particular conversion an implicit conversion?
-    public static bool IsImplicitConversion(this ConversionKind conversionKind)
-    {
-        switch (conversionKind)
+        public static bool IsDynamic(this ConversionKind conversionKind)
         {
-            case NoConversion:
-            case UnsetConversionKind:
-                return false;
-
-            case Identity:
-            case ImplicitNumeric:
-            case ImplicitTupleLiteral:
-            case ImplicitTuple:
-            case ImplicitEnumeration:
-            case ImplicitThrow:
-            case ImplicitNullable:
-            case NullLiteral:
-            case DefaultLiteral:
-            case ImplicitReference:
-            case Boxing:
-            case ImplicitDynamic:
-            case ImplicitConstant:
-            case ImplicitUserDefined:
-            case AnonymousFunction:
-            case ConversionKind.MethodGroup:
-            case ConversionKind.FunctionType:
-            case ImplicitPointerToVoid:
-            case ImplicitNullToPointer:
-            case InterpolatedString:
-            case InterpolatedStringHandler:
-            case SwitchExpression:
-            case ConditionalExpression:
-            case Deconstruction:
-            case StackAllocToPointerType:
-            case StackAllocToSpanType:
-            case ImplicitPointer:
-            case ObjectCreation:
-            case InlineArray:
-            case CollectionExpression:
-            case ImplicitSpan:
-                return true;
-
-            case ExplicitNumeric:
-            case ExplicitTuple:
-            case ExplicitTupleLiteral:
-            case ExplicitEnumeration:
-            case ExplicitNullable:
-            case ExplicitReference:
-            case Unboxing:
-            case ExplicitDynamic:
-            case ExplicitUserDefined:
-            case ExplicitPointerToPointer:
-            case ExplicitPointerToInteger:
-            case ExplicitIntegerToPointer:
-            case IntPtr:
-            case ExplicitSpan:
-                return false;
-
-            default:
-                throw ExceptionUtilities.UnexpectedValue(conversionKind);
+            return conversionKind == ImplicitDynamic || conversionKind == ExplicitDynamic;
         }
-    }
 
-    // Is the particular conversion a used-defined conversion?
-    public static bool IsUserDefinedConversion(this ConversionKind conversionKind)
-    {
-        switch (conversionKind)
+        // Is the particular conversion an implicit conversion?
+        public static bool IsImplicitConversion(this ConversionKind conversionKind)
         {
-            case ImplicitUserDefined:
-            case ExplicitUserDefined:
-                return true;
+            switch (conversionKind)
+            {
+                case NoConversion:
+                case UnsetConversionKind:
+                    return false;
 
-            default:
-                return false;
+                case Identity:
+                case ImplicitNumeric:
+                case ImplicitTupleLiteral:
+                case ImplicitTuple:
+                case ImplicitEnumeration:
+                case ImplicitThrow:
+                case ImplicitNullable:
+                case NullLiteral:
+                case DefaultLiteral:
+                case ImplicitReference:
+                case Boxing:
+                case ImplicitDynamic:
+                case ImplicitConstant:
+                case ImplicitUserDefined:
+                case AnonymousFunction:
+                case ConversionKind.MethodGroup:
+                case ConversionKind.FunctionType:
+                case ImplicitPointerToVoid:
+                case ImplicitNullToPointer:
+                case InterpolatedString:
+                case InterpolatedStringHandler:
+                case SwitchExpression:
+                case ConditionalExpression:
+                case Deconstruction:
+                case StackAllocToPointerType:
+                case StackAllocToSpanType:
+                case ImplicitPointer:
+                case ObjectCreation:
+                case InlineArray:
+                case CollectionExpression:
+                case ImplicitSpan:
+                    return true;
+
+                case ExplicitNumeric:
+                case ExplicitTuple:
+                case ExplicitTupleLiteral:
+                case ExplicitEnumeration:
+                case ExplicitNullable:
+                case ExplicitReference:
+                case Unboxing:
+                case ExplicitDynamic:
+                case ExplicitUserDefined:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case IntPtr:
+                case ExplicitSpan:
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(conversionKind);
+            }
         }
-    }
 
-    public static bool IsPointerConversion(this ConversionKind kind)
-    {
-        switch (kind)
+        // Is the particular conversion a used-defined conversion?
+        public static bool IsUserDefinedConversion(this ConversionKind conversionKind)
         {
-            case ImplicitPointerToVoid:
-            case ExplicitPointerToPointer:
-            case ExplicitPointerToInteger:
-            case ExplicitIntegerToPointer:
-            case ImplicitNullToPointer:
-            case ImplicitPointer:
-                return true;
-            default:
-                return false;
+            switch (conversionKind)
+            {
+                case ImplicitUserDefined:
+                case ExplicitUserDefined:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsPointerConversion(this ConversionKind kind)
+        {
+            switch (kind)
+            {
+                case ImplicitPointerToVoid:
+                case ExplicitPointerToPointer:
+                case ExplicitPointerToInteger:
+                case ExplicitIntegerToPointer:
+                case ImplicitNullToPointer:
+                case ImplicitPointer:
+                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }

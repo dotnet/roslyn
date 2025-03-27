@@ -9,126 +9,127 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Emit.NoPia;
-
-internal abstract partial class EmbeddedTypesManager<
-    TPEModuleBuilder,
-    TModuleCompilationState,
-    TEmbeddedTypesManager,
-    TSyntaxNode,
-    TAttributeData,
-    TSymbol,
-    TAssemblySymbol,
-    TNamedTypeSymbol,
-    TFieldSymbol,
-    TMethodSymbol,
-    TEventSymbol,
-    TPropertySymbol,
-    TParameterSymbol,
-    TTypeParameterSymbol,
-    TEmbeddedType,
-    TEmbeddedField,
-    TEmbeddedMethod,
-    TEmbeddedEvent,
-    TEmbeddedProperty,
-    TEmbeddedParameter,
-    TEmbeddedTypeParameter>
+namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal abstract class CommonEmbeddedMember : Cci.IEmbeddedDefinition
+    internal abstract partial class EmbeddedTypesManager<
+        TPEModuleBuilder,
+        TModuleCompilationState,
+        TEmbeddedTypesManager,
+        TSyntaxNode,
+        TAttributeData,
+        TSymbol,
+        TAssemblySymbol,
+        TNamedTypeSymbol,
+        TFieldSymbol,
+        TMethodSymbol,
+        TEventSymbol,
+        TPropertySymbol,
+        TParameterSymbol,
+        TTypeParameterSymbol,
+        TEmbeddedType,
+        TEmbeddedField,
+        TEmbeddedMethod,
+        TEmbeddedEvent,
+        TEmbeddedProperty,
+        TEmbeddedParameter,
+        TEmbeddedTypeParameter>
     {
-        internal abstract TEmbeddedTypesManager TypeManager { get; }
-
-        public bool IsEncDeleted
-            => false;
-    }
-
-    internal abstract class CommonEmbeddedMember<TMember> : CommonEmbeddedMember, Cci.IReference
-        where TMember : TSymbol, Cci.ITypeMemberReference
-    {
-        protected readonly TMember UnderlyingSymbol;
-        private ImmutableArray<TAttributeData> _lazyAttributes;
-
-        protected CommonEmbeddedMember(TMember underlyingSymbol)
+        internal abstract class CommonEmbeddedMember : Cci.IEmbeddedDefinition
         {
-            this.UnderlyingSymbol = underlyingSymbol;
+            internal abstract TEmbeddedTypesManager TypeManager { get; }
+
+            public bool IsEncDeleted
+                => false;
         }
 
-        protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
-
-        protected virtual TAttributeData PortAttributeIfNeedTo(TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal abstract class CommonEmbeddedMember<TMember> : CommonEmbeddedMember, Cci.IReference
+            where TMember : TSymbol, Cci.ITypeMemberReference
         {
-            return null;
-        }
+            protected readonly TMember UnderlyingSymbol;
+            private ImmutableArray<TAttributeData> _lazyAttributes;
 
-        private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
-        {
-            var builder = ArrayBuilder<TAttributeData>.GetInstance();
-
-            // Copy some of the attributes.
-
-            // Note, when porting attributes, we are not using constructors from original symbol.
-            // The constructors might be missing (for example, in metadata case) and doing lookup
-            // will ensure that we report appropriate errors.
-
-            foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
+            protected CommonEmbeddedMember(TMember underlyingSymbol)
             {
-                if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.DispIdAttribute, out int signatureIndex))
+                this.UnderlyingSymbol = underlyingSymbol;
+            }
+
+            protected abstract IEnumerable<TAttributeData> GetCustomAttributesToEmit(TPEModuleBuilder moduleBuilder);
+
+            protected virtual TAttributeData PortAttributeIfNeedTo(TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            {
+                return null;
+            }
+
+            private ImmutableArray<TAttributeData> GetAttributes(TPEModuleBuilder moduleBuilder, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+            {
+                var builder = ArrayBuilder<TAttributeData>.GetInstance();
+
+                // Copy some of the attributes.
+
+                // Note, when porting attributes, we are not using constructors from original symbol.
+                // The constructors might be missing (for example, in metadata case) and doing lookup
+                // will ensure that we report appropriate errors.
+
+                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
-                    if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out var constructorArguments, out var namedArguments, syntaxNodeOpt, diagnostics))
+                    if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.DispIdAttribute, out int signatureIndex))
                     {
-                        builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out var constructorArguments, out var namedArguments, syntaxNodeOpt, diagnostics))
+                        {
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                        }
+                    }
+                    else
+                    {
+                        builder.AddOptional(PortAttributeIfNeedTo(attrData, syntaxNodeOpt, diagnostics));
                     }
                 }
-                else
-                {
-                    builder.AddOptional(PortAttributeIfNeedTo(attrData, syntaxNodeOpt, diagnostics));
-                }
+
+                return builder.ToImmutableAndFree();
             }
 
-            return builder.ToImmutableAndFree();
-        }
-
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            if (_lazyAttributes.IsDefault)
+            IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
-
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
+                if (_lazyAttributes.IsDefault)
                 {
-                    // Save any diagnostics that we encountered.
-                    context.Diagnostics.AddRange(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
+
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
+                    {
+                        // Save any diagnostics that we encountered.
+                        context.Diagnostics.AddRange(diagnostics);
+                    }
+
+                    diagnostics.Free();
                 }
 
-                diagnostics.Free();
+                return _lazyAttributes;
             }
 
-            return _lazyAttributes;
-        }
+            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
 
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+            Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
-        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
 
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 }

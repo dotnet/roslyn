@@ -5,27 +5,28 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SourcePropertyClonedParameterSymbolForAccessors : SourceClonedParameterSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal SourcePropertyClonedParameterSymbolForAccessors(SourceParameterSymbol originalParam, Symbol newOwner)
-        : base(originalParam, newOwner, originalParam.Ordinal, suppressOptional: false)
+    internal sealed class SourcePropertyClonedParameterSymbolForAccessors : SourceClonedParameterSymbol
     {
-    }
+        internal SourcePropertyClonedParameterSymbolForAccessors(SourceParameterSymbol originalParam, Symbol newOwner)
+            : base(originalParam, newOwner, originalParam.Ordinal, suppressOptional: false)
+        {
+        }
 
-    internal override bool IsCallerFilePath => _originalParam.IsCallerFilePath;
+        internal override bool IsCallerFilePath => _originalParam.IsCallerFilePath;
 
-    internal override bool IsCallerLineNumber => _originalParam.IsCallerLineNumber;
+        internal override bool IsCallerLineNumber => _originalParam.IsCallerLineNumber;
 
-    internal override bool IsCallerMemberName => _originalParam.IsCallerMemberName;
+        internal override bool IsCallerMemberName => _originalParam.IsCallerMemberName;
 
-    internal override int CallerArgumentExpressionParameterIndex => _originalParam.CallerArgumentExpressionParameterIndex;
+        internal override int CallerArgumentExpressionParameterIndex => _originalParam.CallerArgumentExpressionParameterIndex;
 
-    internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
-    {
-        return new SourcePropertyClonedParameterSymbolForAccessors(
-            _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
-            this.ContainingSymbol);
+        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
+        {
+            return new SourcePropertyClonedParameterSymbolForAccessors(
+                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
+                this.ContainingSymbol);
+        }
     }
 }

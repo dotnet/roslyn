@@ -8,130 +8,131 @@ using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal sealed partial class MemberSignatureParser
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    private enum TokenKind
+    internal sealed partial class MemberSignatureParser
     {
-        OpenParen = '(',
-        CloseParen = ')',
-        OpenBracket = '[',
-        CloseBracket = ']',
-        Dot = '.',
-        Comma = ',',
-        Asterisk = '*',
-        QuestionMark = '?',
-        LessThan = '<',
-        GreaterThan = '>',
-
-        Start = char.MaxValue + 1,
-        End,
-        Identifier,
-        Keyword,
-    }
-
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    private readonly struct Token
-    {
-        internal readonly TokenKind Kind;
-        internal readonly string Text;
-        internal readonly SyntaxKind KeywordKind;
-
-        internal Token(TokenKind kind, string text = null, SyntaxKind keywordKind = SyntaxKind.None)
+        private enum TokenKind
         {
-            Kind = kind;
-            Text = text;
-            KeywordKind = keywordKind;
+            OpenParen = '(',
+            CloseParen = ')',
+            OpenBracket = '[',
+            CloseBracket = ']',
+            Dot = '.',
+            Comma = ',',
+            Asterisk = '*',
+            QuestionMark = '?',
+            LessThan = '<',
+            GreaterThan = '>',
+
+            Start = char.MaxValue + 1,
+            End,
+            Identifier,
+            Keyword,
         }
 
-        private string GetDebuggerDisplay()
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+        private readonly struct Token
         {
-            return (Text == null)
-                ? Kind.ToString()
-                : $"{Kind}: \"{Text}\"";
-        }
-    }
+            internal readonly TokenKind Kind;
+            internal readonly string Text;
+            internal readonly SyntaxKind KeywordKind;
 
-    private sealed class Scanner
-    {
-        private readonly string _text;
-        private int _offset;
-        private Token _currentToken;
-
-        internal Scanner(string text)
-        {
-            _text = text;
-            _offset = 0;
-            _currentToken = default(Token);
-        }
-
-        internal Token CurrentToken
-        {
-            get
+            internal Token(TokenKind kind, string text = null, SyntaxKind keywordKind = SyntaxKind.None)
             {
-                if (_currentToken.Kind == TokenKind.Start)
+                Kind = kind;
+                Text = text;
+                KeywordKind = keywordKind;
+            }
+
+            private string GetDebuggerDisplay()
+            {
+                return (Text == null)
+                    ? Kind.ToString()
+                    : $"{Kind}: \"{Text}\"";
+            }
+        }
+
+        private sealed class Scanner
+        {
+            private readonly string _text;
+            private int _offset;
+            private Token _currentToken;
+
+            internal Scanner(string text)
+            {
+                _text = text;
+                _offset = 0;
+                _currentToken = default(Token);
+            }
+
+            internal Token CurrentToken
+            {
+                get
                 {
-                    throw new InvalidOperationException();
+                    if (_currentToken.Kind == TokenKind.Start)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                    return _currentToken;
                 }
-                return _currentToken;
             }
-        }
 
-        internal void MoveNext()
-        {
-            _currentToken = Scan();
-        }
-
-        private Token Scan()
-        {
-            int length = _text.Length;
-            while (_offset < length && char.IsWhiteSpace(_text[_offset]))
+            internal void MoveNext()
             {
-                _offset++;
+                _currentToken = Scan();
             }
 
-            if (_offset == length)
+            private Token Scan()
             {
-                return new Token(TokenKind.End);
+                int length = _text.Length;
+                while (_offset < length && char.IsWhiteSpace(_text[_offset]))
+                {
+                    _offset++;
+                }
+
+                if (_offset == length)
+                {
+                    return new Token(TokenKind.End);
+                }
+
+                var c = _text[_offset++];
+                if (UnicodeCharacterUtilities.IsIdentifierStartCharacter(c))
+                {
+                    return ScanIdentifierAfterStartCharacter(verbatim: false);
+                }
+                else if (c == '@' && _offset < length && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
+                {
+                    _offset++;
+                    return ScanIdentifierAfterStartCharacter(verbatim: true);
+                }
+
+                return new Token((TokenKind)c);
             }
 
-            var c = _text[_offset++];
-            if (UnicodeCharacterUtilities.IsIdentifierStartCharacter(c))
+            private Token ScanIdentifierAfterStartCharacter(bool verbatim)
             {
-                return ScanIdentifierAfterStartCharacter(verbatim: false);
-            }
-            else if (c == '@' && _offset < length && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
-            {
-                _offset++;
-                return ScanIdentifierAfterStartCharacter(verbatim: true);
-            }
+                // Assert the offset is immediately following the start character.
+                Debug.Assert(_offset > 0);
+                Debug.Assert(UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset - 1]));
+                Debug.Assert(_offset == 1 || !UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset - 2]));
 
-            return new Token((TokenKind)c);
-        }
-
-        private Token ScanIdentifierAfterStartCharacter(bool verbatim)
-        {
-            // Assert the offset is immediately following the start character.
-            Debug.Assert(_offset > 0);
-            Debug.Assert(UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset - 1]));
-            Debug.Assert(_offset == 1 || !UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset - 2]));
-
-            int length = _text.Length;
-            int start = _offset - 1;
-            while ((_offset < length) && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset]))
-            {
-                _offset++;
+                int length = _text.Length;
+                int start = _offset - 1;
+                while ((_offset < length) && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset]))
+                {
+                    _offset++;
+                }
+                var text = _text.Substring(start, _offset - start);
+                var keywordKind = verbatim
+                    ? SyntaxKind.None
+                    : SyntaxFacts.GetKeywordKind(text);
+                if (keywordKind == SyntaxKind.None)
+                {
+                    return new Token(TokenKind.Identifier, text);
+                }
+                return new Token(TokenKind.Keyword, text, keywordKind);
             }
-            var text = _text.Substring(start, _offset - start);
-            var keywordKind = verbatim
-                ? SyntaxKind.None
-                : SyntaxFacts.GetKeywordKind(text);
-            if (keywordKind == SyntaxKind.None)
-            {
-                return new Token(TokenKind.Identifier, text);
-            }
-            return new Token(TokenKind.Keyword, text, keywordKind);
         }
     }
 }

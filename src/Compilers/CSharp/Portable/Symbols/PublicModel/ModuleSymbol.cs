@@ -7,61 +7,62 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class ModuleSymbol : Symbol, IModuleSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly Symbols.ModuleSymbol _underlying;
-
-    public ModuleSymbol(Symbols.ModuleSymbol underlying)
+    internal sealed class ModuleSymbol : Symbol, IModuleSymbol
     {
-        Debug.Assert(underlying is object);
-        _underlying = underlying;
-    }
+        private readonly Symbols.ModuleSymbol _underlying;
 
-    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-    INamespaceSymbol IModuleSymbol.GlobalNamespace
-    {
-        get
+        public ModuleSymbol(Symbols.ModuleSymbol underlying)
         {
-            return _underlying.GlobalNamespace.GetPublicSymbol();
+            Debug.Assert(underlying is object);
+            _underlying = underlying;
         }
-    }
 
-    INamespaceSymbol IModuleSymbol.GetModuleNamespace(INamespaceSymbol namespaceSymbol)
-    {
-        return _underlying.GetModuleNamespace(namespaceSymbol).GetPublicSymbol();
-    }
+        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
 
-    ImmutableArray<IAssemblySymbol> IModuleSymbol.ReferencedAssemblySymbols
-    {
-        get
+        INamespaceSymbol IModuleSymbol.GlobalNamespace
         {
-            return _underlying.ReferencedAssemblySymbols.GetPublicSymbols();
+            get
+            {
+                return _underlying.GlobalNamespace.GetPublicSymbol();
+            }
         }
+
+        INamespaceSymbol IModuleSymbol.GetModuleNamespace(INamespaceSymbol namespaceSymbol)
+        {
+            return _underlying.GetModuleNamespace(namespaceSymbol).GetPublicSymbol();
+        }
+
+        ImmutableArray<IAssemblySymbol> IModuleSymbol.ReferencedAssemblySymbols
+        {
+            get
+            {
+                return _underlying.ReferencedAssemblySymbols.GetPublicSymbols();
+            }
+        }
+
+        ImmutableArray<AssemblyIdentity> IModuleSymbol.ReferencedAssemblies => _underlying.ReferencedAssemblies;
+
+        ModuleMetadata IModuleSymbol.GetMetadata() => _underlying.GetMetadata();
+
+        #region ISymbol Members
+
+        protected override void Accept(SymbolVisitor visitor)
+        {
+            visitor.VisitModule(this);
+        }
+
+        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitModule(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitModule(this, argument);
+        }
+
+        #endregion
     }
-
-    ImmutableArray<AssemblyIdentity> IModuleSymbol.ReferencedAssemblies => _underlying.ReferencedAssemblies;
-
-    ModuleMetadata IModuleSymbol.GetMetadata() => _underlying.GetMetadata();
-
-    #region ISymbol Members
-
-    protected override void Accept(SymbolVisitor visitor)
-    {
-        visitor.VisitModule(this);
-    }
-
-    protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-    {
-        return visitor.VisitModule(this);
-    }
-
-    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
-        return visitor.VisitModule(this, argument);
-    }
-
-    #endregion
 }

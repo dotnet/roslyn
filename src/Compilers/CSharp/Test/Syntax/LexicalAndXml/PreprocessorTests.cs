@@ -16,547 +16,547 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-#region Local types for verification
-
-[Flags]
-public enum NodeStatus
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    None = 0,
-    IsError = 1,
-    IsWarning = 2,
-    IsActive = 4,
-    IsNotActive = 8, // used for #if etc.
-    Unspecified = 8, // used for #def/und
-    TrueValue = 16,
-    Defined = 16, // used for #def/und
-    FalseValue = 32,
-    Undefined = 32, // used for #def/und
-    BranchTaken = 64,
-    NotBranchTaken = 128,
-}
+    #region Local types for verification
 
-internal struct DirectiveInfo
-{
-    public SyntaxKind Kind;
-    public NodeStatus Status;
-    public string Text;
-    public int Number;
-}
-
-internal struct PragmaInfo
-{
-    public SyntaxKind PragmaKind;
-    public SyntaxKind WarningOrChecksumKind;
-    public SyntaxKind DisableOrRestoreKind;
-    public string[] WarningList;
-    public string[] FileGuidByte;
-}
-
-internal struct MemberInfo
-{
-    public SyntaxKind Kind;
-    public NodeStatus Status;
-    public NodeStatus Status2;
-    public string Text;
-}
-
-#endregion
-
-public class PreprocessorTests : TestBase
-{
-    public PreprocessorTests()
+    [Flags]
+    public enum NodeStatus
     {
+        None = 0,
+        IsError = 1,
+        IsWarning = 2,
+        IsActive = 4,
+        IsNotActive = 8, // used for #if etc.
+        Unspecified = 8, // used for #def/und
+        TrueValue = 16,
+        Defined = 16, // used for #def/und
+        FalseValue = 32,
+        Undefined = 32, // used for #def/und
+        BranchTaken = 64,
+        NotBranchTaken = 128,
     }
 
-    #region Helpers
-
-    private CSharpParseOptions GetOptions(SourceCodeKind kind, string[] defines)
+    internal struct DirectiveInfo
     {
-        return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, kind: kind, preprocessorSymbols: defines);
+        public SyntaxKind Kind;
+        public NodeStatus Status;
+        public string Text;
+        public int Number;
     }
 
-    private CompilationUnitSyntax Parse(string text, params string[] defines)
+    internal struct PragmaInfo
     {
-        return Parse(text, SourceCodeKind.Regular, defines);
+        public SyntaxKind PragmaKind;
+        public SyntaxKind WarningOrChecksumKind;
+        public SyntaxKind DisableOrRestoreKind;
+        public string[] WarningList;
+        public string[] FileGuidByte;
     }
 
-    private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
+    internal struct MemberInfo
     {
-        var options = this.GetOptions(kind, defines);
-        return Parse(text, options);
-    }
-
-    private CompilationUnitSyntax Parse(string text, CSharpParseOptions options)
-    {
-        var itext = SourceText.From(text);
-        return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
-    }
-
-    private SyntaxTree ParseTree(string text, params string[] defines)
-    {
-        var options = this.GetOptions(SourceCodeKind.Regular, defines);
-        var itext = SourceText.From(text);
-        return SyntaxFactory.ParseSyntaxTree(itext, options);
-    }
-
-    private void TestRoundTripping(CompilationUnitSyntax node, string text, bool disallowErrors = true)
-    {
-        Assert.NotNull(node);
-        var fullText = node.ToFullString();
-        Assert.Equal(text, fullText);
-
-        if (disallowErrors)
-        {
-            Assert.Empty(node.GetDiagnostics());
-        }
-        else
-        {
-            Assert.NotEmpty(node.GetDiagnostics());
-        }
-    }
-
-    private void VerifyDirectives(CSharpSyntaxNode node, params SyntaxKind[] expected)
-    {
-        var directives = node.GetDirectives();
-        Assert.Equal(expected.Length, directives.Count);
-        if (expected.Length == 0)
-        {
-            return;
-        }
-
-        List<SyntaxKind> actual = new List<SyntaxKind>();
-        foreach (var dt in directives)
-        {
-            actual.Add(dt.Kind());
-        }
-
-        int idx = 0;
-        foreach (var ek in expected)
-        {
-            // Assert.True(actualKinds.Contains(kind)); // no order 
-            Assert.Equal(ek, actual[idx++]); // exact order
-        }
-    }
-
-    private void VerifyDirectivesSpecial(CSharpSyntaxNode node, params DirectiveInfo[] expected)
-    {
-        var directives = node.GetDirectives();
-        Assert.Equal(expected.Length, directives.Count);
-
-        List<SyntaxKind> actual = new List<SyntaxKind>();
-        foreach (var dt in directives)
-        {
-            actual.Add(dt.Kind());
-        }
-
-        int idx = 0;
-        foreach (var exp in expected)
-        {
-            Assert.Equal(exp.Kind, actual[idx]); // exact order
-
-            // need to know what to expected here
-            var dt = directives[idx++];
-
-            if (NodeStatus.IsActive == (exp.Status & NodeStatus.IsActive))
-            {
-                Assert.True(dt.IsActive);
-            }
-            else if (NodeStatus.IsNotActive == (exp.Status & NodeStatus.IsNotActive))
-            {
-                Assert.False(dt.IsActive);
-            }
-
-            if (NodeStatus.BranchTaken == (exp.Status & NodeStatus.BranchTaken))
-            {
-                Assert.True(((BranchingDirectiveTriviaSyntax)dt).BranchTaken);
-            }
-            else if (NodeStatus.NotBranchTaken == (exp.Status & NodeStatus.NotBranchTaken))
-            {
-                Assert.False(((BranchingDirectiveTriviaSyntax)dt).BranchTaken);
-            }
-
-            if (NodeStatus.TrueValue == (exp.Status & NodeStatus.TrueValue))
-            {
-                Assert.True(((ConditionalDirectiveTriviaSyntax)dt).ConditionValue);
-            }
-            else if (NodeStatus.FalseValue == (exp.Status & NodeStatus.FalseValue))
-            {
-                Assert.False(((ConditionalDirectiveTriviaSyntax)dt).ConditionValue);
-            }
-
-            switch (exp.Kind)
-            {
-                case SyntaxKind.DefineDirectiveTrivia:
-                    if (null != exp.Text)
-                    {
-                        Assert.Equal(exp.Text, ((DefineDirectiveTriviaSyntax)dt).Name.ValueText); // Text
-                    }
-                    break;
-                case SyntaxKind.ErrorDirectiveTrivia:
-                    if (null != exp.Text)
-                    {
-                        Assert.Equal(exp.Text, ((ErrorDirectiveTriviaSyntax)dt).EndOfDirectiveToken.ToFullString());
-                    }
-                    break;
-                case SyntaxKind.LoadDirectiveTrivia:
-                    if (null != exp.Text)
-                    {
-                        Assert.Equal(exp.Text, ((LoadDirectiveTriviaSyntax)dt).File.ValueText);
-                    }
-                    break;
-                case SyntaxKind.UndefDirectiveTrivia:
-                    if (null != exp.Text)
-                    {
-                        Assert.Equal(exp.Text, ((UndefDirectiveTriviaSyntax)dt).Name.ValueText);
-                    }
-                    break;
-                case SyntaxKind.ReferenceDirectiveTrivia:
-                    if (null != exp.Text)
-                    {
-                        Assert.Equal(exp.Text, ((ReferenceDirectiveTriviaSyntax)dt).File.ValueText);
-                    }
-                    break;
-                case SyntaxKind.LineDirectiveTrivia:
-                    var ld = (LineDirectiveTriviaSyntax)dt;
-
-                    // default number = 0 - no number
-                    if (exp.Number == -1)
-                    {
-                        Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
-                        Assert.Equal(SyntaxKind.DefaultKeyword, ld.Line.Kind());
-                    }
-                    else if (exp.Number == -2)
-                    {
-                        Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
-                        Assert.Equal(SyntaxKind.HiddenKeyword, ld.Line.Kind());
-                    }
-                    else if (exp.Number == 0)
-                    {
-                        Assert.Equal(String.Empty, ld.Line.Text);
-                    }
-                    else if (exp.Number > 0)
-                    {
-                        Assert.Equal(exp.Number, ld.Line.Value); // Number
-                        Assert.Equal(exp.Number, Int32.Parse(ld.Line.Text));
-                    }
-
-                    if (null == exp.Text)
-                    {
-                        Assert.Equal(SyntaxKind.None, ld.File.Kind());
-                    }
-                    else
-                    {
-                        Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
-                        Assert.Equal(exp.Text, ld.File.Value);
-                    }
-                    break;
-                case SyntaxKind.NullableDirectiveTrivia:
-                    var nn = (NullableDirectiveTriviaSyntax)dt;
-                    var setting = nn.SettingToken;
-                    var target = nn.TargetToken;
-                    if (null == exp.Text)
-                    {
-                        Assert.True(setting.IsMissing);
-                        Assert.True(target.IsMissing);
-                    }
-                    else
-                    {
-                        var actualText = setting.ValueText;
-                        if (!string.IsNullOrEmpty(target.ValueText))
-                        {
-                            actualText += " " + target.ValueText;
-                        }
-
-                        Assert.Equal(exp.Text, actualText);
-                        Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
-                                    target.Kind() == SyntaxKind.None);
-
-                        Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
-                                    setting.Kind() == SyntaxKind.RestoreKeyword);
-                    }
-                    Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
-                    Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
-                    Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.NullableKeyword));
-                    break;
-                default:
-                    if (null != exp.Text)
-                    {
-                        Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
-                    }
-                    break;
-            } // switch
-        }
-    }
-
-    private void VerifyDirectivePragma(CSharpSyntaxNode node, PragmaInfo expected)
-    {
-        var directives = node.GetDirectives();
-        Assert.Equal(1, directives.Count);
-        var dt = directives[0];
-        VerifyDirectivePragma(dt, expected);
-    }
-
-    private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
-    {
-        Assert.Equal(expected.PragmaKind, dt.Kind());
-
-        if (dt is PragmaWarningDirectiveTriviaSyntax)
-        {
-            var pwd = (PragmaWarningDirectiveTriviaSyntax)dt;
-            Assert.Equal(SyntaxKind.PragmaKeyword, pwd.PragmaKeyword.Kind());
-            if (SyntaxKind.None == expected.WarningOrChecksumKind)
-            {
-                Assert.True(pwd.WarningKeyword.IsMissing);
-            }
-            else
-            {
-                Assert.Equal(SyntaxKind.WarningKeyword, pwd.WarningKeyword.Kind());
-            }
-
-            if (SyntaxKind.None == expected.DisableOrRestoreKind)
-            {
-                Assert.True(pwd.DisableOrRestoreKeyword.IsMissing);
-            }
-            else
-            {
-                Assert.Equal(expected.DisableOrRestoreKind, pwd.DisableOrRestoreKeyword.Kind());
-            }
-
-            if (expected.WarningList == null || expected.WarningList.Length == 0)
-            {
-                Assert.Equal(0, pwd.ErrorCodes.Count);
-            }
-            else
-            {
-                Assert.Equal(expected.WarningList.Length, pwd.ErrorCodes.Count);
-                int idx = 0;
-                foreach (var warningNumber in expected.WarningList)
-                {
-                    var actualWarningNumber = pwd.ErrorCodes[idx++];
-                    if (actualWarningNumber.Kind() == SyntaxKind.NumericLiteralExpression)
-                    {
-                        var token = (actualWarningNumber as LiteralExpressionSyntax).Token;
-                        Assert.Equal(warningNumber, token.ValueText);
-                    }
-                    else if (actualWarningNumber.Kind() == SyntaxKind.IdentifierName)
-                    {
-                        var token = (actualWarningNumber as IdentifierNameSyntax).Identifier;
-                        Assert.Equal(warningNumber, token.ValueText);
-                    }
-                    else
-                    {
-                        Assert.True(false, "Warning ID must be an identifier or numeric literal");
-                    }
-                }
-            }
-        }
-        else if (dt is PragmaChecksumDirectiveTriviaSyntax)
-        {
-            var pcd = (PragmaChecksumDirectiveTriviaSyntax)dt;
-            Assert.Equal(SyntaxKind.PragmaKeyword, pcd.PragmaKeyword.Kind());
-            Assert.Equal(SyntaxKind.ChecksumKeyword, pcd.ChecksumKeyword.Kind()); // no missing
-            // always 3
-            Assert.Equal(3, expected.FileGuidByte.Length);
-            if (expected.FileGuidByte[0] == null)
-            {
-                Assert.True(pcd.File.IsMissing);
-            }
-
-            Assert.Equal(expected.FileGuidByte[0], pcd.File.Value);
-            if (expected.FileGuidByte[1] == null)
-            {
-                Assert.True(pcd.Guid.IsMissing);
-            }
-
-            Assert.Equal(expected.FileGuidByte[1], pcd.Guid.Value);
-            if (expected.FileGuidByte[2] == null)
-            {
-                Assert.True(pcd.Bytes.IsMissing);
-            }
-
-            Assert.Equal(expected.FileGuidByte[2], pcd.Bytes.Value);
-        }
-        else
-        {
-            throw new NotImplementedException(dt.Kind().ToString());
-        }
-    }
-
-    private void VerifyErrorCode(CSharpSyntaxNode node, params int[] expected)
-    {
-        var actual = node.ErrorsAndWarnings().Select(e => e.Code).ToList();
-
-        // no error
-        if ((expected.Length == 0) && (actual.Count == 0))
-        {
-            return;
-        }
-
-        // Parser might give more errors than expected & that's fine
-        Assert.InRange(actual.Count, expected.Length, int.MaxValue);
-
-        // necessary?
-        if (actual.Count < expected.Length)
-        {
-            return;
-        }
-
-        foreach (int i in expected)
-        {
-            Assert.Contains(i, actual); // no order
-        }
-    }
-
-    private void VerifyErrorSpecial(CSharpSyntaxNode node, DirectiveInfo expected)
-    {
-        var diags = node.ErrorsAndWarnings();
-        Assert.Equal(1, diags.Length);
-        var actual = diags[0];
-        Assert.Equal(expected.Number, actual.Code);
-
-        // warning or not
-        if (NodeStatus.IsWarning == (expected.Status & NodeStatus.IsWarning))
-        {
-            Assert.Equal(DiagnosticSeverity.Warning, actual.Severity);
-        }
-
-        // error message
-        if (expected.Text != null)
-        {
-            Assert.Equal(expected.Text, actual.GetMessage(CultureInfo.InvariantCulture));
-        }
-    }
-
-    /// <summary>
-    /// Not sure if this is good idea
-    /// </summary>
-    /// <param name="memberInfo"></param>
-    private void VerifyMembers(CompilationUnitSyntax node, params MemberInfo[] memberInfo)
-    {
-        Assert.Equal(memberInfo.Length, node.Members.Count);
-        var actual = node.Members;
-        int idx = 0;
-        foreach (var exp in memberInfo)
-        {
-            var mem = actual[idx++];
-            Assert.Equal(exp.Kind, mem.Kind());
-
-#if false
-            var td = (TypeDeclarationSyntax)mem;
-            // #define/undef
-            if ((exp.Status & NodeStatus.Defined) == NodeStatus.Defined)
-            {
-                Assert.Equal(DefineState.Defined, td.IsDefined(exp.Text));
-            }
-            else if ((exp.Status & NodeStatus.Undefined) == NodeStatus.Undefined)
-            {
-                Assert.Equal(DefineState.Undefined, td.IsDefined(exp.Text));
-            }
-            else if ((exp.Status & NodeStatus.Unspecified) == NodeStatus.Unspecified)
-            {
-                Assert.Equal(DefineState.Unspecified, td.IsDefined(exp.Text));
-            }
-            else
-            {
-                Assert.Equal(exp.Text, td.Name.GetText());
-            }
-            // check cond-symbol in Member
-            if ((exp.Status2 & NodeStatus.TrueValue) == NodeStatus.TrueValue)
-            {
-                Assert.Equal(DefineState.Defined, td.Name.IsDefined(exp.Text));
-            }
-            else if ((exp.Status2 & NodeStatus.FalseValue) == NodeStatus.FalseValue)
-            {
-                Assert.Equal(DefineState.Undefined, td.Name.IsDefined(exp.Text));
-            }
-            else if ((exp.Status2 & NodeStatus.IsNotActive) == NodeStatus.IsNotActive) // reuse same flag for different meaning:(
-            {
-                Assert.Equal(DefineState.Unspecified, td.Name.IsDefined(exp.Text));
-            }
-#endif
-        }
+        public SyntaxKind Kind;
+        public NodeStatus Status;
+        public NodeStatus Status2;
+        public string Text;
     }
 
     #endregion
 
-    #region General
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegBadDirectiveName()
+    public class PreprocessorTests : TestBase
     {
-        var text = @"#goo";
-        var node = Parse(text);
+        public PreprocessorTests()
+        {
+        }
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_PPDirectiveExpected);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+        #region Helpers
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegBadDirectiveNoName()
-    {
-        var text = @"#";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_PPDirectiveExpected);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+        private CSharpParseOptions GetOptions(SourceCodeKind kind, string[] defines)
+        {
+            return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, kind: kind, preprocessorSymbols: defines);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveWithLeadingSpace()
-    {
-        var text = @"    #define XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        private CompilationUnitSyntax Parse(string text, params string[] defines)
+        {
+            return Parse(text, SourceCodeKind.Regular, defines);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveWithSpaceAfterHash()
-    {
-        var text = @"#   define XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
+        {
+            var options = this.GetOptions(kind, defines);
+            return Parse(text, options);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveInsideMultilineComment()
-    {
-        var text = @"
+        private CompilationUnitSyntax Parse(string text, CSharpParseOptions options)
+        {
+            var itext = SourceText.From(text);
+            return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
+        }
+
+        private SyntaxTree ParseTree(string text, params string[] defines)
+        {
+            var options = this.GetOptions(SourceCodeKind.Regular, defines);
+            var itext = SourceText.From(text);
+            return SyntaxFactory.ParseSyntaxTree(itext, options);
+        }
+
+        private void TestRoundTripping(CompilationUnitSyntax node, string text, bool disallowErrors = true)
+        {
+            Assert.NotNull(node);
+            var fullText = node.ToFullString();
+            Assert.Equal(text, fullText);
+
+            if (disallowErrors)
+            {
+                Assert.Empty(node.GetDiagnostics());
+            }
+            else
+            {
+                Assert.NotEmpty(node.GetDiagnostics());
+            }
+        }
+
+        private void VerifyDirectives(CSharpSyntaxNode node, params SyntaxKind[] expected)
+        {
+            var directives = node.GetDirectives();
+            Assert.Equal(expected.Length, directives.Count);
+            if (expected.Length == 0)
+            {
+                return;
+            }
+
+            List<SyntaxKind> actual = new List<SyntaxKind>();
+            foreach (var dt in directives)
+            {
+                actual.Add(dt.Kind());
+            }
+
+            int idx = 0;
+            foreach (var ek in expected)
+            {
+                // Assert.True(actualKinds.Contains(kind)); // no order 
+                Assert.Equal(ek, actual[idx++]); // exact order
+            }
+        }
+
+        private void VerifyDirectivesSpecial(CSharpSyntaxNode node, params DirectiveInfo[] expected)
+        {
+            var directives = node.GetDirectives();
+            Assert.Equal(expected.Length, directives.Count);
+
+            List<SyntaxKind> actual = new List<SyntaxKind>();
+            foreach (var dt in directives)
+            {
+                actual.Add(dt.Kind());
+            }
+
+            int idx = 0;
+            foreach (var exp in expected)
+            {
+                Assert.Equal(exp.Kind, actual[idx]); // exact order
+
+                // need to know what to expected here
+                var dt = directives[idx++];
+
+                if (NodeStatus.IsActive == (exp.Status & NodeStatus.IsActive))
+                {
+                    Assert.True(dt.IsActive);
+                }
+                else if (NodeStatus.IsNotActive == (exp.Status & NodeStatus.IsNotActive))
+                {
+                    Assert.False(dt.IsActive);
+                }
+
+                if (NodeStatus.BranchTaken == (exp.Status & NodeStatus.BranchTaken))
+                {
+                    Assert.True(((BranchingDirectiveTriviaSyntax)dt).BranchTaken);
+                }
+                else if (NodeStatus.NotBranchTaken == (exp.Status & NodeStatus.NotBranchTaken))
+                {
+                    Assert.False(((BranchingDirectiveTriviaSyntax)dt).BranchTaken);
+                }
+
+                if (NodeStatus.TrueValue == (exp.Status & NodeStatus.TrueValue))
+                {
+                    Assert.True(((ConditionalDirectiveTriviaSyntax)dt).ConditionValue);
+                }
+                else if (NodeStatus.FalseValue == (exp.Status & NodeStatus.FalseValue))
+                {
+                    Assert.False(((ConditionalDirectiveTriviaSyntax)dt).ConditionValue);
+                }
+
+                switch (exp.Kind)
+                {
+                    case SyntaxKind.DefineDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((DefineDirectiveTriviaSyntax)dt).Name.ValueText); // Text
+                        }
+                        break;
+                    case SyntaxKind.ErrorDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ErrorDirectiveTriviaSyntax)dt).EndOfDirectiveToken.ToFullString());
+                        }
+                        break;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((LoadDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.UndefDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((UndefDirectiveTriviaSyntax)dt).Name.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.ReferenceDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ReferenceDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.LineDirectiveTrivia:
+                        var ld = (LineDirectiveTriviaSyntax)dt;
+
+                        // default number = 0 - no number
+                        if (exp.Number == -1)
+                        {
+                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
+                            Assert.Equal(SyntaxKind.DefaultKeyword, ld.Line.Kind());
+                        }
+                        else if (exp.Number == -2)
+                        {
+                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
+                            Assert.Equal(SyntaxKind.HiddenKeyword, ld.Line.Kind());
+                        }
+                        else if (exp.Number == 0)
+                        {
+                            Assert.Equal(String.Empty, ld.Line.Text);
+                        }
+                        else if (exp.Number > 0)
+                        {
+                            Assert.Equal(exp.Number, ld.Line.Value); // Number
+                            Assert.Equal(exp.Number, Int32.Parse(ld.Line.Text));
+                        }
+
+                        if (null == exp.Text)
+                        {
+                            Assert.Equal(SyntaxKind.None, ld.File.Kind());
+                        }
+                        else
+                        {
+                            Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
+                            Assert.Equal(exp.Text, ld.File.Value);
+                        }
+                        break;
+                    case SyntaxKind.NullableDirectiveTrivia:
+                        var nn = (NullableDirectiveTriviaSyntax)dt;
+                        var setting = nn.SettingToken;
+                        var target = nn.TargetToken;
+                        if (null == exp.Text)
+                        {
+                            Assert.True(setting.IsMissing);
+                            Assert.True(target.IsMissing);
+                        }
+                        else
+                        {
+                            var actualText = setting.ValueText;
+                            if (!string.IsNullOrEmpty(target.ValueText))
+                            {
+                                actualText += " " + target.ValueText;
+                            }
+
+                            Assert.Equal(exp.Text, actualText);
+                            Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
+                                        target.Kind() == SyntaxKind.None);
+
+                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
+                                        setting.Kind() == SyntaxKind.RestoreKeyword);
+                        }
+                        Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
+                        Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));
+                        Assert.True(SyntaxFacts.IsPreprocessorKeyword(SyntaxKind.NullableKeyword));
+                        break;
+                    default:
+                        if (null != exp.Text)
+                        {
+                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                        }
+                        break;
+                } // switch
+            }
+        }
+
+        private void VerifyDirectivePragma(CSharpSyntaxNode node, PragmaInfo expected)
+        {
+            var directives = node.GetDirectives();
+            Assert.Equal(1, directives.Count);
+            var dt = directives[0];
+            VerifyDirectivePragma(dt, expected);
+        }
+
+        private void VerifyDirectivePragma(DirectiveTriviaSyntax dt, PragmaInfo expected)
+        {
+            Assert.Equal(expected.PragmaKind, dt.Kind());
+
+            if (dt is PragmaWarningDirectiveTriviaSyntax)
+            {
+                var pwd = (PragmaWarningDirectiveTriviaSyntax)dt;
+                Assert.Equal(SyntaxKind.PragmaKeyword, pwd.PragmaKeyword.Kind());
+                if (SyntaxKind.None == expected.WarningOrChecksumKind)
+                {
+                    Assert.True(pwd.WarningKeyword.IsMissing);
+                }
+                else
+                {
+                    Assert.Equal(SyntaxKind.WarningKeyword, pwd.WarningKeyword.Kind());
+                }
+
+                if (SyntaxKind.None == expected.DisableOrRestoreKind)
+                {
+                    Assert.True(pwd.DisableOrRestoreKeyword.IsMissing);
+                }
+                else
+                {
+                    Assert.Equal(expected.DisableOrRestoreKind, pwd.DisableOrRestoreKeyword.Kind());
+                }
+
+                if (expected.WarningList == null || expected.WarningList.Length == 0)
+                {
+                    Assert.Equal(0, pwd.ErrorCodes.Count);
+                }
+                else
+                {
+                    Assert.Equal(expected.WarningList.Length, pwd.ErrorCodes.Count);
+                    int idx = 0;
+                    foreach (var warningNumber in expected.WarningList)
+                    {
+                        var actualWarningNumber = pwd.ErrorCodes[idx++];
+                        if (actualWarningNumber.Kind() == SyntaxKind.NumericLiteralExpression)
+                        {
+                            var token = (actualWarningNumber as LiteralExpressionSyntax).Token;
+                            Assert.Equal(warningNumber, token.ValueText);
+                        }
+                        else if (actualWarningNumber.Kind() == SyntaxKind.IdentifierName)
+                        {
+                            var token = (actualWarningNumber as IdentifierNameSyntax).Identifier;
+                            Assert.Equal(warningNumber, token.ValueText);
+                        }
+                        else
+                        {
+                            Assert.True(false, "Warning ID must be an identifier or numeric literal");
+                        }
+                    }
+                }
+            }
+            else if (dt is PragmaChecksumDirectiveTriviaSyntax)
+            {
+                var pcd = (PragmaChecksumDirectiveTriviaSyntax)dt;
+                Assert.Equal(SyntaxKind.PragmaKeyword, pcd.PragmaKeyword.Kind());
+                Assert.Equal(SyntaxKind.ChecksumKeyword, pcd.ChecksumKeyword.Kind()); // no missing
+                // always 3
+                Assert.Equal(3, expected.FileGuidByte.Length);
+                if (expected.FileGuidByte[0] == null)
+                {
+                    Assert.True(pcd.File.IsMissing);
+                }
+
+                Assert.Equal(expected.FileGuidByte[0], pcd.File.Value);
+                if (expected.FileGuidByte[1] == null)
+                {
+                    Assert.True(pcd.Guid.IsMissing);
+                }
+
+                Assert.Equal(expected.FileGuidByte[1], pcd.Guid.Value);
+                if (expected.FileGuidByte[2] == null)
+                {
+                    Assert.True(pcd.Bytes.IsMissing);
+                }
+
+                Assert.Equal(expected.FileGuidByte[2], pcd.Bytes.Value);
+            }
+            else
+            {
+                throw new NotImplementedException(dt.Kind().ToString());
+            }
+        }
+
+        private void VerifyErrorCode(CSharpSyntaxNode node, params int[] expected)
+        {
+            var actual = node.ErrorsAndWarnings().Select(e => e.Code).ToList();
+
+            // no error
+            if ((expected.Length == 0) && (actual.Count == 0))
+            {
+                return;
+            }
+
+            // Parser might give more errors than expected & that's fine
+            Assert.InRange(actual.Count, expected.Length, int.MaxValue);
+
+            // necessary?
+            if (actual.Count < expected.Length)
+            {
+                return;
+            }
+
+            foreach (int i in expected)
+            {
+                Assert.Contains(i, actual); // no order
+            }
+        }
+
+        private void VerifyErrorSpecial(CSharpSyntaxNode node, DirectiveInfo expected)
+        {
+            var diags = node.ErrorsAndWarnings();
+            Assert.Equal(1, diags.Length);
+            var actual = diags[0];
+            Assert.Equal(expected.Number, actual.Code);
+
+            // warning or not
+            if (NodeStatus.IsWarning == (expected.Status & NodeStatus.IsWarning))
+            {
+                Assert.Equal(DiagnosticSeverity.Warning, actual.Severity);
+            }
+
+            // error message
+            if (expected.Text != null)
+            {
+                Assert.Equal(expected.Text, actual.GetMessage(CultureInfo.InvariantCulture));
+            }
+        }
+
+        /// <summary>
+        /// Not sure if this is good idea
+        /// </summary>
+        /// <param name="memberInfo"></param>
+        private void VerifyMembers(CompilationUnitSyntax node, params MemberInfo[] memberInfo)
+        {
+            Assert.Equal(memberInfo.Length, node.Members.Count);
+            var actual = node.Members;
+            int idx = 0;
+            foreach (var exp in memberInfo)
+            {
+                var mem = actual[idx++];
+                Assert.Equal(exp.Kind, mem.Kind());
+
+#if false
+                var td = (TypeDeclarationSyntax)mem;
+                // #define/undef
+                if ((exp.Status & NodeStatus.Defined) == NodeStatus.Defined)
+                {
+                    Assert.Equal(DefineState.Defined, td.IsDefined(exp.Text));
+                }
+                else if ((exp.Status & NodeStatus.Undefined) == NodeStatus.Undefined)
+                {
+                    Assert.Equal(DefineState.Undefined, td.IsDefined(exp.Text));
+                }
+                else if ((exp.Status & NodeStatus.Unspecified) == NodeStatus.Unspecified)
+                {
+                    Assert.Equal(DefineState.Unspecified, td.IsDefined(exp.Text));
+                }
+                else
+                {
+                    Assert.Equal(exp.Text, td.Name.GetText());
+                }
+                // check cond-symbol in Member
+                if ((exp.Status2 & NodeStatus.TrueValue) == NodeStatus.TrueValue)
+                {
+                    Assert.Equal(DefineState.Defined, td.Name.IsDefined(exp.Text));
+                }
+                else if ((exp.Status2 & NodeStatus.FalseValue) == NodeStatus.FalseValue)
+                {
+                    Assert.Equal(DefineState.Undefined, td.Name.IsDefined(exp.Text));
+                }
+                else if ((exp.Status2 & NodeStatus.IsNotActive) == NodeStatus.IsNotActive) // reuse same flag for different meaning:(
+                {
+                    Assert.Equal(DefineState.Unspecified, td.Name.IsDefined(exp.Text));
+                }
+#endif
+            }
+        }
+
+        #endregion
+
+        #region General
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegBadDirectiveName()
+        {
+            var text = @"#goo";
+            var node = Parse(text);
+
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_PPDirectiveExpected);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegBadDirectiveNoName()
+        {
+            var text = @"#";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_PPDirectiveExpected);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveWithLeadingSpace()
+        {
+            var text = @"    #define XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveWithSpaceAfterHash()
+        {
+            var text = @"#   define XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveInsideMultilineComment()
+        {
+            var text = @"
 /* 
 #define XYZ
 */
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveAfterSingleLineComment()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveAfterSingleLineComment()
+        {
+            var text = @"
 // yada #define XYZ
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveInsideMultilineString()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveInsideMultilineString()
+        {
+            var text = @"
 class A
 {
    string X = @""
@@ -564,53 +564,53 @@ class A
 "";
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveInsideExcludedMultilineComment()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveInsideExcludedMultilineComment()
+        {
+            var text = @"
 #if false
 /*
 #define XYZ
 */
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [WorkItem(906872, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegDirectiveInExcludedSingleLineComment()
-    {
-        var text = @"
+        [WorkItem(906872, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegDirectiveInExcludedSingleLineComment()
+        {
+            var text = @"
 #if false
 // #define XYZ
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDirectiveInExcludedMultilineString()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDirectiveInExcludedMultilineString()
+        {
+            var text = @"
 #if false
 class A
 {
@@ -620,21 +620,21 @@ class A
 }
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [WorkItem(906894, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressDirectiveInsideExcludedSingleLineString()
-    {
-        var text = @"
+        [WorkItem(906894, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressDirectiveInsideExcludedSingleLineString()
+        {
+            var text = @"
 #if false
 class A
 {
@@ -642,84 +642,84 @@ class A
 }
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    #endregion
+        #endregion
 
-    #region Conditional
+        #region Conditional
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueEndif()
+        {
+            var text = @"
 #if true
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseEndif()
+        {
+            var text = @"
 #if false
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfNotTakenWithEndIfLeadingWhitespace()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfNotTakenWithEndIfLeadingWhitespace()
+        {
+            var text =
 @"#if DBG
   class A { }
        #endif";
 
-        // whitespace preceding '#' is important for this test.
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            // whitespace preceding '#' is important for this test.
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfWithBadTokens()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfWithBadTokens()
+        {
+            var text =
 @"#if true GARBAGE
 #endif";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElseEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #else
@@ -727,23 +727,23 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #else
@@ -751,23 +751,23 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifTrueEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifTrueEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #elif true
@@ -775,23 +775,23 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifTrueEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifTrueEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif true
@@ -799,23 +799,23 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifFalseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifFalseEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #elif false
@@ -823,23 +823,23 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifFalseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifFalseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif false
@@ -847,21 +847,21 @@ class A
 #endif
   class C { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifTrueElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifTrueElseEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #elif true
@@ -871,23 +871,23 @@ class A
 #endif
   class D { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifTrueElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifTrueElseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif true
@@ -897,22 +897,22 @@ class A
 #endif
   class D { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifFalseElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifFalseElseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif false
@@ -922,22 +922,22 @@ class A
 #endif
   class D { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifFalseElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifFalseElseEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #elif false
@@ -947,22 +947,22 @@ class A
 #endif
   class D { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifFalseElifTrueElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifFalseElifTrueElseEndif()
+        {
+            var text = @"
 #if true
   class A { }
 #elif false
@@ -974,23 +974,23 @@ class A
 #endif
   class E { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "A" }, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifFalseElifTrueElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifFalseElifTrueElseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif false
@@ -1002,24 +1002,24 @@ class A
 #endif
   class E { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "C" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifFalseElifFalseElseEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifFalseElifFalseElseEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #elif false
@@ -1031,128 +1031,128 @@ class A
 #endif
   class E { }
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" },
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "D" },
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "E" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueIfTrueEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueIfTrueEndIfEndIf()
+        {
+            var text = @"
 #if true
 #if true
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseIfTrueEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseIfTrueEndIfEndIf()
+        {
+            var text = @"
 #if false
 #if true
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueIfFalseEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueIfFalseEndIfEndIf()
+        {
+            var text = @"
 #if true
 #if false
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElseIfTrueEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElseIfTrueEndIfEndIf()
+        {
+            var text = @"
 #if true
 #else
 #if true
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueElifTrueIfTrueEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueElifTrueIfTrueEndIfEndIf()
+        {
+            var text = @"
 #if true
 #elif true
 #if true
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseElifTrueElseIfTrueEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseElifTrueElseIfTrueEndIfEndIf()
+        {
+            var text = @"
 #if false
 #elif true
 #else
@@ -1160,23 +1160,23 @@ class A
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseIfFalseElseEndIfEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseIfFalseElseEndIfEndIf()
+        {
+            var text = @"
 #if false
 #if false
 #endif
@@ -1185,255 +1185,255 @@ class A
 #endif
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithNameDefined()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithNameDefined()
+        {
+            var text = @"
 #if XYZ
 #endif
 ";
-        var node = Parse(text, "XYZ"); // define XYZ
+            var node = Parse(text, "XYZ"); // define XYZ
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithNameUndefined()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithNameUndefined()
+        {
+            var text = @"
 #if XYZ
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalOr()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalOr()
+        {
+            var text =
 @"#if ABC || XYZ
 #endif
 ";
-        var node = Parse(text, "ABC", "XYZ");
+            var node = Parse(text, "ABC", "XYZ");
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalOrWhenOnlyOneDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalOrWhenOnlyOneDefined()
+        {
+            var text =
 @"#if ABC || XYZ
 #endif
 ";
-        var node = Parse(text, "ABC");
+            var node = Parse(text, "ABC");
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalAnd()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalAnd()
+        {
+            var text =
 @"#if ABC && XYZ
 #endif
 ";
-        var node = Parse(text, "ABC", "XYZ");
+            var node = Parse(text, "ABC", "XYZ");
 
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalAndWhenOnlyOneDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalAndWhenOnlyOneDefined()
+        {
+            var text =
 @"#if ABC && XYZ
 #endif
 ";
-        var node = Parse(text, "ABC");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalNotOnDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalNotOnDefined()
+        {
+            var text =
 @"#if !ABC
 #endif
 ";
-        var node = Parse(text, "ABC");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithLogicalNotOnUndefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithLogicalNotOnUndefined()
+        {
+            var text =
 @"#if !ABC
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithParens()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithParens()
+        {
+            var text =
 @"#if (ABC)
 #endif
 ";
-        var node = Parse(text, "ABC");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithEqualsAndBothDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithEqualsAndBothDefined()
+        {
+            var text =
 @"#if ABC == XYZ
 #endif
 ";
-        var node = Parse(text, "ABC", "XYZ");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC", "XYZ");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithEqualsAndBothNotDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithEqualsAndBothNotDefined()
+        {
+            var text =
 @"#if ABC == XYZ
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithEqualsAndOneDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithEqualsAndOneDefined()
+        {
+            var text =
 @"#if ABC == XYZ
 #endif
 ";
-        var node = Parse(text, "ABC");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithNotEqualsAndBothDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithNotEqualsAndBothDefined()
+        {
+            var text =
 @"#if ABC != XYZ
 #endif
 ";
-        var node = Parse(text, "ABC", "XYZ");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC", "XYZ");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithNotEqualsAndBothUndefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithNotEqualsAndBothUndefined()
+        {
+            var text =
 @"#if ABC != XYZ
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfWithNotEqualsAndOneDefined()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfWithNotEqualsAndOneDefined()
+        {
+            var text =
 @"#if ABC != XYZ
 #endif
 ";
-        var node = Parse(text, "ABC");
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, "ABC");
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [WorkItem(541898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541898")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfNoEmptyTrivia()
-    {
-        var text = @"
+        [WorkItem(541898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541898")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfNoEmptyTrivia()
+        {
+            var text = @"
 #if YES
 #pragma warning disable 0219
 #pragma warning restore 0219
@@ -1445,285 +1445,285 @@ class A
 #pragma warning restore 0219
 #endif
 ";
-        var node = Parse(text, "YES");
-        TestRoundTripping(node, text);
-        Assert.True(node.DescendantTrivia().All(trivia => trivia.Width > 0));
-    }
+            var node = Parse(text, "YES");
+            TestRoundTripping(node, text);
+            Assert.True(node.DescendantTrivia().All(trivia => trivia.Width > 0));
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueWithNoEndif()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueWithNoEndif()
+        {
+            var text =
 @"#if true
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfFalseWithNoEndif()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfFalseWithNoEndif()
+        {
+            var text =
 @"#if false
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueWithEOF()
-    {
-        var text = @"#if true";
-        var node = Parse(text);
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueWithEOF()
+        {
+            var text = @"#if true";
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfFalseWithEOF()
-    {
-        var text = @"#if false";
-        var node = Parse(text);
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfFalseWithEOF()
+        {
+            var text = @"#if false";
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfWithNoCondition()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfWithNoCondition()
+        {
+            var text =
 @"#if 
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidPreprocExpr);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidPreprocExpr);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueWithMissingParen()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueWithMissingParen()
+        {
+            var text =
 @"#if (true
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_CloseParenExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_CloseParenExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfFalseWithMissingParen()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfFalseWithMissingParen()
+        {
+            var text =
 @"#if (false
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_CloseParenExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_CloseParenExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueWithElifAfterElse()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueWithElifAfterElse()
+        {
+            var text =
 @"#if true
 #else
 #elif true
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfWithElseAfterElse()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfWithElseAfterElse()
+        {
+            var text =
 @"#if true
 #else
 #else
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueEndRegionEndIf()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueEndRegionEndIf()
+        {
+            var text =
 @"#if true
 #endregion
 #endif
 ";
 
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive }, // ?
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive }, // ?
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegEndIfWithoutIf()
-    {
-        var text = @"#endif";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegEndIfWithoutIf()
+        {
+            var text = @"#endif";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegElseWithoutIf()
-    {
-        var text = @"#else";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegElseWithoutIf()
+        {
+            var text = @"#else";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegElifWithoutIf()
-    {
-        var text = @"#elif";
-        var node = Parse(text);
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegElifWithoutIf()
+        {
+            var text = @"#elif";
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
 
-    [WorkItem(542198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542198")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegElifWithoutIfWithSkipped()
-    {
-        var text = @"#elif ! defined X";
-        var node = Parse(text);
+        [WorkItem(542198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542198")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegElifWithoutIfWithSkipped()
+        {
+            var text = @"#elif ! defined X";
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
-        VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_UnexpectedDirective);
+            VerifyDirectives(node, SyntaxKind.BadDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfTrueCodeElseCodeEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfTrueCodeElseCodeEndIf()
+        {
+            var text = @"
 #if true
   class A { }
 #else
   class B { }
 #endif
 ";
-        var node = Parse(text);
+            var node = Parse(text);
 
-        TestRoundTripping(node, text);
+            TestRoundTripping(node, text);
 
-        // TODO
-        Assert.Equal(1, node.Members.Count);
-        Assert.Equal(SyntaxKind.ClassDeclaration, node.Members[0].Kind());
-        var td = (TypeDeclarationSyntax)node.Members[0];
-        Assert.Equal("A", td.Identifier.ToString());
-    }
+            // TODO
+            Assert.Equal(1, node.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, node.Members[0].Kind());
+            var td = (TypeDeclarationSyntax)node.Members[0];
+            Assert.Equal("A", td.Identifier.ToString());
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseCodeElseCodeEndif()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseCodeElseCodeEndif()
+        {
+            var text = @"
 #if false
   class A { }
 #else
   class B { }
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Text = "B" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfEndifDirectivesWithBadCode()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfEndifDirectivesWithBadCode()
+        {
+            var text =
 @"#if true
 #else
 #endif
 aeu";
 
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfElifWithBoolExpression()
-    {
-        var text = @"#define True1
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfElifWithBoolExpression()
+        {
+            var text = @"#define True1
 #define True2
 
 #define False1
@@ -1777,23 +1777,23 @@ public class Test
     }
 }";
 
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.DefineDirectiveTrivia, SyntaxKind.DefineDirectiveTrivia, SyntaxKind.DefineDirectiveTrivia,
-            SyntaxKind.UndefDirectiveTrivia, SyntaxKind.UndefDirectiveTrivia, SyntaxKind.UndefDirectiveTrivia,
-            SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
-            SyntaxKind.IfDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
-            SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
-            SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
-            SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.DefineDirectiveTrivia, SyntaxKind.DefineDirectiveTrivia, SyntaxKind.DefineDirectiveTrivia,
+                SyntaxKind.UndefDirectiveTrivia, SyntaxKind.UndefDirectiveTrivia, SyntaxKind.UndefDirectiveTrivia,
+                SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
+                SyntaxKind.IfDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
+                SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
+                SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia,
+                SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ErrorDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+        }
 
-    [WorkItem(921726, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfElifWithBadNumericalName()
-    {
-        var text = @"class A
+        [WorkItem(921726, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfElifWithBadNumericalName()
+        {
+            var text = @"class A
 {
 #if 0
     int x = 0;
@@ -1804,18 +1804,18 @@ public class Test
 #endif
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidPreprocExpr, (int)ErrorCode.ERR_InvalidPreprocExpr);
-        VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidPreprocExpr, (int)ErrorCode.ERR_InvalidPreprocExpr);
+            VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+        }
 
-    [WorkItem(911446, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressIfNestedExcludedBody()
-    {
-        var text = @"using System;
+        [WorkItem(911446, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressIfNestedExcludedBody()
+        {
+            var text = @"using System;
 public class Test
 {
 public static int Main()
@@ -1834,17 +1834,17 @@ return (i);
 }
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.IfDirectiveTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia);
+        }
 
-    [WorkItem(911464, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressIfFalseHashExcludedEndIf()
-    {
-        var text = @"
+        [WorkItem(911464, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressIfFalseHashExcludedEndIf()
+        {
+            var text = @"
 #if false
  // Bug#911464
 #endif
@@ -1853,21 +1853,21 @@ return (i);
  class X { void f() { R(""# s""); } }
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [WorkItem(913373, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNestedIfWithUndefinedSymbols()
-    {
-        var text = @"class A
+        [WorkItem(913373, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNestedIfWithUndefinedSymbols()
+        {
+            var text = @"class A
     {
 #if AAA
         static void M()
@@ -1880,260 +1880,260 @@ return (i);
         }
 #endif
 }";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    #endregion
+        #endregion
 
-    #region #region/#endregion
+        #region #region/#endregion
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionEndRegion()
+        {
+            var text =
 @"#region
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionRegionEndRegionEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionRegionEndRegionEndRegion()
+        {
+            var text =
 @"#region
 #region
 #endregion
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionIfTrueEndIfEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionIfTrueEndIfEndRegion()
+        {
+            var text =
 @"#region
 #if true
 #endif
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                    new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegRegionEndIfEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegRegionEndIfEndRegion()
+        {
+            var text =
 @"#region
 #endif
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegRegionElifEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegRegionElifEndRegion()
+        {
+            var text =
 @"#region
 #elif
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.BadDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.BadDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegRegionElseEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegRegionElseEndRegion()
+        {
+            var text =
 @"#region
 #else
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.BadDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.BadDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueRegionEndIf()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueRegionEndIf()
+        {
+            var text =
 @"#if true
 #region
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfTrueRegionEndIfEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfTrueRegionEndIfEndRegion()
+        {
+            var text =
 @"#if true
 #region
 #endif
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive },
-                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive },
+                    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfFalseRegionEndIf()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfFalseRegionEndIf()
+        {
+            var text =
 @"#if false
 #region
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsNotActive },
-                new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndRegionDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+                    new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                    new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfFalseRegionEndIfEndRegion()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfFalseRegionEndIfEndRegion()
+        {
+            var text =
 @"#if false
 #region
 #endif
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndifDirectiveExpected);
-        VerifyDirectivesSpecial(node,
-    new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-    new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsNotActive },
-    new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
-    new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsNotActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndRegionDirectiveExpected, (int)ErrorCode.ERR_EndifDirectiveExpected);
+            VerifyDirectivesSpecial(node,
+        new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+        new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsNotActive },
+        new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsNotActive },
+        new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsNotActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithTrailingTokens()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithTrailingTokens()
+        {
+            var text =
 @"#region -- Some Cool Region --
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithSingleLineComment()
-    {
-        var text =
+        [WorkItem(2958, "DevDiv_Projects/Roslyn")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithSingleLineComment()
+        {
+            var text =
 @"#region A//B
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region A//B{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("A//B", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region A//B{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("A//B", regionText.ToFullString());
+        }
 
-    [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithInvalidSingleLineComment()
-    {
-        var text =
+        [WorkItem(2958, "DevDiv_Projects/Roslyn")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithInvalidSingleLineComment()
+        {
+            var text =
 @"#region A/\B
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region A/\\B{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("A/\\B", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region A/\\B{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("A/\\B", regionText.ToFullString());
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegRegionWithMultilineComment()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegRegionWithMultilineComment()
+        {
+            var text = @"
 class Test
 {
 #region /* This is a 
@@ -2142,478 +2142,478 @@ class Test
 #endregion 
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_SemicolonExpected); // CS1003 (Extra), CS1002
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_SemicolonExpected); // CS1003 (Extra), CS1002
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+        }
 
-    [WorkItem(906835, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegRegionWithInvalidEscapeString()
-    {
-        // Dev10 compiler gives errors CS1009
-        var text = @"
+        [WorkItem(906835, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegRegionWithInvalidEscapeString()
+        {
+            // Dev10 compiler gives errors CS1009
+            var text = @"
 #region \u01
 #endregion
 #region \U000A
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegionEndedWithEscapedNewline()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegionEndedWithEscapedNewline()
+        {
+            var text = @"
 #region \u000D\u000A class A { }
 #endregion
 #region \U
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-        VerifyMembers(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+            VerifyMembers(node);
+        }
 
-    [WorkItem(527079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527079")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressRegionWithEscapeUnicodePrefixOnly()
-    {
-        // [Breaking Change] Dev10 compiler gives errors CS1009
-        var text = @"#region \u
+        [WorkItem(527079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527079")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressRegionWithEscapeUnicodePrefixOnly()
+        {
+            // [Breaking Change] Dev10 compiler gives errors CS1009
+            var text = @"#region \u
 #endregion \U
 ";
 
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.RegionDirectiveTrivia, SyntaxKind.EndRegionDirectiveTrivia);
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage1()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage1()
+        {
+            var text =
 @"#region ""
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage1B()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage1B()
+        {
+            var text =
 @"#region "" 
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \" {Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\" ", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\" ", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage2()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage2()
+        {
+            var text =
 @"#region ""goo""
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"goo\"{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"goo\"", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"goo\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"goo\"", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage2B()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage2B()
+        {
+            var text =
 @"#region ""goo"" 
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"goo\" {Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"goo\" ", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"goo\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"goo\" ", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage3()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage3()
+        {
+            var text =
 @"#region """"
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"\"{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"\"", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage3B()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage3B()
+        {
+            var text =
 @"#region """" 
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"\" {Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"\" ", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\" ", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage4()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage4()
+        {
+            var text =
 @"#region """"""
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"\"\"{Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"\"\"", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"\"{Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"\"", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage4B()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage4B()
+        {
+            var text =
 @"#region """""" 
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.RegionDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndRegionDirectiveTrivia, Status = NodeStatus.IsActive });
 
-        var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
-        Assert.Equal($"#region \"\"\" {Environment.NewLine}", regionDirective.ToFullString());
-        var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-        Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
-        Assert.Equal("\"\"\" ", regionText.ToFullString());
-    }
+            var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
+            Assert.Equal($"#region \"\"\" {Environment.NewLine}", regionDirective.ToFullString());
+            var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
+            Assert.Equal("\"\"\" ", regionText.ToFullString());
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestRegionWithMessage5()
-    {
-        var text =
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestRegionWithMessage5()
+        {
+            var text =
 @"#region Region Process Information after the Grid """"""""""""""""""""""""""""""""""""""""""""""""""
 class C
 {
 }
 #endregion
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, disallowErrors: true);
+            var node = Parse(text);
+            TestRoundTripping(node, text, disallowErrors: true);
 
-        // ensure that we don't see those quotes as the start of a raw string that consumes the class decl.
-        var classDeclaration = node.ChildNodes().Single(n => n is ClassDeclarationSyntax);
-    }
+            // ensure that we don't see those quotes as the start of a raw string that consumes the class decl.
+            var classDeclaration = node.ChildNodes().Single(n => n is ClassDeclarationSyntax);
+        }
 
-    #endregion
+        #endregion
 
-    #region #define/#undefine
+        #region #define/#undefine
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefineBeforeFirstToken()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefineBeforeFirstToken()
+        {
+            var text = @"
 #define XXX
 class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        string defSym = "XXX";
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Defined, Text = defSym });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            string defSym = "XXX";
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Defined, Text = defSym });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefineAfterFirstToken()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefineAfterFirstToken()
+        {
+            var text = @"
 class A { }
 #define XXX
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_PPDefFollowsToken); // CS1032
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_PPDefFollowsToken); // CS1032
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefineAfterTokenOnSameLine()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefineAfterTokenOnSameLine()
+        {
+            var text = @"
 class A { } #define XXX
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement); // CS1040
-        VerifyDirectivesSpecial(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement); // CS1040
+            VerifyDirectivesSpecial(node);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefineInIfBeforeFirstToken()
-    {
-        // defines after other directives are okay
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefineInIfBeforeFirstToken()
+        {
+            // defines after other directives are okay
+            var text = @"
 #if true
 #define XXX
 #endif
 class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefineInIfExclusionAfterFirstToken()
-    {
-        // bad defines after first token in exclusion zone should not be errors
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefineInIfExclusionAfterFirstToken()
+        {
+            // bad defines after first token in exclusion zone should not be errors
+            var text = @"
 class A { }
 #if false
 #define XXX
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "XXX" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "XXX" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefineInsideIfFalse()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefineInsideIfFalse()
+        {
+            var text = @"
 #if false
 #define ZZZ
 #endif
   class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        string defSym = "ZZZ";
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = defSym },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Unspecified, Text = defSym });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            string defSym = "ZZZ";
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = defSym },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Unspecified, Text = defSym });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefineInsideIfTrue()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefineInsideIfTrue()
+        {
+            var text = @"
 #if true
 #define ZZZ
 #endif
   class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        string defSym = "ZZZ";
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Text = defSym, Status2 = NodeStatus.Defined });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            string defSym = "ZZZ";
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Text = defSym, Status2 = NodeStatus.Defined });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefineWithNoName()
-    {
-        var text = @"#define";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected); // CS1001
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefineWithNoName()
+        {
+            var text = @"#define";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected); // CS1001
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefineWithBadTokenForName()
-    {
-        var text = @"# define  true
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefineWithBadTokenForName()
+        {
+            var text = @"# define  true
 class A {}";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected); // CS1001
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected); // CS1001
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefineWithBadTokensAfterName()
-    {
-        var text = @"#define GOO(";
-        var node = Parse(text);
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefineWithBadTokensAfterName()
+        {
+            var text = @"#define GOO(";
+            var node = Parse(text);
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
-    }
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestUndefBeforeFirstToken()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestUndefBeforeFirstToken()
+        {
+            var text = @"
 #undef XXX
 class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        string defSym = "XXX";
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Undefined, Text = defSym });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            string defSym = "XXX";
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Undefined, Text = defSym });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefAfterFirstToken()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefAfterFirstToken()
+        {
+            var text = @"
 class A { }
 #undef XXX
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_PPDefFollowsToken);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_PPDefFollowsToken);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefAfterTokenOnSameLine()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefAfterTokenOnSameLine()
+        {
+            var text = @"
 class A { } #undef XXX
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement);
-        VerifyDirectivesSpecial(node);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement);
+            VerifyDirectivesSpecial(node);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestUndefInIfBeforeFirstToken()
-    {
-        // defines after other directives are okay
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestUndefInIfBeforeFirstToken()
+        {
+            // defines after other directives are okay
+            var text = @"
 #if true
 #undef XXX
 #endif
 class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "XXX" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
-    [Trait("Feature", "Directives")]
-    public void Bug869243_01()
-    {
-        var text = @"
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
+        [Trait("Feature", "Directives")]
+        public void Bug869243_01()
+        {
+            var text = @"
 #if false
     #define Z
 #else
@@ -2622,22 +2622,22 @@ class A { }
     #endif
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
-    [Trait("Feature", "Directives")]
-    public void Bug869243_02()
-    {
-        var text = @"
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
+        [Trait("Feature", "Directives")]
+        public void Bug869243_02()
+        {
+            var text = @"
 #if false
     #define A
 #elif false
@@ -2651,26 +2651,26 @@ class A { }
     #endif
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "A" },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "B" },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "A" },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "B" },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
-    [Trait("Feature", "Directives")]
-    public void Bug869243_03()
-    {
-        var text = @"
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
+        [Trait("Feature", "Directives")]
+        public void Bug869243_03()
+        {
+            var text = @"
 #if false
     #define Z
     #if true
@@ -2682,25 +2682,25 @@ class A { }
     #endif
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsNotActive | NodeStatus.NotBranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
-    [Trait("Feature", "Directives")]
-    public void Bug869243_04()
-    {
-        var text = @"
+        [Fact, WorkItem(869243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869243")]
+        [Trait("Feature", "Directives")]
+        public void Bug869243_04()
+        {
+            var text = @"
 #if false
     #define Z
 #else
@@ -2713,142 +2713,142 @@ class A { }
     #endif
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
-            new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
+                new DirectiveInfo { Kind = SyntaxKind.ElseDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "Z" },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestUndefInIfExclusionAfterFirstToken()
-    {
-        // bad defines after first token in exclusion zone should not be errors
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestUndefInIfExclusionAfterFirstToken()
+        {
+            // bad defines after first token in exclusion zone should not be errors
+            var text = @"
 class A { }
 #if false
 #undef XXX
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "XXX" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "XXX" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestUndefInsideIfFalse()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestUndefInsideIfFalse()
+        {
+            var text = @"
 #if false
 #undef ZZZ
 #endif
   class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
-            new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "ZZZ" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Text = "ZZZ" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.NotBranchTaken | NodeStatus.FalseValue },
+                new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "ZZZ" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node, new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Text = "ZZZ" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestUndefInsideIfTrue()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestUndefInsideIfTrue()
+        {
+            var text = @"
 #if true
 #undef ZZZ
 #endif
   class A { }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        string defSym = "ZZZ";
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
-            new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-        VerifyMembers(node,
-            new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Undefined, Text = defSym });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            string defSym = "ZZZ";
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive | NodeStatus.BranchTaken | NodeStatus.TrueValue },
+                new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = defSym },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+            VerifyMembers(node,
+                new MemberInfo { Kind = SyntaxKind.ClassDeclaration, Status = NodeStatus.Unspecified, Status2 = NodeStatus.Undefined, Text = defSym });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefWithNoName()
-    {
-        var text = @"#undef";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefWithNoName()
+        {
+            var text = @"#undef";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefWithBadTokenForName()
-    {
-        var text = @"#undef (";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefWithBadTokenForName()
+        {
+            var text = @"#undef (";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = string.Empty });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefWithBadTokensAfterName()
-    {
-        var text = @"#undef GOO(";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefWithBadTokensAfterName()
+        {
+            var text = @"#undef GOO(";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "GOO" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefWithBadCommentsTokensAfterName()
-    {
-        var text = @"#define A_1 /**
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefWithBadCommentsTokensAfterName()
+        {
+            var text = @"#define A_1 /**
 *
 */";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "A_1" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "A_1" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegUndefWithBadNumericalName()
-    {
-        var text = @"#undef 1234 /// <!@#$%^&*()_+-=>";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegUndefWithBadNumericalName()
+        {
+            var text = @"#undef 1234 /// <!@#$%^&*()_+-=>";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefKeyword()
-    {
-        var text = @"#define error
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefKeyword()
+        {
+            var text = @"#define error
 #if error
 #warning W1
 #endif
@@ -2858,26 +2858,26 @@ class A { }
 #warning W2
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W1'" });
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W1'" });
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
 
-            new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+                new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDefKeywordExhaustive()
-    {
-        var text = @"#define if
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDefKeywordExhaustive()
+        {
+            var text = @"#define if
 #define else
 #define elif
 #define endif
@@ -2891,29 +2891,29 @@ class A { }
 #define pragma
 #define reference
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "if" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "else" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "elif" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "endif" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "region" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "endregion" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "define" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "undef" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "warning" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "line" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "pragma" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "reference" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "if" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "else" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "elif" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "endif" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "region" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "endregion" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "define" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "undef" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "warning" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "error" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "line" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "pragma" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "reference" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegDefKeywordExhaustive()
-    {
-        var text = @"#define true
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegDefKeywordExhaustive()
+        {
+            var text = @"#define true
 #define false
 #define default
 #define hidden
@@ -2921,89 +2921,89 @@ class A { }
 #define disable
 #define restore
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected,
-            (int)ErrorCode.ERR_IdentifierExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected,
+                (int)ErrorCode.ERR_IdentifierExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.DefineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
 
-    #endregion
+        #endregion
 
-    #region #error/#warning
+        #region #error/#warning
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestError()
-    {
-        var text = @"#error Your monkey is alive";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'Your monkey is alive'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestError()
+        {
+            var text = @"#error Your monkey is alive";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'Your monkey is alive'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestWarning()
-    {
-        var text = @"#warning Your monkey is alive";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'Your monkey is alive'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestWarning()
+        {
+            var text = @"#warning Your monkey is alive";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'Your monkey is alive'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseErrorEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseErrorEndIf()
+        {
+            var text = @"
 #if false
 #error Your monkey is alive
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfFalseWarningEndIf()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfFalseWarningEndIf()
+        {
+            var text = @"
 #if false
 #warning Your monkey is alive
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfKeyword()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfKeyword()
+        {
+            var text = @"
 #if if
 #warning W1
 #elif elif
@@ -3014,26 +3014,26 @@ class A { }
 #warning W4
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W4'" });
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: 'W4'" });
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsNotActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestIfKeywordExhaustive()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestIfKeywordExhaustive()
+        {
+            var text = @"
 #if true
 #elif false
 #elif if
@@ -3051,32 +3051,32 @@ class A { }
 #elif reference
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegIfKeywordExhaustive()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegIfKeywordExhaustive()
+        {
+            var text = @"
 #if default
 #elif hidden
 #elif checksum
@@ -3084,555 +3084,555 @@ class A { }
 #elif restore
 #endif
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorCode(node,
-            (int)ErrorCode.ERR_EndOfPPLineExpected,
-            (int)ErrorCode.ERR_EndOfPPLineExpected,
-            (int)ErrorCode.ERR_EndOfPPLineExpected,
-            (int)ErrorCode.ERR_EndOfPPLineExpected,
-            (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node,
+                (int)ErrorCode.ERR_EndOfPPLineExpected,
+                (int)ErrorCode.ERR_EndOfPPLineExpected,
+                (int)ErrorCode.ERR_EndOfPPLineExpected,
+                (int)ErrorCode.ERR_EndOfPPLineExpected,
+                (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.ElifDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithNoMessage()
-    {
-        var text = @"#error";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: ''" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestWarningWithNoMessage()
-    {
-        var text = @"#warning";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: ''" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithLeadingWhitespace()
-    {
-        var text = @"#error  abc def";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'abc def'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithTrailingWhitespace()
-    {
-        var text = @"#error abc def ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'abc def '" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithSingleLineComment()
-    {
-        var text = @"#error  /*abc def*/ ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def*/ '" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithMultiLineComment()
-    {
-        var text = @"#error  /*abc def*/ ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def*/ '" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithUnterminatedMultiLineComment()
-    {
-        var text = @"#error  /*abc def ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def '" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [WorkItem(541954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541954")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithNonLatinChars()
-    {
-        var errorText = "\u0444\u0430\u0439\u043B";
-        var text = @"#error " + errorText;
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = string.Format("#error: '{0}'", errorText) });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [WorkItem(541953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541953")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestDiagnosticStringFileName()
-    {
-        CheckDiagnosticStringFileName("a.cs", "", "a.cs");
-        CheckDiagnosticStringFileName("b\\a.cs", "", "b\\a.cs"); //path not trimmed
-        CheckDiagnosticStringFileName("c:\\b\\a.cs", "", "c:\\b\\a.cs"); //path not trimmed
-        CheckDiagnosticStringFileName("<file>", "", "<file>"); //invalid path characters - verbatim
-
-        CheckDiagnosticStringFileName("z.cs", "#line 1 \"a.cs\"\r\n", "a.cs");
-        CheckDiagnosticStringFileName("z.cs", "#line 1 \"b\\a.cs\"\r\n", "b\\a.cs"); //path not trimmed
-        CheckDiagnosticStringFileName("z.cs", "#line 1 \"c:\\b\\a.cs\"\r\n", "c:\\b\\a.cs"); //path not trimmed
-        CheckDiagnosticStringFileName("z.cs", "#line 1 \"<file>\"\r\n", "<file>"); //invalid path characters - verbatim
-    }
-
-    private void CheckDiagnosticStringFileName(string compilationFileName, string lineDirective, string expectedErrorStringFileName)
-    {
-        var text = lineDirective + "#error ERROR\r\n";
-        var tree = SyntaxFactory.ParseSyntaxTree(text, path: compilationFileName);
-        TestRoundTripping(tree.GetCompilationUnitRoot(), text, false);
-        var error = tree.GetDiagnostics().Single();
-        Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
-        string errorString = error.ToString();
-        string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf('('));
-        Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
-    }
-
-    [Theory]
-    [InlineData(LanguageVersion.CSharp4, "4")]
-    [InlineData(LanguageVersion.CSharp9, "9.0")]
-    [InlineData(LanguageVersion.Latest, "latest (13.0)")]
-    [InlineData(LanguageVersion.LatestMajor, "latestmajor (13.0)")]
-    [InlineData(LanguageVersion.Default, "default (13.0)")]
-    [InlineData(LanguageVersion.Preview, "preview")]
-    public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
-    {
-        var text = "#error version";
-        var node = Parse(text, new CSharpParseOptions(version));
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithNoMessage()
         {
-            Kind = SyntaxKind.ErrorDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "version"
-        });
+            var text = @"#error";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: ''" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-        node.GetDiagnostics().Verify(
-            // (1,8): error CS1029: #error: 'version'
-            // #error version
-            Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
-            // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>.
-            // #error version
-            Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion).WithLocation(1, 8)
-            );
-    }
-
-    [Fact]
-    public void TestErrorWithVersionNumber()
-    {
-        var text = "#error version:7.1";
-        var node = Parse(text, SourceCodeKind.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestWarningWithNoMessage()
         {
-            Kind = SyntaxKind.ErrorDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "version:7.1"
-        });
+            var text = @"#warning";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_WarningDirective, Text = "#warning: ''" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.WarningDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-        node.GetDiagnostics().Verify(
-            // (1,8): error CS1029: #error: 'version:7.1'
-            // #error version:7.1
-            Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1"),
-            // (1,8): error CS8025: Feature 'version' is not available in C# 4. Please use language version 7.1 or greater.
-            // #error version:7.1
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
-            );
-    }
-
-    [Fact]
-    public void TestErrorWithInvalidVersion()
-    {
-        var text = "#error version:A.B";
-        var node = Parse(text, SourceCodeKind.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithLeadingWhitespace()
         {
-            Kind = SyntaxKind.ErrorDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "version:A.B"
-        });
+            var text = @"#error  abc def";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'abc def'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-        node.GetDiagnostics().Verify(
-            // (1,8): error CS1029: #error: 'version:A.B'
-            // #error version:A.B
-            Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
-            );
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithTrailingWhitespace()
+        {
+            var text = @"#error abc def ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: 'abc def '" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithStringMessage1()
-    {
-        var text = @"#error """;
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithSingleLineComment()
+        {
+            var text = @"#error  /*abc def*/ ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def*/ '" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithStringMessage2()
-    {
-        var text = @"#error ""goo""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"goo\"'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithMultiLineComment()
+        {
+            var text = @"#error  /*abc def*/ ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def*/ '" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithStringMessage3()
-    {
-        var text = @"#error """"";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithUnterminatedMultiLineComment()
+        {
+            var text = @"#error  /*abc def ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '/*abc def '" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
-    [Trait("Feature", "Directives")]
-    public void TestErrorWithStringMessage4()
-    {
-        var text = @"#error """"""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"\"'" });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [WorkItem(541954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541954")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithNonLatinChars()
+        {
+            var errorText = "\u0444\u0430\u0439\u043B";
+            var text = @"#error " + errorText;
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = string.Format("#error: '{0}'", errorText) });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    #endregion
+        [WorkItem(541953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541953")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestDiagnosticStringFileName()
+        {
+            CheckDiagnosticStringFileName("a.cs", "", "a.cs");
+            CheckDiagnosticStringFileName("b\\a.cs", "", "b\\a.cs"); //path not trimmed
+            CheckDiagnosticStringFileName("c:\\b\\a.cs", "", "c:\\b\\a.cs"); //path not trimmed
+            CheckDiagnosticStringFileName("<file>", "", "<file>"); //invalid path characters - verbatim
 
-    #region #line
+            CheckDiagnosticStringFileName("z.cs", "#line 1 \"a.cs\"\r\n", "a.cs");
+            CheckDiagnosticStringFileName("z.cs", "#line 1 \"b\\a.cs\"\r\n", "b\\a.cs"); //path not trimmed
+            CheckDiagnosticStringFileName("z.cs", "#line 1 \"c:\\b\\a.cs\"\r\n", "c:\\b\\a.cs"); //path not trimmed
+            CheckDiagnosticStringFileName("z.cs", "#line 1 \"<file>\"\r\n", "<file>"); //invalid path characters - verbatim
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLine()
-    {
-        var text = @"#line 1000";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
-    }
+        private void CheckDiagnosticStringFileName(string compilationFileName, string lineDirective, string expectedErrorStringFileName)
+        {
+            var text = lineDirective + "#error ERROR\r\n";
+            var tree = SyntaxFactory.ParseSyntaxTree(text, path: compilationFileName);
+            TestRoundTripping(tree.GetCompilationUnitRoot(), text, false);
+            var error = tree.GetDiagnostics().Single();
+            Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
+            string errorString = error.ToString();
+            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf('('));
+            Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineAndFile()
-    {
-        var text = @"#line 1000 ""bogus.cs""";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000, Text = "bogus.cs" });
-    }
+        [Theory]
+        [InlineData(LanguageVersion.CSharp4, "4")]
+        [InlineData(LanguageVersion.CSharp9, "9.0")]
+        [InlineData(LanguageVersion.Latest, "latest (13.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (13.0)")]
+        [InlineData(LanguageVersion.Default, "default (13.0)")]
+        [InlineData(LanguageVersion.Preview, "preview")]
+        public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
+        {
+            var text = "#error version";
+            var node = Parse(text, new CSharpParseOptions(version));
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version"
+            });
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineDefault()
-    {
-        var text = @"#line default";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
-    }
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version'
+                // #error version
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>.
+                // #error version
+                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion).WithLocation(1, 8)
+                );
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineDefaultWithFile()
-    {
-        var text = @"#line default ""bogus.cs""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
-    }
+        [Fact]
+        public void TestErrorWithVersionNumber()
+        {
+            var text = "#error version:7.1";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:7.1"
+            });
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineDefaultWithComment()
-    {
-        var text = @"#line default // GOO";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
-    }
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:7.1'
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1"),
+                // (1,8): error CS8025: Feature 'version' is not available in C# 4. Please use language version 7.1 or greater.
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                );
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineHidden()
-    {
-        var text = @"#line hidden";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
-    }
+        [Fact]
+        public void TestErrorWithInvalidVersion()
+        {
+            var text = "#error version:A.B";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:A.B"
+            });
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineHiddenWithFile()
-    {
-        var text = @"#line hidden ""bogus.cs""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
-    }
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:A.B'
+                // #error version:A.B
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
+                );
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineHiddenWithComment()
-    {
-        var text = @"#line hidden // GOO";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
-    }
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage1()
+        {
+            var text = @"#error """;
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithBadNumber()
-    {
-        var text = @"#line Goo";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage2()
+        {
+            var text = @"#error ""goo""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"goo\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithNoNumberOrFile()
-    {
-        var text = @"#line";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage3()
+        {
+            var text = @"#error """"";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithOnlyFile()
-    {
-        var text = @"#line ""bogus.cs""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "bogus.cs" });
-    }
+        [Fact, WorkItem(1549726, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1549726")]
+        [Trait("Feature", "Directives")]
+        public void TestErrorWithStringMessage4()
+        {
+            var text = @"#error """"""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_ErrorDirective, Text = "#error: '\"\"\"'" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ErrorDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegMoreLineNumThenPDBCanHandle()
-    {
-        var text = @"#line 16707566 ""XYZ""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_TooManyLinesForDebugger);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 16707566, Text = "XYZ" });
-    }
+        #endregion
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineNumberInvalidZero()
-    {
-        var text = @"#line 0 ""XYZ""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-    }
+        #region #line
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineNumberInvalidNegative()
-    {
-        var text = @"#line -1 ""XYZ""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLine()
+        {
+            var text = @"#line 1000";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineNumberInvalidBiggerThanMaxInt()
-    {
-        var text = @"#line 2147483649 ""XYZ""";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineAndFile()
+        {
+            var text = @"#line 1000 ""bogus.cs""";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000, Text = "bogus.cs" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithExtraTokens()
-    {
-        var text = @"#line 1000 XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_MissingPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineDefault()
+        {
+            var text = @"#line default";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineWithComment()
-    {
-        var text = @"#line 1000 // XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineDefaultWithFile()
+        {
+            var text = @"#line default ""bogus.cs""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithFileAndExtraTokens()
-    {
-        var text = @"#line 1000 ""bogus.cs"" XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000, Text = "bogus.cs" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineDefaultWithComment()
+        {
+            var text = @"#line default // GOO";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -1 });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestLineWithFileAndComment()
-    {
-        var text = @"#line 12345 ""bogus.cs"" // XYZ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 12345, Text = "bogus.cs" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineHidden()
+        {
+            var text = @"#line hidden";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
+        }
 
-    [WorkItem(536699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536699")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegLineWithErrorMessage()
-    {
-        var text = @"class A
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineHiddenWithFile()
+        {
+            var text = @"#line hidden ""bogus.cs""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineHiddenWithComment()
+        {
+            var text = @"#line hidden // GOO";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = -2 });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithBadNumber()
+        {
+            var text = @"#line Goo";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithNoNumberOrFile()
+        {
+            var text = @"#line";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithOnlyFile()
+        {
+            var text = @"#line ""bogus.cs""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Text = "bogus.cs" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegMoreLineNumThenPDBCanHandle()
+        {
+            var text = @"#line 16707566 ""XYZ""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_TooManyLinesForDebugger);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 16707566, Text = "XYZ" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineNumberInvalidZero()
+        {
+            var text = @"#line 0 ""XYZ""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineNumberInvalidNegative()
+        {
+            var text = @"#line -1 ""XYZ""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineNumberInvalidBiggerThanMaxInt()
+        {
+            var text = @"#line 2147483649 ""XYZ""";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber);
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithExtraTokens()
+        {
+            var text = @"#line 1000 XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_MissingPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineWithComment()
+        {
+            var text = @"#line 1000 // XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000 });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithFileAndExtraTokens()
+        {
+            var text = @"#line 1000 ""bogus.cs"" XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 1000, Text = "bogus.cs" });
+        }
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestLineWithFileAndComment()
+        {
+            var text = @"#line 12345 ""bogus.cs"" // XYZ";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 12345, Text = "bogus.cs" });
+        }
+
+        [WorkItem(536699, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536699")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegLineWithErrorMessage()
+        {
+            var text = @"class A
 {
 #line 100 ""test.cs""
 x = 1;
 }";
-        var tree = ParseTree(text);
-        TestRoundTripping(tree.GetCompilationUnitRoot(), text, false);
+            var tree = ParseTree(text);
+            TestRoundTripping(tree.GetCompilationUnitRoot(), text, false);
 
-        // err TODO: check line number in error
-        VerifyErrorCode(tree.GetCompilationUnitRoot(), (int)ErrorCode.ERR_InvalidMemberDecl); // CS1519 - parser gives Two
-        VerifyDirectivesSpecial(tree.GetCompilationUnitRoot(), new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 100, Text = "test.cs" });
+            // err TODO: check line number in error
+            VerifyErrorCode(tree.GetCompilationUnitRoot(), (int)ErrorCode.ERR_InvalidMemberDecl); // CS1519 - parser gives Two
+            VerifyDirectivesSpecial(tree.GetCompilationUnitRoot(), new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 100, Text = "test.cs" });
 
-        var diagnostics = tree.GetDiagnostics();
-        Assert.Contains("100", diagnostics.First().ToString(), StringComparison.Ordinal); // one-based line number
+            var diagnostics = tree.GetDiagnostics();
+            Assert.Contains("100", diagnostics.First().ToString(), StringComparison.Ordinal); // one-based line number
 
-        var lineSpan = diagnostics.First().Location.GetMappedLineSpan();
-        Assert.Equal(99, lineSpan.StartLinePosition.Line); // zero-based line number
-    }
+            var lineSpan = diagnostics.First().Location.GetMappedLineSpan();
+            Assert.Equal(99, lineSpan.StartLinePosition.Line); // zero-based line number
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithTooLargeNumber()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithTooLargeNumber()
+        {
+            var text = @"
 public class Test
 {
     # line 999999999999999999999
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_IntOverflow); // CS1021, CS1576 (not in parser) ErrorCode.ERR_InvalidLineNumber
-        VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_IntOverflow); // CS1021, CS1576 (not in parser) ErrorCode.ERR_InvalidLineNumber
+            VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithZero()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithZero()
+        {
+            var text = @"
 public class Test
 {
     # line 0
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber); // CS1021, CS1576 (not in parser) ErrorCode.ERR_InvalidLineNumber
-        VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_InvalidLineNumber); // CS1021, CS1576 (not in parser) ErrorCode.ERR_InvalidLineNumber
+            VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
+        }
 
-    [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithoutSpaceBeforeFile()
-    {
-        var text = @"
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithoutSpaceBeforeFile()
+        {
+            var text = @"
 public class Test
 {
     # line 1""File""
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_MissingPPFile);
-        VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_MissingPPFile);
+            VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
+        }
 
-    [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegLineWithZeroWidthSpaceBeforeFile()
-    {
-        var text = @"
+        [WorkItem(537981, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537981")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegLineWithZeroWidthSpaceBeforeFile()
+        {
+            var text = @"
 public class Test
 {
     # line 1\u200B""File""
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node); //zero width space is still a space
-        VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node); //zero width space is still a space
+            VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia);
+        }
 
-    [WorkItem(907010, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressLineWithVariousFileNameFormats()
-    {
-        var text = @"public class LineTests
+        [WorkItem(907010, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressLineWithVariousFileNameFormats()
+        {
+            var text = @"public class LineTests
 {
 	public static void Main() 
 	{
@@ -3652,215 +3652,215 @@ public class Test
 	}
 }
 ";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia,
-            SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia,
-            SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia);
-    }
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia,
+                SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia,
+                SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia, SyntaxKind.LineDirectiveTrivia);
+        }
 
-    #endregion
+        #endregion
 
-    #region #pragma
+        #region #pragma
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisable()
-    {
-        var text = @"#pragma warning disable 114";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisable()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "114" }
-        });
-    }
+            var text = @"#pragma warning disable 114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "114" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnable_Error()
-    {
-        var text = @"#pragma warning enable 114";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPWarning); // CS1634
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnable_Error()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword
-        });
-    }
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPWarning); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnable()
-    {
-        var text = @"#pragma warning enable 114";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnable()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "114" }
-        });
-    }
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisableNullable()
-    {
-        var text = @"#pragma warning disable nullable";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableNullable()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "nullable" }
-        });
-    }
+            var text = @"#pragma warning disable nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableNullable()
-    {
-        var text = @"#pragma warning enable nullable";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableNullable()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "nullable" }
-        });
-    }
+            var text = @"#pragma warning enable nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "nullable" }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableCSharp7_3()
-    {
-        var text = @"#pragma warning enable 114";
-        var node = Parse(text, options: TestOptions.Regular7_3);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_ErrorOverride, Status = NodeStatus.IsWarning });
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableCSharp7_3()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "114" }
-        });
-    }
+            var text = @"#pragma warning enable 114";
+            var node = Parse(text, options: TestOptions.Regular7_3);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_ErrorOverride, Status = NodeStatus.IsWarning });
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisableWithMultipleCodes_01()
-    {
-        var text = @"#pragma warning disable 114, CS0162, 168";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_01()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "114", "CS0162", "168" }
-        });
-    }
+            var text = @"#pragma warning disable 114, CS0162, 168";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "114", "CS0162", "168" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisableWithMultipleCodes_02()
-    {
-        var text = @"#pragma warning disable 114, nullable";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_02()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "114", "nullable" }
-        });
-    }
+            var text = @"#pragma warning disable 114, nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "114", "nullable" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisableWithMultipleCodes_03()
-    {
-        var text = @"#pragma warning disable nullable, 114";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithMultipleCodes_03()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "nullable", "114" }
-        });
-    }
+            var text = @"#pragma warning disable nullable, 114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "nullable", "114" }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableWithMultipleCodes_01()
-    {
-        var text = @"#pragma warning enable 114, CS0162, 168";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_01()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "114", "CS0162", "168" }
-        });
-    }
+            var text = @"#pragma warning enable 114, CS0162, 168";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114", "CS0162", "168" }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableWithMultipleCodes_02()
-    {
-        var text = @"#pragma warning enable 114, nullable";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_02()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "114", "nullable" }
-        });
-    }
+            var text = @"#pragma warning enable 114, nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "114", "nullable" }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableWithMultipleCodes_03()
-    {
-        var text = @"#pragma warning enable nullable, CS0162";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithMultipleCodes_03()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword,
-            WarningList = new[] { "nullable", "CS0162" }
-        });
-    }
+            var text = @"#pragma warning enable nullable, CS0162";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword,
+                WarningList = new[] { "nullable", "CS0162" }
+            });
+        }
 
-    [Fact, WorkItem(536701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536701"), WorkItem(530051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530051")]
-    [Trait("Feature", "Directives")]
-    public void TestRegressPragmaWarningDisableWithWarningCode()
-    {
-        var text = @"
+        [Fact, WorkItem(536701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536701"), WorkItem(530051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530051")]
+        [Trait("Feature", "Directives")]
+        public void TestRegressPragmaWarningDisableWithWarningCode()
+        {
+            var text = @"
 class A
 {
     static void Main(int i)
@@ -3870,507 +3870,507 @@ class A
     }
 }
 ";
-        // verify that error still appears in GetDiagnostics
-        var tree = SyntaxFactory.ParseSyntaxTree(text);
-        var diagnostic = tree.GetDiagnostics().Single();
-        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-        Assert.Equal(1633, diagnostic.Code);
+            // verify that error still appears in GetDiagnostics
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var diagnostic = tree.GetDiagnostics().Single();
+            Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+            Assert.Equal(1633, diagnostic.Code);
 
-        // verify pragma information
-        var node = tree.GetCompilationUnitRoot();
-        VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
+            // verify pragma information
+            var node = tree.GetCompilationUnitRoot();
+            VerifyDirectivePragma(node.GetDirectives().First(), new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "1633" }
+            });
+
+            // verify that GetParseDiagnostics filters disabled warning
+            var comp = CSharpCompilation.Create("Test", syntaxTrees: new[] { tree });
+            Assert.Empty(comp.GetParseDiagnostics());
+        }
+
+        [WorkItem(908125, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNoWarningForUnrecognizedCode()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "1633" }
-        });
+            var text = @"#pragma warning disable 99999";
+            var node = Parse(text);
 
-        // verify that GetParseDiagnostics filters disabled warning
-        var comp = CSharpCompilation.Create("Test", syntaxTrees: new[] { tree });
-        Assert.Empty(comp.GetParseDiagnostics());
-    }
+            // Previous versions of the compiler used to report a warning (CS1691)
+            // whenever an unrecognized warning code was supplied in a #pragma directive.
+            // We no longer generate a warning in such cases.
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword,
+                WarningList = new[] { "99999" }
+            });
+        }
 
-    [WorkItem(908125, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNoWarningForUnrecognizedCode()
-    {
-        var text = @"#pragma warning disable 99999";
-        var node = Parse(text);
-
-        // Previous versions of the compiler used to report a warning (CS1691)
-        // whenever an unrecognized warning code was supplied in a #pragma directive.
-        // We no longer generate a warning in such cases.
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestore()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-            WarningList = new[] { "99999" }
-        });
-    }
+            var text = @"#pragma warning restore CS0114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "CS0114" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningRestore()
-    {
-        var text = @"#pragma warning restore CS0114";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithMultipleCodes_01()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-            WarningList = new[] { "CS0114" }
-        });
-    }
+            var text = @"#pragma warning restore CS0114, 162, Something // Multiple codes";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "CS0114", "162", "Something" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningRestoreWithMultipleCodes_01()
-    {
-        var text = @"#pragma warning restore CS0114, 162, Something // Multiple codes";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithMultipleCodes_02()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-            WarningList = new[] { "CS0114", "162", "Something" }
-        });
-    }
+            var text = @"#pragma warning restore CS0114, nullable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "CS0114", "nullable" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningRestoreWithMultipleCodes_02()
-    {
-        var text = @"#pragma warning restore CS0114, nullable";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithMultipleCodes_03()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-            WarningList = new[] { "CS0114", "nullable" }
-        });
-    }
+            var text = @"#pragma warning restore nullable, CS0114";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { "nullable", "CS0114" }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningRestoreWithMultipleCodes_03()
-    {
-        var text = @"#pragma warning restore nullable, CS0114";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestStringLiteralsAreDisallowed()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-            WarningList = new[] { "nullable", "CS0114" }
-        });
-    }
+            var text = @"#pragma warning restore ""CS0114"", 162, ""CS0168"" // Mixed string & numeric codes";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IdentifierOrNumericLiteralExpected, Status = NodeStatus.IsWarning }); // CS1072
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
+                WarningList = new[] { string.Empty }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestStringLiteralsAreDisallowed()
-    {
-        var text = @"#pragma warning restore ""CS0114"", 162, ""CS0168"" // Mixed string & numeric codes";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IdentifierOrNumericLiteralExpected, Status = NodeStatus.IsWarning }); // CS1072
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaWarningWithBadStyle()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword,
-            WarningList = new[] { string.Empty }
-        });
-    }
+            var text = @"#pragma warning GOO";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.None,
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaWarningWithBadStyle()
-    {
-        var text = @"#pragma warning GOO";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaWarningWithBadStyleAndCodes()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.None,
-        });
-    }
+            var text = @"#pragma warning GOO 114";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.None
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaWarningWithBadStyleAndCodes()
-    {
-        var text = @"#pragma warning GOO 114";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaWarningWithNoStyle()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.None
-        });
-    }
+            var text = @"#pragma warning 114";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.None
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaWarningWithNoStyle()
-    {
-        var text = @"#pragma warning 114";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.WRN_IllegalPPWarning, Status = NodeStatus.IsWarning }); // CS1634
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningDisableWithNoCodes()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.None
-        });
-    }
+            var text = @"#pragma warning disable";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.DisableKeyword
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningDisableWithNoCodes()
-    {
-        var text = @"#pragma warning disable";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningEnableWithNoCodes()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.DisableKeyword
-        });
-    }
+            var text = @"#pragma warning enable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.EnableKeyword
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/36550")]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningEnableWithNoCodes()
-    {
-        var text = @"#pragma warning enable";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaWarningRestoreWithNoCodes()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.EnableKeyword
-        });
-    }
+            var text = @"#pragma warning restore";
+            var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.WarningKeyword,
+                DisableOrRestoreKind = SyntaxKind.RestoreKeyword
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaWarningRestoreWithNoCodes()
-    {
-        var text = @"#pragma warning restore";
-        var node = Parse(text);
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaWithoutWarningOrChecksum()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.WarningKeyword,
-            DisableOrRestoreKind = SyntaxKind.RestoreKeyword
-        });
-    }
+            var text = @"#pragma";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma); // CS1633
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.None,
+                DisableOrRestoreKind = SyntaxKind.None
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaWithoutWarningOrChecksum()
-    {
-        var text = @"#pragma";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma); // CS1633
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaWithBadToken()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.None,
-            DisableOrRestoreKind = SyntaxKind.None
-        });
-    }
+            var text = @"#pragma GOO";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
+                WarningOrChecksumKind = SyntaxKind.None,
+                DisableOrRestoreKind = SyntaxKind.None
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaWithBadToken()
-    {
-        var text = @"#pragma GOO";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPragma);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaChecksum()
         {
-            PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
-            WarningOrChecksumKind = SyntaxKind.None,
-            DisableOrRestoreKind = SyntaxKind.None
-        });
-    }
+            var file = "bogus.cs";
+            var guid = "{" + Guid.Empty + "}";
+            var bytes = "ab007f1d23d9";
+            var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
+            var node = Parse(text);
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaChecksum()
-    {
-        var file = "bogus.cs";
-        var guid = "{" + Guid.Empty + "}";
-        var bytes = "ab007f1d23d9";
-        var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
-        var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, bytes }
+            });
+        }
 
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaChecksumWithNoBytes()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, bytes }
-        });
-    }
+            var file = "bogus.cs";
+            var guid = "{" + Guid.Empty + "}";
+            var text = string.Format(@"#pragma checksum ""{0}"" ""{1}""", file, guid);
+            var node = Parse(text);
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaChecksumWithNoBytes()
-    {
-        var file = "bogus.cs";
-        var guid = "{" + Guid.Empty + "}";
-        var text = string.Format(@"#pragma checksum ""{0}"" ""{1}""", file, guid);
-        var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum); // CS1695
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, null }
+            });
+        }
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum); // CS1695
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaChecksumWithNoGuidAndNoBytes()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, null }
-        });
-    }
+            var file = "bogus.cs";
+            var text = string.Format(@"#pragma checksum ""{0}""", file);
+            var node = Parse(text);
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaChecksumWithNoGuidAndNoBytes()
-    {
-        var file = "bogus.cs";
-        var text = string.Format(@"#pragma checksum ""{0}""", file);
-        var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, null, null }
+            });
+        }
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaChecksumWithNothingElse()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, null, null }
-        });
-    }
+            var text = @"#pragma checksum";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { null, null, null }
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaChecksumWithNothingElse()
-    {
-        var text = @"#pragma checksum";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestPragmaChecksumWithNoBracesOnGuid()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { null, null, null }
-        });
-    }
+            var file = "bogus.cs";
+            var guid = Guid.Empty.ToString();
+            var bytes = "ab007f1d23d9";
+            var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
+            var node = Parse(text);
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestPragmaChecksumWithNoBracesOnGuid()
-    {
-        var file = "bogus.cs";
-        var guid = Guid.Empty.ToString();
-        var bytes = "ab007f1d23d9";
-        var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
-        var node = Parse(text);
+            TestRoundTripping(node, text);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, bytes }
+            });
+        }
 
-        TestRoundTripping(node, text);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegPragmaChecksumWithBadGuid()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, bytes }
-        });
-    }
+            var file = "bogus.cs";
+            var guid = "{abc-123}";
+            var bytes = "ab007f1d23d9";
+            var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
+            var node = Parse(text);
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegPragmaChecksumWithBadGuid()
-    {
-        var file = "bogus.cs";
-        var guid = "{abc-123}";
-        var bytes = "ab007f1d23d9";
-        var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}""", file, guid, bytes);
-        var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, bytes }
+            });
+        }
 
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [WorkItem(909445, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegPragmaChecksumWithMLineComment()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, bytes }
-        });
-    }
+            var file = "test.cs";
+            var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
+            var bytes = string.Empty;
+            var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}"" /* Test Comment */", file, guid, bytes);
 
-    [WorkItem(909445, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegPragmaChecksumWithMLineComment()
-    {
-        var file = "test.cs";
-        var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
-        var bytes = string.Empty;
-        var text = string.Format(@"#pragma checksum ""{0}"" ""{1}"" ""{2}"" /* Test Comment */", file, guid, bytes);
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_EndOfPPLineExpected); // CS1696
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, bytes }
+            });
+        }
 
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_EndOfPPLineExpected); // CS1696
-        VerifyDirectivePragma(node, new PragmaInfo
+        [WorkItem(909445, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegPragmaChecksumWithComma()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, bytes }
-        });
-    }
+            var file = "test.cs";
+            var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
+            var bytes = string.Empty;
+            var text = string.Format(@"#pragma checksum ""{0}"", ""{1}"" ""{2}"" ", file, guid, bytes);
 
-    [WorkItem(909445, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegPragmaChecksumWithComma()
-    {
-        var file = "test.cs";
-        var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
-        var bytes = string.Empty;
-        var text = string.Format(@"#pragma checksum ""{0}"", ""{1}"" ""{2}"" ", file, guid, bytes);
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, null/*guid*/, null/*bytes*/ }
+            });
+        }
 
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
-        VerifyDirectivePragma(node, new PragmaInfo
+        [WorkItem(922889, "DevDiv/Personal")]
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestRegressNegPragmaChecksumWithBadBytesInMethod()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, null/*guid*/, null/*bytes*/ }
-        });
-    }
-
-    [WorkItem(922889, "DevDiv/Personal")]
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestRegressNegPragmaChecksumWithBadBytesInMethod()
-    {
-        var file = "test.cs";
-        var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
-        var bytes = "A";
-        var text = string.Format(@"class Test {{
+            var file = "test.cs";
+            var guid = "{406EA660-64CF-4C82-B6F0-42D48172A799}";
+            var bytes = "A";
+            var text = string.Format(@"class Test {{
     static int Main() 
     {{
 #pragma checksum ""{0}"" ""{1}"" ""{2}"" 
  return 0;
     }} }}", file, guid, bytes);
 
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
-        VerifyDirectivePragma(node, new PragmaInfo
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.WRN_IllegalPPChecksum);
+            VerifyDirectivePragma(node, new PragmaInfo
+            {
+                PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
+                FileGuidByte = new string[] { file, guid, bytes }
+            });
+        }
+
+        #endregion
+
+        #region #r
+
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReference()
         {
-            PragmaKind = SyntaxKind.PragmaChecksumDirectiveTrivia,
-            FileGuidByte = new string[] { file, guid, bytes }
-        });
-    }
+            var text = @"#r ""bogus""";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ReferenceDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
 
-    #endregion
-
-    #region #r
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReference()
-    {
-        var text = @"#r ""bogus""";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReferenceWithComment()
         {
-            Kind = SyntaxKind.ReferenceDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "bogus"
-        });
-    }
+            var text = @"#r ""bogus"" // GOO";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ReferenceDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReferenceWithComment()
-    {
-        var text = @"#r ""bogus"" // GOO";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReferenceNumber()
         {
-            Kind = SyntaxKind.ReferenceDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "bogus"
-        });
-    }
+            var text = @"#r 123";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReferenceNumber()
-    {
-        var text = @"#r 123";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReferenceWithoutQuotes()
+        {
+            var text = @"#r Goo";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReferenceWithoutQuotes()
-    {
-        var text = @"#r Goo";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReferenceWithoutFileWithComment()
+        {
+            var text = @"#r //comment";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReferenceWithoutFileWithComment()
-    {
-        var text = @"#r //comment";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestNegReferenceWithoutFile()
+        {
+            var text = @"#r";
+            var node = Parse(text);
+            TestRoundTripping(node, text, false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestNegReferenceWithoutFile()
-    {
-        var text = @"#r";
-        var node = Parse(text);
-        TestRoundTripping(node, text, false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.ReferenceDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
-
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void TestReferenceWithVariousFileNameFormats()
-    {
-        var text = @"
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void TestReferenceWithVariousFileNameFormats()
+        {
+            var text = @"
 #r ""ftp://test.cs""
 #r ""ftps://test.cs""
 #r ""http://test.cs""
@@ -4385,278 +4385,279 @@ class A
 #r ""C:\Documents and Settings\someuser\Local Settings\Temp\{f0a37341-d692-11d4-a984-009027ec0a9c}\test.cs"" // comment
 #r ""mailto://someuser@microsoft.com""
 ";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text);
-        VerifyDirectives(node, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
-            SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
-            SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia);
-    }
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectives(node, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
+                SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
+                SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia);
+        }
 
-    #endregion
+        #endregion
 
-    #region #load
+        #region #load
 
-    [Fact]
-    public void TestLoad()
-    {
-        var text = "#load \"bogus\"";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        public void TestLoad()
         {
-            Kind = SyntaxKind.LoadDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "bogus"
-        });
-    }
+            var text = "#load \"bogus\"";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
 
-    [Fact]
-    public void TestLoadWithoutFile()
-    {
-        var text = "#load";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        public void TestLoadWithoutFile()
         {
-            Kind = SyntaxKind.LoadDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-        });
-        Assert.True(node.GetLoadDirectives().Single().File.IsMissing);
-    }
+            var text = "#load";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+            });
+            Assert.True(node.GetLoadDirectives().Single().File.IsMissing);
+        }
 
-    [Fact]
-    public void TestLoadWithSemicolon()
-    {
-        var text = "#load \"\";";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        public void TestLoadWithSemicolon()
         {
-            Kind = SyntaxKind.LoadDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = ""
-        });
-    }
+            var text = "#load \"\";";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = ""
+            });
+        }
 
-    [Fact]
-    public void TestLoadWithComment()
-    {
-        var text = "#load \"bogus\" // comment";
-        var node = Parse(text, SourceCodeKind.Script);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node, new DirectiveInfo
+        [Fact]
+        public void TestLoadWithComment()
         {
-            Kind = SyntaxKind.LoadDirectiveTrivia,
-            Status = NodeStatus.IsActive,
-            Text = "bogus"
-        });
-    }
+            var text = "#load \"bogus\" // comment";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
 
-    #endregion
+        #endregion
 
-    #region #nullable
+        #region #nullable
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableCSharp7_3()
-    {
-        var text = @"#nullable enable";
-        var node = Parse(text, options: TestOptions.Regular7_3);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableCSharp7_3()
+        {
+            var text = @"#nullable enable";
+            var node = Parse(text, options: TestOptions.Regular7_3);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_FeatureNotAvailableInVersion7_3, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableRestore()
-    {
-        var text = @"#nullable restore";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableRestore()
+        {
+            var text = @"#nullable restore";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "restore" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableEnable()
-    {
-        var text = @"#nullable enable";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnable()
+        {
+            var text = @"#nullable enable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableDisable()
-    {
-        var text = @"#nullable disable // comment";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisable()
+        {
+            var text = @"#nullable disable // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableEnableWarnings()
-    {
-        var text = @"#nullable enable warnings";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable warnings" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableWarnings()
+        {
+            var text = @"#nullable enable warnings";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable warnings" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableEnableAnnotations()
-    {
-        var text = @"#nullable enable annotations";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable annotations" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableAnnotations()
+        {
+            var text = @"#nullable enable annotations";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable annotations" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableDisableWarnings()
-    {
-        var text = @"#nullable disable warnings // comment";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyErrorCode(node); // no errors
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable warnings" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableWarnings()
+        {
+            var text = @"#nullable disable warnings // comment";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyErrorCode(node); // no errors
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable warnings" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableDisableBadTarget()
-    {
-        var text = @"#nullable disable errors";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableDisableBadTarget()
+        {
+            var text = @"#nullable disable errors";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
 
-    /// <summary>
-    /// "enable" should be a keyword within the directive only.
-    /// </summary>
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableEnableKeyword()
-    {
-        var text =
+        /// <summary>
+        /// "enable" should be a keyword within the directive only.
+        /// </summary>
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableEnableKeyword()
+        {
+            var text =
 @"#nullable enable
 class enable
 {
 }";
-        var tree = ParseTree(text);
-        var root = tree.GetCompilationUnitRoot();
-        TestRoundTripping(root, text, false);
-        VerifyErrorCode(root); // no errors
-        VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
-        var nodes = root.DescendantNodes(descendIntoTrivia: true);
-        SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
-        Assert.Equal(SyntaxKind.EnableKeyword, token.Kind());
-        token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
-        Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-        Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
-    }
+            var tree = ParseTree(text);
+            var root = tree.GetCompilationUnitRoot();
+            TestRoundTripping(root, text, false);
+            VerifyErrorCode(root); // no errors
+            VerifyDirectivesSpecial(root, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" });
+            var nodes = root.DescendantNodes(descendIntoTrivia: true);
+            SyntaxToken token = nodes.OfType<NullableDirectiveTriviaSyntax>().Single().SettingToken;
+            Assert.Equal(SyntaxKind.EnableKeyword, token.Kind());
+            token = nodes.OfType<ClassDeclarationSyntax>().Single().Identifier;
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.ContextualKind());
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableWithoutDisableOrRestore()
-    {
-        var text = @"#nullable";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableWithoutDisableOrRestore()
+        {
+            var text = @"#nullable";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableExtraToken()
-    {
-        var text = @"#nullable disable true";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExtraToken()
+        {
+            var text = @"#nullable disable true";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveTargetExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableUnrecognizedSetting()
-    {
-        var text = @"#nullable disabled";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableUnrecognizedSetting()
+        {
+            var text = @"#nullable disabled";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableUnrecognizedSettingExtraToken()
-    {
-        var text = @"#nullable disabled true";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text, disallowErrors: false);
-        VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
-        VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
-    }
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableUnrecognizedSettingExtraToken()
+        {
+            var text = @"#nullable disabled true";
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorSpecial(node, new DirectiveInfo { Number = (int)ErrorCode.ERR_NullableDirectiveQualifierExpected, Status = NodeStatus.IsError });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableExcluded()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExcluded()
+        {
+            var text =
 @"#nullable enable
 #if false
 #nullable enable
 #endif
 #nullable disable
 ";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" },
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "enable" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
-    }
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "enable" },
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "enable" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsActive, Text = "disable" });
+        }
 
-    [Fact]
-    [Trait("Feature", "Directives")]
-    public void NullableExcludedUnrecognizedSetting()
-    {
-        var text =
+        [Fact]
+        [Trait("Feature", "Directives")]
+        public void NullableExcludedUnrecognizedSetting()
+        {
+            var text =
 @"#if false
 #nullable disabled
 #endif
 ";
-        var node = Parse(text, options: TestOptions.Regular);
-        TestRoundTripping(node, text);
-        VerifyDirectivesSpecial(node,
-            new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
-            new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
-            new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
-    }
+            var node = Parse(text, options: TestOptions.Regular);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node,
+                new DirectiveInfo { Kind = SyntaxKind.IfDirectiveTrivia, Status = NodeStatus.IsActive },
+                new DirectiveInfo { Kind = SyntaxKind.NullableDirectiveTrivia, Status = NodeStatus.IsNotActive, Text = "" },
+                new DirectiveInfo { Kind = SyntaxKind.EndIfDirectiveTrivia, Status = NodeStatus.IsActive });
+        }
 
-    #endregion
+        #endregion
 
-    private static string GetExpectedVersion()
-    {
-        return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+        private static string GetExpectedVersion()
+        {
+            return CommonCompiler.GetProductVersion(typeof(CSharpCompiler));
+        }
     }
 }

@@ -11,48 +11,49 @@
 
 using Microsoft.VisualStudio.Debugger.CallStack;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public class DkmIntermediateEvaluationResult : DkmEvaluationResult
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public readonly string Expression;
-    public readonly DkmLanguage IntermediateLanguage;
-    public readonly DkmRuntimeInstance TargetRuntime;
-
-    private DkmIntermediateEvaluationResult(
-        DkmInspectionContext inspectionContext,
-        DkmStackWalkFrame stackFrame,
-        string name,
-        string fullName,
-        string expression,
-        DkmLanguage intermediateLanguage,
-        DkmRuntimeInstance targetRuntime,
-        DkmDataItem dataItem) :
-        base(inspectionContext, stackFrame, name, fullName, DkmEvaluationResultFlags.None, null, dataItem)
+    public class DkmIntermediateEvaluationResult : DkmEvaluationResult
     {
-        this.Expression = expression;
-        this.IntermediateLanguage = intermediateLanguage;
-        this.TargetRuntime = targetRuntime;
-    }
+        public readonly string Expression;
+        public readonly DkmLanguage IntermediateLanguage;
+        public readonly DkmRuntimeInstance TargetRuntime;
 
-    public static DkmIntermediateEvaluationResult Create(
-        DkmInspectionContext InspectionContext,
-        DkmStackWalkFrame StackFrame,
-        string Name,
-        string FullName,
-        string Expression,
-        DkmLanguage IntermediateLanguage,
-        DkmRuntimeInstance TargetRuntime,
-        DkmDataItem DataItem)
-    {
-        return new DkmIntermediateEvaluationResult(
-            InspectionContext,
-            StackFrame,
-            Name,
-            FullName,
-            Expression,
-            IntermediateLanguage,
-            TargetRuntime,
-            DataItem);
+        private DkmIntermediateEvaluationResult(
+            DkmInspectionContext inspectionContext,
+            DkmStackWalkFrame stackFrame,
+            string name,
+            string fullName,
+            string expression,
+            DkmLanguage intermediateLanguage,
+            DkmRuntimeInstance targetRuntime,
+            DkmDataItem dataItem) :
+            base(inspectionContext, stackFrame, name, fullName, DkmEvaluationResultFlags.None, null, dataItem)
+        {
+            this.Expression = expression;
+            this.IntermediateLanguage = intermediateLanguage;
+            this.TargetRuntime = targetRuntime;
+        }
+
+        public static DkmIntermediateEvaluationResult Create(
+            DkmInspectionContext InspectionContext,
+            DkmStackWalkFrame StackFrame,
+            string Name,
+            string FullName,
+            string Expression,
+            DkmLanguage IntermediateLanguage,
+            DkmRuntimeInstance TargetRuntime,
+            DkmDataItem DataItem)
+        {
+            return new DkmIntermediateEvaluationResult(
+                InspectionContext,
+                StackFrame,
+                Name,
+                FullName,
+                Expression,
+                IntermediateLanguage,
+                TargetRuntime,
+                DataItem);
+        }
     }
 }

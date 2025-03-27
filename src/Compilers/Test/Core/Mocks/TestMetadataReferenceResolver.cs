@@ -10,49 +10,50 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities;
-
-internal class TestMetadataReferenceResolver : MetadataReferenceResolver
+namespace Roslyn.Test.Utilities
 {
-    private readonly RelativePathResolver _pathResolver;
-    private readonly Dictionary<string, PortableExecutableReference> _assemblyNames;
-    private readonly Dictionary<string, PortableExecutableReference> _files;
-
-    public TestMetadataReferenceResolver(
-        RelativePathResolver pathResolver = null,
-        Dictionary<string, PortableExecutableReference> assemblyNames = null,
-        Dictionary<string, PortableExecutableReference> files = null)
+    internal class TestMetadataReferenceResolver : MetadataReferenceResolver
     {
-        _pathResolver = pathResolver;
-        _assemblyNames = assemblyNames ?? new Dictionary<string, PortableExecutableReference>();
-        _files = files ?? new Dictionary<string, PortableExecutableReference>();
-    }
+        private readonly RelativePathResolver _pathResolver;
+        private readonly Dictionary<string, PortableExecutableReference> _assemblyNames;
+        private readonly Dictionary<string, PortableExecutableReference> _files;
 
-    public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
-    {
-        Dictionary<string, PortableExecutableReference> map;
-
-        if (PathUtilities.IsFilePath(reference))
+        public TestMetadataReferenceResolver(
+            RelativePathResolver pathResolver = null,
+            Dictionary<string, PortableExecutableReference> assemblyNames = null,
+            Dictionary<string, PortableExecutableReference> files = null)
         {
-            if (_pathResolver != null)
+            _pathResolver = pathResolver;
+            _assemblyNames = assemblyNames ?? new Dictionary<string, PortableExecutableReference>();
+            _files = files ?? new Dictionary<string, PortableExecutableReference>();
+        }
+
+        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
+        {
+            Dictionary<string, PortableExecutableReference> map;
+
+            if (PathUtilities.IsFilePath(reference))
             {
-                reference = _pathResolver.ResolvePath(reference, baseFilePath);
-                if (reference == null)
+                if (_pathResolver != null)
                 {
-                    return ImmutableArray<PortableExecutableReference>.Empty;
+                    reference = _pathResolver.ResolvePath(reference, baseFilePath);
+                    if (reference == null)
+                    {
+                        return ImmutableArray<PortableExecutableReference>.Empty;
+                    }
                 }
+
+                map = _files;
+            }
+            else
+            {
+                map = _assemblyNames;
             }
 
-            map = _files;
-        }
-        else
-        {
-            map = _assemblyNames;
+            return map.TryGetValue(reference, out var result) ? ImmutableArray.Create(result) : ImmutableArray<PortableExecutableReference>.Empty;
         }
 
-        return map.TryGetValue(reference, out var result) ? ImmutableArray.Create(result) : ImmutableArray<PortableExecutableReference>.Empty;
+        public override bool Equals(object other) => true;
+        public override int GetHashCode() => 1;
     }
-
-    public override bool Equals(object other) => true;
-    public override int GetHashCode() => 1;
 }

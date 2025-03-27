@@ -5,44 +5,45 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-internal partial struct ChildSyntaxList
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal readonly partial struct Reversed
+    internal partial struct ChildSyntaxList
     {
-        private readonly GreenNode? _node;
-
-        internal Reversed(GreenNode? node)
+        internal readonly partial struct Reversed
         {
-            _node = node;
-        }
+            private readonly GreenNode? _node;
 
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(_node);
-        }
+            internal Reversed(GreenNode? node)
+            {
+                _node = node;
+            }
+
+            public Enumerator GetEnumerator()
+            {
+                return new Enumerator(_node);
+            }
 
 #if DEBUG
 #pragma warning disable 618
-        [Obsolete("For debugging", error: true)]
+            [Obsolete("For debugging", error: true)]
 #pragma warning disable IDE0051 // Remove unused private members
-        private GreenNode[] Nodes
+            private GreenNode[] Nodes
 #pragma warning restore IDE0051 // Remove unused private members
-        {
-            get
             {
-                var result = new List<GreenNode>();
-                foreach (var n in this)
+                get
                 {
-                    result.Add(n);
-                }
+                    var result = new List<GreenNode>();
+                    foreach (var n in this)
+                    {
+                        result.Add(n);
+                    }
 
-                return result.ToArray();
+                    return result.ToArray();
+                }
             }
-        }
 
 #pragma warning restore 618
 #endif
+        }
     }
 }

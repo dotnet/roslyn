@@ -12,264 +12,265 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal abstract class SourceConstructorSymbolBase : SourceMemberMethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    protected ImmutableArray<ParameterSymbol> _lazyParameters;
-    private TypeWithAnnotations _lazyReturnType;
-
-    protected SourceConstructorSymbolBase(
-        SourceMemberContainerTypeSymbol containingType,
-        Location location,
-        CSharpSyntaxNode syntax,
-        bool isIterator,
-        (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
-        : base(containingType, syntax.GetReference(), location, isIterator, modifiersAndFlags)
+    internal abstract class SourceConstructorSymbolBase : SourceMemberMethodSymbol
     {
-        Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
-    }
+        protected ImmutableArray<ParameterSymbol> _lazyParameters;
+        private TypeWithAnnotations _lazyReturnType;
 
-    protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
-    {
-        var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
-        var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
-        ParameterListSyntax parameterList = GetParameterList();
-
-        // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
-        // we might still be constructing the member list of the containing type.  However, getting the binder
-        // for the parameters should be safe.
-        var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
-
-        // Constraint checking for parameter and return types must be delayed until
-        // the method has been added to the containing type member list since
-        // evaluating the constraints may depend on accessing this method from
-        // the container (comparing this method to others to find overrides for
-        // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-        var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-
-        _lazyParameters = ParameterHelpers.MakeParameters(
-            signatureBinder, this, parameterList, out _,
-            allowRefOrOut: AllowRefOrOut,
-            allowThis: false,
-            addRefReadOnlyModifier: false,
-            diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
-
-        _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
-
-        var location = this.GetFirstLocation();
-        // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
-        // This avoids extra unnecessary errors.
-        // There will already be a diagnostic saying Method must have a return type.
-        if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0) &&
-            ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
+        protected SourceConstructorSymbolBase(
+            SourceMemberContainerTypeSymbol containingType,
+            Location location,
+            CSharpSyntaxNode syntax,
+            bool isIterator,
+            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
+            : base(containingType, syntax.GetReference(), location, isIterator, modifiersAndFlags)
         {
-            diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
+            Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration);
         }
 
-        this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-        this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
-
-        if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
-            diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
+            var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
+            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
+            ParameterListSyntax parameterList = GetParameterList();
+
+            // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
+            // we might still be constructing the member list of the containing type.  However, getting the binder
+            // for the parameters should be safe.
+            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
+
+            // Constraint checking for parameter and return types must be delayed until
+            // the method has been added to the containing type member list since
+            // evaluating the constraints may depend on accessing this method from
+            // the container (comparing this method to others to find overrides for
+            // instance). Constraints are checked in AfterAddingTypeMembersChecks.
+            var signatureBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+
+            _lazyParameters = ParameterHelpers.MakeParameters(
+                signatureBinder, this, parameterList, out _,
+                allowRefOrOut: AllowRefOrOut,
+                allowThis: false,
+                addRefReadOnlyModifier: false,
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
+
+            _lazyReturnType = TypeWithAnnotations.Create(bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax));
+
+            var location = this.GetFirstLocation();
+            // Don't report ERR_StaticConstParam if the ctor symbol name doesn't match the containing type name.
+            // This avoids extra unnecessary errors.
+            // There will already be a diagnostic saying Method must have a return type.
+            if (MethodKind == MethodKind.StaticConstructor && (_lazyParameters.Length != 0) &&
+                ContainingType.Name == ((ConstructorDeclarationSyntax)this.SyntaxNode).Identifier.ValueText)
+            {
+                diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
+            }
+
+            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
+            this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
+
+            if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
+            }
         }
-    }
 
 #nullable enable
-    protected abstract ParameterListSyntax GetParameterList();
+        protected abstract ParameterListSyntax GetParameterList();
 
-    protected abstract bool AllowRefOrOut { get; }
+        protected abstract bool AllowRefOrOut { get; }
 #nullable disable
 
-    internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-    {
-        base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-        var compilation = DeclaringCompilation;
-        ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-        ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
-        ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-        ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-        ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
-
-        foreach (var parameter in this.Parameters)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
-        }
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-        PartialConstructorChecks(diagnostics);
-    }
+            var compilation = DeclaringCompilation;
+            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
+            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
-    protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
-    {
-        Debug.Assert(!IsPartial);
-    }
-
-    public sealed override bool IsImplicitlyDeclared
-    {
-        get
-        {
-            return base.IsImplicitlyDeclared;
-        }
-    }
-
-    internal sealed override int ParameterCount
-    {
-        get
-        {
-            if (!_lazyParameters.IsDefault)
+            foreach (var parameter in this.Parameters)
             {
-                return _lazyParameters.Length;
+                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
 
-            return GetParameterList().ParameterCount;
+            PartialConstructorChecks(diagnostics);
         }
-    }
 
-    public sealed override ImmutableArray<ParameterSymbol> Parameters
-    {
-        get
+        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {
-            LazyMethodChecks();
-            return _lazyParameters;
+            Debug.Assert(!IsPartial);
         }
-    }
 
-    public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
-    {
-        get { return ImmutableArray<TypeParameterSymbol>.Empty; }
-    }
-
-    public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
-        => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
-
-    public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
-        => ImmutableArray<TypeParameterConstraintKind>.Empty;
-
-    public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
-    {
-        get
+        public sealed override bool IsImplicitlyDeclared
         {
-            LazyMethodChecks();
-            return _lazyReturnType;
-        }
-    }
-
-    public sealed override string Name
-    {
-        get { return this.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName; }
-    }
-
-    internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
-    {
-        // constructors can't have return type attributes
-        return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
-    }
-
-    internal sealed override bool GenerateDebugInfo
-    {
-        get { return true; }
-    }
-
-    internal sealed override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree)
-    {
-        Debug.Assert(position >= 0 && tree != null);
-
-        TextSpan span;
-
-        // local/lambda/closure defined within the body of the constructor:
-        var ctorSyntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
-        if (tree == ctorSyntax.SyntaxTree)
-        {
-            if (IsWithinExpressionOrBlockBody(position, out int offset))
+            get
             {
-                return offset;
-            }
-
-            // closure in ctor initializer lifting its parameter(s) spans the constructor declaration:
-            if (position == ctorSyntax.SpanStart)
-            {
-                // Use a constant that is distinct from any other syntax offset.
-                // -1 works since a field initializer and a constructor declaration header can't squeeze into a single character.
-                return -1;
+                return base.IsImplicitlyDeclared;
             }
         }
 
-        // lambdas in ctor initializer:
-        int ctorInitializerLength;
-        var ctorInitializer = GetInitializer();
-        if (tree == ctorInitializer?.SyntaxTree)
+        internal sealed override int ParameterCount
         {
-            span = ctorInitializer.Span;
-            ctorInitializerLength = span.Length;
-
-            if (span.Contains(position))
+            get
             {
-                return -ctorInitializerLength + (position - span.Start);
+                if (!_lazyParameters.IsDefault)
+                {
+                    return _lazyParameters.Length;
+                }
+
+                return GetParameterList().ParameterCount;
             }
         }
-        else
+
+        public sealed override ImmutableArray<ParameterSymbol> Parameters
         {
-            ctorInitializerLength = 0;
+            get
+            {
+                LazyMethodChecks();
+                return _lazyParameters;
+            }
         }
 
-        // lambdas in field/property initializers:
-        int syntaxOffset;
-        var containingType = (SourceNamedTypeSymbol)this.ContainingType;
-        if (containingType.TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, this.IsStatic, ctorInitializerLength, out syntaxOffset))
+        public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
-            return syntaxOffset;
+            get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        // we haven't found the constructor part that declares the variable:
-        throw ExceptionUtilities.Unreachable();
-    }
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 
-    internal abstract override bool IsNullableAnalysisEnabled();
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
-    protected abstract CSharpSyntaxNode GetInitializer();
+        public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
+        {
+            get
+            {
+                LazyMethodChecks();
+                return _lazyReturnType;
+            }
+        }
 
-    protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);
+        public sealed override string Name
+        {
+            get { return this.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName; }
+        }
+
+        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
+        {
+            // constructors can't have return type attributes
+            return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
+        }
+
+        internal sealed override bool GenerateDebugInfo
+        {
+            get { return true; }
+        }
+
+        internal sealed override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree)
+        {
+            Debug.Assert(position >= 0 && tree != null);
+
+            TextSpan span;
+
+            // local/lambda/closure defined within the body of the constructor:
+            var ctorSyntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
+            if (tree == ctorSyntax.SyntaxTree)
+            {
+                if (IsWithinExpressionOrBlockBody(position, out int offset))
+                {
+                    return offset;
+                }
+
+                // closure in ctor initializer lifting its parameter(s) spans the constructor declaration:
+                if (position == ctorSyntax.SpanStart)
+                {
+                    // Use a constant that is distinct from any other syntax offset.
+                    // -1 works since a field initializer and a constructor declaration header can't squeeze into a single character.
+                    return -1;
+                }
+            }
+
+            // lambdas in ctor initializer:
+            int ctorInitializerLength;
+            var ctorInitializer = GetInitializer();
+            if (tree == ctorInitializer?.SyntaxTree)
+            {
+                span = ctorInitializer.Span;
+                ctorInitializerLength = span.Length;
+
+                if (span.Contains(position))
+                {
+                    return -ctorInitializerLength + (position - span.Start);
+                }
+            }
+            else
+            {
+                ctorInitializerLength = 0;
+            }
+
+            // lambdas in field/property initializers:
+            int syntaxOffset;
+            var containingType = (SourceNamedTypeSymbol)this.ContainingType;
+            if (containingType.TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, this.IsStatic, ctorInitializerLength, out syntaxOffset))
+            {
+                return syntaxOffset;
+            }
+
+            // we haven't found the constructor part that declares the variable:
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal abstract override bool IsNullableAnalysisEnabled();
+
+        protected abstract CSharpSyntaxNode GetInitializer();
+
+        protected abstract bool IsWithinExpressionOrBlockBody(int position, out int offset);
 
 #nullable enable
-    protected sealed override bool HasSetsRequiredMembersImpl
-        => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
+        protected sealed override bool HasSetsRequiredMembersImpl
+            => GetEarlyDecodedWellKnownAttributeData()?.HasSetsRequiredMembersAttribute == true;
 
-    internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
-    {
-        if (arguments.SymbolPart == AttributeLocation.None)
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
-            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.SetsRequiredMembersAttribute))
+            if (arguments.SymbolPart == AttributeLocation.None)
             {
-                var earlyData = arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>();
-                earlyData.HasSetsRequiredMembersAttribute = true;
-
-                if (ContainingType.IsWellKnownSetsRequiredMembersAttribute())
+                if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.SetsRequiredMembersAttribute))
                 {
-                    // Avoid a binding cycle for this scenario.
-                    return (null, null);
-                }
+                    var earlyData = arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>();
+                    earlyData.HasSetsRequiredMembersAttribute = true;
 
-                var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out bool hasAnyDiagnostics);
+                    if (ContainingType.IsWellKnownSetsRequiredMembersAttribute())
+                    {
+                        // Avoid a binding cycle for this scenario.
+                        return (null, null);
+                    }
 
-                if (!hasAnyDiagnostics)
-                {
-                    return (attributeData, boundAttribute);
-                }
-                else
-                {
-                    return (null, null);
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out bool hasAnyDiagnostics);
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                    else
+                    {
+                        return (null, null);
+                    }
                 }
             }
+
+            return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
 
-        return base.EarlyDecodeWellKnownAttribute(ref arguments);
-    }
-
-    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-    {
-        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-        AddRequiredMembersMarkerAttributes(ref attributes, this);
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddRequiredMembersMarkerAttributes(ref attributes, this);
+        }
     }
 }

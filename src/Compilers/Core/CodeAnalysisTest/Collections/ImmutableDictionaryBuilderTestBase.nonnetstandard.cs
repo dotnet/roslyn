@@ -11,22 +11,23 @@
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-public abstract partial class ImmutableDictionaryBuilderTestBase : ImmutablesTestBase
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    [Fact]
-    public void TryGetKey()
+    public abstract partial class ImmutableDictionaryBuilderTestBase : ImmutablesTestBase
     {
-        var builder = Empty<int>(StringComparer.OrdinalIgnoreCase)
-            .Add("a", 1).ToBuilder();
-        Assert.True(TryGetKeyHelper(builder, "a", out string actualKey));
-        Assert.Equal("a", actualKey);
+        [Fact]
+        public void TryGetKey()
+        {
+            var builder = Empty<int>(StringComparer.OrdinalIgnoreCase)
+                .Add("a", 1).ToBuilder();
+            Assert.True(TryGetKeyHelper(builder, "a", out string actualKey));
+            Assert.Equal("a", actualKey);
 
-        Assert.True(TryGetKeyHelper(builder, "A", out actualKey));
-        Assert.Equal("a", actualKey);
+            Assert.True(TryGetKeyHelper(builder, "A", out actualKey));
+            Assert.Equal("a", actualKey);
 
-        Assert.False(TryGetKeyHelper(builder, "b", out actualKey));
-        Assert.Equal("b", actualKey);
+            Assert.False(TryGetKeyHelper(builder, "b", out actualKey));
+            Assert.Equal("b", actualKey);
+        }
     }
 }

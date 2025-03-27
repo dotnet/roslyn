@@ -11,47 +11,48 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
-    private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
-
-    internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
-        : base(next)
+    internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
     {
-        Debug.Assert(!typeArguments.IsDefaultOrEmpty);
-        Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
-        _typeArguments = typeArguments;
-    }
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
+        private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
-    protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
-    {
-        get
+        internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
+            : base(next)
         {
-            if (_lazyTypeParameterMap == null)
-            {
-                var result = new MultiDictionary<string, TypeParameterSymbol>();
-                foreach (var tps in _typeArguments)
-                {
-                    result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
-                }
-                Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
-            }
-            return _lazyTypeParameterMap;
+            Debug.Assert(!typeArguments.IsDefaultOrEmpty);
+            Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
+            _typeArguments = typeArguments;
         }
-    }
 
-    internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
-    {
-        if (CanConsiderTypeParameters(options))
+        protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
         {
-            foreach (var parameter in _typeArguments)
+            get
             {
-                if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
+                if (_lazyTypeParameterMap == null)
                 {
-                    result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
+                    var result = new MultiDictionary<string, TypeParameterSymbol>();
+                    foreach (var tps in _typeArguments)
+                    {
+                        result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
+                    }
+                    Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
+                }
+                return _lazyTypeParameterMap;
+            }
+        }
+
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        {
+            if (CanConsiderTypeParameters(options))
+            {
+                foreach (var parameter in _typeArguments)
+                {
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
+                    {
+                        result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
+                    }
                 }
             }
         }

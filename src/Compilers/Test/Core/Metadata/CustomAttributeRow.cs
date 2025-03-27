@@ -8,32 +8,33 @@ using System;
 using System.Reflection.Metadata;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities;
-
-internal readonly struct CustomAttributeRow : IEquatable<CustomAttributeRow>
+namespace Roslyn.Test.Utilities
 {
-    public readonly EntityHandle ParentToken;
-    public readonly EntityHandle ConstructorToken;
-
-    public CustomAttributeRow(EntityHandle parentToken, EntityHandle constructorToken)
+    internal readonly struct CustomAttributeRow : IEquatable<CustomAttributeRow>
     {
-        this.ParentToken = parentToken;
-        this.ConstructorToken = constructorToken;
-    }
+        public readonly EntityHandle ParentToken;
+        public readonly EntityHandle ConstructorToken;
 
-    public bool Equals(CustomAttributeRow other)
-    {
-        return this.ParentToken == other.ParentToken
-            && this.ConstructorToken == other.ConstructorToken;
-    }
+        public CustomAttributeRow(EntityHandle parentToken, EntityHandle constructorToken)
+        {
+            this.ParentToken = parentToken;
+            this.ConstructorToken = constructorToken;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return base.Equals((CustomAttributeRow)obj);
-    }
+        public bool Equals(CustomAttributeRow other)
+        {
+            return this.ParentToken == other.ParentToken
+                && this.ConstructorToken == other.ConstructorToken;
+        }
 
-    public override int GetHashCode()
-    {
-        return Hash.Combine(ParentToken.GetHashCode(), ConstructorToken.GetHashCode());
+        public override bool Equals(object obj)
+        {
+            return base.Equals((CustomAttributeRow)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(ParentToken.GetHashCode(), ConstructorToken.GetHashCode());
+        }
     }
 }

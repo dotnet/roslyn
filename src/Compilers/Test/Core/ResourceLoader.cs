@@ -9,60 +9,61 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace Roslyn.Test.Utilities;
-
-internal static class ResourceLoader
+namespace Roslyn.Test.Utilities
 {
-    private static Stream GetResourceStream(string name)
+    internal static class ResourceLoader
     {
-        var assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
-
-        var stream = assembly.GetManifestResourceStream(name);
-        if (stream == null)
+        private static Stream GetResourceStream(string name)
         {
-            throw new InvalidOperationException($"Resource '{name}' not found in {assembly.FullName}.");
-        }
+            var assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
 
-        return stream;
-    }
-
-    private static byte[] GetResourceBlob(string name)
-    {
-        using (var stream = GetResourceStream(name))
-        {
-            var bytes = new byte[stream.Length];
-            using (var memoryStream = new MemoryStream(bytes))
+            var stream = assembly.GetManifestResourceStream(name);
+            if (stream == null)
             {
-                stream.CopyTo(memoryStream);
+                throw new InvalidOperationException($"Resource '{name}' not found in {assembly.FullName}.");
             }
 
-            return bytes;
-        }
-    }
-
-    public static byte[] GetOrCreateResource(ref byte[] resource, string name)
-    {
-        if (resource == null)
-        {
-            resource = GetResourceBlob(name);
+            return stream;
         }
 
-        return resource;
-    }
-
-    public static string GetOrCreateResource(ref string resource, string name)
-    {
-        if (resource == null)
+        private static byte[] GetResourceBlob(string name)
         {
             using (var stream = GetResourceStream(name))
             {
-                using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                var bytes = new byte[stream.Length];
+                using (var memoryStream = new MemoryStream(bytes))
                 {
-                    resource = streamReader.ReadToEnd();
+                    stream.CopyTo(memoryStream);
                 }
+
+                return bytes;
             }
         }
 
-        return resource;
+        public static byte[] GetOrCreateResource(ref byte[] resource, string name)
+        {
+            if (resource == null)
+            {
+                resource = GetResourceBlob(name);
+            }
+
+            return resource;
+        }
+
+        public static string GetOrCreateResource(ref string resource, string name)
+        {
+            if (resource == null)
+            {
+                using (var stream = GetResourceStream(name))
+                {
+                    using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                    {
+                        resource = streamReader.ReadToEnd();
+                    }
+                }
+            }
+
+            return resource;
+        }
     }
 }

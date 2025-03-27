@@ -9,34 +9,35 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents __value field of an enum.
-/// </summary>
-internal sealed class SynthesizedEnumValueFieldSymbol : SynthesizedFieldSymbolBase
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public SynthesizedEnumValueFieldSymbol(SourceNamedTypeSymbol containingEnum)
-        : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, isPublic: true, isReadOnly: false, isStatic: false)
+    /// <summary>
+    /// Represents __value field of an enum.
+    /// </summary>
+    internal sealed class SynthesizedEnumValueFieldSymbol : SynthesizedFieldSymbolBase
     {
-    }
+        public SynthesizedEnumValueFieldSymbol(SourceNamedTypeSymbol containingEnum)
+            : base(containingEnum, WellKnownMemberNames.EnumBackingFieldName, isPublic: true, isReadOnly: false, isStatic: false)
+        {
+        }
 
-    internal override bool SuppressDynamicAttribute
-    {
-        get { return true; }
-    }
+        internal override bool SuppressDynamicAttribute
+        {
+            get { return true; }
+        }
 
-    public override RefKind RefKind => RefKind.None;
+        public override RefKind RefKind => RefKind.None;
 
-    public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-    internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-    {
-        return TypeWithAnnotations.Create(((SourceNamedTypeSymbol)ContainingType).EnumUnderlyingType);
-    }
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            return TypeWithAnnotations.Create(((SourceNamedTypeSymbol)ContainingType).EnumUnderlyingType);
+        }
 
-    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-    {
-        // no attributes should be emitted
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            // no attributes should be emitted
+        }
     }
 }

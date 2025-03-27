@@ -6,49 +6,50 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis;
-
-internal abstract partial class CommonCompiler
+namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LoggingMetadataFileReferenceResolver : MetadataReferenceResolver, IEquatable<LoggingMetadataFileReferenceResolver>
+    internal abstract partial class CommonCompiler
     {
-        private readonly TouchedFileLogger? _logger;
-        private readonly RelativePathResolver _pathResolver;
-        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _provider;
-
-        public LoggingMetadataFileReferenceResolver(RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger? logger)
+        internal sealed class LoggingMetadataFileReferenceResolver : MetadataReferenceResolver, IEquatable<LoggingMetadataFileReferenceResolver>
         {
-            Debug.Assert(pathResolver != null);
-            Debug.Assert(provider != null);
+            private readonly TouchedFileLogger? _logger;
+            private readonly RelativePathResolver _pathResolver;
+            private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _provider;
 
-            _pathResolver = pathResolver;
-            _provider = provider;
-            _logger = logger;
-        }
-
-        public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
-        {
-            string? fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
-
-            if (fullPath != null)
+            public LoggingMetadataFileReferenceResolver(RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger? logger)
             {
-                _logger?.AddRead(fullPath);
-                return ImmutableArray.Create(_provider(fullPath, properties));
+                Debug.Assert(pathResolver != null);
+                Debug.Assert(provider != null);
+
+                _pathResolver = pathResolver;
+                _provider = provider;
+                _logger = logger;
             }
 
-            return ImmutableArray<PortableExecutableReference>.Empty;
-        }
+            public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
+            {
+                string? fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
 
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
-        }
+                if (fullPath != null)
+                {
+                    _logger?.AddRead(fullPath);
+                    return ImmutableArray.Create(_provider(fullPath, properties));
+                }
 
-        public bool Equals(LoggingMetadataFileReferenceResolver? other)
-        {
-            throw new NotImplementedException();
-        }
+                return ImmutableArray<PortableExecutableReference>.Empty;
+            }
 
-        public override bool Equals(object? obj) => obj is LoggingMetadataFileReferenceResolver other && Equals(other);
+            public override int GetHashCode()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Equals(LoggingMetadataFileReferenceResolver? other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override bool Equals(object? obj) => obj is LoggingMetadataFileReferenceResolver other && Equals(other);
+        }
     }
 }

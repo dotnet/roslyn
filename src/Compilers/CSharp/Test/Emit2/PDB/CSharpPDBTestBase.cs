@@ -13,58 +13,59 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
-
-public class CSharpPDBTestBase : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    public static void TestSequencePoints(string markup, CSharpCompilationOptions compilationOptions, CSharpParseOptions parseOptions = null, string methodName = "")
+    public class CSharpPDBTestBase : CSharpTestBase
     {
-        int? position;
-        TextSpan? expectedSpan;
-        string source;
-        MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
-
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
-        compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-
-        var pdb = PdbValidation.GetPdbXml(compilation, qualifiedMethodName: methodName);
-        bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.GetValueOrDefault(), source, pdb);
-
-        Assert.True(hasBreakpoint);
-    }
-
-    public static bool CheckIfSpanWithinSequencePoints(TextSpan span, string source, string pdb)
-    {
-        // calculate row and column from span
-        var text = SourceText.From(source);
-        var startLine = text.Lines.GetLineFromPosition(span.Start);
-        var startRow = startLine.LineNumber + 1;
-        var startColumn = span.Start - startLine.Start + 1;
-
-        var endLine = text.Lines.GetLineFromPosition(span.End);
-        var endRow = endLine.LineNumber + 1;
-        var endColumn = span.End - endLine.Start + 1;
-
-        var doc = new XmlDocument() { XmlResolver = null };
-        using (var reader = new XmlTextReader(new StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
+        public static void TestSequencePoints(string markup, CSharpCompilationOptions compilationOptions, CSharpParseOptions parseOptions = null, string methodName = "")
         {
-            doc.Load(reader);
+            int? position;
+            TextSpan? expectedSpan;
+            string source;
+            MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
+
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var pdb = PdbValidation.GetPdbXml(compilation, qualifiedMethodName: methodName);
+            bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.GetValueOrDefault(), source, pdb);
+
+            Assert.True(hasBreakpoint);
         }
 
-        foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+        public static bool CheckIfSpanWithinSequencePoints(TextSpan span, string source, string pdb)
         {
-            foreach (XmlElement item in entry.ChildNodes)
+            // calculate row and column from span
+            var text = SourceText.From(source);
+            var startLine = text.Lines.GetLineFromPosition(span.Start);
+            var startRow = startLine.LineNumber + 1;
+            var startColumn = span.Start - startLine.Start + 1;
+
+            var endLine = text.Lines.GetLineFromPosition(span.End);
+            var endRow = endLine.LineNumber + 1;
+            var endColumn = span.End - endLine.Start + 1;
+
+            var doc = new XmlDocument() { XmlResolver = null };
+            using (var reader = new XmlTextReader(new StringReader(pdb)) { DtdProcessing = DtdProcessing.Prohibit })
             {
-                if (startRow.ToString() == item.GetAttribute("startLine") &&
-                    startColumn.ToString() == item.GetAttribute("startColumn") &&
-                    endRow.ToString() == item.GetAttribute("endLine") &&
-                    endColumn.ToString() == item.GetAttribute("endColumn"))
+                doc.Load(reader);
+            }
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
                 {
-                    return true;
+                    if (startRow.ToString() == item.GetAttribute("startLine") &&
+                        startColumn.ToString() == item.GetAttribute("startColumn") &&
+                        endRow.ToString() == item.GetAttribute("endLine") &&
+                        endColumn.ToString() == item.GetAttribute("endColumn"))
+                    {
+                        return true;
+                    }
                 }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 }

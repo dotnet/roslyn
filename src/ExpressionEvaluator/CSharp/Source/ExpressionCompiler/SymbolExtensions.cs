@@ -7,20 +7,21 @@ using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal static class SymbolExtensions
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(this MethodSymbol method)
+    internal static class SymbolExtensions
     {
-        var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
-        method.ContainingType.GetAllTypeParameters(builder);
-        builder.AddRange(method.TypeParameters);
-        return builder.ToImmutableAndFree();
-    }
+        internal static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(this MethodSymbol method)
+        {
+            var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            method.ContainingType.GetAllTypeParameters(builder);
+            builder.AddRange(method.TypeParameters);
+            return builder.ToImmutableAndFree();
+        }
 
-    internal static ReadOnlyCollection<byte>? GetCustomTypeInfoPayload(this MethodSymbol method)
-    {
-        return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType, method.ReturnTypeWithAnnotations.CustomModifiers.Length + method.RefCustomModifiers.Length, RefKind.None);
+        internal static ReadOnlyCollection<byte>? GetCustomTypeInfoPayload(this MethodSymbol method)
+        {
+            return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType, method.ReturnTypeWithAnnotations.CustomModifiers.Length + method.RefCustomModifiers.Length, RefKind.None);
+        }
     }
 }

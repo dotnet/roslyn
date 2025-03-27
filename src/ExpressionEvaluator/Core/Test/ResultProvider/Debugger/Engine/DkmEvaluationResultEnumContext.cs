@@ -13,38 +13,39 @@ using System;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.CallStack;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public class DkmEvaluationResultEnumContext : DkmDataContainer
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public readonly int Count;
-    public readonly DkmInspectionContext InspectionContext;
-
-    internal DkmEvaluationResultEnumContext(int count, DkmInspectionContext inspectionContext)
+    public class DkmEvaluationResultEnumContext : DkmDataContainer
     {
-        this.Count = count;
-        this.InspectionContext = inspectionContext;
-    }
+        public readonly int Count;
+        public readonly DkmInspectionContext InspectionContext;
 
-    public static DkmEvaluationResultEnumContext Create(int Count, DkmStackWalkFrame StackFrame, DkmInspectionContext InspectionContext, DkmDataItem DataItem)
-    {
-        var enumContext = new DkmEvaluationResultEnumContext(Count, InspectionContext);
-        if (DataItem != null)
+        internal DkmEvaluationResultEnumContext(int count, DkmInspectionContext inspectionContext)
         {
-            enumContext.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
+            this.Count = count;
+            this.InspectionContext = inspectionContext;
         }
-        return enumContext;
-    }
 
-    public void GetItems(DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
-    {
-        InspectionContext.InspectionSession.InvokeResultProvider(
-            this,
-            MethodId.GetItems,
-            r =>
+        public static DkmEvaluationResultEnumContext Create(int Count, DkmStackWalkFrame StackFrame, DkmInspectionContext InspectionContext, DkmDataItem DataItem)
+        {
+            var enumContext = new DkmEvaluationResultEnumContext(Count, InspectionContext);
+            if (DataItem != null)
             {
-                r.GetItems(this, workList, startIndex, count, completionRoutine);
-                return (object)null;
-            });
+                enumContext.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
+            }
+            return enumContext;
+        }
+
+        public void GetItems(DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
+        {
+            InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
+                MethodId.GetItems,
+                r =>
+                {
+                    r.GetItems(this, workList, startIndex, count, completionRoutine);
+                    return (object)null;
+                });
+        }
     }
 }

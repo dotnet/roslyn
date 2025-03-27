@@ -4,10 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal partial class ContextAwareSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    public GlobalStatementSyntax GlobalStatement(StatementSyntax statement)
-        => GlobalStatement(attributeLists: default, modifiers: default, statement);
+    internal partial class ContextAwareSyntax
+    {
+        public GlobalStatementSyntax GlobalStatement(StatementSyntax statement)
+            => GlobalStatement(attributeLists: default, modifiers: default, statement);
+    }
 }

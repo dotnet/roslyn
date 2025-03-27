@@ -11,77 +11,78 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Collections.Internal;
-
-/// <summary>Equality comparer for hashsets of hashsets</summary>
-internal sealed class SegmentedHashSetEqualityComparer<T> : IEqualityComparer<SegmentedHashSet<T>?>
+namespace Microsoft.CodeAnalysis.Collections.Internal
 {
-    public bool Equals(SegmentedHashSet<T>? x, SegmentedHashSet<T>? y)
+    /// <summary>Equality comparer for hashsets of hashsets</summary>
+    internal sealed class SegmentedHashSetEqualityComparer<T> : IEqualityComparer<SegmentedHashSet<T>?>
     {
-        // If they're the exact same instance, they're equal.
-        if (ReferenceEquals(x, y))
+        public bool Equals(SegmentedHashSet<T>? x, SegmentedHashSet<T>? y)
         {
-            return true;
-        }
-
-        // They're not both null, so if either is null, they're not equal.
-        if (x == null || y == null)
-        {
-            return false;
-        }
-
-        var defaultComparer = EqualityComparer<T>.Default;
-
-        // If both sets use the same comparer, they're equal if they're the same
-        // size and one is a "subset" of the other.
-        if (SegmentedHashSet<T>.EqualityComparersAreEqual(x, y))
-        {
-            return x.Count == y.Count && y.IsSubsetOfHashSetWithSameComparer(x);
-        }
-
-        // Otherwise, do an O(N^2) match.
-        // 🐛 This is non-symmetrical, but matches original: https://github.com/dotnet/runtime/issues/69218
-        foreach (var yi in y)
-        {
-            var found = false;
-            foreach (var xi in x)
+            // If they're the exact same instance, they're equal.
+            if (ReferenceEquals(x, y))
             {
-                if (defaultComparer.Equals(yi, xi))
-                {
-                    found = true;
-                    break;
-                }
+                return true;
             }
 
-            if (!found)
+            // They're not both null, so if either is null, they're not equal.
+            if (x == null || y == null)
             {
                 return false;
             }
-        }
 
-        return true;
-    }
+            var defaultComparer = EqualityComparer<T>.Default;
 
-    public int GetHashCode(SegmentedHashSet<T>? obj)
-    {
-        var hashCode = 0; // default to 0 for null/empty set
-
-        if (obj != null)
-        {
-            foreach (var t in obj)
+            // If both sets use the same comparer, they're equal if they're the same
+            // size and one is a "subset" of the other.
+            if (SegmentedHashSet<T>.EqualityComparersAreEqual(x, y))
             {
-                if (t != null)
+                return x.Count == y.Count && y.IsSubsetOfHashSetWithSameComparer(x);
+            }
+
+            // Otherwise, do an O(N^2) match.
+            // 🐛 This is non-symmetrical, but matches original: https://github.com/dotnet/runtime/issues/69218
+            foreach (var yi in y)
+            {
+                var found = false;
+                foreach (var xi in x)
                 {
-                    hashCode ^= t.GetHashCode(); // same hashcode as default comparer
+                    if (defaultComparer.Equals(yi, xi))
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    return false;
                 }
             }
+
+            return true;
         }
 
-        return hashCode;
+        public int GetHashCode(SegmentedHashSet<T>? obj)
+        {
+            var hashCode = 0; // default to 0 for null/empty set
+
+            if (obj != null)
+            {
+                foreach (var t in obj)
+                {
+                    if (t != null)
+                    {
+                        hashCode ^= t.GetHashCode(); // same hashcode as default comparer
+                    }
+                }
+            }
+
+            return hashCode;
+        }
+
+        // Equals method for the comparer itself.
+        public override bool Equals([NotNullWhen(true)] object? obj) => obj is SegmentedHashSetEqualityComparer<T>;
+
+        public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode();
     }
-
-    // Equals method for the comparer itself.
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is SegmentedHashSetEqualityComparer<T>;
-
-    public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode();
 }

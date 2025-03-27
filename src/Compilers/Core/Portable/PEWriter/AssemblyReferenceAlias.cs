@@ -5,29 +5,30 @@
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci;
-
-/// <summary>
-/// Represents an assembly reference with an alias (C# only, /r:Name=Reference on command line).
-/// </summary>
-internal readonly struct AssemblyReferenceAlias
+namespace Microsoft.Cci
 {
     /// <summary>
-    /// An alias for the global namespace of the assembly.
+    /// Represents an assembly reference with an alias (C# only, /r:Name=Reference on command line).
     /// </summary>
-    public readonly string Name;
-
-    /// <summary>
-    /// The assembly reference.
-    /// </summary>
-    public readonly IAssemblyReference Assembly;
-
-    internal AssemblyReferenceAlias(string name, IAssemblyReference assembly)
+    internal readonly struct AssemblyReferenceAlias
     {
-        RoslynDebug.Assert(name != null);
-        RoslynDebug.Assert(assembly != null);
+        /// <summary>
+        /// An alias for the global namespace of the assembly.
+        /// </summary>
+        public readonly string Name;
 
-        Name = name;
-        Assembly = assembly;
+        /// <summary>
+        /// The assembly reference.
+        /// </summary>
+        public readonly IAssemblyReference Assembly;
+
+        internal AssemblyReferenceAlias(string name, IAssemblyReference assembly)
+        {
+            RoslynDebug.Assert(name != null);
+            RoslynDebug.Assert(assembly != null);
+
+            Name = name;
+            Assembly = assembly;
+        }
     }
 }

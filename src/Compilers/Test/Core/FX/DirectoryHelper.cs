@@ -9,44 +9,45 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public class DirectoryHelper
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public event Action<string> FileFound;
-
-    private readonly string _rootPath;
-    public DirectoryHelper(string path)
+    public class DirectoryHelper
     {
-        if (!Directory.Exists(path))
+        public event Action<string> FileFound;
+
+        private readonly string _rootPath;
+        public DirectoryHelper(string path)
         {
-            throw new ArgumentException("Directory '" + path + "' does not exist.", nameof(path));
+            if (!Directory.Exists(path))
+            {
+                throw new ArgumentException("Directory '" + path + "' does not exist.", nameof(path));
+            }
+
+            _rootPath = path;
         }
 
-        _rootPath = path;
-    }
-
-    public void IterateFiles(string[] searchPatterns)
-    {
-        IterateFiles(searchPatterns, _rootPath);
-    }
-
-    private void IterateFiles(string[] searchPatterns, string directoryPath)
-    {
-        var files = new List<string>();
-        foreach (var pattern in searchPatterns)
+        public void IterateFiles(string[] searchPatterns)
         {
-            files.AddRange(Directory.GetFiles(directoryPath, pattern, SearchOption.TopDirectoryOnly));
+            IterateFiles(searchPatterns, _rootPath);
         }
 
-        foreach (var f in files)
+        private void IterateFiles(string[] searchPatterns, string directoryPath)
         {
-            FileFound(f);
-        }
+            var files = new List<string>();
+            foreach (var pattern in searchPatterns)
+            {
+                files.AddRange(Directory.GetFiles(directoryPath, pattern, SearchOption.TopDirectoryOnly));
+            }
 
-        foreach (var d in Directory.GetDirectories(directoryPath))
-        {
-            IterateFiles(searchPatterns, d);
+            foreach (var f in files)
+            {
+                FileFound(f);
+            }
+
+            foreach (var d in Directory.GetDirectories(directoryPath))
+            {
+                IterateFiles(searchPatterns, d);
+            }
         }
     }
 }

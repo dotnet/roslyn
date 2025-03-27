@@ -8,92 +8,93 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class ParameterSymbol : Symbol, IParameterSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly Symbols.ParameterSymbol _underlying;
-    private ITypeSymbol _lazyType;
-
-    public ParameterSymbol(Symbols.ParameterSymbol underlying)
+    internal sealed class ParameterSymbol : Symbol, IParameterSymbol
     {
-        Debug.Assert(underlying is object);
-        _underlying = underlying;
-    }
+        private readonly Symbols.ParameterSymbol _underlying;
+        private ITypeSymbol _lazyType;
 
-    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-    ITypeSymbol IParameterSymbol.Type
-    {
-        get
+        public ParameterSymbol(Symbols.ParameterSymbol underlying)
         {
-            if (_lazyType is null)
+            Debug.Assert(underlying is object);
+            _underlying = underlying;
+        }
+
+        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
+
+        ITypeSymbol IParameterSymbol.Type
+        {
+            get
             {
-                Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
+                if (_lazyType is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
+                }
+
+                return _lazyType;
             }
-
-            return _lazyType;
         }
-    }
 
-    CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
+        CodeAnalysis.NullableAnnotation IParameterSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
 
-    ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
-    {
-        get { return _underlying.TypeWithAnnotations.CustomModifiers; }
-    }
-
-    ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
-    {
-        get { return _underlying.RefCustomModifiers; }
-    }
-
-    IParameterSymbol IParameterSymbol.OriginalDefinition
-    {
-        get
+        ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            return _underlying.OriginalDefinition.GetPublicSymbol();
+            get { return _underlying.TypeWithAnnotations.CustomModifiers; }
         }
+
+        ImmutableArray<CustomModifier> IParameterSymbol.RefCustomModifiers
+        {
+            get { return _underlying.RefCustomModifiers; }
+        }
+
+        IParameterSymbol IParameterSymbol.OriginalDefinition
+        {
+            get
+            {
+                return _underlying.OriginalDefinition.GetPublicSymbol();
+            }
+        }
+
+        RefKind IParameterSymbol.RefKind => _underlying.RefKind;
+
+        ScopedKind IParameterSymbol.ScopedKind => _underlying.EffectiveScope;
+
+        bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
+
+        bool IParameterSymbol.IsParams => _underlying.IsParams;
+
+        bool IParameterSymbol.IsParamsArray => _underlying.IsParamsArray;
+
+        bool IParameterSymbol.IsParamsCollection => _underlying.IsParamsCollection;
+
+        bool IParameterSymbol.IsOptional => _underlying.IsOptional;
+
+        bool IParameterSymbol.IsThis => _underlying.IsThis;
+
+        int IParameterSymbol.Ordinal => _underlying.Ordinal;
+
+        bool IParameterSymbol.HasExplicitDefaultValue => _underlying.HasExplicitDefaultValue;
+
+        object IParameterSymbol.ExplicitDefaultValue => _underlying.ExplicitDefaultValue;
+
+        #region ISymbol Members
+
+        protected override void Accept(SymbolVisitor visitor)
+        {
+            visitor.VisitParameter(this);
+        }
+
+        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitParameter(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitParameter(this, argument);
+        }
+
+        #endregion
     }
-
-    RefKind IParameterSymbol.RefKind => _underlying.RefKind;
-
-    ScopedKind IParameterSymbol.ScopedKind => _underlying.EffectiveScope;
-
-    bool IParameterSymbol.IsDiscard => _underlying.IsDiscard;
-
-    bool IParameterSymbol.IsParams => _underlying.IsParams;
-
-    bool IParameterSymbol.IsParamsArray => _underlying.IsParamsArray;
-
-    bool IParameterSymbol.IsParamsCollection => _underlying.IsParamsCollection;
-
-    bool IParameterSymbol.IsOptional => _underlying.IsOptional;
-
-    bool IParameterSymbol.IsThis => _underlying.IsThis;
-
-    int IParameterSymbol.Ordinal => _underlying.Ordinal;
-
-    bool IParameterSymbol.HasExplicitDefaultValue => _underlying.HasExplicitDefaultValue;
-
-    object IParameterSymbol.ExplicitDefaultValue => _underlying.ExplicitDefaultValue;
-
-    #region ISymbol Members
-
-    protected override void Accept(SymbolVisitor visitor)
-    {
-        visitor.VisitParameter(this);
-    }
-
-    protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-    {
-        return visitor.VisitParameter(this);
-    }
-
-    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
-        return visitor.VisitParameter(this, argument);
-    }
-
-    #endregion
 }

@@ -6,44 +6,45 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Describes a command line analyzer assembly specification.
-/// </summary>
-[DebuggerDisplay("{FilePath,nq}")]
-public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
+namespace Microsoft.CodeAnalysis
 {
-    private readonly string _path;
-
-    public CommandLineAnalyzerReference(string path)
-    {
-        _path = path;
-    }
-
     /// <summary>
-    /// Assembly file path.
+    /// Describes a command line analyzer assembly specification.
     /// </summary>
-    public string FilePath
+    [DebuggerDisplay("{FilePath,nq}")]
+    public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
     {
-        get
+        private readonly string _path;
+
+        public CommandLineAnalyzerReference(string path)
         {
-            return _path;
+            _path = path;
         }
-    }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
-    }
+        /// <summary>
+        /// Assembly file path.
+        /// </summary>
+        public string FilePath
+        {
+            get
+            {
+                return _path;
+            }
+        }
 
-    public bool Equals(CommandLineAnalyzerReference other)
-    {
-        return _path == other._path;
-    }
+        public override bool Equals(object? obj)
+        {
+            return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
+        }
 
-    public override int GetHashCode()
-    {
-        return Hash.Combine(_path, 0);
+        public bool Equals(CommandLineAnalyzerReference other)
+        {
+            return _path == other._path;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hash.Combine(_path, 0);
+        }
     }
 }

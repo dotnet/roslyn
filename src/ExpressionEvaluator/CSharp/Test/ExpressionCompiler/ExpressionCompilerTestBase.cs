@@ -29,527 +29,528 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests;
-
-public abstract class ExpressionCompilerTestBase : CSharpTestBase, IDisposable
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
-    private readonly ArrayBuilder<IDisposable> _runtimeInstances = ArrayBuilder<IDisposable>.GetInstance();
-
-    internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
-
-    protected ExpressionCompilerTestBase()
+    public abstract class ExpressionCompilerTestBase : CSharpTestBase, IDisposable
     {
-        // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
-        ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
-    }
+        private readonly ArrayBuilder<IDisposable> _runtimeInstances = ArrayBuilder<IDisposable>.GetInstance();
 
-    public override void Dispose()
-    {
-        base.Dispose();
+        internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
 
-        foreach (var instance in _runtimeInstances)
+        protected ExpressionCompilerTestBase()
         {
-            instance.Dispose();
+            // We never want to swallow Exceptions (generate a non-fatal Watson) when running tests.
+            ExpressionEvaluatorFatalError.IsFailFastEnabled = true;
         }
-        _runtimeInstances.Free();
-    }
 
-    internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
-    {
-        WithRuntimeInstance(compilation, null, validator: validator, targetDebugFormat);
-    }
-
-    internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
-    {
-        WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator, targetDebugFormat);
-    }
-
-    internal static void WithRuntimeInstance(
-        Compilation compilation,
-        IEnumerable<MetadataReference> references,
-        bool includeLocalSignatures,
-        bool includeIntrinsicAssembly,
-        Action<RuntimeInstance> validator,
-        DebugInformationFormat targetDebugFormat = 0)
-    {
-        foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
+        public override void Dispose()
         {
-            if (targetDebugFormat != 0 && debugFormat != targetDebugFormat)
+            base.Dispose();
+
+            foreach (var instance in _runtimeInstances)
             {
-                continue;
+                instance.Dispose();
+            }
+            _runtimeInstances.Free();
+        }
+
+        internal static void WithRuntimeInstance(Compilation compilation, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
+        {
+            WithRuntimeInstance(compilation, null, validator: validator, targetDebugFormat);
+        }
+
+        internal static void WithRuntimeInstance(Compilation compilation, IEnumerable<MetadataReference> references, Action<RuntimeInstance> validator, DebugInformationFormat targetDebugFormat = 0)
+        {
+            WithRuntimeInstance(compilation, references, includeLocalSignatures: true, includeIntrinsicAssembly: true, validator: validator, targetDebugFormat);
+        }
+
+        internal static void WithRuntimeInstance(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references,
+            bool includeLocalSignatures,
+            bool includeIntrinsicAssembly,
+            Action<RuntimeInstance> validator,
+            DebugInformationFormat targetDebugFormat = 0)
+        {
+            foreach (var debugFormat in new[] { DebugInformationFormat.Pdb, DebugInformationFormat.PortablePdb })
+            {
+                if (targetDebugFormat != 0 && debugFormat != targetDebugFormat)
+                {
+                    continue;
+                }
+
+                using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly))
+                {
+                    validator(instance);
+                }
+            }
+        }
+
+        internal RuntimeInstance CreateRuntimeInstance(IEnumerable<ModuleInstance> modules)
+        {
+            var instance = RuntimeInstance.Create(modules);
+            _runtimeInstances.Add(instance);
+            return instance;
+        }
+
+        internal RuntimeInstance CreateRuntimeInstance(
+            Compilation compilation,
+            IEnumerable<MetadataReference> references = null,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
+            bool includeLocalSignatures = true)
+        {
+            var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly: true);
+            _runtimeInstances.Add(instance);
+            return instance;
+        }
+
+        internal RuntimeInstance CreateRuntimeInstance(
+            ModuleInstance module,
+            IEnumerable<MetadataReference> references)
+        {
+            var instance = RuntimeInstance.Create(module, references, DebugInformationFormat.Pdb);
+            _runtimeInstances.Add(instance);
+            return instance;
+        }
+
+        internal sealed class AppDomain
+        {
+            private MetadataContext<CSharpMetadataContext> _metadataContext;
+
+            internal MetadataContext<CSharpMetadataContext> GetMetadataContext()
+            {
+                return _metadataContext;
             }
 
-            using (var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly))
+            internal void SetMetadataContext(MetadataContext<CSharpMetadataContext> metadataContext)
             {
-                validator(instance);
+                _metadataContext = metadataContext;
+            }
+
+            internal void RemoveMetadataContext()
+            {
+                _metadataContext = default;
             }
         }
-    }
 
-    internal RuntimeInstance CreateRuntimeInstance(IEnumerable<ModuleInstance> modules)
-    {
-        var instance = RuntimeInstance.Create(modules);
-        _runtimeInstances.Add(instance);
-        return instance;
-    }
-
-    internal RuntimeInstance CreateRuntimeInstance(
-        Compilation compilation,
-        IEnumerable<MetadataReference> references = null,
-        DebugInformationFormat debugFormat = DebugInformationFormat.Pdb,
-        bool includeLocalSignatures = true)
-    {
-        var instance = RuntimeInstance.Create(compilation, references, debugFormat, includeLocalSignatures, includeIntrinsicAssembly: true);
-        _runtimeInstances.Add(instance);
-        return instance;
-    }
-
-    internal RuntimeInstance CreateRuntimeInstance(
-        ModuleInstance module,
-        IEnumerable<MetadataReference> references)
-    {
-        var instance = RuntimeInstance.Create(module, references, DebugInformationFormat.Pdb);
-        _runtimeInstances.Add(instance);
-        return instance;
-    }
-
-    internal sealed class AppDomain
-    {
-        private MetadataContext<CSharpMetadataContext> _metadataContext;
-
-        internal MetadataContext<CSharpMetadataContext> GetMetadataContext()
+        internal static EvaluationContext CreateTypeContext(
+            AppDomain appDomain,
+            ImmutableArray<MetadataBlock> blocks,
+            ModuleId moduleId,
+            int typeToken,
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
         {
-            return _metadataContext;
+            return CSharpExpressionCompiler.CreateTypeContext(
+                appDomain,
+                ad => ad.GetMetadataContext(),
+                blocks,
+                moduleId,
+                typeToken,
+                kind);
         }
 
-        internal void SetMetadataContext(MetadataContext<CSharpMetadataContext> metadataContext)
+        internal static EvaluationContext CreateMethodContext(
+            AppDomain appDomain,
+            ImmutableArray<MetadataBlock> blocks,
+            ISymUnmanagedReader symReader,
+            ModuleId moduleId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken,
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
         {
-            _metadataContext = metadataContext;
+            return CSharpExpressionCompiler.CreateMethodContext(
+                appDomain,
+                ad => ad.GetMetadataContext(),
+                (ad, mc, report) => ad.SetMetadataContext(mc),
+                blocks,
+                symReader,
+                moduleId,
+                methodToken,
+                methodVersion,
+                ilOffset,
+                localSignatureToken,
+                kind);
         }
 
-        internal void RemoveMetadataContext()
+        internal static EvaluationContext CreateMethodContext(
+            AppDomain appDomain,
+            ImmutableArray<MetadataBlock> blocks,
+            (ModuleId ModuleId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
+            MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllReferences)
         {
-            _metadataContext = default;
-        }
-    }
-
-    internal static EvaluationContext CreateTypeContext(
-        AppDomain appDomain,
-        ImmutableArray<MetadataBlock> blocks,
-        ModuleId moduleId,
-        int typeToken,
-        MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
-    {
-        return CSharpExpressionCompiler.CreateTypeContext(
-            appDomain,
-            ad => ad.GetMetadataContext(),
-            blocks,
-            moduleId,
-            typeToken,
-            kind);
-    }
-
-    internal static EvaluationContext CreateMethodContext(
-        AppDomain appDomain,
-        ImmutableArray<MetadataBlock> blocks,
-        ISymUnmanagedReader symReader,
-        ModuleId moduleId,
-        int methodToken,
-        int methodVersion,
-        uint ilOffset,
-        int localSignatureToken,
-        MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllAssemblies)
-    {
-        return CSharpExpressionCompiler.CreateMethodContext(
-            appDomain,
-            ad => ad.GetMetadataContext(),
-            (ad, mc, report) => ad.SetMetadataContext(mc),
-            blocks,
-            symReader,
-            moduleId,
-            methodToken,
-            methodVersion,
-            ilOffset,
-            localSignatureToken,
-            kind);
-    }
-
-    internal static EvaluationContext CreateMethodContext(
-        AppDomain appDomain,
-        ImmutableArray<MetadataBlock> blocks,
-        (ModuleId ModuleId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) state,
-        MakeAssemblyReferencesKind kind = MakeAssemblyReferencesKind.AllReferences)
-    {
-        return CreateMethodContext(
-            appDomain,
-            blocks,
-            state.SymReader,
-            state.ModuleId,
-            state.MethodToken,
-            methodVersion: 1,
-            state.ILOffset,
-            state.LocalSignatureToken,
-            kind);
-    }
-
-    internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, ModuleId moduleId = default)
-    {
-        var assemblyContexts = appDomainContext.AssemblyContexts;
-        return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(moduleId.Id), out CSharpMetadataContext context)
-            ? context
-            : default;
-    }
-
-    internal static MetadataContext<CSharpMetadataContext> SetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid, CSharpMetadataContext context)
-    {
-        return new MetadataContext<CSharpMetadataContext>(
-            appDomainContext.MetadataBlocks,
-            appDomainContext.AssemblyContexts.SetItem(new MetadataContextId(mvid), context));
-    }
-
-    internal static (ModuleId ModuleId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) GetContextState(RuntimeInstance runtime, string methodName)
-    {
-        ModuleId moduleId;
-        ISymUnmanagedReader symReader;
-        int methodToken;
-        int localSignatureToken;
-        GetContextState(
-            runtime,
-            methodName,
-            out _,
-            out moduleId,
-            out symReader,
-            out methodToken,
-            out localSignatureToken);
-        uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
-        return (moduleId, symReader, methodToken, localSignatureToken, ilOffset);
-    }
-
-    internal static void GetContextState(
-        RuntimeInstance runtime,
-        string methodOrTypeName,
-        out ImmutableArray<MetadataBlock> blocks,
-        out ModuleId moduleId,
-        out ISymUnmanagedReader symReader,
-        out int methodOrTypeToken,
-        out int localSignatureToken)
-    {
-        var moduleInstances = runtime.Modules;
-        blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
-
-        var compilation = blocks.ToCompilation(new ModuleId(id: default, "test"), MakeAssemblyReferencesKind.AllAssemblies);
-
-        var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
-
-        var module = (PEModuleSymbol)methodOrType.ContainingModule;
-        var mvid = module.Module.GetModuleVersionIdOrThrow();
-        var moduleInstance = moduleInstances.First(m => m.Id.Id == mvid);
-
-        moduleId = moduleInstance.Id;
-        symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
-
-        EntityHandle methodOrTypeHandle;
-        if (methodOrType.Kind == SymbolKind.Method)
-        {
-            methodOrTypeHandle = ((PEMethodSymbol)methodOrType).Handle;
-            localSignatureToken = moduleInstance.GetLocalSignatureToken((MethodDefinitionHandle)methodOrTypeHandle);
-        }
-        else
-        {
-            methodOrTypeHandle = ((PENamedTypeSymbol)methodOrType).Handle;
-            localSignatureToken = -1;
+            return CreateMethodContext(
+                appDomain,
+                blocks,
+                state.SymReader,
+                state.ModuleId,
+                state.MethodToken,
+                methodVersion: 1,
+                state.ILOffset,
+                state.LocalSignatureToken,
+                kind);
         }
 
-        MetadataReader reader = null; // null should be ok
-        methodOrTypeToken = reader.GetToken(methodOrTypeHandle);
-    }
-
-    internal static EvaluationContext CreateMethodContext(
-        RuntimeInstance runtime,
-        string methodName,
-        int atLineNumber = -1)
-    {
-        ImmutableArray<MetadataBlock> blocks;
-        ModuleId moduleId;
-        ISymUnmanagedReader symReader;
-        int methodToken;
-        int localSignatureToken;
-        GetContextState(runtime, methodName, out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
-
-        uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
-
-        return CreateMethodContext(
-            new AppDomain(),
-            blocks,
-            symReader,
-            moduleId,
-            methodToken: methodToken,
-            methodVersion: 1,
-            ilOffset: ilOffset,
-            localSignatureToken: localSignatureToken,
-            kind: MakeAssemblyReferencesKind.AllAssemblies);
-    }
-
-    internal static EvaluationContext CreateTypeContext(
-        RuntimeInstance runtime,
-        string typeName)
-    {
-        ImmutableArray<MetadataBlock> blocks;
-        ModuleId moduleId;
-        ISymUnmanagedReader symReader;
-        int typeToken;
-        int localSignatureToken;
-        GetContextState(runtime, typeName, out blocks, out moduleId, out symReader, out typeToken, out localSignatureToken);
-        return CreateTypeContext(
-            new AppDomain(),
-            blocks,
-            moduleId,
-            typeToken,
-            kind: MakeAssemblyReferencesKind.AllAssemblies);
-    }
-
-    internal CompilationTestData Evaluate(
-        string source,
-        OutputKind outputKind,
-        string methodName,
-        string expr,
-        int atLineNumber = -1,
-        bool includeSymbols = true,
-        TargetFramework targetFramework = TargetFramework.Standard,
-        DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
-    {
-        var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework, debugFormat: debugFormat);
-        Assert.Null(error);
-        return result;
-    }
-
-    internal CompilationTestData Evaluate(
-        CSharpCompilation compilation,
-        string methodName,
-        string expr,
-        int atLineNumber = -1,
-        bool includeSymbols = true)
-    {
-        var result = Evaluate(compilation, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
-        Assert.Null(error);
-        return result;
-    }
-
-    internal CompilationTestData Evaluate(
-        string source,
-        OutputKind outputKind,
-        string methodName,
-        string expr,
-        out ResultProperties resultProperties,
-        out string error,
-        int atLineNumber = -1,
-        bool includeSymbols = true,
-        TargetFramework targetFramework = TargetFramework.Standard,
-        DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
-    {
-        var compilation = CreateCompilation(
-            source,
-            parseOptions: SyntaxHelpers.PreviewParseOptions,
-            options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
-            targetFramework: targetFramework);
-
-        return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols, debugFormat);
-    }
-
-    internal CompilationTestData Evaluate(
-        CSharpCompilation compilation,
-        string methodName,
-        string expr,
-        out ResultProperties resultProperties,
-        out string error,
-        int atLineNumber = -1,
-        bool includeSymbols = true,
-        DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
-    {
-        var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? debugFormat : 0);
-        var context = CreateMethodContext(runtime, methodName, atLineNumber);
-        var testData = new CompilationTestData();
-        ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-        var result = context.CompileExpression(
-            expr,
-            DkmEvaluationFlags.TreatAsExpression,
-            NoAliases,
-            DebuggerDiagnosticFormatter.Instance,
-            out resultProperties,
-            out error,
-            out missingAssemblyIdentities,
-            EnsureEnglishUICulture.PreferredOrNull,
-            testData);
-        Assert.Empty(missingAssemblyIdentities);
-        return testData;
-    }
-
-    /// <summary>
-    /// Verify all type parameters from the method
-    /// are from that method or containing types.
-    /// </summary>
-    internal static void VerifyTypeParameters(MethodSymbol method)
-    {
-        Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
-        AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
-        AssertEx.All(method.TypeArgumentsWithAnnotations, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.Type));
-        AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
-        VerifyTypeParameters(method.ContainingType);
-    }
-
-    internal static void VerifyLocal(
-        CompilationTestData testData,
-        string typeName,
-        LocalAndMethod localAndMethod,
-        string expectedMethodName,
-        string expectedLocalName,
-        string expectedLocalDisplayName = null,
-        DkmClrCompilationResultFlags expectedFlags = DkmClrCompilationResultFlags.None,
-        string expectedILOpt = null,
-        bool expectedGeneric = false,
-        [CallerFilePath] string expectedValueSourcePath = null,
-        [CallerLineNumber] int expectedValueSourceLine = 0)
-    {
-        ExpressionCompilerTestHelpers.VerifyLocal<MethodSymbol>(
-            testData,
-            typeName,
-            localAndMethod,
-            expectedMethodName,
-            expectedLocalName,
-            expectedLocalDisplayName ?? expectedLocalName,
-            expectedFlags,
-            VerifyTypeParameters,
-            expectedILOpt,
-            expectedGeneric,
-            expectedValueSourcePath,
-            expectedValueSourceLine);
-    }
-
-    /// <summary>
-    /// Verify all type parameters from the type
-    /// are from that type or containing types.
-    /// </summary>
-    internal static void VerifyTypeParameters(NamedTypeSymbol type)
-    {
-        AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
-        AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
-        var container = type.ContainingType;
-        if ((object)container != null)
+        internal static CSharpMetadataContext GetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, ModuleId moduleId = default)
         {
-            VerifyTypeParameters(container);
+            var assemblyContexts = appDomainContext.AssemblyContexts;
+            return assemblyContexts != null && assemblyContexts.TryGetValue(new MetadataContextId(moduleId.Id), out CSharpMetadataContext context)
+                ? context
+                : default;
         }
-    }
 
-    internal static Symbol GetMethodOrTypeBySignature(Compilation compilation, string signature)
-    {
-        string[] parameterTypeNames;
-        var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
-
-        var candidates = compilation.GetMembers(methodOrTypeName);
-        var methodOrType = (parameterTypeNames == null)
-            ? candidates.FirstOrDefault()
-            : candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
-
-        Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
-        return methodOrType;
-    }
-
-    internal static Alias VariableAlias(string name, Type type = null)
-    {
-        return VariableAlias(name, (type ?? typeof(object)).AssemblyQualifiedName);
-    }
-
-    internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
-    {
-        return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(Guid), null);
-    }
-
-    internal static Alias ObjectIdAlias(uint id, Type type = null)
-    {
-        return ObjectIdAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
-    }
-
-    internal static Alias ObjectIdAlias(uint id, string typeAssemblyQualifiedName)
-    {
-        Assert.NotEqual(0u, id); // Not a valid id.
-        var name = $"${id}";
-        return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(Guid), null);
-    }
-
-    internal static Alias ReturnValueAlias(int id = -1, Type type = null)
-    {
-        return ReturnValueAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
-    }
-
-    internal static Alias ReturnValueAlias(int id, string typeAssemblyQualifiedName)
-    {
-        var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
-        var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
-        return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
-    }
-
-    internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
-    {
-        return ExceptionAlias((type ?? typeof(Exception)).AssemblyQualifiedName, stowed);
-    }
-
-    internal static Alias ExceptionAlias(string typeAssemblyQualifiedName, bool stowed = false)
-    {
-        var name = "Error";
-        var fullName = stowed ? "$stowedexception" : "$exception";
-        var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
-        return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
-    }
-
-    internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, ReadOnlyCollection<byte> payload)
-    {
-        return new Alias(kind, name, fullName, type, (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId, payload);
-    }
-
-    internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName, int ilOffset = 0)
-    {
-        var peCompilation = runtime.Modules.SelectAsArray(m => m.MetadataBlock).ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies);
-        var peMethod = peCompilation.GlobalNamespace.GetMember<PEMethodSymbol>(qualifiedMethodName);
-        var peModule = (PEModuleSymbol)peMethod.ContainingModule;
-
-        var symReader = runtime.Modules.Single(mi => mi.Id.Id == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
-        var symbolProvider = new CSharpEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod);
-
-        return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
-    }
-
-    internal static void CheckAttribute(IEnumerable<byte> assembly, MethodSymbol method, AttributeDescription description, bool expected)
-    {
-        var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
-
-        var typeName = method.ContainingType.Name;
-        var typeHandle = module.MetadataReader.TypeDefinitions
-            .Single(handle => module.GetTypeDefNameOrThrow(handle) == typeName);
-
-        var methodName = method.Name;
-        var methodHandle = module
-            .GetMethodsOfTypeOrThrow(typeHandle)
-            .Single(handle => module.GetMethodDefNameOrThrow(handle) == methodName);
-
-        var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
-
-        if (returnParamHandle.IsNil)
+        internal static MetadataContext<CSharpMetadataContext> SetMetadataContext(MetadataContext<CSharpMetadataContext> appDomainContext, Guid mvid, CSharpMetadataContext context)
         {
-            Assert.False(expected);
+            return new MetadataContext<CSharpMetadataContext>(
+                appDomainContext.MetadataBlocks,
+                appDomainContext.AssemblyContexts.SetItem(new MetadataContextId(mvid), context));
         }
-        else
-        {
-            var attributes = module
-                .GetCustomAttributesOrThrow(returnParamHandle)
-                .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
 
-            if (expected)
+        internal static (ModuleId ModuleId, ISymUnmanagedReader SymReader, int MethodToken, int LocalSignatureToken, uint ILOffset) GetContextState(RuntimeInstance runtime, string methodName)
+        {
+            ModuleId moduleId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(
+                runtime,
+                methodName,
+                out _,
+                out moduleId,
+                out symReader,
+                out methodToken,
+                out localSignatureToken);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+            return (moduleId, symReader, methodToken, localSignatureToken, ilOffset);
+        }
+
+        internal static void GetContextState(
+            RuntimeInstance runtime,
+            string methodOrTypeName,
+            out ImmutableArray<MetadataBlock> blocks,
+            out ModuleId moduleId,
+            out ISymUnmanagedReader symReader,
+            out int methodOrTypeToken,
+            out int localSignatureToken)
+        {
+            var moduleInstances = runtime.Modules;
+            blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);
+
+            var compilation = blocks.ToCompilation(new ModuleId(id: default, "test"), MakeAssemblyReferencesKind.AllAssemblies);
+
+            var methodOrType = GetMethodOrTypeBySignature(compilation, methodOrTypeName);
+
+            var module = (PEModuleSymbol)methodOrType.ContainingModule;
+            var mvid = module.Module.GetModuleVersionIdOrThrow();
+            var moduleInstance = moduleInstances.First(m => m.Id.Id == mvid);
+
+            moduleId = moduleInstance.Id;
+            symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
+
+            EntityHandle methodOrTypeHandle;
+            if (methodOrType.Kind == SymbolKind.Method)
             {
-                Assert.Equal(1, attributes.Count());
+                methodOrTypeHandle = ((PEMethodSymbol)methodOrType).Handle;
+                localSignatureToken = moduleInstance.GetLocalSignatureToken((MethodDefinitionHandle)methodOrTypeHandle);
             }
             else
             {
-                Assert.Empty(attributes);
+                methodOrTypeHandle = ((PENamedTypeSymbol)methodOrType).Handle;
+                localSignatureToken = -1;
+            }
+
+            MetadataReader reader = null; // null should be ok
+            methodOrTypeToken = reader.GetToken(methodOrTypeHandle);
+        }
+
+        internal static EvaluationContext CreateMethodContext(
+            RuntimeInstance runtime,
+            string methodName,
+            int atLineNumber = -1)
+        {
+            ImmutableArray<MetadataBlock> blocks;
+            ModuleId moduleId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, methodName, out blocks, out moduleId, out symReader, out methodToken, out localSignatureToken);
+
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
+
+            return CreateMethodContext(
+                new AppDomain(),
+                blocks,
+                symReader,
+                moduleId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ilOffset,
+                localSignatureToken: localSignatureToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
+        }
+
+        internal static EvaluationContext CreateTypeContext(
+            RuntimeInstance runtime,
+            string typeName)
+        {
+            ImmutableArray<MetadataBlock> blocks;
+            ModuleId moduleId;
+            ISymUnmanagedReader symReader;
+            int typeToken;
+            int localSignatureToken;
+            GetContextState(runtime, typeName, out blocks, out moduleId, out symReader, out typeToken, out localSignatureToken);
+            return CreateTypeContext(
+                new AppDomain(),
+                blocks,
+                moduleId,
+                typeToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
+        }
+
+        internal CompilationTestData Evaluate(
+            string source,
+            OutputKind outputKind,
+            string methodName,
+            string expr,
+            int atLineNumber = -1,
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
+        {
+            var result = Evaluate(source, outputKind, methodName, expr, out _, out string error, atLineNumber, includeSymbols, targetFramework: targetFramework, debugFormat: debugFormat);
+            Assert.Null(error);
+            return result;
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            int atLineNumber = -1,
+            bool includeSymbols = true)
+        {
+            var result = Evaluate(compilation, methodName, expr, out _, out string error, atLineNumber, includeSymbols);
+            Assert.Null(error);
+            return result;
+        }
+
+        internal CompilationTestData Evaluate(
+            string source,
+            OutputKind outputKind,
+            string methodName,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            int atLineNumber = -1,
+            bool includeSymbols = true,
+            TargetFramework targetFramework = TargetFramework.Standard,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
+        {
+            var compilation = CreateCompilation(
+                source,
+                parseOptions: SyntaxHelpers.PreviewParseOptions,
+                options: (outputKind == OutputKind.DynamicallyLinkedLibrary) ? TestOptions.DebugDll : TestOptions.DebugExe,
+                targetFramework: targetFramework);
+
+            return Evaluate(compilation, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols, debugFormat);
+        }
+
+        internal CompilationTestData Evaluate(
+            CSharpCompilation compilation,
+            string methodName,
+            string expr,
+            out ResultProperties resultProperties,
+            out string error,
+            int atLineNumber = -1,
+            bool includeSymbols = true,
+            DebugInformationFormat debugFormat = DebugInformationFormat.Pdb)
+        {
+            var runtime = CreateRuntimeInstance(compilation, debugFormat: includeSymbols ? debugFormat : 0);
+            var context = CreateMethodContext(runtime, methodName, atLineNumber);
+            var testData = new CompilationTestData();
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = context.CompileExpression(
+                expr,
+                DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
+            return testData;
+        }
+
+        /// <summary>
+        /// Verify all type parameters from the method
+        /// are from that method or containing types.
+        /// </summary>
+        internal static void VerifyTypeParameters(MethodSymbol method)
+        {
+            Assert.True(method.IsContainingSymbolOfAllTypeParameters(method.ReturnType));
+            AssertEx.All(method.TypeParameters, typeParameter => method.IsContainingSymbolOfAllTypeParameters(typeParameter));
+            AssertEx.All(method.TypeArgumentsWithAnnotations, typeArgument => method.IsContainingSymbolOfAllTypeParameters(typeArgument.Type));
+            AssertEx.All(method.Parameters, parameter => method.IsContainingSymbolOfAllTypeParameters(parameter.Type));
+            VerifyTypeParameters(method.ContainingType);
+        }
+
+        internal static void VerifyLocal(
+            CompilationTestData testData,
+            string typeName,
+            LocalAndMethod localAndMethod,
+            string expectedMethodName,
+            string expectedLocalName,
+            string expectedLocalDisplayName = null,
+            DkmClrCompilationResultFlags expectedFlags = DkmClrCompilationResultFlags.None,
+            string expectedILOpt = null,
+            bool expectedGeneric = false,
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
+        {
+            ExpressionCompilerTestHelpers.VerifyLocal<MethodSymbol>(
+                testData,
+                typeName,
+                localAndMethod,
+                expectedMethodName,
+                expectedLocalName,
+                expectedLocalDisplayName ?? expectedLocalName,
+                expectedFlags,
+                VerifyTypeParameters,
+                expectedILOpt,
+                expectedGeneric,
+                expectedValueSourcePath,
+                expectedValueSourceLine);
+        }
+
+        /// <summary>
+        /// Verify all type parameters from the type
+        /// are from that type or containing types.
+        /// </summary>
+        internal static void VerifyTypeParameters(NamedTypeSymbol type)
+        {
+            AssertEx.All(type.TypeParameters, typeParameter => type.IsContainingSymbolOfAllTypeParameters(typeParameter));
+            AssertEx.All(type.TypeArguments(), typeArgument => type.IsContainingSymbolOfAllTypeParameters(typeArgument));
+            var container = type.ContainingType;
+            if ((object)container != null)
+            {
+                VerifyTypeParameters(container);
+            }
+        }
+
+        internal static Symbol GetMethodOrTypeBySignature(Compilation compilation, string signature)
+        {
+            string[] parameterTypeNames;
+            var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
+
+            var candidates = compilation.GetMembers(methodOrTypeName);
+            var methodOrType = (parameterTypeNames == null)
+                ? candidates.FirstOrDefault()
+                : candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.TypeWithAnnotations.Type.Name)));
+
+            Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
+            return methodOrType;
+        }
+
+        internal static Alias VariableAlias(string name, Type type = null)
+        {
+            return VariableAlias(name, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
+        {
+            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(Guid), null);
+        }
+
+        internal static Alias ObjectIdAlias(uint id, Type type = null)
+        {
+            return ObjectIdAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ObjectIdAlias(uint id, string typeAssemblyQualifiedName)
+        {
+            Assert.NotEqual(0u, id); // Not a valid id.
+            var name = $"${id}";
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(Guid), null);
+        }
+
+        internal static Alias ReturnValueAlias(int id = -1, Type type = null)
+        {
+            return ReturnValueAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ReturnValueAlias(int id, string typeAssemblyQualifiedName)
+        {
+            var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
+            var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
+            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
+        }
+
+        internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
+        {
+            return ExceptionAlias((type ?? typeof(Exception)).AssemblyQualifiedName, stowed);
+        }
+
+        internal static Alias ExceptionAlias(string typeAssemblyQualifiedName, bool stowed = false)
+        {
+            var name = "Error";
+            var fullName = stowed ? "$stowedexception" : "$exception";
+            var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
+            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(Guid), null);
+        }
+
+        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, ReadOnlyCollection<byte> payload)
+        {
+            return new Alias(kind, name, fullName, type, (payload == null) ? default(Guid) : CustomTypeInfo.PayloadTypeId, payload);
+        }
+
+        internal static MethodDebugInfo<TypeSymbol, LocalSymbol> GetMethodDebugInfo(RuntimeInstance runtime, string qualifiedMethodName, int ilOffset = 0)
+        {
+            var peCompilation = runtime.Modules.SelectAsArray(m => m.MetadataBlock).ToCompilation(moduleId: default, MakeAssemblyReferencesKind.AllAssemblies);
+            var peMethod = peCompilation.GlobalNamespace.GetMember<PEMethodSymbol>(qualifiedMethodName);
+            var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+
+            var symReader = runtime.Modules.Single(mi => mi.Id.Id == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
+            var symbolProvider = new CSharpEESymbolProvider(peCompilation.SourceAssembly, peModule, peMethod);
+
+            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
+        }
+
+        internal static void CheckAttribute(IEnumerable<byte> assembly, MethodSymbol method, AttributeDescription description, bool expected)
+        {
+            var module = AssemblyMetadata.CreateFromImage(assembly).GetModules().Single().Module;
+
+            var typeName = method.ContainingType.Name;
+            var typeHandle = module.MetadataReader.TypeDefinitions
+                .Single(handle => module.GetTypeDefNameOrThrow(handle) == typeName);
+
+            var methodName = method.Name;
+            var methodHandle = module
+                .GetMethodsOfTypeOrThrow(typeHandle)
+                .Single(handle => module.GetMethodDefNameOrThrow(handle) == methodName);
+
+            var returnParamHandle = module.GetParametersOfMethodOrThrow(methodHandle).FirstOrDefault();
+
+            if (returnParamHandle.IsNil)
+            {
+                Assert.False(expected);
+            }
+            else
+            {
+                var attributes = module
+                    .GetCustomAttributesOrThrow(returnParamHandle)
+                    .Where(handle => module.GetTargetAttributeSignatureIndex(handle, description) != -1);
+
+                if (expected)
+                {
+                    Assert.Equal(1, attributes.Count());
+                }
+                else
+                {
+                    Assert.Empty(attributes);
+                }
             }
         }
     }

@@ -8,60 +8,61 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
-namespace Microsoft.CodeAnalysis;
-
-internal class DeclarationComputer
+namespace Microsoft.CodeAnalysis
 {
-    internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks, CancellationToken cancellationToken)
+    internal class DeclarationComputer
     {
-        var declaredSymbol = GetDeclaredSymbol(model, node, getSymbol, cancellationToken);
-        return GetDeclarationInfo(node, declaredSymbol, executableCodeBlocks);
-    }
-
-    internal static DeclarationInfo GetDeclarationInfo(SyntaxNode node, ISymbol? declaredSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks)
-    {
-        var codeBlocks = executableCodeBlocks?.Where(c => c != null).AsImmutableOrEmpty() ?? ImmutableArray<SyntaxNode>.Empty;
-        return new DeclarationInfo(node, codeBlocks, declaredSymbol);
-    }
-
-    internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
-    {
-        return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>?)null, cancellationToken);
-    }
-
-    internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
-    {
-        return GetDeclarationInfo(model, node, getSymbol, SpecializedCollections.SingletonEnumerable(executableCodeBlock), cancellationToken);
-    }
-
-    internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
-    {
-        return GetDeclarationInfo(model, node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
-    }
-
-    private static ISymbol? GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
-    {
-        if (!getSymbol)
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks, CancellationToken cancellationToken)
         {
-            return null;
+            var declaredSymbol = GetDeclaredSymbol(model, node, getSymbol, cancellationToken);
+            return GetDeclarationInfo(node, declaredSymbol, executableCodeBlocks);
         }
 
-        var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
-
-        // For namespace declarations, GetDeclaredSymbol returns a compilation scoped namespace symbol,
-        // which includes declarations across the compilation, including those in referenced assemblies.
-        // However, we are only interested in the namespace symbol scoped to the compilation's source assembly.
-        if (declaredSymbol is INamespaceSymbol namespaceSymbol && namespaceSymbol.ConstituentNamespaces.Length > 1)
+        internal static DeclarationInfo GetDeclarationInfo(SyntaxNode node, ISymbol? declaredSymbol, IEnumerable<SyntaxNode>? executableCodeBlocks)
         {
-            var assemblyToScope = model.Compilation.Assembly;
-            var assemblyScopedNamespaceSymbol = namespaceSymbol.ConstituentNamespaces.FirstOrDefault(ns => ns.ContainingAssembly == assemblyToScope);
-            if (assemblyScopedNamespaceSymbol != null)
+            var codeBlocks = executableCodeBlocks?.Where(c => c != null).AsImmutableOrEmpty() ?? ImmutableArray<SyntaxNode>.Empty;
+            return new DeclarationInfo(node, codeBlocks, declaredSymbol);
+        }
+
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        {
+            return GetDeclarationInfo(model, node, getSymbol, (IEnumerable<SyntaxNode>?)null, cancellationToken);
+        }
+
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
+        {
+            return GetDeclarationInfo(model, node, getSymbol, SpecializedCollections.SingletonEnumerable(executableCodeBlock), cancellationToken);
+        }
+
+        internal static DeclarationInfo GetDeclarationInfo(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
+        {
+            return GetDeclarationInfo(model, node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
+        }
+
+        private static ISymbol? GetDeclaredSymbol(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
+        {
+            if (!getSymbol)
             {
-                Debug.Assert(assemblyScopedNamespaceSymbol.ConstituentNamespaces.Length == 1);
-                declaredSymbol = assemblyScopedNamespaceSymbol;
+                return null;
             }
-        }
 
-        return declaredSymbol;
+            var declaredSymbol = model.GetDeclaredSymbol(node, cancellationToken);
+
+            // For namespace declarations, GetDeclaredSymbol returns a compilation scoped namespace symbol,
+            // which includes declarations across the compilation, including those in referenced assemblies.
+            // However, we are only interested in the namespace symbol scoped to the compilation's source assembly.
+            if (declaredSymbol is INamespaceSymbol namespaceSymbol && namespaceSymbol.ConstituentNamespaces.Length > 1)
+            {
+                var assemblyToScope = model.Compilation.Assembly;
+                var assemblyScopedNamespaceSymbol = namespaceSymbol.ConstituentNamespaces.FirstOrDefault(ns => ns.ContainingAssembly == assemblyToScope);
+                if (assemblyScopedNamespaceSymbol != null)
+                {
+                    Debug.Assert(assemblyScopedNamespaceSymbol.ConstituentNamespaces.Length == 1);
+                    declaredSymbol = assemblyScopedNamespaceSymbol;
+                }
+            }
+
+            return declaredSymbol;
+        }
     }
 }

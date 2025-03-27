@@ -10,28 +10,29 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-/// <summary>
-/// Produces the same hash for every value.
-/// </summary>
-/// <typeparam name="T">The type to hash</typeparam>
-internal class BadHasher<T> : IEqualityComparer<T>
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    private readonly IEqualityComparer<T> _equalityComparer;
-
-    internal BadHasher(IEqualityComparer<T>? equalityComparer = null)
+    /// <summary>
+    /// Produces the same hash for every value.
+    /// </summary>
+    /// <typeparam name="T">The type to hash</typeparam>
+    internal class BadHasher<T> : IEqualityComparer<T>
     {
-        _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
-    }
+        private readonly IEqualityComparer<T> _equalityComparer;
 
-    public bool Equals(T? x, T? y)
-    {
-        return _equalityComparer.Equals(x, y);
-    }
+        internal BadHasher(IEqualityComparer<T>? equalityComparer = null)
+        {
+            _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
+        }
 
-    public int GetHashCode(T obj)
-    {
-        return 1;
+        public bool Equals(T? x, T? y)
+        {
+            return _equalityComparer.Equals(x, y);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return 1;
+        }
     }
 }

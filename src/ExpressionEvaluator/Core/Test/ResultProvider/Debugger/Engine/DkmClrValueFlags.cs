@@ -11,13 +11,14 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-[Flags]
-public enum DkmClrValueFlags
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    None = 0x0,
-    Error = 0x1,
-    Synthetic = 0x2,
-    Void = 0x4,
+    [Flags]
+    public enum DkmClrValueFlags
+    {
+        None = 0x0,
+        Error = 0x1,
+        Synthetic = 0x2,
+        Void = 0x4,
+    }
 }

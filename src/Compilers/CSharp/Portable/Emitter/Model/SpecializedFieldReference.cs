@@ -9,86 +9,87 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-/// <summary>
-/// Represents a reference to a field of a generic type instantiation.
-/// e.g.
-/// A{int}.Field
-/// A{int}.B{string}.C.Field
-/// </summary>
-internal sealed class SpecializedFieldReference : TypeMemberReference, Cci.ISpecializedFieldReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    private readonly FieldSymbol _underlyingField;
-
-    public SpecializedFieldReference(FieldSymbol underlyingField)
+    /// <summary>
+    /// Represents a reference to a field of a generic type instantiation.
+    /// e.g.
+    /// A{int}.Field
+    /// A{int}.B{string}.C.Field
+    /// </summary>
+    internal sealed class SpecializedFieldReference : TypeMemberReference, Cci.ISpecializedFieldReference
     {
-        Debug.Assert((object)underlyingField != null);
+        private readonly FieldSymbol _underlyingField;
 
-        _underlyingField = underlyingField;
-    }
-
-    protected override Symbol UnderlyingSymbol
-    {
-        get
+        public SpecializedFieldReference(FieldSymbol underlyingField)
         {
-            return _underlyingField;
+            Debug.Assert((object)underlyingField != null);
+
+            _underlyingField = underlyingField;
         }
-    }
 
-    public override void Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit((Cci.ISpecializedFieldReference)this);
-    }
-
-    Cci.IFieldReference Cci.ISpecializedFieldReference.UnspecializedVersion
-    {
-        get
+        protected override Symbol UnderlyingSymbol
         {
-            Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
-            return _underlyingField.OriginalDefinition.GetCciAdapter();
+            get
+            {
+                return _underlyingField;
+            }
         }
-    }
 
-    Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
-    {
-        get
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            return this;
+            visitor.Visit((Cci.ISpecializedFieldReference)this);
         }
-    }
 
-    Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
-    {
-        TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
-        var customModifiers = oldType.CustomModifiers;
-        var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
-
-        if (customModifiers.Length == 0)
+        Cci.IFieldReference Cci.ISpecializedFieldReference.UnspecializedVersion
         {
-            return type;
+            get
+            {
+                Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
+                return _underlyingField.OriginalDefinition.GetCciAdapter();
+            }
         }
-        else
+
+        Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
         {
-            return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
+            get
+            {
+                return this;
+            }
         }
-    }
 
-    ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
-        ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingField.RefCustomModifiers);
-
-    bool Cci.IFieldReference.IsByReference => _underlyingField.RefKind != RefKind.None;
-
-    Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
-    {
-        return null;
-    }
-
-    bool Cci.IFieldReference.IsContextualNamedEntity
-    {
-        get
+        Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
-            return false;
+            TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
+            var customModifiers = oldType.CustomModifiers;
+            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+
+            if (customModifiers.Length == 0)
+            {
+                return type;
+            }
+            else
+            {
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
+            }
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
+            ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingField.RefCustomModifiers);
+
+        bool Cci.IFieldReference.IsByReference => _underlyingField.RefKind != RefKind.None;
+
+        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
+        {
+            return null;
+        }
+
+        bool Cci.IFieldReference.IsContextualNamedEntity
+        {
+            get
+            {
+                return false;
+            }
         }
     }
 }

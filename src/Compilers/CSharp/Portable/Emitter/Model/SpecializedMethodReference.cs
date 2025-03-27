@@ -8,39 +8,40 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-/// <summary>
-/// Represents a method of a generic type instantiation.
-/// e.g. 
-/// A{int}.M()
-/// A.B{int}.C.M()
-/// </summary>
-internal class SpecializedMethodReference : MethodReference, Cci.ISpecializedMethodReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    public SpecializedMethodReference(MethodSymbol underlyingMethod)
-        : base(underlyingMethod)
+    /// <summary>
+    /// Represents a method of a generic type instantiation.
+    /// e.g. 
+    /// A{int}.M()
+    /// A.B{int}.C.M()
+    /// </summary>
+    internal class SpecializedMethodReference : MethodReference, Cci.ISpecializedMethodReference
     {
-    }
-
-    public override void Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit((Cci.ISpecializedMethodReference)this);
-    }
-
-    Cci.IMethodReference Cci.ISpecializedMethodReference.UnspecializedVersion
-    {
-        get
+        public SpecializedMethodReference(MethodSymbol underlyingMethod)
+            : base(underlyingMethod)
         {
-            return UnderlyingMethod.OriginalDefinition.GetCciAdapter();
         }
-    }
 
-    public override Cci.ISpecializedMethodReference AsSpecializedMethodReference
-    {
-        get
+        public override void Dispatch(Cci.MetadataVisitor visitor)
         {
-            return this;
+            visitor.Visit((Cci.ISpecializedMethodReference)this);
+        }
+
+        Cci.IMethodReference Cci.ISpecializedMethodReference.UnspecializedVersion
+        {
+            get
+            {
+                return UnderlyingMethod.OriginalDefinition.GetCciAdapter();
+            }
+        }
+
+        public override Cci.ISpecializedMethodReference AsSpecializedMethodReference
+        {
+            get
+            {
+                return this;
+            }
         }
     }
 }

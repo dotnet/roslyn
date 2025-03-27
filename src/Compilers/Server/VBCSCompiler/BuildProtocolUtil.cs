@@ -11,63 +11,64 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
 
-namespace Microsoft.CodeAnalysis.CompilerServer;
-
-internal static class BuildProtocolUtil
+namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal static RunRequest GetRunRequest(BuildRequest req)
+    internal static class BuildProtocolUtil
     {
-        string? currentDirectory;
-        string? libDirectory;
-        string? tempDirectory;
-        string[] arguments = GetCommandLineArguments(req, out currentDirectory, out tempDirectory, out libDirectory);
-        string language = "";
-        switch (req.Language)
+        internal static RunRequest GetRunRequest(BuildRequest req)
         {
-            case RequestLanguage.CSharpCompile:
-                language = LanguageNames.CSharp;
-                break;
-            case RequestLanguage.VisualBasicCompile:
-                language = LanguageNames.VisualBasic;
-                break;
+            string? currentDirectory;
+            string? libDirectory;
+            string? tempDirectory;
+            string[] arguments = GetCommandLineArguments(req, out currentDirectory, out tempDirectory, out libDirectory);
+            string language = "";
+            switch (req.Language)
+            {
+                case RequestLanguage.CSharpCompile:
+                    language = LanguageNames.CSharp;
+                    break;
+                case RequestLanguage.VisualBasicCompile:
+                    language = LanguageNames.VisualBasic;
+                    break;
+            }
+
+            return new RunRequest(req.RequestId, language, currentDirectory, tempDirectory, libDirectory, arguments);
         }
 
-        return new RunRequest(req.RequestId, language, currentDirectory, tempDirectory, libDirectory, arguments);
-    }
-
-    internal static string[] GetCommandLineArguments(BuildRequest req, out string? currentDirectory, out string? tempDirectory, out string? libDirectory)
-    {
-        currentDirectory = null;
-        libDirectory = null;
-        tempDirectory = null;
-        List<string> commandLineArguments = new List<string>();
-
-        foreach (BuildRequest.Argument arg in req.Arguments)
+        internal static string[] GetCommandLineArguments(BuildRequest req, out string? currentDirectory, out string? tempDirectory, out string? libDirectory)
         {
-            if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CurrentDirectory)
+            currentDirectory = null;
+            libDirectory = null;
+            tempDirectory = null;
+            List<string> commandLineArguments = new List<string>();
+
+            foreach (BuildRequest.Argument arg in req.Arguments)
             {
-                currentDirectory = arg.Value;
-            }
-            else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.TempDirectory)
-            {
-                tempDirectory = arg.Value;
-            }
-            else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.LibEnvVariable)
-            {
-                libDirectory = arg.Value;
-            }
-            else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
-            {
-                if (arg.Value is object)
+                if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CurrentDirectory)
                 {
-                    int argIndex = arg.ArgumentIndex;
-                    while (argIndex >= commandLineArguments.Count)
-                        commandLineArguments.Add("");
-                    commandLineArguments[argIndex] = arg.Value;
+                    currentDirectory = arg.Value;
+                }
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.TempDirectory)
+                {
+                    tempDirectory = arg.Value;
+                }
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.LibEnvVariable)
+                {
+                    libDirectory = arg.Value;
+                }
+                else if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.CommandLineArgument)
+                {
+                    if (arg.Value is object)
+                    {
+                        int argIndex = arg.ArgumentIndex;
+                        while (argIndex >= commandLineArguments.Count)
+                            commandLineArguments.Add("");
+                        commandLineArguments[argIndex] = arg.Value;
+                    }
                 }
             }
-        }
 
-        return commandLineArguments.ToArray();
+            return commandLineArguments.ToArray();
+        }
     }
 }

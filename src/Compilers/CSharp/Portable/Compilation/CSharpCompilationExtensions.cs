@@ -5,22 +5,23 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal static class CSharpCompilationExtensions
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal static bool IsFeatureEnabled(this CSharpCompilation compilation, MessageID feature)
+    internal static class CSharpCompilationExtensions
     {
-        return compilation.LanguageVersion >= feature.RequiredVersion();
-    }
+        internal static bool IsFeatureEnabled(this CSharpCompilation compilation, MessageID feature)
+        {
+            return compilation.LanguageVersion >= feature.RequiredVersion();
+        }
 
-    internal static bool IsFeatureEnabled(this SyntaxNode? syntax, MessageID feature)
-    {
-        return ((CSharpParseOptions?)syntax?.SyntaxTree.Options)?.IsFeatureEnabled(feature) == true;
-    }
+        internal static bool IsFeatureEnabled(this SyntaxNode? syntax, MessageID feature)
+        {
+            return ((CSharpParseOptions?)syntax?.SyntaxTree.Options)?.IsFeatureEnabled(feature) == true;
+        }
 
-    internal static bool ShouldEmitNativeIntegerAttributes(this CSharpCompilation compilation, TypeSymbol type)
-    {
-        return compilation.ShouldEmitNativeIntegerAttributes() && type.ContainsNativeIntegerWrapperType();
+        internal static bool ShouldEmitNativeIntegerAttributes(this CSharpCompilation compilation, TypeSymbol type)
+        {
+            return compilation.ShouldEmitNativeIntegerAttributes() && type.ContainsNativeIntegerWrapperType();
+        }
     }
 }

@@ -13,330 +13,331 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal partial class
-#if DEBUG
-    PropertySymbolAdapter : SymbolAdapter,
-#else
-    PropertySymbol :
-#endif 
-    IPropertyDefinition
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public bool IsEncDeleted
-        => false;
-
-    #region IPropertyDefinition Members
-
-    IEnumerable<IMethodReference> IPropertyDefinition.GetAccessors(EmitContext context)
+    internal partial class
+#if DEBUG
+        PropertySymbolAdapter : SymbolAdapter,
+#else
+        PropertySymbol :
+#endif 
+        IPropertyDefinition
     {
-        CheckDefinitionInvariant();
+        public bool IsEncDeleted
+            => false;
 
-        var getMethod = AdaptedPropertySymbol.GetMethod?.GetCciAdapter();
-        if (getMethod != null && getMethod.ShouldInclude(context))
-        {
-            yield return getMethod;
-        }
+        #region IPropertyDefinition Members
 
-        var setMethod = AdaptedPropertySymbol.SetMethod?.GetCciAdapter();
-        if (setMethod != null && setMethod.ShouldInclude(context))
-        {
-            yield return setMethod;
-        }
-
-        var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
-        if ((object)sourceProperty != null && this.ShouldInclude(context))
-        {
-            SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
-            if ((object)synthesizedAccessor != null)
-            {
-                yield return synthesizedAccessor.GetCciAdapter();
-            }
-        }
-    }
-
-    MetadataConstant IPropertyDefinition.DefaultValue
-    {
-        get
+        IEnumerable<IMethodReference> IPropertyDefinition.GetAccessors(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return null;
-        }
-    }
 
-    IMethodReference IPropertyDefinition.Getter
-    {
-        get
-        {
-            CheckDefinitionInvariant();
-            MethodSymbol getMethod = AdaptedPropertySymbol.GetMethod;
-            if ((object)getMethod != null || !AdaptedPropertySymbol.IsSealed)
+            var getMethod = AdaptedPropertySymbol.GetMethod?.GetCciAdapter();
+            if (getMethod != null && getMethod.ShouldInclude(context))
             {
-                return getMethod?.GetCciAdapter();
+                yield return getMethod;
             }
 
-            return GetSynthesizedSealedAccessor(MethodKind.PropertyGet);
-        }
-    }
+            var setMethod = AdaptedPropertySymbol.SetMethod?.GetCciAdapter();
+            if (setMethod != null && setMethod.ShouldInclude(context))
+            {
+                yield return setMethod;
+            }
 
-    bool IPropertyDefinition.HasDefaultValue
-    {
-        get
+            var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
+            if ((object)sourceProperty != null && this.ShouldInclude(context))
+            {
+                SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
+                if ((object)synthesizedAccessor != null)
+                {
+                    yield return synthesizedAccessor.GetCciAdapter();
+                }
+            }
+        }
+
+        MetadataConstant IPropertyDefinition.DefaultValue
         {
-            CheckDefinitionInvariant();
-            return false;
+            get
+            {
+                CheckDefinitionInvariant();
+                return null;
+            }
         }
-    }
 
-    bool IPropertyDefinition.IsRuntimeSpecial
-    {
-        get
+        IMethodReference IPropertyDefinition.Getter
         {
-            CheckDefinitionInvariant();
-            return AdaptedPropertySymbol.HasRuntimeSpecialName;
-        }
-    }
+            get
+            {
+                CheckDefinitionInvariant();
+                MethodSymbol getMethod = AdaptedPropertySymbol.GetMethod;
+                if ((object)getMethod != null || !AdaptedPropertySymbol.IsSealed)
+                {
+                    return getMethod?.GetCciAdapter();
+                }
 
-    bool IPropertyDefinition.IsSpecialName
-    {
-        get
+                return GetSynthesizedSealedAccessor(MethodKind.PropertyGet);
+            }
+        }
+
+        bool IPropertyDefinition.HasDefaultValue
         {
-            CheckDefinitionInvariant();
-            return AdaptedPropertySymbol.HasSpecialName;
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
         }
-    }
 
-    ImmutableArray<IParameterDefinition> IPropertyDefinition.Parameters
-    {
-        get
+        bool IPropertyDefinition.IsRuntimeSpecial
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedPropertySymbol.HasRuntimeSpecialName;
+            }
+        }
+
+        bool IPropertyDefinition.IsSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedPropertySymbol.HasSpecialName;
+            }
+        }
+
+        ImmutableArray<IParameterDefinition> IPropertyDefinition.Parameters
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+#if DEBUG
+                return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterDefinition>(p => p.GetCciAdapter());
+#else
+                return StaticCast<IParameterDefinition>.From(AdaptedPropertySymbol.Parameters);
+#endif
+            }
+        }
+
+        IMethodReference IPropertyDefinition.Setter
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                MethodSymbol setMethod = AdaptedPropertySymbol.SetMethod;
+                if ((object)setMethod != null || !AdaptedPropertySymbol.IsSealed)
+                {
+                    return setMethod?.GetCciAdapter();
+                }
+
+                return GetSynthesizedSealedAccessor(MethodKind.PropertySet);
+            }
+        }
+
+        #endregion
+
+        #region ISignature Members
+
+        [Conditional("DEBUG")]
+        private void CheckDefinitionInvariantAllowEmbedded()
+        {
+            // can't be generic instantiation
+            Debug.Assert(AdaptedPropertySymbol.IsDefinition);
+
+            // must be declared in the module we are building
+            Debug.Assert(AdaptedPropertySymbol.ContainingModule is SourceModuleSymbol || AdaptedPropertySymbol.ContainingAssembly.IsLinked);
+        }
+
+        CallingConvention ISignature.CallingConvention
+        {
+            get
+            {
+                CheckDefinitionInvariantAllowEmbedded();
+                return AdaptedPropertySymbol.CallingConvention;
+            }
+        }
+
+        ushort ISignature.ParameterCount
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return (ushort)AdaptedPropertySymbol.ParameterCount;
+            }
+        }
+
+        ImmutableArray<IParameterTypeInformation> ISignature.GetParameters(EmitContext context)
         {
             CheckDefinitionInvariant();
 #if DEBUG
-            return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterDefinition>(p => p.GetCciAdapter());
+            return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterTypeInformation>(p => p.GetCciAdapter());
 #else
-            return StaticCast<IParameterDefinition>.From(AdaptedPropertySymbol.Parameters);
+            return StaticCast<IParameterTypeInformation>.From(AdaptedPropertySymbol.Parameters);
 #endif
         }
-    }
 
-    IMethodReference IPropertyDefinition.Setter
-    {
-        get
+        ImmutableArray<ICustomModifier> ISignature.ReturnValueCustomModifiers
         {
-            CheckDefinitionInvariant();
-            MethodSymbol setMethod = AdaptedPropertySymbol.SetMethod;
-            if ((object)setMethod != null || !AdaptedPropertySymbol.IsSealed)
+            get
             {
-                return setMethod?.GetCciAdapter();
+                CheckDefinitionInvariantAllowEmbedded();
+                return AdaptedPropertySymbol.TypeWithAnnotations.CustomModifiers.As<ICustomModifier>();
             }
-
-            return GetSynthesizedSealedAccessor(MethodKind.PropertySet);
         }
-    }
 
-    #endregion
+        ImmutableArray<ICustomModifier> ISignature.RefCustomModifiers
+        {
+            get
+            {
+                CheckDefinitionInvariantAllowEmbedded();
+                return AdaptedPropertySymbol.RefCustomModifiers.As<ICustomModifier>();
+            }
+        }
 
-    #region ISignature Members
+        bool ISignature.ReturnValueIsByRef
+        {
+            get
+            {
+                CheckDefinitionInvariantAllowEmbedded();
+                return AdaptedPropertySymbol.RefKind.IsManagedReference();
+            }
+        }
 
-    [Conditional("DEBUG")]
-    private void CheckDefinitionInvariantAllowEmbedded()
-    {
-        // can't be generic instantiation
-        Debug.Assert(AdaptedPropertySymbol.IsDefinition);
-
-        // must be declared in the module we are building
-        Debug.Assert(AdaptedPropertySymbol.ContainingModule is SourceModuleSymbol || AdaptedPropertySymbol.ContainingAssembly.IsLinked);
-    }
-
-    CallingConvention ISignature.CallingConvention
-    {
-        get
+        ITypeReference ISignature.GetType(EmitContext context)
         {
             CheckDefinitionInvariantAllowEmbedded();
-            return AdaptedPropertySymbol.CallingConvention;
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedPropertySymbol.Type,
+                                                      syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                                                      diagnostics: context.Diagnostics);
         }
-    }
 
-    ushort ISignature.ParameterCount
-    {
-        get
+        #endregion
+
+        #region ITypeDefinitionMember Members
+
+        ITypeDefinition ITypeDefinitionMember.ContainingTypeDefinition
         {
-            CheckDefinitionInvariant();
-            return (ushort)AdaptedPropertySymbol.ParameterCount;
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
+            }
         }
-    }
 
-    ImmutableArray<IParameterTypeInformation> ISignature.GetParameters(EmitContext context)
-    {
-        CheckDefinitionInvariant();
-#if DEBUG
-        return AdaptedPropertySymbol.Parameters.SelectAsArray<ParameterSymbol, IParameterTypeInformation>(p => p.GetCciAdapter());
-#else
-        return StaticCast<IParameterTypeInformation>.From(AdaptedPropertySymbol.Parameters);
-#endif
-    }
-
-    ImmutableArray<ICustomModifier> ISignature.ReturnValueCustomModifiers
-    {
-        get
+        TypeMemberVisibility ITypeDefinitionMember.Visibility
         {
-            CheckDefinitionInvariantAllowEmbedded();
-            return AdaptedPropertySymbol.TypeWithAnnotations.CustomModifiers.As<ICustomModifier>();
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedPropertySymbol.MetadataVisibility;
+            }
         }
-    }
 
-    ImmutableArray<ICustomModifier> ISignature.RefCustomModifiers
-    {
-        get
-        {
-            CheckDefinitionInvariantAllowEmbedded();
-            return AdaptedPropertySymbol.RefCustomModifiers.As<ICustomModifier>();
-        }
-    }
+        #endregion
 
-    bool ISignature.ReturnValueIsByRef
-    {
-        get
-        {
-            CheckDefinitionInvariantAllowEmbedded();
-            return AdaptedPropertySymbol.RefKind.IsManagedReference();
-        }
-    }
+        #region ITypeMemberReference Members
 
-    ITypeReference ISignature.GetType(EmitContext context)
-    {
-        CheckDefinitionInvariantAllowEmbedded();
-        return ((PEModuleBuilder)context.Module).Translate(AdaptedPropertySymbol.Type,
-                                                  syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                                  diagnostics: context.Diagnostics);
-    }
-
-    #endregion
-
-    #region ITypeDefinitionMember Members
-
-    ITypeDefinition ITypeDefinitionMember.ContainingTypeDefinition
-    {
-        get
+        ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
             return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
         }
-    }
 
-    TypeMemberVisibility ITypeDefinitionMember.Visibility
-    {
-        get
+        #endregion
+
+        #region IReference Members
+
+        void IReference.Dispatch(MetadataVisitor visitor)
         {
             CheckDefinitionInvariant();
-            return AdaptedPropertySymbol.MetadataVisibility;
+            visitor.Visit((IPropertyDefinition)this);
         }
-    }
 
-    #endregion
-
-    #region ITypeMemberReference Members
-
-    ITypeReference ITypeMemberReference.GetContainingType(EmitContext context)
-    {
-        CheckDefinitionInvariant();
-        return AdaptedPropertySymbol.ContainingType.GetCciAdapter();
-    }
-
-    #endregion
-
-    #region IReference Members
-
-    void IReference.Dispatch(MetadataVisitor visitor)
-    {
-        CheckDefinitionInvariant();
-        visitor.Visit((IPropertyDefinition)this);
-    }
-
-    IDefinition IReference.AsDefinition(EmitContext context)
-    {
-        CheckDefinitionInvariant();
-        return this;
-    }
-
-    #endregion
-
-    #region INamedEntity Members
-
-    string INamedEntity.Name
-    {
-        get
+        IDefinition IReference.AsDefinition(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return AdaptedPropertySymbol.MetadataName;
+            return this;
         }
-    }
 
-    #endregion
+        #endregion
 
-    private IMethodReference GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
-    {
-        var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
-        if ((object)sourceProperty != null)
+        #region INamedEntity Members
+
+        string INamedEntity.Name
         {
-            SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
-            return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized.GetCciAdapter() : null;
+            get
+            {
+                CheckDefinitionInvariant();
+                return AdaptedPropertySymbol.MetadataName;
+            }
         }
 
-        return null;
-    }
-}
+        #endregion
 
-internal partial class PropertySymbol
-{
+        private IMethodReference GetSynthesizedSealedAccessor(MethodKind targetMethodKind)
+        {
+            var sourceProperty = AdaptedPropertySymbol as SourcePropertySymbolBase;
+            if ((object)sourceProperty != null)
+            {
+                SynthesizedSealedPropertyAccessor synthesized = sourceProperty.SynthesizedSealedAccessorOpt;
+                return (object)synthesized != null && synthesized.MethodKind == targetMethodKind ? synthesized.GetCciAdapter() : null;
+            }
+
+            return null;
+        }
+    }
+
+    internal partial class PropertySymbol
+    {
 #if DEBUG
-    private PropertySymbolAdapter _lazyAdapter;
+        private PropertySymbolAdapter _lazyAdapter;
 
-    protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
 
-    internal new PropertySymbolAdapter GetCciAdapter()
-    {
-        if (_lazyAdapter is null)
+        internal new PropertySymbolAdapter GetCciAdapter()
         {
-            return InterlockedOperations.Initialize(ref _lazyAdapter, new PropertySymbolAdapter(this));
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new PropertySymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
         }
-
-        return _lazyAdapter;
-    }
 #else
-    internal PropertySymbol AdaptedPropertySymbol => this;
+        internal PropertySymbol AdaptedPropertySymbol => this;
 
-    internal new PropertySymbol GetCciAdapter()
-    {
-        return this;
-    }
+        internal new PropertySymbol GetCciAdapter()
+        {
+            return this;
+        }
 #endif 
 
-    internal virtual bool HasRuntimeSpecialName
-    {
-        get
+        internal virtual bool HasRuntimeSpecialName
         {
-            CheckDefinitionInvariant();
-            return false;
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
         }
     }
-}
 
 #if DEBUG
-internal partial class PropertySymbolAdapter
-{
-    internal PropertySymbolAdapter(PropertySymbol underlyingPropertySymbol)
+    internal partial class PropertySymbolAdapter
     {
-        AdaptedPropertySymbol = underlyingPropertySymbol;
-
-        if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
+        internal PropertySymbolAdapter(PropertySymbol underlyingPropertySymbol)
         {
-            // Emit should use underlying symbol only.
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
+            AdaptedPropertySymbol = underlyingPropertySymbol;
 
-    internal sealed override Symbol AdaptedSymbol => AdaptedPropertySymbol;
-    internal PropertySymbol AdaptedPropertySymbol { get; }
-}
+            if (underlyingPropertySymbol is NativeIntegerPropertySymbol)
+            {
+                // Emit should use underlying symbol only.
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedPropertySymbol;
+        internal PropertySymbol AdaptedPropertySymbol { get; }
+    }
 #endif
+}

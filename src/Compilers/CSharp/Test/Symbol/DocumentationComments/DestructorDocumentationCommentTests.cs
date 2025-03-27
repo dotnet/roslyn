@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class DestructorDocumentationCommentTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    private readonly CSharpCompilation _compilation;
-    private readonly NamespaceSymbol _acmeNamespace;
-    private readonly NamedTypeSymbol _widgetClass;
-
-    public DestructorDocumentationCommentTests()
+    public class DestructorDocumentationCommentTests : CSharpTestBase
     {
-        _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
+
+        public DestructorDocumentationCommentTests()
+        {
+            _compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
 {
 	class Widget: IProcess
 	{
@@ -31,18 +31,19 @@ public class DestructorDocumentationCommentTests : CSharpTestBase
 }
 ");
 
-        _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
-        _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
-    }
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
+        }
 
-    [Fact]
-    public void TestDestructor()
-    {
-        Assert.Equal("M:Acme.Widget.Finalize", _widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentId());
-        Assert.Equal(
+        [Fact]
+        public void TestDestructor()
+        {
+            Assert.Equal("M:Acme.Widget.Finalize", _widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentId());
+            Assert.Equal(
 @"<member name=""M:Acme.Widget.Finalize"">
     <summary>Destructor Documentation</summary>
 </member>
 ", _widgetClass.GetMembers("Finalize").Single().GetDocumentationCommentXml());
+        }
     }
 }

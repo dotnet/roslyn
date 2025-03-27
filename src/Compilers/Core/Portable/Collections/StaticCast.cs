@@ -5,17 +5,18 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class StaticCast<T>
+namespace Microsoft.CodeAnalysis
 {
-    internal static ImmutableArray<T> From<TDerived>(ImmutableArray<TDerived> from) where TDerived : class, T
+    internal static class StaticCast<T>
     {
-        return ImmutableArray<T>.CastUp(from);
-    }
+        internal static ImmutableArray<T> From<TDerived>(ImmutableArray<TDerived> from) where TDerived : class, T
+        {
+            return ImmutableArray<T>.CastUp(from);
+        }
 
-    internal static OneOrMany<T> From<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
-    {
-        return OneOrMany<T>.CastUp(from);
+        internal static OneOrMany<T> From<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
+        {
+            return OneOrMany<T>.CastUp(from);
+        }
     }
 }

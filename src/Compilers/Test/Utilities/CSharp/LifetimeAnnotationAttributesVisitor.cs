@@ -12,86 +12,87 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
-namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
-internal sealed class ScopedRefAttributesVisitor : CSharpSymbolVisitor
+namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    internal static string GetString(PEModuleSymbol module)
+    internal sealed class ScopedRefAttributesVisitor : CSharpSymbolVisitor
     {
-        var builder = new StringBuilder();
-        var visitor = new ScopedRefAttributesVisitor(builder);
-        visitor.Visit(module);
-        return builder.ToString();
-    }
-
-    private readonly StringBuilder _builder;
-
-    private ScopedRefAttributesVisitor(StringBuilder builder)
-    {
-        _builder = builder;
-    }
-
-    public override void DefaultVisit(Symbol symbol)
-    {
-    }
-
-    public override void VisitModule(ModuleSymbol module)
-    {
-        Visit(module.GlobalNamespace);
-    }
-
-    public override void VisitNamespace(NamespaceSymbol @namespace)
-    {
-        foreach (var member in @namespace.GetMembers())
+        internal static string GetString(PEModuleSymbol module)
         {
-            Visit(member);
+            var builder = new StringBuilder();
+            var visitor = new ScopedRefAttributesVisitor(builder);
+            visitor.Visit(module);
+            return builder.ToString();
         }
-    }
 
-    public override void VisitNamedType(NamedTypeSymbol type)
-    {
-        foreach (var member in type.GetMembers())
+        private readonly StringBuilder _builder;
+
+        private ScopedRefAttributesVisitor(StringBuilder builder)
         {
-            // Skip accessors since those are covered by associated symbol.
-            if (member.IsAccessor()) continue;
-            Visit(member);
+            _builder = builder;
         }
-    }
 
-    public override void VisitEvent(EventSymbol @event)
-    {
-        Visit(@event.AddMethod);
-        Visit(@event.RemoveMethod);
-    }
-
-    public override void VisitProperty(PropertySymbol property)
-    {
-        Visit(property.GetMethod);
-        Visit(property.SetMethod);
-    }
-
-    public override void VisitMethod(MethodSymbol method)
-    {
-        var parameters = method.Parameters;
-        if (!parameters.Any(p => TryGetScopedRefAttribute((PEParameterSymbol)p)))
+        public override void DefaultVisit(Symbol symbol)
         {
-            return;
         }
-        _builder.AppendLine(method.ToTestDisplayString());
-        foreach (var parameter in parameters)
+
+        public override void VisitModule(ModuleSymbol module)
         {
-            _builder.Append("    ");
-            if (TryGetScopedRefAttribute((PEParameterSymbol)parameter))
+            Visit(module.GlobalNamespace);
+        }
+
+        public override void VisitNamespace(NamespaceSymbol @namespace)
+        {
+            foreach (var member in @namespace.GetMembers())
             {
-                _builder.Append($"[ScopedRef] ");
+                Visit(member);
             }
-            _builder.AppendLine(parameter.ToTestDisplayString());
         }
-    }
 
-    private bool TryGetScopedRefAttribute(PEParameterSymbol parameter)
-    {
-        var module = ((PEModuleSymbol)parameter.ContainingModule).Module;
-        return module.HasScopedRefAttribute(parameter.Handle);
+        public override void VisitNamedType(NamedTypeSymbol type)
+        {
+            foreach (var member in type.GetMembers())
+            {
+                // Skip accessors since those are covered by associated symbol.
+                if (member.IsAccessor()) continue;
+                Visit(member);
+            }
+        }
+
+        public override void VisitEvent(EventSymbol @event)
+        {
+            Visit(@event.AddMethod);
+            Visit(@event.RemoveMethod);
+        }
+
+        public override void VisitProperty(PropertySymbol property)
+        {
+            Visit(property.GetMethod);
+            Visit(property.SetMethod);
+        }
+
+        public override void VisitMethod(MethodSymbol method)
+        {
+            var parameters = method.Parameters;
+            if (!parameters.Any(p => TryGetScopedRefAttribute((PEParameterSymbol)p)))
+            {
+                return;
+            }
+            _builder.AppendLine(method.ToTestDisplayString());
+            foreach (var parameter in parameters)
+            {
+                _builder.Append("    ");
+                if (TryGetScopedRefAttribute((PEParameterSymbol)parameter))
+                {
+                    _builder.Append($"[ScopedRef] ");
+                }
+                _builder.AppendLine(parameter.ToTestDisplayString());
+            }
+        }
+
+        private bool TryGetScopedRefAttribute(PEParameterSymbol parameter)
+        {
+            var module = ((PEModuleSymbol)parameter.ContainingModule).Module;
+            return module.HasScopedRefAttribute(parameter.Handle);
+        }
     }
 }

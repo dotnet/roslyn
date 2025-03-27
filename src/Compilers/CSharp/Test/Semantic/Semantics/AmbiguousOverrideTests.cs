@@ -13,14 +13,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class AmbiguousOverrideTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void TestAmbiguousNoErrors()
+    public class AmbiguousOverrideTests : CompilingTestBase
     {
-        string source = @"
+        [Fact]
+        public void TestAmbiguousNoErrors()
+        {
+            string source = @"
 using System;
 public class Base<TLong, TInt>
 {
@@ -65,14 +65,14 @@ class EntryPoint
 }
 
 ";
-        CompileAndVerify(source, expectedOutput: "121314");
-    }
+            CompileAndVerify(source, expectedOutput: "121314");
+        }
 
-    [WorkItem(544936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544936")]
-    [Fact]
-    public void TestAmbiguousInvocationError()
-    {
-        var source = @"
+        [WorkItem(544936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544936")]
+        [Fact]
+        public void TestAmbiguousInvocationError()
+        {
+            var source = @"
 public class Base<TLong, TInt>
 {
     public virtual void Method(TLong l, int i) { } // 1
@@ -97,77 +97,77 @@ class EntryPoint
     } 
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(long, TInt)' and 'Base<TLong, TInt>.Method(TLong, int)'
-            //         new Derived2().Method(1L, 2); //CS0121
-            Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(long, TInt)", "Base<TLong, TInt>.Method(TLong, int)"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (22,9): error CS0121: The call is ambiguous between the following methods or properties: 'Base<TLong, TInt>.Method(long, TInt)' and 'Base<TLong, TInt>.Method(TLong, int)'
+                //         new Derived2().Method(1L, 2); //CS0121
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<TLong, TInt>.Method(long, TInt)", "Base<TLong, TInt>.Method(TLong, int)"));
+        }
 
-    [Fact]
-    public void TestAmbiguousOverrideError()
-    {
-        var text1 = @"
+        [Fact]
+        public void TestAmbiguousOverrideError()
+        {
+            var text1 = @"
 public class Base<TLong, TInt>
 {
     public virtual void Method(TLong l, int i) { }
     public virtual void Method(long l, TInt i) { }
 }
 ";
-        var text2 = @"
+            var text2 = @"
 public class Derived<TInt> : Base<long, TInt>
 {
     public override void Method(long l, TInt i) { }
     public override void Method(long l, int i) { }
 }
 ";
-        var text3 = @"
+            var text3 = @"
 public class Derived2 : Derived<int>
 {
     public override void Method(long l, int i) { }  //CS0462 and CS1957
 }
 ";
 
-        var comp1 = CreateCompilation(text1);
-        var comp1ref = new CSharpCompilationReference(comp1);
-        var ref1 = new List<MetadataReference>() { comp1ref };
+            var comp1 = CreateCompilation(text1);
+            var comp1ref = new CSharpCompilationReference(comp1);
+            var ref1 = new List<MetadataReference>() { comp1ref };
 
-        var comp2 = CreateCompilation(text2, references: ref1, assemblyName: "Test2");
-        var comp2ref = new CSharpCompilationReference(comp2);
+            var comp2 = CreateCompilation(text2, references: ref1, assemblyName: "Test2");
+            var comp2ref = new CSharpCompilationReference(comp2);
 
-        var ref2 = new List<MetadataReference>() { comp1ref, comp2ref };
-        var comp = CreateCompilation(text3, ref2, assemblyName: "Test3");
-        var diagnostics = comp.GetDiagnostics();
+            var ref2 = new List<MetadataReference>() { comp1ref, comp2ref };
+            var comp = CreateCompilation(text3, ref2, assemblyName: "Test3");
+            var diagnostics = comp.GetDiagnostics();
 
-        if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
-        {
-            comp.VerifyDiagnostics(
-                // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
-                //     public override void Method(long l, int i) { }  //CS0462 and CS1957
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26)
-                );
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                    //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
+                    //     public override void Method(long l, int i) { }  //CS0462 and CS1957
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
+                    // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public override void Method(long l, TInt i) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26)
+                    );
+            }
         }
-        else
+
+        [Fact]
+        public void TestAmbiguousOverridesFromSameClass()
         {
-            comp.VerifyDiagnostics(
-                // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
-                //     public override void Method(long l, int i) { }  //CS0462 and CS1957
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Derived<TInt>.Method(long, TInt)", "Derived<TInt>.Method(long, int)", "Derived2").WithLocation(4, 26),
-                // (4,26): warning CS1957: Member 'Derived2.Method(long, int)' overrides 'Derived<int>.Method(long, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public override void Method(long l, TInt i) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Derived<int>.Method(long, int)", "Derived2.Method(long, int)").WithLocation(4, 26)
-                );
-        }
-    }
+            // Tests:
+            // Through type argument substitution make two base abstract members with same signature (parameters / return types) –
+            // override member in derived class – invoke member in derived class using base.VirtualMember
+            // Test similar case where conflicting members are split across multiple base types
 
-    [Fact]
-    public void TestAmbiguousOverridesFromSameClass()
-    {
-        // Tests:
-        // Through type argument substitution make two base abstract members with same signature (parameters / return types) –
-        // override member in derived class – invoke member in derived class using base.VirtualMember
-        // Test similar case where conflicting members are split across multiple base types
-
-        var source = @"
+            var source = @"
 abstract class Base<T, U>
 {
     public virtual void Method(T x) { }
@@ -197,57 +197,57 @@ abstract class Derived2 : Base<int, long>
     }
 }
 ";
-        var comp = CreateCompilation(source);
-        if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
-        {
-            comp.VerifyDiagnostics(
-                // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a, int b)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
-                // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
-                // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
-                // class Derived : Base<int, int>
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
-                // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
-                //         base.Method(1, 1);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
-                );
+            var comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a, int b)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
+                    // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
+                    // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
+                    // class Derived : Base<int, int>
+                    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
+                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
+                    //         base.Method(1, 1);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a, int b)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
+                    // (7,25): warning CS1957: Member 'Derived.Method(int, int)' overrides 'Base<int, int>.Method(int, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(T x, U y) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int, int)", "Derived.Method(int, int)").WithLocation(7, 25),
+                    // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(int a)
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
+                    // (4,25): warning CS1957: Member 'Derived.Method(int)' overrides 'Base<int, int>.Method(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(T x) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int)", "Derived.Method(int)").WithLocation(4, 25),
+                    // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
+                    // class Derived : Base<int, int>
+                    Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
+                    // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
+                    //         base.Method(1, 1);
+                    Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
+                    );
+            }
         }
-        else
+
+        [Fact]
+        public void TestAmbiguousOverridesParams()
         {
-            comp.VerifyDiagnostics(
-                // (15,26): error CS0462: The inherited members 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a, int b)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)", "Derived").WithLocation(15, 26),
-                // (7,25): warning CS1957: Member 'Derived.Method(int, int)' overrides 'Base<int, int>.Method(int, int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public virtual void Method(T x, U y) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int, int)", "Derived.Method(int, int)").WithLocation(7, 25),
-                // (12,26): error CS0462: The inherited members 'Base<T, U>.Method(T)' and 'Base<T, U>.Method(int)' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(int a)
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(T)", "Base<T, U>.Method(int)", "Derived").WithLocation(12, 26),
-                // (4,25): warning CS1957: Member 'Derived.Method(int)' overrides 'Base<int, int>.Method(int)'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public virtual void Method(T x) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(int)", "Derived.Method(int)").WithLocation(4, 25),
-                // (10,7): error CS0534: 'Derived' does not implement inherited abstract member 'Base<int, int>.Method(int, int)'
-                // class Derived : Base<int, int>
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base<int, int>.Method(int, int)").WithLocation(10, 7),
-                // (21,14): error CS0121: The call is ambiguous between the following methods or properties: 'Base<T, U>.Method(T, U)' and 'Base<T, U>.Method(U, T)'
-                //         base.Method(1, 1);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("Base<T, U>.Method(T, U)", "Base<T, U>.Method(U, T)").WithLocation(21, 14)
-                );
-        }
-    }
+            // Tests:
+            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
+            // override only differ by params
 
-    [Fact]
-    public void TestAmbiguousOverridesParams()
-    {
-        // Tests:
-        // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-        // override only differ by params
-
-        var source = @"
+            var source = @"
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
@@ -259,36 +259,36 @@ class Derived : Base<int, int>
     public override void Method(List<int> x, List<int>[] y) { }
 }";
 
-        CSharpCompilation comp = CreateCompilation(source);
-        if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
-        {
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(List<int> x, List<int>[] y) { }
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
-                );
+            CSharpCompilation comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
+                    // (5,25): warning CS1957: Member 'Derived.Method(List<int>, params List<int>[])' overrides 'Base<int, int>.Method(List<int>, params List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(List<T> x, params List<U>[] y) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])").WithLocation(5, 25)
+                    );
+            }
         }
-        else
+
+        [Fact]
+        public void TestAmbiguousOverridesOptionalParameters()
         {
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, params List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(List<int> x, List<int>[] y) { }
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, params System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
-                // (5,25): warning CS1957: Member 'Derived.Method(List<int>, params List<int>[])' overrides 'Base<int, int>.Method(List<int>, params List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public virtual void Method(List<T> x, params List<U>[] y) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, params System.Collections.Generic.List<int>[])").WithLocation(5, 25)
-                );
-        }
-    }
+            // Tests:
+            // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
+            // override only differ by optional parameters
 
-    [Fact]
-    public void TestAmbiguousOverridesOptionalParameters()
-    {
-        // Tests:
-        // Test that we continue to report errors / warnings even when ambiguous base methods that we are trying to
-        // override only differ by optional parameters
-
-        var source = @"
+            var source = @"
 using System.Collections.Generic;
 abstract class Base<T, U>
 {
@@ -300,32 +300,32 @@ class Derived : Base<int, int>
     public override void Method(List<int> x, List<int>[] y=null) { }
 }";
 
-        CSharpCompilation comp = CreateCompilation(source);
-        if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
-        {
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(List<int> x, List<int>[] y=null) { }
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
-                );
+            CSharpCompilation comp = CreateCompilation(source);
+            if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y=null) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
+                    //     public override void Method(List<int> x, List<int>[] y=null) { }
+                    Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
+                    // (5,25): warning CS1957: Member 'Derived.Method(List<int>, List<int>[])' overrides 'Base<int, int>.Method(List<int>, List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
+                    //     public virtual void Method(List<T> x, List<U>[] y=null) { }
+                    Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])").WithLocation(5, 25)
+                    );
+            }
         }
-        else
-        {
-            comp.VerifyDiagnostics(
-                // (10,26): error CS0462: The inherited members 'Base<T, U>.Method(List<T>, List<U>[])' and 'Base<T, U>.Method(List<U>, List<T>[])' have the same signature in type 'Derived', so they cannot be overridden
-                //     public override void Method(List<int> x, List<int>[] y=null) { }
-                Diagnostic(ErrorCode.ERR_AmbigOverride, "Method").WithArguments("Base<T, U>.Method(System.Collections.Generic.List<T>, System.Collections.Generic.List<U>[])", "Base<T, U>.Method(System.Collections.Generic.List<U>, System.Collections.Generic.List<T>[])", "Derived").WithLocation(10, 26),
-                // (5,25): warning CS1957: Member 'Derived.Method(List<int>, List<int>[])' overrides 'Base<int, int>.Method(List<int>, List<int>[])'. There are multiple override candidates at run-time. It is implementation dependent which method will be called. Please use a newer runtime.
-                //     public virtual void Method(List<T> x, List<U>[] y=null) { }
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeOverrideMatches, "Method").WithArguments("Base<int, int>.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])", "Derived.Method(System.Collections.Generic.List<int>, System.Collections.Generic.List<int>[])").WithLocation(5, 25)
-                );
-        }
-    }
 
-    [Fact]
-    public void TestAmbiguousMethodsWithCustomModifiers()
-    {
-        var text = @"using Metadata;
+        [Fact]
+        public void TestAmbiguousMethodsWithCustomModifiers()
+        {
+            var text = @"using Metadata;
 public class Test
 {
     void Test1()
@@ -335,20 +335,20 @@ public class Test
     }
 }
 ";
-        var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Metadata.LeastModoptsWinAmbiguous.M(byte, byte)", "Metadata.LeastModoptsWinAmbiguous.M(byte, byte)")
-        );
-    }
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Metadata.LeastModoptsWinAmbiguous.M(byte, byte)", "Metadata.LeastModoptsWinAmbiguous.M(byte, byte)")
+            );
+        }
 
-    /// <summary>
-    /// Dev10 gives errors if all properties contain modopt, but no error for methods (pick the one with least modopt)
-    /// </summary>
-    [Fact]
-    public void TestAmbiguousPropertiesWithCustomModifiers()
-    {
-        var text = @"using Metadata;
+        /// <summary>
+        /// Dev10 gives errors if all properties contain modopt, but no error for methods (pick the one with least modopt)
+        /// </summary>
+        [Fact]
+        public void TestAmbiguousPropertiesWithCustomModifiers()
+        {
+            var text = @"using Metadata;
 public class Test
 {
     void Test1()
@@ -358,17 +358,17 @@ public class Test
     }
 }
 ";
-        var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Metadata.ModoptPropAmbiguous.P", "Metadata.ModoptPropAmbiguous.P")
-        );
-    }
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Metadata.ModoptPropAmbiguous.P", "Metadata.ModoptPropAmbiguous.P")
+            );
+        }
 
-    [Fact]
-    public void TestImplicitImplementInterfaceMethodsWithCustomModifiers()
-    {
-        var text = @"using Metadata;
+        [Fact]
+        public void TestImplicitImplementInterfaceMethodsWithCustomModifiers()
+        {
+            var text = @"using Metadata;
 public class CFoo : IFooAmbiguous<string, long> // CS0535
 {
     public long M(string t) { return 127; } 
@@ -379,56 +379,56 @@ class CBar : IFoo // CS0535 * 2
     public sbyte M1<T, V>(T t, V v) { return 123; }
 }
 ";
-        var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-// (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
-// class CBar : IFoo // CS0535 * 2
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
-// (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
-// class CBar : IFoo // CS0535 * 2
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
-// (4,17): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
-//     public long M(string t) { return 127; } 
-Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 17)
-        );
-    }
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+    // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
+    // class CBar : IFoo // CS0535 * 2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
+    // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
+    // class CBar : IFoo // CS0535 * 2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFoo").WithArguments("CBar", "Metadata.IFoo.M<T>(T)").WithLocation(7, 14),
+    // (4,17): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     public long M(string t) { return 127; } 
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 17)
+            );
+        }
 
-    [WorkItem(540518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540518")]
-    [Fact]
-    public void TestExplicitImplementInterfaceMethodsWithCustomModifiers()
-    {
-        var text = @"using Metadata;
+        [WorkItem(540518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540518")]
+        [Fact]
+        public void TestExplicitImplementInterfaceMethodsWithCustomModifiers()
+        {
+            var text = @"using Metadata;
 public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
 {
     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
 }
 ";
-        var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-// (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-//     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
-Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
-// (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-//     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
-Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
-// (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
-// public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
-// (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
-// public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
-// (4,38): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
-//     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
-Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 38)
-            );
-    }
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+    // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
+    // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "M").WithArguments("CFoo.Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(4, 38),
+    // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
+    // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
+    // (2,21): error CS0535: 'CFoo' does not implement interface member 'IFooAmbiguous<string, long>.M(string)'
+    // public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IFooAmbiguous<string, long>").WithArguments("CFoo", "Metadata.IFooAmbiguous<string, long>.M(string)").WithLocation(2, 21),
+    // (4,38): error CS0570: 'IFooAmbiguous<T, R>.M(T)' is not supported by the language
+    //     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.IFooAmbiguous<T, R>.M(T)").WithLocation(4, 38)
+                );
+        }
 
-    [Fact]
-    public void TestDeriveFromClassWithOnlyModreqCustomModifier()
-    {
-        var text = @"using Metadata;
+        [Fact]
+        public void TestDeriveFromClassWithOnlyModreqCustomModifier()
+        {
+            var text = @"using Metadata;
 class Test
 {
     // Modreg has one method 'M' with modreg on it 
@@ -442,18 +442,18 @@ class Test
     }
 }
 ";
-        var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-// (11,17): error CS0570: 'Modreq.M(uint)' is not supported by the language
-//         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
-Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(11, 17)
-            );
-    }
+            var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+    // (11,17): error CS0570: 'Modreq.M(uint)' is not supported by the language
+    //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
+    Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(11, 17)
+                );
+        }
 
-    [Fact]
-    public void TestOverrideMethodWithModreqCustomModifier()
-    {
-        var text = @"using System;
+        [Fact]
+        public void TestOverrideMethodWithModreqCustomModifier()
+        {
+            var text = @"using System;
 using Metadata;
 class Test
 {
@@ -469,18 +469,18 @@ class Test
     }
 }
 ";
-        var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
-        CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
-            // (8,30): error CS0570: 'Modreq.M(uint)' is not supported by the language
-            //         public override void M(uint x) { Console.Write(x + 1); } // CS0115
-            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(8, 30));
-    }
+            CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
+                // (8,30): error CS0570: 'Modreq.M(uint)' is not supported by the language
+                //         public override void M(uint x) { Console.Write(x + 1); } // CS0115
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Metadata.Modreq.M(uint)").WithLocation(8, 30));
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideMethod_FewestCustomModifiers_BothCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideMethod_FewestCustomModifiers_BothCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -505,34 +505,34 @@ class Test
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override void Foo(int x) { }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        // No diagnostics - just choose the overload with fewer custom modifiers
-        compilation.VerifyDiagnostics();
+            // No diagnostics - just choose the overload with fewer custom modifiers
+            compilation.VerifyDiagnostics();
 
-        Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
+            Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
 
-        Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
-        Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
-    }
+            Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
+            Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideMethod_FewestCustomModifiers_OneCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideMethod_FewestCustomModifiers_OneCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -559,35 +559,35 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override char Foo(int x) { return 'a'; }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        compilation.VerifyDiagnostics(
-            // (4,26): error CS0508: 'Derived.Foo(int)': return type must be 'long' to match overridden member 'Base.Foo(int)'
-            Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Foo").WithArguments("Derived.Foo(int)", "Base.Foo(int)", "long"));
+            compilation.VerifyDiagnostics(
+                // (4,26): error CS0508: 'Derived.Foo(int)': return type must be 'long' to match overridden member 'Base.Foo(int)'
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Foo").WithArguments("Derived.Foo(int)", "Base.Foo(int)", "long"));
 
-        Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
+            Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
 
-        Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
-        Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
-    }
+            Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
+            Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideProperty_FewestCustomModifiers_BothCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideProperty_FewestCustomModifiers_BothCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -625,34 +625,34 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override int P { get { return 0; } }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        // No diagnostics - just choose the overload with fewer custom modifiers
-        compilation.VerifyDiagnostics();
+            // No diagnostics - just choose the overload with fewer custom modifiers
+            compilation.VerifyDiagnostics();
 
-        Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
+            Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
 
-        Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
-        Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
-    }
+            Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
+            Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideProperty_FewestCustomModifiers_OneCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideProperty_FewestCustomModifiers_OneCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -692,35 +692,35 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override int P { get { return 0; } }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        compilation.VerifyDiagnostics(
-            // (4,25): error CS1715: 'Derived.P': type must be 'char' to match overridden member 'Base.P'
-            Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "char"));
+            compilation.VerifyDiagnostics(
+                // (4,25): error CS1715: 'Derived.P': type must be 'char' to match overridden member 'Base.P'
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "P").WithArguments("Derived.P", "Base.P", "char"));
 
-        Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
+            Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
 
-        Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
-        Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
-    }
+            Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
+            Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideIndexer_FewestCustomModifiers_BothCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideIndexer_FewestCustomModifiers_BothCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -759,39 +759,39 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override int this[int x] { get { return 0; } }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        // No diagnostics - just choose the overload with fewer custom modifiers
-        compilation.VerifyDiagnostics();
+            // No diagnostics - just choose the overload with fewer custom modifiers
+            compilation.VerifyDiagnostics();
 
-        Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
+            Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
-        var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
+            var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
 
-        Assert.True(baseProperty1.IsIndexer);
-        Assert.True(baseProperty2.IsIndexer);
+            Assert.True(baseProperty1.IsIndexer);
+            Assert.True(baseProperty2.IsIndexer);
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedProperty = derivedClass.Indexers.Single();
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedProperty = derivedClass.Indexers.Single();
 
-        Assert.True(derivedProperty.IsIndexer);
+            Assert.True(derivedProperty.IsIndexer);
 
-        Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
-        Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
-    }
+            Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
+            Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideIndexer_FewestCustomModifiers_OneCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideIndexer_FewestCustomModifiers_OneCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -832,40 +832,40 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override int this[int x] { get { return 0; } }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        compilation.VerifyDiagnostics(
-            // (4,25): error CS1715: 'Derived.this[int]': type must be 'char' to match overridden member 'Base.this[int]'
-            Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "this").WithArguments("Derived.this[int]", "Base.this[int]", "char"));
+            compilation.VerifyDiagnostics(
+                // (4,25): error CS1715: 'Derived.this[int]': type must be 'char' to match overridden member 'Base.this[int]'
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "this").WithArguments("Derived.this[int]", "Base.this[int]", "char"));
 
-        Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
+            Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
-        var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
+            var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
 
-        Assert.True(baseProperty1.IsIndexer);
-        Assert.True(baseProperty2.IsIndexer);
+            Assert.True(baseProperty1.IsIndexer);
+            Assert.True(baseProperty2.IsIndexer);
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedProperty = derivedClass.Indexers.Single();
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedProperty = derivedClass.Indexers.Single();
 
-        Assert.True(derivedProperty.IsIndexer);
+            Assert.True(derivedProperty.IsIndexer);
 
-        Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
-        Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
-    }
+            Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
+            Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideEvent_FewestCustomModifiers_BothCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideEvent_FewestCustomModifiers_BothCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -915,7 +915,7 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override event System.Action<int[]> E;
@@ -923,28 +923,28 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        // No diagnostics - just choose the overload with fewer custom modifiers
-        compilation.VerifyDiagnostics();
+            // No diagnostics - just choose the overload with fewer custom modifiers
+            compilation.VerifyDiagnostics();
 
-        Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
 
-        Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
-        Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
-    }
+            Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
+            Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void TestOverrideEvent_FewestCustomModifiers_OneCorrect()
-    {
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void TestOverrideEvent_FewestCustomModifiers_OneCorrect()
+        {
+            var il = @"
 .class public auto ansi beforefieldinit Base
        extends [mscorlib]System.Object
 {
@@ -996,7 +996,7 @@ public class Derived : Base
 } // end of class Base
 ";
 
-        var csharp = @"
+            var csharp = @"
 public class Derived : Base
 {
     public override event System.Action<int[]> E;
@@ -1004,31 +1004,31 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-        var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
-        compilation.VerifyDiagnostics(
-            // (4,48): error CS1715: 'Derived.E': type must be 'System.Action<char[]>' to match overridden member 'Base.E'
-            //     public override event System.Action<int[]> E;
-            Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Action<char[]>"));
+            compilation.VerifyDiagnostics(
+                // (4,48): error CS1715: 'Derived.E': type must be 'System.Action<char[]>' to match overridden member 'Base.E'
+                //     public override event System.Action<int[]> E;
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "E").WithArguments("Derived.E", "Base.E", "System.Action<char[]>"));
 
-        Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
+            Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
-        var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-        var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
-        var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
+            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
+            var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-        var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-        var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
 
-        Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
-        Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
-    }
+            Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
+            Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void ModOptTestWithErrors()
-    {
-        // NOTE: removed Microsoft.VisualC attributes
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ModOptTestWithErrors()
+        {
+            // NOTE: removed Microsoft.VisualC attributes
+            var il = @"
 .class public sequential ansi sealed beforefieldinit ModA
        extends [mscorlib]System.ValueType
 {
@@ -1127,7 +1127,7 @@ public class Derived : Base
 } // end of class DG`1
 ";
 
-        var csharp = @"
+            var csharp = @"
 using System;
 
 class EG<T> : DG<T>
@@ -1176,38 +1176,38 @@ class M
     }
 }
 ";
-        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-            // CONSIDER: Dev10 reports CS1957, even though the runtime has no trouble distinguishing the potentially
-            // overridden methods.
+            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+                // CONSIDER: Dev10 reports CS1957, even though the runtime has no trouble distinguishing the potentially
+                // overridden methods.
 
-            // (6,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EG<T>', so they cannot be overridden
-            //     public override void F(T c)
-            Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EG<T>"),
-            // (15,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EGI', so they cannot be overridden
-            //     public override void F(int c)
-            Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI"),
+                // (6,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EG<T>', so they cannot be overridden
+                //     public override void F(T c)
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EG<T>"),
+                // (15,26): error CS0462: The inherited members 'CG<T>.F(T)' and 'CG<T>.F(T)' have the same signature in type 'EGI', so they cannot be overridden
+                //     public override void F(int c)
+                Diagnostic(ErrorCode.ERR_AmbigOverride, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)", "EGI"),
 
-            // NOTE: Dev10 doesn't report these cascading errors.
+                // NOTE: Dev10 doesn't report these cascading errors.
 
-            // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
-            //         base.F(c);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-            // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
-            //         base.F(c);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-            // (34,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
-            //             e.F(c);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
-            // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
-            //             e.F(c);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
-    }
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                //         base.F(c);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                //         base.F(c);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                // (34,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                //             e.F(c);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"),
+                // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'CG<T>.F(T)' and 'CG<T>.F(T)'
+                //             e.F(c);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void ModOptTest()
-    {
-        // NOTE: removed Microsoft.VisualC attributes
-        var il = @"
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ModOptTest()
+        {
+            // NOTE: removed Microsoft.VisualC attributes
+            var il = @"
 .class public sequential ansi sealed beforefieldinit ModA
        extends [mscorlib]System.ValueType
 {
@@ -1304,7 +1304,7 @@ class M
 } // end of class DG`1
 ";
 
-        var csharp = @"
+            var csharp = @"
 using System;
 
 class EG<T> : DG<T>
@@ -1354,9 +1354,9 @@ class M
 }
 ";
 
-        var reference = CompileIL(il, prependDefaultHeader: true);
+            var reference = CompileIL(il, prependDefaultHeader: true);
 
-        var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
+            var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
 ***** Start mod opt tests ****
   *** Generic Non-ref
 C# EG.F(T): CG::F(T)
@@ -1364,42 +1364,43 @@ C# EG.F(T): CG::F(T)
 C# GEI.F(int): CG::F(T)
 ***** End mod opt tests ****");
 
-        // CONSIDER: Dev10 reports WRN_MultipleRuntimeOverrideMatches twice, which is odd
-        // since the runtime can distinguish signatures with different modopts.
-        verifier.VerifyDiagnostics();
-    }
+            // CONSIDER: Dev10 reports WRN_MultipleRuntimeOverrideMatches twice, which is odd
+            // since the runtime can distinguish signatures with different modopts.
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-    public void OverloadsWithDifferentParameterModifiers_Ref_In()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void OverloadsWithDifferentParameterModifiers_Ref_In()
+        {
+            var text = @"
 abstract class TestClass
 {
     public void Method(ref int x) { }
     public void Method(in int x) { }
 }";
 
-        var comp = CreateCompilation(text).VerifyDiagnostics(
-            // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
-            //     public void Method(in int x) { }
-            Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "ref").WithLocation(5, 17));
-    }
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
+                //     public void Method(in int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "ref").WithLocation(5, 17));
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-    public void OverloadsWithDifferentParameterModifiers_Out_In()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        public void OverloadsWithDifferentParameterModifiers_Out_In()
+        {
+            var text = @"
 abstract class TestClass
 {
     public void Method(out int x) { x = 0; }
     public void Method(in int x) { }
 }";
 
-        var comp = CreateCompilation(text).VerifyDiagnostics(
-            // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'out'
-            //     public void Method(in int x) { }
-            Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "out").WithLocation(5, 17));
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'out'
+                //     public void Method(in int x) { }
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "out").WithLocation(5, 17));
+        }
     }
 }

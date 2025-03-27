@@ -11,14 +11,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenFieldInitTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Fact]
-    public void TestInstanceFieldInitializersPartialClass()
+    public class CodeGenFieldInitTests : CSharpTestBase
     {
-        var source = @"
+        [Fact]
+        public void TestInstanceFieldInitializersPartialClass()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -66,7 +66,7 @@ partial class Partial
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Start Partial()
 Partial.a
 Partial.b
@@ -83,12 +83,12 @@ p.b = 2
 p.c = 3
 End Partial(int)
 ");
-    }
+        }
 
-    [Fact]
-    public void TestInstanceFieldInitializersInheritance()
-    {
-        var source = @"
+        [Fact]
+        public void TestInstanceFieldInitializersInheritance()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -136,7 +136,7 @@ class Derived2 : Derived
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Derived2.c
 Derived.b
 Base.a
@@ -147,12 +147,12 @@ d.a = 1
 d.b = 2
 d.c = 3
 ");
-    }
+        }
 
-    [Fact]
-    public void TestStaticFieldInitializersPartialClass()
-    {
-        var source = @"
+        [Fact]
+        public void TestStaticFieldInitializersPartialClass()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -184,7 +184,7 @@ partial class Partial
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Partial.a
 Partial.b
 Partial.c
@@ -192,12 +192,12 @@ Partial.a = 1
 Partial.b = 2
 Partial.c = 3
 ");
-    }
+        }
 
-    [Fact]
-    public void TestStaticFieldInitializersInheritance1()
-    {
-        var source = @"
+        [Fact]
+        public void TestStaticFieldInitializersInheritance1()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -233,7 +233,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Base.a
 Base()
 Base.a = 1
@@ -244,12 +244,12 @@ Derived2.c
 Derived2()
 Derived2.c = 3
 ");
-    }
+        }
 
-    [Fact]
-    public void TestStaticFieldInitializersInheritance2()
-    {
-        var source = @"
+        [Fact]
+        public void TestStaticFieldInitializersInheritance2()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -285,7 +285,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Derived.b
 Derived()
 Base.a
@@ -296,12 +296,12 @@ Derived2.c
 Derived2()
 Derived2.c = 3
 ");
-    }
+        }
 
-    [Fact]
-    public void TestStaticFieldInitializersInheritance3()
-    {
-        var source = @"
+        [Fact]
+        public void TestStaticFieldInitializersInheritance3()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -337,7 +337,7 @@ class Derived2 : Derived
     static Derived2() { System.Console.WriteLine(""Derived2()""); }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Derived2.c
 Derived2()
 Derived.b
@@ -348,12 +348,12 @@ Base.a = 1
 Derived.b = 2
 Derived2.c = 3
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersMixed()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersMixed()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -405,7 +405,7 @@ class Derived : Base
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 Derived.b
 static Derived()
 Derived.y
@@ -419,12 +419,12 @@ Derived.b = 2
 d.x = 3
 d.y = 4
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode1()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode1()
+        {
+            var source = @"
 class C
 {
     public string str1 = null;
@@ -432,8 +432,8 @@ class C
     public string str3 = (string)(null);
 }
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(compilation).VerifyIL("C..ctor", @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -445,12 +445,12 @@ class C
   IL_0011:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode2()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode2()
+        {
+            var source = @"
 class C
 {
     public int f1 = 0;
@@ -459,8 +459,8 @@ class C
     public char f4 = '\0';
 }
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(compilation).VerifyIL("C..ctor", @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -469,19 +469,19 @@ class C
   IL_0006:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode3()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode3()
+        {
+            var source = @"
 class C<T>
 {
     public T f1 = default(T);
 }
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(compilation).VerifyIL("C<T>..ctor", @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(compilation).VerifyIL("C<T>..ctor", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -490,12 +490,12 @@ class C<T>
   IL_0006:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode4()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode4()
+        {
+            var source = @"
 class C
 {
     public static string str1 = null;
@@ -508,8 +508,8 @@ class C
 }
 
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(compilation).VerifyIL("C..cctor", @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(compilation).VerifyIL("C..cctor", @"
 {
   // Code size       47 (0x2f)
   .maxstack  1
@@ -530,12 +530,12 @@ class C
   IL_002e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode5()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode5()
+        {
+            var source = @"
     using System;    
 
     enum E1 : byte
@@ -562,35 +562,35 @@ class C
     }
 
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(
-            source,
-            symbolValidator: validator,
-            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-        void validator(ModuleSymbol module)
-        {
-            // note: we could make the synthesized constructor smarter and realize that
-            // nothing needs to be emitted for these initializers.
-            // but it doesn't serve any realistic scenarios at this time.
-            var type = module.ContainingAssembly.GetTypeByMetadataName("C`1");
-            Assert.NotNull(type.GetMember(".cctor"));
+            void validator(ModuleSymbol module)
+            {
+                // note: we could make the synthesized constructor smarter and realize that
+                // nothing needs to be emitted for these initializers.
+                // but it doesn't serve any realistic scenarios at this time.
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C`1");
+                Assert.NotNull(type.GetMember(".cctor"));
+            }
         }
-    }
 
-    [WorkItem(530445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]
-    [Fact]
-    public void TestFieldInitializersInOptimizedMode6()
-    {
-        var source = @"
+        [WorkItem(530445, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530445")]
+        [Fact]
+        public void TestFieldInitializersInOptimizedMode6()
+        {
+            var source = @"
 class C
 {
     private bool a = false;
 }
 
 ";
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
-        CompileAndVerify(compilation).VerifyIL("C..ctor", @"
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(compilation).VerifyIL("C..ctor", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -599,12 +599,12 @@ class C
   IL_0006:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestFieldInitializersConstructorInitializers()
-    {
-        var source = @"
+        [Fact]
+        public void TestFieldInitializersConstructorInitializers()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -636,34 +636,34 @@ class A
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 A.a
 A(int)
 A()
 a.a = 1
 ");
-    }
-
-    [Fact]
-    public void Ordering()
-    {
-        var trees = new List<SyntaxTree>();
-        var expectedOutput = new StringBuilder();
-        for (int i = 0; i < 20; i++)
-        {
-            trees.Add(SyntaxFactory.ParseSyntaxTree("System.Console.WriteLine(" + i + ");", options: TestOptions.Script));
-            expectedOutput.AppendLine(i.ToString());
         }
 
-        var compilation = CreateCompilationWithMscorlib461(trees, options: TestOptions.ReleaseExe);
+        [Fact]
+        public void Ordering()
+        {
+            var trees = new List<SyntaxTree>();
+            var expectedOutput = new StringBuilder();
+            for (int i = 0; i < 20; i++)
+            {
+                trees.Add(SyntaxFactory.ParseSyntaxTree("System.Console.WriteLine(" + i + ");", options: TestOptions.Script));
+                expectedOutput.AppendLine(i.ToString());
+            }
 
-        CompileAndVerify(compilation, expectedOutput: expectedOutput.ToString());
-    }
+            var compilation = CreateCompilationWithMscorlib461(trees, options: TestOptions.ReleaseExe);
 
-    [Fact]
-    public void FieldInitializerWithBadConstantValueSameModule()
-    {
-        var source =
+            CompileAndVerify(compilation, expectedOutput: expectedOutput.ToString());
+        }
+
+        [Fact]
+        public void FieldInitializerWithBadConstantValueSameModule()
+        {
+            var source =
 @"class A
 {
     public int F = B.F1;
@@ -673,35 +673,36 @@ class B
     public const int F1 = F2;
     public static int F2 = 0;
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,27): error CS0133: The expression being assigned to 'B.F1' must be constant
-            Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(7, 27));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,27): error CS0133: The expression being assigned to 'B.F1' must be constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(7, 27));
+        }
 
-    [Fact]
-    public void FieldInitializerWithBadConstantValueDifferentModule()
-    {
-        var source1 =
+        [Fact]
+        public void FieldInitializerWithBadConstantValueDifferentModule()
+        {
+            var source1 =
 @"public class B
 {
     public const int F1 = F2;
     public static int F2 = 0;
 }";
-        var compilation1 = CreateCompilation(source1, assemblyName: "1110a705-cc34-430b-9450-ca37031aa828");
-        compilation1.VerifyDiagnostics(
-            // (3,27): error CS0133: The expression being assigned to 'B.F1' must be constant
-            Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(3, 27));
+            var compilation1 = CreateCompilation(source1, assemblyName: "1110a705-cc34-430b-9450-ca37031aa828");
+            compilation1.VerifyDiagnostics(
+                // (3,27): error CS0133: The expression being assigned to 'B.F1' must be constant
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "F2").WithArguments("B.F1").WithLocation(3, 27));
 
-        var source2 =
+            var source2 =
 @"class A
 {
     public object F = M(B.F1);
     private static object M(int i) { return null; }
 }";
-        CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "2110a705-cc34-430b-9450-ca37031aa828")
-            .Emit(new System.IO.MemoryStream()).Diagnostics
-                .Verify(
-                // error CS7038: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa828': Unable to determine specific cause of the failure.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828", "Unable to determine specific cause of the failure."));
+            CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "2110a705-cc34-430b-9450-ca37031aa828")
+                .Emit(new System.IO.MemoryStream()).Diagnostics
+                    .Verify(
+                    // error CS7038: Failed to emit module '2110a705-cc34-430b-9450-ca37031aa828': Unable to determine specific cause of the failure.
+                    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("2110a705-cc34-430b-9450-ca37031aa828", "Unable to determine specific cause of the failure."));
+        }
     }
 }

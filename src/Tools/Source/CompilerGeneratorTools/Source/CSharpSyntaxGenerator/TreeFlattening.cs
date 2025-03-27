@@ -5,51 +5,52 @@
 using System;
 using System.Collections.Generic;
 
-namespace CSharpSyntaxGenerator;
-
-public static class TreeFlattening
+namespace CSharpSyntaxGenerator
 {
-    public static void FlattenChildren(Tree tree)
+    public static class TreeFlattening
     {
-        foreach (var type in tree.Types)
+        public static void FlattenChildren(Tree tree)
         {
-            switch (type)
+            foreach (var type in tree.Types)
             {
-                case AbstractNode node:
-                    FlattenChildren(node.Children, node.Fields, makeOptional: false);
-                    break;
-                case Node node:
-                    FlattenChildren(node.Children, node.Fields, makeOptional: false);
-                    break;
+                switch (type)
+                {
+                    case AbstractNode node:
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
+                        break;
+                    case Node node:
+                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
+                        break;
+                }
             }
         }
-    }
 
-    private static void FlattenChildren(
-        List<TreeTypeChild> fieldsAndChoices, List<Field> fields, bool makeOptional)
-    {
-        foreach (var fieldOrChoice in fieldsAndChoices)
+        private static void FlattenChildren(
+            List<TreeTypeChild> fieldsAndChoices, List<Field> fields, bool makeOptional)
         {
-            switch (fieldOrChoice)
+            foreach (var fieldOrChoice in fieldsAndChoices)
             {
-                case Field field:
-                    if (makeOptional && !AbstractFileWriter.IsAnyNodeList(field.Type))
-                    {
-                        field.Optional = "true";
-                    }
+                switch (fieldOrChoice)
+                {
+                    case Field field:
+                        if (makeOptional && !AbstractFileWriter.IsAnyNodeList(field.Type))
+                        {
+                            field.Optional = "true";
+                        }
 
-                    fields.Add(field);
-                    break;
-                case Choice choice:
-                    // Children of choices are always optional (since the point is to
-                    // chose from one of them and leave out the rest).
-                    FlattenChildren(choice.Children, fields, makeOptional: true);
-                    break;
-                case Sequence sequence:
-                    FlattenChildren(sequence.Children, fields, makeOptional);
-                    break;
-                default:
-                    throw new InvalidOperationException("Unknown child type.");
+                        fields.Add(field);
+                        break;
+                    case Choice choice:
+                        // Children of choices are always optional (since the point is to
+                        // chose from one of them and leave out the rest).
+                        FlattenChildren(choice.Children, fields, makeOptional: true);
+                        break;
+                    case Sequence sequence:
+                        FlattenChildren(sequence.Children, fields, makeOptional);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown child type.");
+                }
             }
         }
     }

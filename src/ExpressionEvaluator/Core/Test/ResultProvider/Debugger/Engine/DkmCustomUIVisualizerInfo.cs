@@ -6,79 +6,80 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public class DkmCustomUIVisualizerInfo
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public uint Id;
-    public string MenuName;
-    public string Description;
-    public string Metric;
-    public string UISideVisualizerTypeName;
-    public string UISideVisualizerAssemblyName;
-    public DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation;
-    public string DebuggeeSideVisualizerTypeName;
-    public string DebuggeeSideVisualizerAssemblyName;
-    public Guid ExtensionPartId;
-
-    public static DkmCustomUIVisualizerInfo Create(uint Id, string MenuName, string Description, string Metric)
+    public class DkmCustomUIVisualizerInfo
     {
-        return new DkmCustomUIVisualizerInfo
-        {
-            Id = Id,
-            MenuName = MenuName,
-            Description = Description,
-            Metric = Metric
-        };
-    }
+        public uint Id;
+        public string MenuName;
+        public string Description;
+        public string Metric;
+        public string UISideVisualizerTypeName;
+        public string UISideVisualizerAssemblyName;
+        public DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation;
+        public string DebuggeeSideVisualizerTypeName;
+        public string DebuggeeSideVisualizerAssemblyName;
+        public Guid ExtensionPartId;
 
-    public static DkmCustomUIVisualizerInfo Create(uint Id,
-        string MenuName,
-        string Description,
-        string Metric,
-        string UISideVisualizerTypeName,
-        string UISideVisualizerAssemblyName,
-        DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation,
-        string DebuggeeSideVisualizerTypeName,
-        string DebuggeeSideVisualizerAssemblyName)
-    {
-        return new DkmCustomUIVisualizerInfo
+        public static DkmCustomUIVisualizerInfo Create(uint Id, string MenuName, string Description, string Metric)
         {
-            Id = Id,
-            MenuName = MenuName,
-            Description = Description,
-            Metric = Metric,
-            UISideVisualizerTypeName = UISideVisualizerTypeName,
-            UISideVisualizerAssemblyName = UISideVisualizerAssemblyName,
-            UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
-            DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
-            DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName
-        };
-    }
+            return new DkmCustomUIVisualizerInfo
+            {
+                Id = Id,
+                MenuName = MenuName,
+                Description = Description,
+                Metric = Metric
+            };
+        }
 
-    public static DkmCustomUIVisualizerInfo Create(uint Id,
-        string MenuName,
-        string Description,
-        string Metric,
-        string UISideVisualizerTypeName,
-        string UISideVisualizerAssemblyName,
-        DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation,
-        string DebuggeeSideVisualizerTypeName,
-        string DebuggeeSideVisualizerAssemblyName,
-        Guid ExtensionPartId)
-    {
-        return new DkmCustomUIVisualizerInfo
+        public static DkmCustomUIVisualizerInfo Create(uint Id,
+            string MenuName,
+            string Description,
+            string Metric,
+            string UISideVisualizerTypeName,
+            string UISideVisualizerAssemblyName,
+            DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation,
+            string DebuggeeSideVisualizerTypeName,
+            string DebuggeeSideVisualizerAssemblyName)
         {
-            Id = Id,
-            MenuName = MenuName,
-            Description = Description,
-            Metric = Metric,
-            UISideVisualizerTypeName = UISideVisualizerTypeName,
-            UISideVisualizerAssemblyName = UISideVisualizerAssemblyName,
-            UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
-            DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
-            DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName,
-            ExtensionPartId = ExtensionPartId
-        };
+            return new DkmCustomUIVisualizerInfo
+            {
+                Id = Id,
+                MenuName = MenuName,
+                Description = Description,
+                Metric = Metric,
+                UISideVisualizerTypeName = UISideVisualizerTypeName,
+                UISideVisualizerAssemblyName = UISideVisualizerAssemblyName,
+                UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
+                DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
+                DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName
+            };
+        }
+
+        public static DkmCustomUIVisualizerInfo Create(uint Id,
+            string MenuName,
+            string Description,
+            string Metric,
+            string UISideVisualizerTypeName,
+            string UISideVisualizerAssemblyName,
+            DkmClrCustomVisualizerAssemblyLocation UISideVisualizerAssemblyLocation,
+            string DebuggeeSideVisualizerTypeName,
+            string DebuggeeSideVisualizerAssemblyName,
+            Guid ExtensionPartId)
+        {
+            return new DkmCustomUIVisualizerInfo
+            {
+                Id = Id,
+                MenuName = MenuName,
+                Description = Description,
+                Metric = Metric,
+                UISideVisualizerTypeName = UISideVisualizerTypeName,
+                UISideVisualizerAssemblyName = UISideVisualizerAssemblyName,
+                UISideVisualizerAssemblyLocation = UISideVisualizerAssemblyLocation,
+                DebuggeeSideVisualizerTypeName = DebuggeeSideVisualizerTypeName,
+                DebuggeeSideVisualizerAssemblyName = DebuggeeSideVisualizerAssemblyName,
+                ExtensionPartId = ExtensionPartId
+            };
+        }
     }
 }

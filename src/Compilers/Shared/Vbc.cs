@@ -10,22 +10,23 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine;
-
-internal sealed class Vbc : VisualBasicCompiler
+namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
-    internal Vbc(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
-        : base(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
+    internal sealed class Vbc : VisualBasicCompiler
     {
-    }
+        internal Vbc(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, Environment.GetEnvironmentVariable("LIB"), analyzerLoader)
+        {
+        }
 
-    internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
-    {
-        FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
+        internal static int Run(string[] args, BuildPaths buildPaths, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+        {
+            FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
-        var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
-        var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);
-        return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, textWriter, tw => compiler.Run(tw));
+            var responseFile = Path.Combine(buildPaths.ClientDirectory, VisualBasicCompiler.ResponseFileName);
+            var compiler = new Vbc(responseFile, buildPaths, args, analyzerLoader);
+            return ConsoleUtil.RunWithUtf8Output(compiler.Arguments.Utf8Output, textWriter, tw => compiler.Run(tw));
+        }
     }
 }
 

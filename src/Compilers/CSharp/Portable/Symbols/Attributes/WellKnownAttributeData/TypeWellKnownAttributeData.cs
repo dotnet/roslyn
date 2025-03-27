@@ -6,49 +6,50 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Information decoded from well-known custom attributes applied on a type.
-/// </summary>
-internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData, ISkipLocalsInitAttributeTarget
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    #region CoClassAttribute
-
-    private NamedTypeSymbol _comImportCoClass;
-    public NamedTypeSymbol ComImportCoClass
+    /// <summary>
+    /// Information decoded from well-known custom attributes applied on a type.
+    /// </summary>
+    internal sealed class TypeWellKnownAttributeData : CommonTypeWellKnownAttributeData, ISkipLocalsInitAttributeTarget
     {
-        get
-        {
-            return _comImportCoClass;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            Debug.Assert((object)_comImportCoClass == null);
-            Debug.Assert((object)value != null);
-            _comImportCoClass = value;
-            SetDataStored();
-        }
-    }
+        #region CoClassAttribute
 
-    #endregion
+        private NamedTypeSymbol _comImportCoClass;
+        public NamedTypeSymbol ComImportCoClass
+        {
+            get
+            {
+                return _comImportCoClass;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert((object)_comImportCoClass == null);
+                Debug.Assert((object)value != null);
+                _comImportCoClass = value;
+                SetDataStored();
+            }
+        }
 
-    #region SkipLocalsInitAttribute
-    private bool _hasSkipLocalsInitAttribute;
-    public bool HasSkipLocalsInitAttribute
-    {
-        get
+        #endregion
+
+        #region SkipLocalsInitAttribute
+        private bool _hasSkipLocalsInitAttribute;
+        public bool HasSkipLocalsInitAttribute
         {
-            VerifySealed(expected: true);
-            return _hasSkipLocalsInitAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSkipLocalsInitAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSkipLocalsInitAttribute = value;
+                SetDataStored();
+            }
         }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasSkipLocalsInitAttribute = value;
-            SetDataStored();
-        }
+        #endregion
     }
-    #endregion
 }

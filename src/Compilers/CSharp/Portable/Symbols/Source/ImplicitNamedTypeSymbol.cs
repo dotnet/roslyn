@@ -11,185 +11,186 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents implicit, script and submission classes.
-/// </summary>
-internal sealed class ImplicitNamedTypeSymbol : SourceMemberContainerTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal ImplicitNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
-        : base(containingSymbol, declaration, diagnostics)
-    {
-        Debug.Assert(declaration.Kind == DeclarationKind.ImplicitClass ||
-                     declaration.Kind == DeclarationKind.Submission ||
-                     declaration.Kind == DeclarationKind.Script);
-
-        state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
-    }
-
-    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-        => throw ExceptionUtilities.Unreachable();
-
-    public override ImmutableArray<CSharpAttributeData> GetAttributes()
-    {
-        state.NotePartComplete(CompletionPart.Attributes);
-        return ImmutableArray<CSharpAttributeData>.Empty;
-    }
-
-    internal override AttributeUsageInfo GetAttributeUsageInfo()
-    {
-        return AttributeUsageInfo.Null;
-    }
-
-    protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
-    {
-        // A script class may implement interfaces in hosted scenarios.
-        // The interface definitions are specified via API, not in compilation source.
-        return NoLocation.Singleton;
-    }
-
     /// <summary>
-    /// Returns null for a submission class.
-    /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
+    /// Represents implicit, script and submission classes.
     /// </summary>
-    internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-        => IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
-
-    protected override void CheckBase(BindingDiagnosticBag diagnostics)
+    internal sealed class ImplicitNamedTypeSymbol : SourceMemberContainerTypeSymbol
     {
-        // check that System.Object is available. 
-        // Although submission semantically doesn't have a base class we need to emit one.
-        diagnostics.ReportUseSite(this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), GetFirstLocation());
-    }
+        internal ImplicitNamedTypeSymbol(NamespaceOrTypeSymbol containingSymbol, MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+            : base(containingSymbol, declaration, diagnostics)
+        {
+            Debug.Assert(declaration.Kind == DeclarationKind.ImplicitClass ||
+                         declaration.Kind == DeclarationKind.Submission ||
+                         declaration.Kind == DeclarationKind.Script);
 
-    internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
-    {
-        return BaseTypeNoUseSiteDiagnostics;
-    }
+            state.NotePartComplete(CompletionPart.EnumUnderlyingType); // No work to do for this.
+        }
 
-    internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
-    {
-        return ImmutableArray<NamedTypeSymbol>.Empty;
-    }
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            => throw ExceptionUtilities.Unreachable();
 
-    internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
-    {
-        return ImmutableArray<NamedTypeSymbol>.Empty;
-    }
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            state.NotePartComplete(CompletionPart.Attributes);
+            return ImmutableArray<CSharpAttributeData>.Empty;
+        }
 
-    protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
-    {
-        // nop
-    }
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            return AttributeUsageInfo.Null;
+        }
 
-    public override ImmutableArray<TypeParameterSymbol> TypeParameters
-    {
-        get { return ImmutableArray<TypeParameterSymbol>.Empty; }
-    }
+        protected override Location GetCorrespondingBaseListLocation(NamedTypeSymbol @base)
+        {
+            // A script class may implement interfaces in hosted scenarios.
+            // The interface definitions are specified via API, not in compilation source.
+            return NoLocation.Singleton;
+        }
 
-    internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
-    {
-        get { return ImmutableArray<TypeWithAnnotations>.Empty; }
-    }
+        /// <summary>
+        /// Returns null for a submission class.
+        /// This ensures that a submission class does not inherit methods such as ToString or GetHashCode.
+        /// </summary>
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+            => IsScriptClass ? null : this.DeclaringCompilation.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
 
-    public sealed override bool AreLocalsZeroed
-    {
-        get { return ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed; }
-    }
+        protected override void CheckBase(BindingDiagnosticBag diagnostics)
+        {
+            // check that System.Object is available. 
+            // Although submission semantically doesn't have a base class we need to emit one.
+            diagnostics.ReportUseSite(this.DeclaringCompilation.GetSpecialType(SpecialType.System_Object), GetFirstLocation());
+        }
 
-    internal override bool IsComImport
-    {
-        get { return false; }
-    }
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
+        {
+            return BaseTypeNoUseSiteDiagnostics;
+        }
 
-    internal override NamedTypeSymbol ComImportCoClass
-    {
-        get { return null; }
-    }
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
 
-    internal override bool HasSpecialName
-    {
-        get { return false; }
-    }
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
+        {
+            return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
 
-    internal override bool ShouldAddWinRTMembers
-    {
-        get { return false; }
-    }
+        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
+        {
+            // nop
+        }
 
-    internal sealed override bool IsWindowsRuntimeImport
-    {
-        get { return false; }
-    }
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
+        {
+            get { return ImmutableArray<TypeParameterSymbol>.Empty; }
+        }
 
-    public sealed override bool IsSerializable
-    {
-        get { return false; }
-    }
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
+        {
+            get { return ImmutableArray<TypeWithAnnotations>.Empty; }
+        }
 
-    internal sealed override TypeLayout Layout
-    {
-        get { return default(TypeLayout); }
-    }
+        public sealed override bool AreLocalsZeroed
+        {
+            get { return ContainingType?.AreLocalsZeroed ?? ContainingModule.AreLocalsZeroed; }
+        }
 
-    internal bool HasStructLayoutAttribute
-    {
-        get { return false; }
-    }
+        internal override bool IsComImport
+        {
+            get { return false; }
+        }
 
-    internal override CharSet MarshallingCharSet
-    {
-        get { return DefaultMarshallingCharSet; }
-    }
+        internal override NamedTypeSymbol ComImportCoClass
+        {
+            get { return null; }
+        }
 
-    internal sealed override bool HasDeclarativeSecurity
-    {
-        get { return false; }
-    }
+        internal override bool HasSpecialName
+        {
+            get { return false; }
+        }
 
-    internal override bool GetGuidString(out string guidString)
-    {
-        guidString = null;
-        return false;
-    }
+        internal override bool ShouldAddWinRTMembers
+        {
+            get { return false; }
+        }
 
-    internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal sealed override bool IsWindowsRuntimeImport
+        {
+            get { return false; }
+        }
 
-    internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-    {
-        return ImmutableArray<string>.Empty;
-    }
+        public sealed override bool IsSerializable
+        {
+            get { return false; }
+        }
 
-    internal override ObsoleteAttributeData ObsoleteAttributeData
-    {
-        get { return null; }
-    }
+        internal sealed override TypeLayout Layout
+        {
+            get { return default(TypeLayout); }
+        }
 
-    internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+        internal bool HasStructLayoutAttribute
+        {
+            get { return false; }
+        }
 
-    internal override bool HasCompilerLoweringPreserveAttribute => false;
+        internal override CharSet MarshallingCharSet
+        {
+            get { return DefaultMarshallingCharSet; }
+        }
 
-    internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override bool HasDeclarativeSecurity
+        {
+            get { return false; }
+        }
 
-    internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
+        internal override bool GetGuidString(out string guidString)
+        {
+            guidString = null;
+            return false;
+        }
 
-    internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+        internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal sealed override bool HasInlineArrayAttribute(out int length)
-    {
-        length = 0;
-        return false;
-    }
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+        {
+            return ImmutableArray<string>.Empty;
+        }
+
+        internal override ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get { return null; }
+        }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
+
+        internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
 
 #nullable enable
-    internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
-    {
-        builderType = null;
-        methodName = null;
-        return false;
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
     }
 }

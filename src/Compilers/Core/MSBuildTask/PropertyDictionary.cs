@@ -4,28 +4,29 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.BuildTasks;
-
-internal class PropertyDictionary : Dictionary<string, object?>
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    public T GetOrDefault<T>(string name, T @default)
+    internal class PropertyDictionary : Dictionary<string, object?>
     {
-        object? value;
-        if (this.TryGetValue(name, out value))
-        {
-            return (T)value!;
-        }
-        return @default;
-    }
-
-    public new object? this[string name]
-    {
-        get
+        public T GetOrDefault<T>(string name, T @default)
         {
             object? value;
-            return this.TryGetValue(name, out value)
-                ? value : null;
+            if (this.TryGetValue(name, out value))
+            {
+                return (T)value!;
+            }
+            return @default;
         }
-        set { base[name] = value; }
+
+        public new object? this[string name]
+        {
+            get
+            {
+                object? value;
+                return this.TryGetValue(name, out value)
+                    ? value : null;
+            }
+            set { base[name] = value; }
+        }
     }
 }

@@ -7,9 +7,10 @@
 
 using System.Globalization;
 
-namespace Roslyn.Test.Utilities;
-
-public static class CultureHelpers
+namespace Roslyn.Test.Utilities
 {
-    public static readonly CultureInfo EnglishCulture = new CultureInfo("en");
+    public static class CultureHelpers
+    {
+        public static readonly CultureInfo EnglishCulture = new CultureInfo("en");
+    }
 }

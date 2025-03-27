@@ -7,47 +7,48 @@
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal static partial class RefKindExtensions
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public static bool IsManagedReference(this RefKind refKind)
+    internal static partial class RefKindExtensions
     {
-        Debug.Assert(refKind <= RefKind.RefReadOnly);
-
-        return refKind != RefKind.None;
-    }
-
-    public static RefKind GetRefKind(this SyntaxKind syntaxKind)
-    {
-        switch (syntaxKind)
+        public static bool IsManagedReference(this RefKind refKind)
         {
-            case SyntaxKind.RefKeyword:
-                return RefKind.Ref;
-            case SyntaxKind.OutKeyword:
-                return RefKind.Out;
-            case SyntaxKind.InKeyword:
-                return RefKind.In;
-            case SyntaxKind.None:
-                return RefKind.None;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(syntaxKind);
+            Debug.Assert(refKind <= RefKind.RefReadOnly);
+
+            return refKind != RefKind.None;
         }
-    }
 
-    public static bool IsWritableReference(this RefKind refKind)
-    {
-        switch (refKind)
+        public static RefKind GetRefKind(this SyntaxKind syntaxKind)
         {
-            case RefKind.Ref:
-            case RefKind.Out:
-                return true;
-            case RefKind.None:
-            case RefKind.In:
-            case RefKind.RefReadOnlyParameter:
-                return false;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(refKind);
+            switch (syntaxKind)
+            {
+                case SyntaxKind.RefKeyword:
+                    return RefKind.Ref;
+                case SyntaxKind.OutKeyword:
+                    return RefKind.Out;
+                case SyntaxKind.InKeyword:
+                    return RefKind.In;
+                case SyntaxKind.None:
+                    return RefKind.None;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(syntaxKind);
+            }
+        }
+
+        public static bool IsWritableReference(this RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.Ref:
+                case RefKind.Out:
+                    return true;
+                case RefKind.None:
+                case RefKind.In:
+                case RefKind.RefReadOnlyParameter:
+                    return false;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+            }
         }
     }
 }

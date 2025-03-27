@@ -9,124 +9,125 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SourceUserDefinedConversionSymbol : SourceUserDefinedOperatorSymbolBase
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
-        SourceMemberContainerTypeSymbol containingType,
-        Binder bodyBinder,
-        ConversionOperatorDeclarationSyntax syntax,
-        bool isNullableAnalysisEnabled,
-        BindingDiagnosticBag diagnostics)
+    internal sealed class SourceUserDefinedConversionSymbol : SourceUserDefinedOperatorSymbolBase
     {
-        // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
-        // Narrowing/Widening in VB and we want the languages to be consistent.
-        var location = syntax.Type.Location;
-        string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
-
-        if (name == WellKnownMemberNames.CheckedExplicitConversionName)
+        public static SourceUserDefinedConversionSymbol CreateUserDefinedConversionSymbol(
+            SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
+            ConversionOperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
-        }
-        else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
-        {
-            diagnostics.Add(ErrorCode.ERR_ImplicitConversionOperatorCantBeChecked, syntax.CheckedKeyword.GetLocation());
-        }
+            // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
+            // Narrowing/Widening in VB and we want the languages to be consistent.
+            var location = syntax.Type.Location;
+            string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
-        var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+            if (name == WellKnownMemberNames.CheckedExplicitConversionName)
+            {
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax.CheckedKeyword);
+            }
+            else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
+            {
+                diagnostics.Add(ErrorCode.ERR_ImplicitConversionOperatorCantBeChecked, syntax.CheckedKeyword.GetLocation());
+            }
 
-        TypeSymbol explicitInterfaceType;
-        name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
-        var methodKind = interfaceSpecifier == null
-            ? MethodKind.Conversion
-            : MethodKind.ExplicitInterfaceImplementation;
+            TypeSymbol explicitInterfaceType;
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
 
-        return new SourceUserDefinedConversionSymbol(
-            methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
-    }
+            var methodKind = interfaceSpecifier == null
+                ? MethodKind.Conversion
+                : MethodKind.ExplicitInterfaceImplementation;
 
-    // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
-    // is bound lazily using binders from a BinderFactory (which will already include an
-    // UnsafeBinder, if necessary).
-    private SourceUserDefinedConversionSymbol(
-        MethodKind methodKind,
-        SourceMemberContainerTypeSymbol containingType,
-        TypeSymbol explicitInterfaceType,
-        string name,
-        Location location,
-        ConversionOperatorDeclarationSyntax syntax,
-        bool isNullableAnalysisEnabled,
-        BindingDiagnosticBag diagnostics) :
-        base(
-            methodKind,
-            explicitInterfaceType,
-            name,
-            containingType,
-            location,
-            syntax,
-            MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
-            hasAnyBody: syntax.HasAnyBody(),
-            isExpressionBodied: syntax.IsExpressionBodied(),
-            isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
-            isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-            diagnostics)
-    {
-        CheckForBlockAndExpressionBody(
-            syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
-
-        if (syntax.ParameterList.Parameters.Count != 1)
-        {
-            diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
+            return new SourceUserDefinedConversionSymbol(
+                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
-        if (IsStatic && (IsAbstract || IsVirtual))
+        // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
+        // is bound lazily using binders from a BinderFactory (which will already include an
+        // UnsafeBinder, if necessary).
+        private SourceUserDefinedConversionSymbol(
+            MethodKind methodKind,
+            SourceMemberContainerTypeSymbol containingType,
+            TypeSymbol explicitInterfaceType,
+            string name,
+            Location location,
+            ConversionOperatorDeclarationSyntax syntax,
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics) :
+            base(
+                methodKind,
+                explicitInterfaceType,
+                name,
+                containingType,
+                location,
+                syntax,
+                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                hasAnyBody: syntax.HasAnyBody(),
+                isExpressionBodied: syntax.IsExpressionBodied(),
+                isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                diagnostics)
         {
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+            CheckForBlockAndExpressionBody(
+                syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
+
+            if (syntax.ParameterList.Parameters.Count != 1)
+            {
+                diagnostics.Add(ErrorCode.ERR_OvlUnaryOperatorExpected, syntax.ParameterList.GetLocation());
+            }
+
+            if (IsStatic && (IsAbstract || IsVirtual))
+            {
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
+            }
+
+            if (syntax.ExplicitInterfaceSpecifier != null)
+                MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
         }
 
-        if (syntax.ExplicitInterfaceSpecifier != null)
-            MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.CheckFeatureAvailability(diagnostics, syntax.ExplicitInterfaceSpecifier);
-    }
-
-    internal ConversionOperatorDeclarationSyntax GetSyntax()
-    {
-        Debug.Assert(syntaxReferenceOpt != null);
-        return (ConversionOperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
-    }
-
-    internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
-    {
-        return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
-    }
-
-    protected override int GetParameterCountFromSyntax()
-    {
-        return GetSyntax().ParameterList.ParameterCount;
-    }
-
-    protected override Location ReturnTypeLocation
-    {
-        get
+        internal ConversionOperatorDeclarationSyntax GetSyntax()
         {
-            return GetSyntax().Type.Location;
+            Debug.Assert(syntaxReferenceOpt != null);
+            return (ConversionOperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
-    }
 
-    internal override bool GenerateDebugInfo
-    {
-        get { return true; }
-    }
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
 
-    internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-    {
-        return OneOrMany.Create(this.GetSyntax().AttributeLists);
-    }
+        protected override int GetParameterCountFromSyntax()
+        {
+            return GetSyntax().ParameterList.ParameterCount;
+        }
 
-    protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
-    {
-        ConversionOperatorDeclarationSyntax declarationSyntax = GetSyntax();
-        return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.Type, diagnostics);
+        protected override Location ReturnTypeLocation
+        {
+            get
+            {
+                return GetSyntax().Type.Location;
+            }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return true; }
+        }
+
+        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            return OneOrMany.Create(this.GetSyntax().AttributeLists);
+        }
+
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        {
+            ConversionOperatorDeclarationSyntax declarationSyntax = GetSyntax();
+            return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.Type, diagnostics);
+        }
     }
 }

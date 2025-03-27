@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal readonly struct HoistedLocalScopeRecord
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    public readonly int StartOffset;
-    public readonly int Length;
-
-    public HoistedLocalScopeRecord(int startOffset, int length)
+    internal readonly struct HoistedLocalScopeRecord
     {
-        StartOffset = startOffset;
-        Length = length;
+        public readonly int StartOffset;
+        public readonly int Length;
+
+        public HoistedLocalScopeRecord(int startOffset, int length)
+        {
+            StartOffset = startOffset;
+            Length = length;
+        }
     }
 }

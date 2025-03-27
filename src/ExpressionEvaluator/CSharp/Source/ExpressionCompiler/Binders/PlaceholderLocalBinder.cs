@@ -16,107 +16,108 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal sealed class PlaceholderLocalBinder : LocalScopeBinder
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    private readonly CSharpSyntaxNode _syntax;
-    private readonly ImmutableArray<LocalSymbol> _aliases;
-    private readonly MethodSymbol _containingMethod;
-    private readonly ImmutableDictionary<string, LocalSymbol> _lowercaseReturnValueAliases;
-
-    internal PlaceholderLocalBinder(
-        CSharpSyntaxNode syntax,
-        ImmutableArray<Alias> aliases,
-        MethodSymbol containingMethod,
-        EETypeNameDecoder typeNameDecoder,
-        Binder next) :
-        base(next)
+    internal sealed class PlaceholderLocalBinder : LocalScopeBinder
     {
-        _syntax = syntax;
-        _containingMethod = containingMethod;
+        private readonly CSharpSyntaxNode _syntax;
+        private readonly ImmutableArray<LocalSymbol> _aliases;
+        private readonly MethodSymbol _containingMethod;
+        private readonly ImmutableDictionary<string, LocalSymbol> _lowercaseReturnValueAliases;
 
-        var compilation = next.Compilation;
-        var sourceAssembly = compilation.SourceAssembly;
-
-        var aliasesBuilder = ArrayBuilder<LocalSymbol>.GetInstance(aliases.Length);
-        var lowercaseBuilder = ImmutableDictionary.CreateBuilder<string, LocalSymbol>();
-        foreach (Alias alias in aliases)
+        internal PlaceholderLocalBinder(
+            CSharpSyntaxNode syntax,
+            ImmutableArray<Alias> aliases,
+            MethodSymbol containingMethod,
+            EETypeNameDecoder typeNameDecoder,
+            Binder next) :
+            base(next)
         {
-            var local = PlaceholderLocalSymbol.Create(
-                typeNameDecoder,
-                containingMethod,
-                sourceAssembly,
-                alias);
-            aliasesBuilder.Add(local);
+            _syntax = syntax;
+            _containingMethod = containingMethod;
 
-            if (alias.Kind == DkmClrAliasKind.ReturnValue)
+            var compilation = next.Compilation;
+            var sourceAssembly = compilation.SourceAssembly;
+
+            var aliasesBuilder = ArrayBuilder<LocalSymbol>.GetInstance(aliases.Length);
+            var lowercaseBuilder = ImmutableDictionary.CreateBuilder<string, LocalSymbol>();
+            foreach (Alias alias in aliases)
             {
-                lowercaseBuilder.Add(local.Name.ToLower(), local);
+                var local = PlaceholderLocalSymbol.Create(
+                    typeNameDecoder,
+                    containingMethod,
+                    sourceAssembly,
+                    alias);
+                aliasesBuilder.Add(local);
+
+                if (alias.Kind == DkmClrAliasKind.ReturnValue)
+                {
+                    lowercaseBuilder.Add(local.Name.ToLower(), local);
+                }
             }
-        }
-        _lowercaseReturnValueAliases = lowercaseBuilder.ToImmutableDictionary();
-        _aliases = aliasesBuilder.ToImmutableAndFree();
-    }
-
-    internal sealed override void LookupSymbolsInSingleBinder(
-        LookupResult result,
-        string name,
-        int arity,
-        ConsList<TypeSymbol> basesBeingResolved,
-        LookupOptions options,
-        Binder originalBinder,
-        bool diagnose,
-        ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-    {
-        if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly | LookupOptions.LabelsOnly)) != 0)
-        {
-            return;
+            _lowercaseReturnValueAliases = lowercaseBuilder.ToImmutableDictionary();
+            _aliases = aliasesBuilder.ToImmutableAndFree();
         }
 
-        if (name.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        internal sealed override void LookupSymbolsInSingleBinder(
+            LookupResult result,
+            string name,
+            int arity,
+            ConsList<TypeSymbol> basesBeingResolved,
+            LookupOptions options,
+            Binder originalBinder,
+            bool diagnose,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var valueText = name.Substring(2);
-            ulong address;
-            if (!ulong.TryParse(valueText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out address))
+            if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly | LookupOptions.LabelsOnly)) != 0)
             {
-                // Invalid value should have been caught by Lexer.
-                throw ExceptionUtilities.UnexpectedValue(valueText);
+                return;
             }
-            var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
-            result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
-        }
-        else
-        {
-            LocalSymbol lowercaseReturnValueAlias;
-            if (_lowercaseReturnValueAliases.TryGetValue(name, out lowercaseReturnValueAlias))
+
+            if (name.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                result.MergeEqual(this.CheckViability(lowercaseReturnValueAlias, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
+                var valueText = name.Substring(2);
+                ulong address;
+                if (!ulong.TryParse(valueText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out address))
+                {
+                    // Invalid value should have been caught by Lexer.
+                    throw ExceptionUtilities.UnexpectedValue(valueText);
+                }
+                var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
+                result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
             }
             else
             {
-                base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                LocalSymbol lowercaseReturnValueAlias;
+                if (_lowercaseReturnValueAliases.TryGetValue(name, out lowercaseReturnValueAlias))
+                {
+                    result.MergeEqual(this.CheckViability(lowercaseReturnValueAlias, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
+                }
+                else
+                {
+                    base.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                }
             }
         }
-    }
 
-    internal sealed override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
-    {
-        throw new NotImplementedException();
-    }
+        internal sealed override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        {
+            throw new NotImplementedException();
+        }
 
-    protected override ImmutableArray<LocalSymbol> BuildLocals()
-    {
-        return _aliases;
-    }
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        {
+            return _aliases;
+        }
 
-    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

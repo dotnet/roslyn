@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class TryLockUsingStatementTests : FlowTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    #region "try-catch-finally"
-
-    [Fact]
-    public void TestAssignmentInCatch()
+    public class TryLockUsingStatementTests : FlowTestBase
     {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        #region "try-catch-finally"
+
+        [Fact]
+        public void TestAssignmentInCatch()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C
 {
     static void F()
@@ -43,26 +43,26 @@ class C
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Empty(controlFlowAnalysisResults.EntryPoints);
-        Assert.Empty(controlFlowAnalysisResults.ExitPoints);
-        Assert.Empty(controlFlowAnalysisResults.ReturnStatements);
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Empty(controlFlowAnalysisResults.EntryPoints);
+            Assert.Empty(controlFlowAnalysisResults.ExitPoints);
+            Assert.Empty(controlFlowAnalysisResults.ReturnStatements);
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestAssignmentInFinally()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestAssignmentInFinally()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 class C
 {
     static void M(out int x, out int y)
@@ -81,25 +81,25 @@ class C
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(1, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestBreakContinueInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestBreakContinueInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 public class TryCatchFinally
 {
     public byte TryMethod(byte para)
@@ -137,27 +137,27 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(3, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(3, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(528296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528296")]
-    [Fact]
-    public void TestReturnInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [WorkItem(528296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528296")]
+        [Fact]
+        public void TestReturnInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 public class TryCatchFinally
 {
     public byte TryMethod(ref byte para)
@@ -195,25 +195,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(5, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(5, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestGotoInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestGotoInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 public class TryCatchFinally
 {
     public void TryMethod(out byte para)
@@ -253,26 +253,26 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(2, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(2, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para, by", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestThrowInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestThrowInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(uint para)
@@ -291,27 +291,27 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(541724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541724")]
-    [Fact]
-    public void TestThrowInTry02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(541724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541724")]
+        [Fact]
+        public void TestThrowInTry02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ref uint para)
@@ -336,26 +336,26 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestThrowInTry03()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestThrowInTry03()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -397,26 +397,26 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("sb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("sb", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("sb", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("sb", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestAlwaysAssignedInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestAlwaysAssignedInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(out ulong para)
@@ -442,26 +442,26 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
-        Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ReturnStatements.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestAlwaysAssignedInTry02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestAlwaysAssignedInTry02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ref long? para)
@@ -484,25 +484,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(528567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528567")]
-    [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
-    [Fact]
-    public void TestAlwaysAssignedInTry03()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(528567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528567")]
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [Fact]
+        public void TestAlwaysAssignedInTry03()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ref string para)
@@ -528,23 +528,23 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, para, local, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("para, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("para", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, para, local, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestDataFlowsInOut01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestDataFlowsInOut01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     protected void TryMethod(long p)
@@ -571,24 +571,24 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(540797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540797")]
-    [Fact]
-    public void TestDataFlowsInOut02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(540797, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540797")]
+        [Fact]
+        public void TestDataFlowsInOut02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(long p)
@@ -611,24 +611,24 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("p, x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, p, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(540798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540798")]
-    [Fact]
-    public void TestDataFlowsInOut03()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(540798, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540798")]
+        [Fact]
+        public void TestDataFlowsInOut03()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ref long p)
@@ -656,28 +656,28 @@ L1:
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("p, z, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        // y flows out as follows: the assignment in the try block, followed by an exception taking it into the catch
-        // block, then goto L1, (now the value is outside the region), followed by flowing back in to the try block,
-        // then another exception arising before executing the assignment to y, then reading y in the catch block.
-        Assert.Equal("p, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("p, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("p, y, z, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, p, x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("p, z, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            // y flows out as follows: the assignment in the try block, followed by an exception taking it into the catch
+            // block, then goto L1, (now the value is outside the region), followed by flowing back in to the try block,
+            // then another exception arising before executing the assignment to y, then reading y in the catch block.
+            Assert.Equal("p, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("p, y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("p, y, z, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, p, x, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(541655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541655")]
-    [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
-    [Fact]
-    public void TestVariablesDeclaredInTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(541655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541655")]
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [Fact]
+        public void TestVariablesDeclaredInTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -703,23 +703,23 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("s, ax, s, s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("s, ax, s, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("s, ax, s, s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("s, ax, s, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestFlowsOutTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestFlowsOutTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 public class TryCatchFinally
 {
     public static void Main()
@@ -739,14 +739,14 @@ public class TryCatchFinally
     }
 }
 ");
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestFlowsOutTry02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestFlowsOutTry02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"
 public class TryCatchFinally
 {
     public static void M(int n)
@@ -776,16 +776,16 @@ public class TryCatchFinally
     }
 }
 ");
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("n", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestVariableInCatch01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestVariableInCatch01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -812,24 +812,24 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        // unreachable is ALWAYS assigned
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("y, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, x, y, s, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            // unreachable is ALWAYS assigned
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("ax", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y, s, ax", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestVariableInCatch02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestVariableInCatch02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -858,24 +858,24 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("s, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        // s?
-        Assert.Equal("x, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, s, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("s, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            // s?
+            Assert.Equal("x, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, s, ax, ex", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact, WorkItem(528297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528297")]
-    public void TestTryInWhile()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact, WorkItem(528297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528297")]
+        public void TestTryInWhile()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -897,23 +897,23 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable); // possible if while (false)...
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable); // possible if while (false)...
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact, WorkItem(528298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528298")]
-    public void TestTryInDoWhile()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact, WorkItem(528298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528298")]
+        public void TestTryInDoWhile()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -941,23 +941,23 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestTryInFor()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestTryInFor()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(short p)
@@ -989,25 +989,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        // Bug#7263 (BD) - if the whole 'try' somehow unreachable, the end of 'for' is reachable
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("this, p, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("y, i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            // Bug#7263 (BD) - if the whole 'try' somehow unreachable, the end of 'for' is reachable
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("i", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, p, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("y, i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, p", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(540835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540835")]
-    [Fact]
-    public void TestBracketRegionsInTry()
-    {
-        var analysisResults01 = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(540835, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540835")]
+        [Fact]
+        public void TestBracketRegionsInTry()
+        {
+            var analysisResults01 = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ushort p)
@@ -1027,7 +1027,7 @@ public class TryCatchFinally
 }
 ");
 
-        var analysisResults02 = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+            var analysisResults02 = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod(ushort p)
@@ -1047,23 +1047,23 @@ public class TryCatchFinally
 }
 ");
 
-        var dataFlowResults01 = analysisResults01.Item2;
-        var dataFlowResults02 = analysisResults02.Item2;
+            var dataFlowResults01 = analysisResults01.Item2;
+            var dataFlowResults02 = analysisResults02.Item2;
 
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.VariablesDeclared), GetSymbolNamesJoined(dataFlowResults01.VariablesDeclared));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.AlwaysAssigned), GetSymbolNamesJoined(dataFlowResults01.AlwaysAssigned));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.DataFlowsIn), GetSymbolNamesJoined(dataFlowResults01.DataFlowsIn));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.DataFlowsOut), GetSymbolNamesJoined(dataFlowResults01.DataFlowsOut));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.ReadInside), GetSymbolNamesJoined(dataFlowResults01.ReadInside));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.ReadOutside), GetSymbolNamesJoined(dataFlowResults01.ReadOutside));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.WrittenInside), GetSymbolNamesJoined(dataFlowResults01.WrittenInside));
-        Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.WrittenOutside), GetSymbolNamesJoined(dataFlowResults01.WrittenOutside));
-    }
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.VariablesDeclared), GetSymbolNamesJoined(dataFlowResults01.VariablesDeclared));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.AlwaysAssigned), GetSymbolNamesJoined(dataFlowResults01.AlwaysAssigned));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.DataFlowsIn), GetSymbolNamesJoined(dataFlowResults01.DataFlowsIn));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.DataFlowsOut), GetSymbolNamesJoined(dataFlowResults01.DataFlowsOut));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.ReadInside), GetSymbolNamesJoined(dataFlowResults01.ReadInside));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.ReadOutside), GetSymbolNamesJoined(dataFlowResults01.ReadOutside));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.WrittenInside), GetSymbolNamesJoined(dataFlowResults01.WrittenInside));
+            Assert.Equal(GetSymbolNamesJoined(dataFlowResults02.WrittenOutside), GetSymbolNamesJoined(dataFlowResults01.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestTryWithLambda01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestTryWithLambda01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     delegate long D01(long dp);
@@ -1088,26 +1088,26 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
 
-        Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("outp", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-        Assert.Equal("refp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("refp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("refp, outp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("this, refp", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("outp", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal("refp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("refp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("refp, outp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("this, refp", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
-    [Fact]
-    public void TestTryWithLambda02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [WorkItem(541723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541723")]
+        [Fact]
+        public void TestTryWithLambda02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     delegate long D01(long dp);
@@ -1131,25 +1131,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
 
-        Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("outp, d", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-        Assert.Equal("refp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Equal("outp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("refp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("outp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("refp, outp, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("outp, d", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal("refp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("outp", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("refp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("outp, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("refp, outp", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("refp, outp, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestTryWithLambda03()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestTryWithLambda03()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
    delegate string D02(byte dp);
@@ -1178,25 +1178,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
 
-        Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-        Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("p, local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("p, local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestTryWithLambda04()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestTryWithLambda04()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     delegate string D02(byte? dp);
@@ -1225,25 +1225,25 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.False(controlFlowAnalysisResults.EndPointIsReachable);
 
-        Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-        Assert.Equal("d", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-        Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-        Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-        Assert.Equal("p, local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-        Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-        Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-        Assert.Equal("this, p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-    }
+            Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("d", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal("p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("p, local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("this, p, local, e", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
 
-    [Fact]
-    public void TestIncompleteCatch()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestIncompleteCatch()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class Program
 {
     public static void Main(string[] args)
@@ -1269,16 +1269,16 @@ public class Program
     public static void M2(int x) {}
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestNestedTry01()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestNestedTry01()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class Program
 {
     public static void Main(string[] args)
@@ -1309,16 +1309,16 @@ public class Program
     public static void M2(int x) {}
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestNestedTry02()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestNestedTry02()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class Program
 {
     public static void Main(string[] args)
@@ -1349,16 +1349,16 @@ public class Program
     public static void M2(int x) {}
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestNestedTry03()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact]
+        public void TestNestedTry03()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class Program
 {
     public static void Main(string[] args)
@@ -1389,16 +1389,16 @@ public class Program
     public static void M2(int x) {}
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+        }
 
-    [Fact, WorkItem(529180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529180")]
-    public void AlwaysAssignedInTry()
-    {
-        var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
+        [Fact, WorkItem(529180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529180")]
+        public void AlwaysAssignedInTry()
+        {
+            var analysisResults = CompileAndAnalyzeControlAndDataFlowStatements(@"using System;
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -1414,18 +1414,18 @@ public class TryCatchFinally
     }
 }
 ");
-        var controlFlowAnalysisResults = analysisResults.Item1;
-        var dataFlowAnalysisResults = analysisResults.Item2;
-        Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
-        Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-    }
+            var controlFlowAnalysisResults = analysisResults.Item1;
+            var dataFlowAnalysisResults = analysisResults.Item2;
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+        }
 
-    #endregion
+        #endregion
 
-    [Fact]
-    public void TestVariablesDeclaredInUsingStatement1()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(@"
+        [Fact]
+        public void TestVariablesDeclaredInUsingStatement1()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -1439,20 +1439,20 @@ class C {
         int b;
     }
 }");
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestVariablesDeclaredInUsingStatement2()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(@"
+        [Fact]
+        public void TestVariablesDeclaredInUsingStatement2()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -1466,20 +1466,20 @@ class C {
         int b;
     }
 }");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestVariablesDeclaredInAwaitUsingStatement()
-    {
-        var (analysisControlFlow, analysis) = CompileAndAnalyzeControlAndDataFlowStatements(@"
+        [Fact]
+        public void TestVariablesDeclaredInAwaitUsingStatement()
+        {
+            var (analysisControlFlow, analysis) = CompileAndAnalyzeControlAndDataFlowStatements(@"
 namespace System
 {
     public interface IAsyncDisposable
@@ -1501,27 +1501,27 @@ class C : System.IAsyncDisposable
         int b;
     }
 }");
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
 
-        Assert.Empty(analysisControlFlow.EntryPoints);
-        Assert.Empty(analysisControlFlow.ExitPoints);
-        Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
-        Assert.True(analysisControlFlow.EndPointIsReachable);
-    }
+            Assert.Empty(analysisControlFlow.EntryPoints);
+            Assert.Empty(analysisControlFlow.ExitPoints);
+            Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
+            Assert.True(analysisControlFlow.EndPointIsReachable);
+        }
 
-    #region "lock statement"
+        #region "lock statement"
 
-    [Fact]
-    public void TestLockStatement1()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(@"
+        [Fact]
+        public void TestLockStatement1()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -1536,20 +1536,20 @@ class C {
         int b;
     }
 }");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact]
-    public void TestLockStatement2()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(@"
+        [Fact]
+        public void TestLockStatement2()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(@"
 class C {
     public void F(int x)
     {
@@ -1564,20 +1564,20 @@ class C {
         int b;
     }
 }");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Equal("c", GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this, x, c", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("c", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact()]
-    public void NestedLock()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(
+        [Fact()]
+        public void NestedLock()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(
 @"
 class Test
 {
@@ -1594,20 +1594,20 @@ class Test
     }
 }
 ");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("this", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact()]
-    public void LockAnonymousTypes()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(
+        [Fact()]
+        public void LockAnonymousTypes()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(
 @"
 class Test
 {
@@ -1625,20 +1625,20 @@ class Test
     { return 1; }
 }
 ");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("name, obj", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact()]
-    public void AssignmentInLock()
-    {
-        var analysis = CompileAndAnalyzeDataFlowStatements(
+        [Fact()]
+        public void AssignmentInLock()
+        {
+            var analysis = CompileAndAnalyzeDataFlowStatements(
 @"
 class Test
 {
@@ -1655,20 +1655,20 @@ class Test
     }
 }
 ");
-        Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysis.WrittenInside));
-        Assert.Equal("str", GetSymbolNamesJoined(analysis.WrittenOutside));
-        Assert.Equal("str", GetSymbolNamesJoined(analysis.ReadInside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysis.ReadOutside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysis.AlwaysAssigned));
-        Assert.Equal("str", GetSymbolNamesJoined(analysis.DataFlowsIn));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysis.DataFlowsOut));
-    }
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("str", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("str", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("str", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysis.DataFlowsOut));
+        }
 
-    [Fact()]
-    public void BranchOutFromLock()
-    {
-        var analysis = CompileAndAnalyzeControlAndDataFlowStatements(
+        [Fact()]
+        public void BranchOutFromLock()
+        {
+            var analysis = CompileAndAnalyzeControlAndDataFlowStatements(
 @"
 class Test
 {
@@ -1687,25 +1687,25 @@ class Test
     }
 }
 ");
-        var analysisControlFlow = analysis.Item1;
-        var analysisDataflow = analysis.Item2;
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.VariablesDeclared));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.WrittenInside));
-        Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.WrittenOutside));
-        Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.ReadInside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.ReadOutside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned));
-        Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsOut));
+            var analysisControlFlow = analysis.Item1;
+            var analysisDataflow = analysis.Item2;
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.VariablesDeclared));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.WrittenInside));
+            Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.WrittenOutside));
+            Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.ReadInside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.ReadOutside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned));
+            Assert.Equal("str", GetSymbolNamesJoined(analysisDataflow.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsOut));
 
-        Assert.Equal(1, analysisControlFlow.ExitPoints.Count());
-        Assert.Equal(0, analysisControlFlow.EntryPoints.Count());
-    }
+            Assert.Equal(1, analysisControlFlow.ExitPoints.Count());
+            Assert.Equal(0, analysisControlFlow.EntryPoints.Count());
+        }
 
-    [Fact()]
-    public void BranchInLock()
-    {
-        var analysis = CompileAndAnalyzeControlAndDataFlowStatements(
+        [Fact()]
+        public void BranchInLock()
+        {
+            var analysis = CompileAndAnalyzeControlAndDataFlowStatements(
 @"
 class Test
 {
@@ -1726,20 +1726,21 @@ class Test
     }
 }
 ");
-        var analysisControlFlow = analysis.Item1;
-        var analysisDataflow = analysis.Item2;
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.VariablesDeclared));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.WrittenInside));
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.WrittenOutside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.ReadInside));
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.ReadOutside));
-        Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned));
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsIn));
-        Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsOut));
+            var analysisControlFlow = analysis.Item1;
+            var analysisDataflow = analysis.Item2;
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.VariablesDeclared));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.WrittenOutside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.ReadOutside));
+            Assert.Equal("obj", GetSymbolNamesJoined(analysisDataflow.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysisDataflow.DataFlowsOut));
 
-        Assert.Equal(0, analysisControlFlow.ExitPoints.Count());
-        Assert.Equal(0, analysisControlFlow.EntryPoints.Count());
-        Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
+            Assert.Equal(0, analysisControlFlow.ExitPoints.Count());
+            Assert.Equal(0, analysisControlFlow.EntryPoints.Count());
+            Assert.Equal(0, analysisControlFlow.ReturnStatements.Count());
+        }
+        #endregion
     }
-    #endregion
 }

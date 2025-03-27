@@ -5,24 +5,25 @@
 using System;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.Scripting;
-
-internal static class PdbHelpers
+namespace Microsoft.CodeAnalysis.Scripting
 {
-    public static DebugInformationFormat GetPlatformSpecificDebugInformationFormat()
+    internal static class PdbHelpers
     {
-#if NET
-        // Use PortablePdb for .NET
-        return DebugInformationFormat.PortablePdb;
-#else
-        // Use PortablePdb for Mono
-        if (Type.GetType("Mono.Runtime") != null)
+        public static DebugInformationFormat GetPlatformSpecificDebugInformationFormat()
         {
+#if NET
+            // Use PortablePdb for .NET
             return DebugInformationFormat.PortablePdb;
-        }
+#else
+            // Use PortablePdb for Mono
+            if (Type.GetType("Mono.Runtime") != null)
+            {
+                return DebugInformationFormat.PortablePdb;
+            }
 
-        // otherwise standard PDB
-        return DebugInformationFormat.Pdb;
+            // otherwise standard PDB
+            return DebugInformationFormat.Pdb;
 #endif
+        }
     }
 }

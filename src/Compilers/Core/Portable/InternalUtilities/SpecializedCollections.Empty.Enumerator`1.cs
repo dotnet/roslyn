@@ -5,24 +5,25 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private partial class Empty
+    internal partial class SpecializedCollections
     {
-        internal class Enumerator<T> : Enumerator, IEnumerator<T>
+        private partial class Empty
         {
-            public static new readonly IEnumerator<T> Instance = new Enumerator<T>();
-
-            protected Enumerator()
+            internal class Enumerator<T> : Enumerator, IEnumerator<T>
             {
-            }
+                public static new readonly IEnumerator<T> Instance = new Enumerator<T>();
 
-            public new T Current => throw new InvalidOperationException();
+                protected Enumerator()
+                {
+                }
 
-            public void Dispose()
-            {
+                public new T Current => throw new InvalidOperationException();
+
+                public void Dispose()
+                {
+                }
             }
         }
     }

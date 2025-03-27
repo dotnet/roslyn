@@ -5,28 +5,29 @@
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Extension methods associated with ConsList.
-/// </summary>
-internal static class ConsListExtensions
+namespace Microsoft.CodeAnalysis
 {
-    public static ConsList<T> Prepend<T>(this ConsList<T>? list, T head)
+    /// <summary>
+    /// Extension methods associated with ConsList.
+    /// </summary>
+    internal static class ConsListExtensions
     {
-        return new ConsList<T>(head, list ?? ConsList<T>.Empty);
-    }
-
-    public static bool ContainsReference<T>(this ConsList<T> list, T element)
-    {
-        for (; list != ConsList<T>.Empty; list = list.Tail)
+        public static ConsList<T> Prepend<T>(this ConsList<T>? list, T head)
         {
-            if (ReferenceEquals(list.Head, element))
-            {
-                return true;
-            }
+            return new ConsList<T>(head, list ?? ConsList<T>.Empty);
         }
 
-        return false;
+        public static bool ContainsReference<T>(this ConsList<T> list, T element)
+        {
+            for (; list != ConsList<T>.Empty; list = list.Tail)
+            {
+                if (ReferenceEquals(list.Head, element))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -12,20 +12,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss;
-
-internal static class Extensions
+namespace BuildBoss
 {
-    internal static string GetRelativeName(this PackagePart part)
+    internal static class Extensions
     {
-        var relativeName = part.Uri.ToString().Replace('/', '\\');
-        if (!string.IsNullOrEmpty(relativeName) && relativeName[0] == '\\')
+        internal static string GetRelativeName(this PackagePart part)
         {
-            relativeName = relativeName.Substring(1);
+            var relativeName = part.Uri.ToString().Replace('/', '\\');
+            if (!string.IsNullOrEmpty(relativeName) && relativeName[0] == '\\')
+            {
+                relativeName = relativeName.Substring(1);
+            }
+
+            return relativeName;
         }
 
-        return relativeName;
+        internal static string GetName(this PackagePart part) => Path.GetFileName(GetRelativeName(part));
     }
-
-    internal static string GetName(this PackagePart part) => Path.GetFileName(GetRelativeName(part));
 }

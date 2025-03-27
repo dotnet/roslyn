@@ -6,12 +6,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal enum OperatorAnalysisResultKind : byte
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    Undefined = 0,
-    Inapplicable,
-    Worse,
-    Applicable,
+    internal enum OperatorAnalysisResultKind : byte
+    {
+        Undefined = 0,
+        Inapplicable,
+        Worse,
+        Applicable,
+    }
 }

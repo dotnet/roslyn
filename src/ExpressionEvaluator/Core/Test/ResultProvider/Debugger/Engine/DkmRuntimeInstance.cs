@@ -9,14 +9,15 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger;
-
-public class DkmRuntimeInstance
+namespace Microsoft.VisualStudio.Debugger
 {
-    public readonly DkmProcess Process;
-
-    public DkmRuntimeInstance(bool enableNativeDebugging)
+    public class DkmRuntimeInstance
     {
-        Process = new DkmProcess(enableNativeDebugging);
+        public readonly DkmProcess Process;
+
+        public DkmRuntimeInstance(bool enableNativeDebugging)
+        {
+            Process = new DkmProcess(enableNativeDebugging);
+        }
     }
 }

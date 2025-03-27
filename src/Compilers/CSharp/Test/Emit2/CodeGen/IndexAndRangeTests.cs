@@ -11,14 +11,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class IndexAndRangeTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index(bool useCsharp13)
+    public class IndexAndRangeTests : CSharpTestBase
     {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index(bool useCsharp13)
+        {
+            string source = """
 M(new Buffer10());
 M2();
 M3();
@@ -54,10 +54,10 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Length Index=9 Value=1, Index(^1) Length 2 Index=9 Value=2, Index(^1) Length 3 Index=9 Value=3,");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M2", """
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Length Index=9 Value=1, Index(^1) Length 2 Index=9 Value=2, Index(^1) Length 3 Index=9 Value=3,");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M2", """
 {
   // Code size       51 (0x33)
   .maxstack  3
@@ -86,12 +86,12 @@ struct Buffer10
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Skip(2).First();
-        Assert.Equal("new Buffer10() { [Id(^1)] = Id(2) }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Skip(2).First();
+            Assert.Equal("new Buffer10() { [Id(^1)] = Id(2) }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: Buffer10..ctor()) (OperationKind.ObjectCreation, Type: Buffer10) (Syntax: 'new Buffer1 ... ] = Id(2) }')
 Arguments(0)
 Initializer:
@@ -126,8 +126,8 @@ Initializer:
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 """);
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -196,23 +196,23 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 """,
-            graph, symbol);
+                graph, symbol);
 
-        comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (17,52): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //     static Buffer10 M2() { return new Buffer10() { [Id(^1)] = Id(2) }; }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(17, 52),
-            // (18,37): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //     static C M3() => new C() { F = {[Id(^1)] = Id(3)} };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(18, 37)
-            );
-    }
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (17,52): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     static Buffer10 M2() { return new Buffer10() { [Id(^1)] = Id(2) }; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(17, 52),
+                // (18,37): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     static C M3() => new C() { F = {[Id(^1)] = Id(3)} };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(18, 37)
+                );
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_EmptyInitializer(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_EmptyInitializer(bool useCsharp13)
+        {
+            string source = """
 M();
 
 partial class Program
@@ -230,22 +230,22 @@ struct Buffer10
     public object this[int x] => throw null;
 }
 """;
-        var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (5,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { } }; }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(5, 51)
-            );
-    }
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (5,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { } }; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(5, 51)
+                );
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_NestedCollectionInitializer(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_NestedCollectionInitializer(bool useCsharp13)
+        {
+            string source = """
 using System.Collections;
 using System.Collections.Generic;
 
@@ -272,22 +272,22 @@ struct Buffer10
     public C this[int x] => new C();
 }
 """;
-        var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(1) Id(2)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(1) Id(2)");
+            verifier.VerifyDiagnostics();
 
-        comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (8,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { Id(1), Id(2) } }; }
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 51)
-            );
-    }
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (8,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     static Buffer10 M() { return new Buffer10() { [Id(^1)] = { Id(1), Id(2) } }; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(^1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 51)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_FieldInitializerWithEmptyInitializer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_FieldInitializerWithEmptyInitializer()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -309,11 +309,11 @@ class C
     public object F = 0;
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -327,13 +327,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -368,13 +368,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_FieldLikeEventInitializerWithEmptyInitializer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_FieldLikeEventInitializerWithEmptyInitializer()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -392,15 +392,15 @@ struct Buffer10
     public Program this[int x] => throw null;
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics(
-            // (5,32): warning CS0067: The event 'Program.F' is never used
-            //     public event System.Action F;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("Program.F").WithLocation(5, 32)
-            );
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics(
+                // (5,32): warning CS0067: The event 'Program.F' is never used
+                //     public event System.Action F;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("Program.F").WithLocation(5, 32)
+                );
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -414,13 +414,13 @@ struct Buffer10
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -455,13 +455,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_PropertyInitializerWithEmptyInitializer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_PropertyInitializerWithEmptyInitializer()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -483,11 +483,11 @@ class C
     public object F { get { throw null; } }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -501,13 +501,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10() { [Id(^1)] = { F = { } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -542,13 +542,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Array()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Array()
+        {
+            string source = """
 class C
 {
     public static void Main()
@@ -565,10 +565,10 @@ class C
     public static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(42) Index(^2) Id(43) Result=42,43");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Id(42) Index(^2) Id(43) Result=42,43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       96 (0x60)
   .maxstack  3
@@ -619,12 +619,12 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
-        Assert.Equal("new C() { F = {[Id(^1)] = Id(42), [Id(^2)] = Id(43)} }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new C() { F = {[Id(^1)] = Id(42), [Id(^2)] = Id(43)} }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... = Id(43)} }')
 Arguments(0)
 Initializer:
@@ -690,8 +690,8 @@ Initializer:
                               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 """);
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -800,12 +800,12 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 """, graph, symbol);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_Array()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_Array()
+        {
+            string source = """
 class C
 {
     public static void Main()
@@ -820,10 +820,10 @@ class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(42) Id(2) Id(43) Result=42,43");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndex(source, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(42) Id(2) Id(43) Result=42,43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       50 (0x32)
   .maxstack  4
@@ -851,12 +851,12 @@ class C
   IL_0031:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Array_GetOffset()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Array_GetOffset()
+        {
+            string source = """
 class C
 {
     public static void M(System.Index index)
@@ -867,10 +867,10 @@ class C
     public int[] F = new int[10];
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       33 (0x21)
   .maxstack  3
@@ -893,12 +893,12 @@ class C
   IL_0020:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Array_GetOffset_WithNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Array_GetOffset_WithNesting()
+        {
+            string source = """
 var x = C.M(^1, ^2, ^3);
 System.Console.Write($"Result={x.F[^1][^2]},{x.F[^1][^3]}");
 
@@ -915,10 +915,10 @@ class C
     public static System.Index Id(System.Index i) { System.Console.Write($"Index({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Index(^2) Id(42) Index(^3) Id(43) Result=42,43");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Index(^2) Id(42) Index(^3) Id(43) Result=42,43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size      118 (0x76)
   .maxstack  3
@@ -983,12 +983,12 @@ class C
   IL_0075:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Twice()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Twice()
+        {
+            string source = """
 M(^1, ^2);
 
 partial class Program
@@ -1011,10 +1011,10 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Length Id(1) Index=9 Value=1 Index(^2) Length Id(2) Index=8 Value=2");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) Length Id(1) Index=9 Value=1 Index(^2) Length Id(2) Index=8 Value=2");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       81 (0x51)
   .maxstack  3
@@ -1054,12 +1054,12 @@ struct Buffer10
   IL_0050:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_OptionalParameter()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_OptionalParameter()
+        {
+            string source = """
 Buffer10 b = default;
 b[^1] = 42; // 1
 
@@ -1077,21 +1077,21 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (2,3): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // b[^1] = 42; // 1
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 3),
-            // (4,23): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-            // _ = new Buffer10() { [^1] = 42 }; // 2
-            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 23)
-            );
-    }
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (2,3): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // b[^1] = 42; // 1
+                Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 3),
+                // (4,23): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                // _ = new Buffer10() { [^1] = 42 }; // 2
+                Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 23)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Unassigned()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Unassigned()
+        {
+            string source = """
 class Program
 {
     static Buffer10 M()
@@ -1113,18 +1113,18 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (6,40): error CS0165: Use of unassigned local variable 'i'
-            //         return new Buffer10() { [^1] = i }; // 1
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(6, 40)
-            );
-    }
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (6,40): error CS0165: Use of unassigned local variable 'i'
+                //         return new Buffer10() { [^1] = i }; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(6, 40)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Nullability()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Nullability()
+        {
+            string source = """
 #nullable enable
 string? s = null;
 _ = new Buffer10() { [^1] = s }; // 1
@@ -1141,18 +1141,18 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (3,29): warning CS8601: Possible null reference assignment.
-            // _ = new Buffer10() { [^1] = s }; // 1
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(3, 29)
-            );
-    }
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (3,29): warning CS8601: Possible null reference assignment.
+                // _ = new Buffer10() { [^1] = s }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(3, 29)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Readonly()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Readonly()
+        {
+            string source = """
 class C
 {
     public Buffer10 F = new Buffer10();
@@ -1181,24 +1181,24 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
-        comp.VerifyDiagnostics(
-            // (10,9): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
-            //         b[^1] = 123;
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b[^1]").WithArguments("Buffer10.this[int]").WithLocation(10, 9),
-            // (13,46): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
-            //     static Buffer10 M2() => new Buffer10() { [^1] = 111 };
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(13, 46),
-            // (14,37): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
-            //     static C M3() => new C() { F = {[^1] = 111} };
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(14, 37)
-            );
-    }
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //         b[^1] = 123;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b[^1]").WithArguments("Buffer10.this[int]").WithLocation(10, 9),
+                // (13,46): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //     static Buffer10 M2() => new Buffer10() { [^1] = 111 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(13, 46),
+                // (14,37): error CS0200: Property or indexer 'Buffer10.this[int]' cannot be assigned to -- it is read only
+                //     static C M3() => new C() { F = {[^1] = 111} };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[^1]").WithArguments("Buffer10.this[int]").WithLocation(14, 37)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReturningIndexer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReturningIndexer()
+        {
+            string source = """
 var b = new Buffer10() { [^1] = 42 };
 System.Console.WriteLine($"Result={b[^1]}");
 
@@ -1214,15 +1214,15 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Length Index=9 Length Index=9 Result=42");
-        verifier.VerifyDiagnostics();
-    }
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Length Index=9 Length Index=9 Result=42");
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReturningIndexer_WithNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReturningIndexer_WithNesting()
+        {
+            string source = """
 var m = M();
 System.Console.Write("Result: ");
 System.Console.Write(m[Id(^1)][Id(^2)]);
@@ -1260,12 +1260,12 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength Index(^2) ContainerIndex=9 Length ContainerIndex=9 Index=8 Id(42)" +
-            " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength Index(^2) ContainerIndex=9 Length ContainerIndex=9 Index=8 Id(42)" +
+                " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       91 (0x5b)
   .maxstack  3
@@ -1311,12 +1311,12 @@ class Buffer10
   IL_005a:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReturningIndexer_WithEmptyNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReturningIndexer_WithEmptyNesting()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -1336,11 +1336,11 @@ class Buffer10
     public ref object this[int x] => throw null;
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -1353,12 +1353,12 @@ class Buffer10
   IL_0012:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithNesting()
+        {
+            string source = """
 var m = M();
 System.Console.Write("Result: ");
 System.Console.Write(m[Id(^1)][Id(^2)]);
@@ -1396,12 +1396,12 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength Index(^2) ContainerIndex=9 Length ContainerIndex=9 Index=8 Id(42)" +
-            " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1) ContainerLength Index(^2) ContainerIndex=9 Length ContainerIndex=9 Index=8 Id(42)" +
+                " Result: Index(^1) ContainerLength ContainerIndex=9 Index(^2) Length Index=8 42");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       91 (0x5b)
   .maxstack  3
@@ -1447,12 +1447,12 @@ class Buffer10
   IL_005a:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithEmptyNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReadonlyReturningIndexer_WithEmptyNesting()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -1472,11 +1472,11 @@ class Buffer10
     public ref readonly object this[int x] => throw null;
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.M", """
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -1489,12 +1489,12 @@ class Buffer10
   IL_0012:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_RefReturningIndexer_ByRef()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_RefReturningIndexer_ByRef()
+        {
+            string source = """
 int i = 42;
 _ = new Buffer10() { [1] = ref i }; // 1
 _ = new Buffer10() { [^1] = ref i }; // 2
@@ -1515,27 +1515,27 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        comp.VerifyDiagnostics(
-            // (2,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-            // _ = new Buffer10() { [1] = ref i }; // 1
-            Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[1]").WithLocation(2, 22),
-            // (3,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-            // _ = new Buffer10() { [^1] = ref i }; // 2
-            Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[^1]").WithLocation(3, 22),
-            // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-            // b[1] = ref i; // 3
-            Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[1]").WithLocation(6, 1),
-            // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-            // b[^1] = ref i; // 4
-            Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[^1]").WithLocation(7, 1)
-            );
-    }
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // _ = new Buffer10() { [1] = ref i }; // 1
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[1]").WithLocation(2, 22),
+                // (3,22): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // _ = new Buffer10() { [^1] = ref i }; // 2
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "[^1]").WithLocation(3, 22),
+                // (6,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // b[1] = ref i; // 3
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[1]").WithLocation(6, 1),
+                // (7,1): error CS8373: The left-hand side of a ref assignment must be a ref variable.
+                // b[^1] = ref i; // 4
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "b[^1]").WithLocation(7, 1)
+                );
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_WithNesting(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_WithNesting(bool useCsharp13)
+        {
+            string source = """
 M(^1, ^2, ^3);
 
 partial class Program
@@ -1564,16 +1564,16 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "ContainerLength ContainerIndex=9 Length ContainerIndex=9 Index=8 Value=42 ContainerIndex=9 Length ContainerIndex=9 Index=7 Value=43");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "ContainerLength ContainerIndex=9 Length ContainerIndex=9 Index=8 Value=42 ContainerIndex=9 Length ContainerIndex=9 Index=7 Value=43");
+            verifier.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        Assert.Equal("new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: Buffer10Container..ctor()) (OperationKind.ObjectCreation, Type: Buffer10Container) (Syntax: 'new Buffer1 ... 3] = 43 } }')
 Arguments(0)
 Initializer:
@@ -1615,8 +1615,8 @@ Initializer:
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 43) (Syntax: '43')
 """);
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1718,24 +1718,24 @@ Block[B6] - Exit
     Statements (0)
 """, graph, symbol);
 
-        comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42),
-            // (7,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 51),
-            // (7,62): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 62)
-            );
-    }
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42),
+                // (7,51): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 51),
+                // (7,62): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Buffer10Container() { [i1] = { [i2] = 42, [i3] = 43 } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[i3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 62)
+                );
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_WithEmptyNesting(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_WithEmptyNesting(bool useCsharp13)
+        {
+            string source = """
 M(^1);
 
 partial class Program
@@ -1756,22 +1756,22 @@ class Buffer10Container
 
 class Buffer10 { }
 """;
-        var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index(^1)");
+            verifier.VerifyDiagnostics();
 
-        comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Buffer10Container() { [Id(i1)] = { } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(i1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42)
-            );
-    }
+            comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (7,42): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Buffer10Container() { [Id(i1)] = { } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(i1)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(7, 42)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_WithEmptyNestingBetweenMeaningfulNestings()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_WithEmptyNestingBetweenMeaningfulNestings()
+        {
+            string source = """
 M(^1, ^2, ^3);
 
 partial class Program
@@ -1799,17 +1799,17 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(^1) Length Index=9 Id(1) X=1 Id(^2) Id(^3) Length Index=7 Id(2) X=2");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(^1) Length Index=9 Id(1) X=1 Id(^2) Id(^3) Length Index=7 Id(2) X=2");
+            verifier.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        Assert.Equal("new Buffer10() { [Id(i1)] = { X = Id(1) }, [Id(i2)] = { }, [Id(i3)] = { X = Id(2) } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
+            Assert.Equal("new Buffer10() { [Id(i1)] = { X = Id(1) }, [Id(i2)] = { }, [Id(i3)] = { X = Id(2) } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1930,12 +1930,12 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 """, graph, symbol);
-    }
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Array_WithNesting(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Array_WithNesting(bool useCsharp13)
+        {
+            string source = """
 var x = M();
 System.Console.Write($"{x.F[^1][^2]} {x.F[^1][^3]} {x.F[^2][^4]}");
 
@@ -1954,29 +1954,29 @@ class Container
 }
 """;
 
-        var comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (8,40): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 40),
-            // (8,49): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 49),
-            // (8,60): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 60),
-            // (8,73): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 73),
-            // (8,82): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^4]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 82)
-            );
+            var comp = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (8,40): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^1]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 40),
+                // (8,49): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 49),
+                // (8,60): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^3]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 60),
+                // (8,73): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^2]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 73),
+                // (8,82): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new Container() { F = { [^1] = { [^2] = 42, [^3] = 43 }, [^2] = { [^4] = 44 } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[^4]").WithArguments("implicit indexer initializer", "13.0").WithLocation(8, 82)
+                );
 
-        comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        var verifier = CompileAndVerify(comp, expectedOutput: "42 43 44");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M", """ 
+            comp = CreateCompilationWithIndex(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42 43 44");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """ 
 {
   // Code size      105 (0x69)
   .maxstack  4
@@ -2051,12 +2051,12 @@ class Container
   IL_0068:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_WithNesting_Struct()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_WithNesting_Struct()
+        {
+            string source = """
 _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
 _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
 
@@ -2082,21 +2082,21 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        comp.VerifyDiagnostics(
-            // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
-            // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
-            // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
-            // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
-            );
-    }
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
+                // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_WithNesting_Struct_WriteOnly()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_WithNesting_Struct_WriteOnly()
+        {
+            string source = """
 _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
 _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
 
@@ -2122,21 +2122,21 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        comp.VerifyDiagnostics(
-            // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
-            // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
-            // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
-            // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
-            );
-    }
+            var comp = CreateCompilationWithIndex(source);
+            comp.VerifyDiagnostics(
+                // (1,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [1] = { [2] = 42 } }; // 1
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(1, 31),
+                // (2,31): error CS1918: Members of property 'Buffer10Container.this[int]' of type 'Buffer10' cannot be assigned with an object initializer because it is of a value type
+                // _ = new Buffer10Container() { [^1] = { [^2] = 42 } }; // 2
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "[^1]").WithArguments("Buffer10Container.this[int]", "Buffer10").WithLocation(2, 31)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range()
+        {
+            string source = """
 Buffer10 b = default;
 b[..] = null; // 1
 
@@ -2155,24 +2155,24 @@ class C
     public Buffer10 F = new Buffer10();
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        comp.VerifyDiagnostics(
-            // (2,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // b[..] = null; // 1
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "b[..]").WithLocation(2, 1),
-            // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new Buffer10() { [..] = null }; // 2
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
-            // (5,21): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new C() { F = { [..] = null } }; // 3
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(5, 21)
-            );
-    }
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // b[..] = null; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "b[..]").WithLocation(2, 1),
+                // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..] = null }; // 2
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
+                // (5,21): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new C() { F = { [..] = null } }; // 3
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(5, 21)
+                );
+        }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_WithNesting(bool useCsharp13)
-    {
-        string source = """
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithNesting(bool useCsharp13)
+        {
+            string source = """
 var c = C.M(3..^6);
 System.Console.Write($"Results={c.F._array[1]},{c.F._array[2]}");
 
@@ -2194,10 +2194,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
-        comp.VerifyDiagnostics();
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6) Length Id(1) Slice(3, 1) Id(42) Id(2) Slice(3, 1) Id(43) Results=42,43");
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(source, parseOptions: useCsharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6) Length Id(1) Slice(3, 1) Id(42) Id(2) Slice(3, 1) Id(43) Results=42,43");
+            verifier.VerifyIL("C.M", """
 {
   // Code size      115 (0x73)
   .maxstack  5
@@ -2258,12 +2258,12 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... d(43) } } }')
 Arguments(0)
 Initializer:
@@ -2344,8 +2344,8 @@ Initializer:
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 """);
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2482,18 +2482,18 @@ Block[B6] - Exit
     Statements (0)
 """, graph, symbol);
 
-        comp = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular12);
-        comp.VerifyDiagnostics(
-            // (16,32): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         return new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } };
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(r)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(16, 32)
-            );
-    }
+            comp = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (16,32): error CS9202: Feature 'implicit indexer initializer' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         return new C() { F = { [Id(r)] = { [Id(1)] = Id(42), [Id(2)] = Id(43) } } };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "[Id(r)]").WithArguments("implicit indexer initializer", "13.0").WithLocation(16, 32)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_WithNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithNestedNesting()
+        {
+            string source = """
 var c = C.M(1..^1, 2..^2);
 System.Console.Write($"Results={c.F._array._array[2]},{c.F._array._array[3]}");
 
@@ -2531,10 +2531,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength ContainerSlice(1, 8) Range(2..^2) Length Id(2) Slice(2, 6) Id(42) Id(3) Slice(2, 6) Id(43) Results=42,43");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength ContainerSlice(1, 8) Range(2..^2) Length Id(2) Slice(2, 6) Id(42) Id(3) Slice(2, 6) Id(43) Results=42,43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size      185 (0xb9)
   .maxstack  5
@@ -2623,12 +2623,12 @@ class C
   IL_00b8:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithEmptyNestedNesting()
+        {
+            string source = """
 C.M(1..^1, 2..^2);
 
 class Container
@@ -2655,10 +2655,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Range(2..^2)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Range(2..^2)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -2673,13 +2673,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(r)] = { [Id(r2)] = { } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r)] = { [Id(r2)] = { } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2720,13 +2720,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_WithMixedNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithMixedNestedNesting()
+        {
+            string source = """
 C.M(1..^1, 2..^2, 3..^3, 4, 5);
 
 class Container
@@ -2752,10 +2752,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength Range(2..^2) ContainerSlice(1, 8) Range(3..^3) Length Id(4) Slice(3, 4) Id(5)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) ContainerLength Range(2..^2) ContainerSlice(1, 8) Range(3..^3) Length Id(4) Slice(3, 4) Id(5)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size      164 (0xa4)
   .maxstack  4
@@ -2836,13 +2836,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(r)] = { [Id(r2)] = { }, [Id(r3)] = { [Id(i4)] = Id(i5) } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r)] = { [Id(r2)] = { }, [Id(r3)] = { [Id(i4)] = Id(i5) } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2967,13 +2967,13 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_WithEmptyNestedNesting()
+        {
+            string source = """
 C.M(1, 2);
 
 class Container
@@ -2996,10 +2996,10 @@ class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(2)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(2)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -3014,13 +3014,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(i1)] = { [Id(i2)] = { } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(i1)] = { [Id(i2)] = { } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3061,14 +3061,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
+                graph, symbol);
 
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_WithMixedNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_WithMixedNestedNesting()
+        {
+            string source = """
 C.M(1, 2, 3, 4, 5);
 
 class Container
@@ -3091,10 +3091,10 @@ class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(2) Id(3) Id(4) Id(5)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(1) Id(2) Id(3) Id(4) Id(5)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       61 (0x3d)
   .maxstack  4
@@ -3128,13 +3128,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(i1)] = { [Id(i2)] = { }, [Id(i3)] = { [Id(i4)] = Id(i5) } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(i1)] = { [Id(i2)] = { }, [Id(i3)] = { [Id(i4)] = Id(i5) } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3261,14 +3261,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 """,
-            graph, symbol);
+                graph, symbol);
 
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_ArrayAccess_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_ArrayAccess_WithEmptyNestedNesting()
+        {
+            string source = """
 C.M(1..^1, 2..^2);
 
 class C
@@ -3281,10 +3281,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Range(2..^2)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Range(2..^2)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -3299,12 +3299,12 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(r1)] = { [Id(r2)] = { } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r1)] = { [Id(r2)] = { } } } }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... = { } } } }')
   Arguments(0)
   Initializer:
@@ -3354,8 +3354,8 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                                     Initializers(0)
 """);
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3396,13 +3396,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_ArrayAccess_WithNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_ArrayAccess_WithNestedNesting()
+        {
+            string source = """
 C.M(1..^1);
 
 public class D
@@ -3421,10 +3421,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       46 (0x2e)
   .maxstack  3
@@ -3450,12 +3450,12 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(r1)] = { [Id(0)] = { X = Id(42) } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(r1)] = { [Id(0)] = { X = Id(42) } } } }", node.ToString());
 
-        comp.VerifyOperationTree(node, expectedOperationTree: """
+            comp.VerifyOperationTree(node, expectedOperationTree: """
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { F ... 42) } } } }')
 Arguments(0)
 Initializer:
@@ -3518,12 +3518,12 @@ Initializer:
                                                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_ArrayAccess_WithMultipleNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_ArrayAccess_WithMultipleNestedNesting()
+        {
+            string source = """
 C.M(1..^1);
 
 public class D
@@ -3542,10 +3542,10 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42 Id(1) Id(43) X=43");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray });
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(1..^1) Id(0) Id(42) X=42 Id(1) Id(43) X=43");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       79 (0x4f)
   .maxstack  3
@@ -3583,12 +3583,12 @@ class C
   IL_004e:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_PointerAccess_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_PointerAccess_WithEmptyNestedNesting()
+        {
+            string source = """
 unsafe class C
 {
     public int** F;
@@ -3617,10 +3617,10 @@ unsafe class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)", verify: Verification.Skipped);
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -3636,13 +3636,13 @@ unsafe class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C(pp) { F = { [Id(0)] = { [Id(1)] = { } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C(pp) { F = { [Id(0)] = { [Id(1)] = { } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3687,13 +3687,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_DynamicAccess_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_DynamicAccess_WithEmptyNestedNesting()
+        {
+            string source = """
 C.M();
 
 class C
@@ -3708,10 +3708,10 @@ class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -3726,13 +3726,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { F = { [Id(0)] = { [Id(1)] = { } } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { F = { [Id(0)] = { [Id(1)] = { } } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3773,13 +3773,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_DynamicAccess2_WithEmptyNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_DynamicAccess2_WithEmptyNestedNesting()
+        {
+            string source = """
 C.M();
 
 class C
@@ -3794,10 +3794,10 @@ class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1)");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -3812,13 +3812,13 @@ class C
 }
 """);
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { [Id(0)] = { [Id(1)] = { } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { [Id(0)] = { [Id(1)] = { } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3859,13 +3859,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Integer_DynamicAccess2_WithMixedNestedNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Integer_DynamicAccess2_WithMixedNestedNesting()
+        {
+            string source = """
 C.M();
 
 public class C
@@ -3881,17 +3881,17 @@ public class C
     public static int Id(int i) { System.Console.Write($"Id({i}) "); return i; }
 }
 """;
-        var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1) Id(2) Id(3)");
-        verifier.VerifyDiagnostics();
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Id(0) Id(1) Id(2) Id(3)");
+            verifier.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.First();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        Assert.Equal("new C() { [Id(0)] = { [Id(1)] = { }, [Id(2)] = { F = Id(3) } } }", node.ToString());
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new C() { [Id(0)] = { [Id(1)] = { }, [Id(2)] = { F = Id(3) } } }", node.ToString());
 
-        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-        ControlFlowGraphVerifier.VerifyGraph(comp, """
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3995,13 +3995,13 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 """,
-            graph, symbol);
-    }
+                graph, symbol);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_WithEmptyNestedInitializer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_WithEmptyNestedInitializer()
+        {
+            string source = """
 C.M(3..^6);
 
 class Buffer10
@@ -4021,15 +4021,15 @@ class C
     public static System.Range Id(System.Range r) { System.Console.Write($"Range({r}) "); return r; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6)");
-        verifier.VerifyDiagnostics();
-    }
+            var comp = CreateCompilationWithIndexAndRange(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Range(3..^6)");
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_RangeLiteral_WithEmptyNestedInitializer()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_RangeLiteral_WithEmptyNestedInitializer()
+        {
+            string source = """
 C.M(3, 6);
 
 class Buffer10
@@ -4048,10 +4048,10 @@ class C
     public static int Id(int i) { System.Console.Write($"{i} "); return i; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "3 6");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
+            var comp = CreateCompilationWithIndexAndRange(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3 6");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
 {
   // Code size       36 (0x24)
   .maxstack  4
@@ -4069,12 +4069,12 @@ class C
   IL_0023:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Range_Indexed()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Range_Indexed()
+        {
+            string source = """
 Buffer10 b = default;
 b[..][0] = 1;
 
@@ -4087,24 +4087,24 @@ struct Buffer10
     public int[] Slice(int start, int length) => throw null;
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        comp.VerifyDiagnostics(
-            // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new Buffer10() { [..][0] = 2 }; // 1
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
-            // (4,26): error CS1003: Syntax error, '=' expected
-            // _ = new Buffer10() { [..][0] = 2 }; // 1
-            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
-            // (4,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new Buffer10() { [..][0] = 2 }; // 1
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 26)
-            );
-    }
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[..]").WithLocation(4, 22),
+                // (4,26): error CS1003: Syntax error, '=' expected
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
+                // (4,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [..][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 26)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Indexed()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Indexed()
+        {
+            string source = """
 Buffer10 b = default;
 b[^1][0] = 1;
 
@@ -4117,21 +4117,21 @@ struct Buffer10
     public int[] this[int i] { get => throw null; set => throw null; }
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        comp.VerifyDiagnostics(
-            // (4,26): error CS1003: Syntax error, '=' expected
-            // _ = new Buffer10() { [^1][0] = 2 }; // 1
-            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
-            // (4,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new Buffer10() { [^1][0] = 2 }; // 1
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 26)
-            );
-    }
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS1003: Syntax error, '=' expected
+                // _ = new Buffer10() { [^1][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(4, 26),
+                // (4,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new Buffer10() { [^1][0] = 2 }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 26)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_Indexed_Array()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_Indexed_Array()
+        {
+            string source = """
 _ = new C() { F = { [^1][0] = 2 } }; // 1
 
 public class C
@@ -4139,21 +4139,21 @@ public class C
     public int[][] F;
 }
 """;
-        var comp = CreateCompilationWithIndexAndRange(source);
-        comp.VerifyDiagnostics(
-            // (1,25): error CS1003: Syntax error, '=' expected
-            // _ = new C() { F = { [^1][0] = 2 } }; // 1
-            Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(1, 25),
-            // (1,25): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new C() { F = { [^1][0] = 2 } }; // 1
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(1, 25)
-            );
-    }
+            var comp = CreateCompilationWithIndexAndRange(source);
+            comp.VerifyDiagnostics(
+                // (1,25): error CS1003: Syntax error, '=' expected
+                // _ = new C() { F = { [^1][0] = 2 } }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("=").WithLocation(1, 25),
+                // (1,25): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new C() { F = { [^1][0] = 2 } }; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(1, 25)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_IndexCreation_FromEnd()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexCreation_FromEnd()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -4173,10 +4173,10 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index=9 Value=2");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=9 Value=2");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       28 (0x1c)
   .maxstack  3
@@ -4197,12 +4197,12 @@ struct Buffer10
   IL_001b:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_IndexCreation_FromStart()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexCreation_FromStart()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -4222,10 +4222,10 @@ struct Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index=1 Value=2");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=1 Value=2");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       18 (0x12)
   .maxstack  3
@@ -4240,12 +4240,12 @@ struct Buffer10
   IL_0011:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_IndexConversion()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_IndexConversion()
+        {
+            string source = """
 M();
 
 partial class Program
@@ -4261,10 +4261,10 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilationWithIndex(source);
-        var verifier = CompileAndVerify(comp, expectedOutput: "Index=2 Value=2");
-        verifier.VerifyDiagnostics();
-        verifier.VerifyIL("Program.M", """
+            var comp = CreateCompilationWithIndex(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "Index=2 Value=2");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
 {
   // Code size       21 (0x15)
   .maxstack  4
@@ -4280,115 +4280,115 @@ class Buffer10
   IL_0014:  ret
 }
 """);
-    }
-
-    private const string IndexWithSideEffects = """
-        namespace System
-        {
-            using System.Runtime.CompilerServices;
-            public readonly struct Index : IEquatable<Index>
-            {
-                private readonly int _value;
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public Index(int value, bool fromEnd = false)
-                {
-                    if (value < 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-
-                    if (fromEnd)
-                        _value = ~value;
-                    else
-                        _value = value;
-                }
-
-                // The following private constructors mainly created for perf reason to avoid the checks
-                private Index(int value)
-                {
-                    _value = value;
-                }
-
-                public static Index Start => new Index(0);
-                public static Index End => new Index(~0);
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static Index FromStart(int value)
-                {
-                    if (value < 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-
-                    return new Index(value);
-                }
-
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static Index FromEnd(int value)
-                {
-                    if (value < 0)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-
-                    return new Index(~value);
-                }
-
-                public int Value
-                {
-                    get
-                    {
-                        if (_value < 0)
-                            return ~_value;
-                        else
-                            return _value;
-                    }
-                }
-
-                public bool IsFromEnd => _value < 0;
-
-                public int GetOffset(int length)
-                {
-                    int offset;
-
-                    if (IsFromEnd)
-                        offset = length - (~_value);
-                    else
-                        offset = _value;
-
-                    return offset;
-                }
-
-                public override bool Equals(object value) => value is Index && _value == ((Index)value)._value;
-
-                public bool Equals (Index other) => _value == other._value;
-
-                public override int GetHashCode() => _value;
-
-                public static implicit operator Index(int value) => FromStart(value);
-                public static Index operator ++(Index index)
-                {
-                    System.Console.Write("++ ");
-                    if (index.IsFromEnd)
-                    {
-                        return new Index(index.Value - 1, fromEnd: true);
-                    }
-                    else
-                    {
-                        return new Index(index.Value + 1);
-                    }
-                }
-
-                public override string ToString() => IsFromEnd ? "^" + Value.ToString() : Value.ToString();
-            }
         }
-        """;
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_SideEffects()
-    {
-        string source = """
+        private const string IndexWithSideEffects = """
+            namespace System
+            {
+                using System.Runtime.CompilerServices;
+                public readonly struct Index : IEquatable<Index>
+                {
+                    private readonly int _value;
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public Index(int value, bool fromEnd = false)
+                    {
+                        if (value < 0)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+
+                        if (fromEnd)
+                            _value = ~value;
+                        else
+                            _value = value;
+                    }
+
+                    // The following private constructors mainly created for perf reason to avoid the checks
+                    private Index(int value)
+                    {
+                        _value = value;
+                    }
+
+                    public static Index Start => new Index(0);
+                    public static Index End => new Index(~0);
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static Index FromStart(int value)
+                    {
+                        if (value < 0)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+
+                        return new Index(value);
+                    }
+
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static Index FromEnd(int value)
+                    {
+                        if (value < 0)
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+
+                        return new Index(~value);
+                    }
+
+                    public int Value
+                    {
+                        get
+                        {
+                            if (_value < 0)
+                                return ~_value;
+                            else
+                                return _value;
+                        }
+                    }
+
+                    public bool IsFromEnd => _value < 0;
+
+                    public int GetOffset(int length)
+                    {
+                        int offset;
+
+                        if (IsFromEnd)
+                            offset = length - (~_value);
+                        else
+                            offset = _value;
+
+                        return offset;
+                    }
+
+                    public override bool Equals(object value) => value is Index && _value == ((Index)value)._value;
+
+                    public bool Equals (Index other) => _value == other._value;
+
+                    public override int GetHashCode() => _value;
+
+                    public static implicit operator Index(int value) => FromStart(value);
+                    public static Index operator ++(Index index)
+                    {
+                        System.Console.Write("++ ");
+                        if (index.IsFromEnd)
+                        {
+                            return new Index(index.Value - 1, fromEnd: true);
+                        }
+                        else
+                        {
+                            return new Index(index.Value + 1);
+                        }
+                    }
+
+                    public override string ToString() => IsFromEnd ? "^" + Value.ToString() : Value.ToString();
+                }
+            }
+            """;
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_SideEffects()
+        {
+            string source = """
 M(^3);
 
 partial class Program
@@ -4412,15 +4412,15 @@ class Buffer10
     }
 }
 """;
-        var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
-        var verifier = CompileAndVerify(comp, expectedOutput: "++ Length Index=7 X=42 Index=7 Y=43 Index=7 Z=44", verify: Verification.Skipped);
-        verifier.VerifyDiagnostics();
-    }
+            var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
+            var verifier = CompileAndVerify(comp, expectedOutput: "++ Length Index=7 X=42 Index=7 Y=43 Index=7 Z=44", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
-    public void InObjectInitializer_Index_SideEffects_WithNesting()
-    {
-        string source = """
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67533")]
+        public void InObjectInitializer_Index_SideEffects_WithNesting()
+        {
+            string source = """
 M(^10, ^8);
 
 partial class Program
@@ -4455,17 +4455,17 @@ class Buffer10Container
     }
 }
 """;
-        var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped,
-            expectedOutput: "++ ContainerLength ++ ContainerIndex=0 Length ContainerIndex=0 Index=2 X=42 ContainerIndex=0 Index=2 Y=43 " +
-                "++ ContainerLength ++ ContainerIndex=1 Length ContainerIndex=1 Index=3 X=101 ContainerIndex=1 Index=3 Y=102");
-        verifier.VerifyDiagnostics();
-    }
+            var comp = CreateCompilation(new[] { source, IndexWithSideEffects });
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped,
+                expectedOutput: "++ ContainerLength ++ ContainerIndex=0 Length ContainerIndex=0 Index=2 X=42 ContainerIndex=0 Index=2 Y=43 " +
+                    "++ ContainerLength ++ ContainerIndex=1 Length ContainerIndex=1 Index=3 X=101 ContainerIndex=1 Index=3 Y=102");
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void InObjectInitializer_ExpressionTreePatternIndexAndRange()
-    {
-        var src = """
+        [Fact]
+        public void InObjectInitializer_ExpressionTreePatternIndexAndRange()
+        {
+            var src = """
 
 using System;
 using System.Collections.Generic;
@@ -4494,23 +4494,24 @@ class S
 }
 
 """;
-        var comp = CreateCompilationWithIndexAndRange(new[] { src, TestSources.GetSubArray });
-        comp.VerifyEmitDiagnostics(
-            // 0.cs(10,76): error CS0832: An expression tree may not contain an assignment operator
-            //         Expression<Func<System.Index, S>> e1 = (System.Index i) => new S { [i] = 42 }; // 1
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[i] = 42").WithLocation(10, 76),
-            // 0.cs(10,76): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
-            //         Expression<Func<System.Index, S>> e1 = (System.Index i) => new S { [i] = 42 }; // 1
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "[i]").WithLocation(10, 76),
-            // 0.cs(11,76): error CS0832: An expression tree may not contain an assignment operator
-            //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[r] = { [0] = 1 }").WithLocation(11, 76),
-            // 0.cs(11,76): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
-            //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "[r]").WithLocation(11, 76),
-            // 0.cs(11,84): error CS0832: An expression tree may not contain an assignment operator
-            //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
-            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[0] = 1").WithLocation(11, 84)
-        );
+            var comp = CreateCompilationWithIndexAndRange(new[] { src, TestSources.GetSubArray });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(10,76): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<System.Index, S>> e1 = (System.Index i) => new S { [i] = 42 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[i] = 42").WithLocation(10, 76),
+                // 0.cs(10,76): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<System.Index, S>> e1 = (System.Index i) => new S { [i] = 42 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "[i]").WithLocation(10, 76),
+                // 0.cs(11,76): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[r] = { [0] = 1 }").WithLocation(11, 76),
+                // 0.cs(11,76): error CS8790: An expression tree may not contain a pattern System.Index or System.Range indexer access
+                //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, "[r]").WithLocation(11, 76),
+                // 0.cs(11,84): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<System.Range, S>> e2 = (System.Range r) => new S { [r] = { [0] = 1 } }; // 2
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "[0] = 1").WithLocation(11, 84)
+            );
+        }
     }
 }

@@ -5,64 +5,65 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class SymbolDisplayVisitor
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private void AddConstantValue(ITypeSymbol type, object? constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
+    internal partial class SymbolDisplayVisitor
     {
-        if (constantValue != null)
+        private void AddConstantValue(ITypeSymbol type, object? constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
-            AddNonNullConstantValue(type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
-        }
-        else if (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || ITypeSymbolHelpers.IsNullableType(type))
-        {
-            AddKeyword(SyntaxKind.NullKeyword);
-        }
-        else
-        {
-            AddKeyword(SyntaxKind.DefaultKeyword);
-            if (!Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+            if (constantValue != null)
             {
-                AddPunctuation(SyntaxKind.OpenParenToken);
-                type.Accept(this.NotFirstVisitor);
-                AddPunctuation(SyntaxKind.CloseParenToken);
+                AddNonNullConstantValue(type, constantValue, preferNumericValueOrExpandedFlagsForEnum);
+            }
+            else if (type.IsReferenceType || type.TypeKind == TypeKind.Pointer || ITypeSymbolHelpers.IsNullableType(type))
+            {
+                AddKeyword(SyntaxKind.NullKeyword);
+            }
+            else
+            {
+                AddKeyword(SyntaxKind.DefaultKeyword);
+                if (!Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
+                {
+                    AddPunctuation(SyntaxKind.OpenParenToken);
+                    type.Accept(this.NotFirstVisitor);
+                    AddPunctuation(SyntaxKind.CloseParenToken);
+                }
             }
         }
-    }
 
-    protected override void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value)
-    {
-        AddPunctuation(SyntaxKind.OpenParenToken);
-        namedType.Accept(this.NotFirstVisitor);
-        AddPunctuation(SyntaxKind.CloseParenToken);
-        AddLiteralValue(type, value);
-    }
-
-    protected override void AddLiteralValue(SpecialType type, object value)
-    {
-        Debug.Assert(value.GetType().GetTypeInfo().IsPrimitive || value is string || value is decimal);
-        var valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings: true, useHexadecimalNumbers: false);
-        Debug.Assert(valueString != null);
-
-        var kind = SymbolDisplayPartKind.NumericLiteral;
-        switch (type)
+        protected override void AddExplicitlyCastedLiteralValue(INamedTypeSymbol namedType, SpecialType type, object value)
         {
-            case SpecialType.System_Boolean:
-                kind = SymbolDisplayPartKind.Keyword;
-                break;
-
-            case SpecialType.System_String:
-            case SpecialType.System_Char:
-                kind = SymbolDisplayPartKind.StringLiteral;
-                break;
+            AddPunctuation(SyntaxKind.OpenParenToken);
+            namedType.Accept(this.NotFirstVisitor);
+            AddPunctuation(SyntaxKind.CloseParenToken);
+            AddLiteralValue(type, value);
         }
 
-        this.Builder.Add(CreatePart(kind, null, valueString));
-    }
+        protected override void AddLiteralValue(SpecialType type, object value)
+        {
+            Debug.Assert(value.GetType().GetTypeInfo().IsPrimitive || value is string || value is decimal);
+            var valueString = SymbolDisplay.FormatPrimitive(value, quoteStrings: true, useHexadecimalNumbers: false);
+            Debug.Assert(valueString != null);
 
-    protected override void AddBitwiseOr()
-    {
-        AddPunctuation(SyntaxKind.BarToken);
+            var kind = SymbolDisplayPartKind.NumericLiteral;
+            switch (type)
+            {
+                case SpecialType.System_Boolean:
+                    kind = SymbolDisplayPartKind.Keyword;
+                    break;
+
+                case SpecialType.System_String:
+                case SpecialType.System_Char:
+                    kind = SymbolDisplayPartKind.StringLiteral;
+                    break;
+            }
+
+            this.Builder.Add(CreatePart(kind, null, valueString));
+        }
+
+        protected override void AddBitwiseOr()
+        {
+            AddPunctuation(SyntaxKind.BarToken);
+        }
     }
 }

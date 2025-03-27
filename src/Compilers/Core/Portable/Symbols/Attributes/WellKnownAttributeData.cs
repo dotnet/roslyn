@@ -8,69 +8,70 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Base class for storing information decoded from well-known custom attributes.
-/// </summary>
-internal abstract class WellKnownAttributeData
+namespace Microsoft.CodeAnalysis
 {
-#pragma warning disable CA1802 // Remove suppression once https://github.com/dotnet/roslyn/issues/20894 is fixed
     /// <summary>
-    /// Used to distinguish cases when attribute is applied with null value and when attribute is not applied.
-    /// For some well-known attributes, the latter case will return string stored in <see cref="StringMissingValue"/>
-    /// field.
+    /// Base class for storing information decoded from well-known custom attributes.
     /// </summary>
-    public static readonly string StringMissingValue = nameof(StringMissingValue);
+    internal abstract class WellKnownAttributeData
+    {
+#pragma warning disable CA1802 // Remove suppression once https://github.com/dotnet/roslyn/issues/20894 is fixed
+        /// <summary>
+        /// Used to distinguish cases when attribute is applied with null value and when attribute is not applied.
+        /// For some well-known attributes, the latter case will return string stored in <see cref="StringMissingValue"/>
+        /// field.
+        /// </summary>
+        public static readonly string StringMissingValue = nameof(StringMissingValue);
 #pragma warning restore CA1802
 
 #if DEBUG
-    private bool _isSealed;
-    private bool _anyDataStored;
+        private bool _isSealed;
+        private bool _anyDataStored;
 #endif
 
-    public WellKnownAttributeData()
-    {
-#if DEBUG
-        _isSealed = false;
-        _anyDataStored = false;
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    protected void VerifySealed(bool expected = true)
-    {
-#if DEBUG
-        Debug.Assert(_isSealed == expected);
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    internal void VerifyDataStored(bool expected = true)
-    {
-#if DEBUG
-        Debug.Assert(_anyDataStored == expected);
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    protected void SetDataStored()
-    {
-#if DEBUG
-        _anyDataStored = true;
-#endif
-    }
-
-    [Conditional("DEBUG")]
-    internal static void Seal(WellKnownAttributeData data)
-    {
-#if DEBUG
-        if (data != null)
+        public WellKnownAttributeData()
         {
-            Debug.Assert(!data._isSealed);
-            Debug.Assert(data._anyDataStored);
-            data._isSealed = true;
-        }
+#if DEBUG
+            _isSealed = false;
+            _anyDataStored = false;
 #endif
+        }
+
+        [Conditional("DEBUG")]
+        protected void VerifySealed(bool expected = true)
+        {
+#if DEBUG
+            Debug.Assert(_isSealed == expected);
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal void VerifyDataStored(bool expected = true)
+        {
+#if DEBUG
+            Debug.Assert(_anyDataStored == expected);
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        protected void SetDataStored()
+        {
+#if DEBUG
+            _anyDataStored = true;
+#endif
+        }
+
+        [Conditional("DEBUG")]
+        internal static void Seal(WellKnownAttributeData data)
+        {
+#if DEBUG
+            if (data != null)
+            {
+                Debug.Assert(!data._isSealed);
+                Debug.Assert(data._anyDataStored);
+                data._isSealed = true;
+            }
+#endif
+        }
     }
 }

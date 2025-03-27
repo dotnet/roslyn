@@ -6,16 +6,17 @@
 
 using Xunit;
 
-namespace Roslyn.Utilities.UnitTests.InternalUtilities;
-
-public class StringExtensionsTests
+namespace Roslyn.Utilities.UnitTests.InternalUtilities
 {
-    [Fact]
-    public void GetNumeral1()
+    public class StringExtensionsTests
     {
-        Assert.Equal("0", StringExtensions.GetNumeral(0));
-        Assert.Equal("5", StringExtensions.GetNumeral(5));
-        Assert.Equal("10", StringExtensions.GetNumeral(10));
-        Assert.Equal("10000000", StringExtensions.GetNumeral(10000000));
+        [Fact]
+        public void GetNumeral1()
+        {
+            Assert.Equal("0", StringExtensions.GetNumeral(0));
+            Assert.Equal("5", StringExtensions.GetNumeral(5));
+            Assert.Equal("10", StringExtensions.GetNumeral(10));
+            Assert.Equal("10000000", StringExtensions.GetNumeral(10000000));
+        }
     }
 }

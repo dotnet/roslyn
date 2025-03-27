@@ -7,36 +7,37 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
+    internal partial class LocalRewriter
     {
-        Debug.Assert(!node.Type.IsAnonymousType); // Missing EnsureParamCollectionAttributeExists call?
-
-        if (node.Argument.HasDynamicType())
+        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
-            var loweredArgument = VisitExpression(node.Argument);
+            Debug.Assert(!node.Type.IsAnonymousType); // Missing EnsureParamCollectionAttributeExists call?
 
-            // Creates a delegate whose instance is the delegate that is returned by the call-site and the method is Invoke.
-            var loweredReceiver = _dynamicFactory.MakeDynamicConversion(loweredArgument, isExplicit: false, isArrayIndex: false, isChecked: false, resultType: node.Type).ToExpression();
+            if (node.Argument.HasDynamicType())
+            {
+                var loweredArgument = VisitExpression(node.Argument);
 
-            return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, node.WasTargetTyped, type: node.Type);
+                // Creates a delegate whose instance is the delegate that is returned by the call-site and the method is Invoke.
+                var loweredReceiver = _dynamicFactory.MakeDynamicConversion(loweredArgument, isExplicit: false, isArrayIndex: false, isChecked: false, resultType: node.Type).ToExpression();
+
+                return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, node.WasTargetTyped, type: node.Type);
+            }
+
+            if (node.Argument.Kind == BoundKind.MethodGroup)
+            {
+                var mg = (BoundMethodGroup)node.Argument;
+                var method = node.MethodOpt;
+                Debug.Assert(method is { });
+                var oldSyntax = _factory.Syntax;
+                _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
+                var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt)!;
+                _factory.Syntax = oldSyntax;
+                return node.Update(receiver, method, node.IsExtensionMethod, node.WasTargetTyped, node.Type);
+            }
+
+            return base.VisitDelegateCreationExpression(node)!;
         }
-
-        if (node.Argument.Kind == BoundKind.MethodGroup)
-        {
-            var mg = (BoundMethodGroup)node.Argument;
-            var method = node.MethodOpt;
-            Debug.Assert(method is { });
-            var oldSyntax = _factory.Syntax;
-            _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-            var receiver = (!method.RequiresInstanceReceiver && !node.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt)!;
-            _factory.Syntax = oldSyntax;
-            return node.Update(receiver, method, node.IsExtensionMethod, node.WasTargetTyped, node.Type);
-        }
-
-        return base.VisitDelegateCreationExpression(node)!;
     }
 }

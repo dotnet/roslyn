@@ -11,14 +11,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-public abstract class SimpleElementImmutablesTestBase : ImmutablesTestBase
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    protected abstract IEnumerable<T> GetEnumerableOf<T>(params T[] contents);
-
-    protected IEnumerable<T> GetEnumerableOf<T>(IEnumerable<T> contents)
+    public abstract class SimpleElementImmutablesTestBase : ImmutablesTestBase
     {
-        return GetEnumerableOf(contents.ToArray());
+        protected abstract IEnumerable<T> GetEnumerableOf<T>(params T[] contents);
+
+        protected IEnumerable<T> GetEnumerableOf<T>(IEnumerable<T> contents)
+        {
+            return GetEnumerableOf(contents.ToArray());
+        }
     }
 }

@@ -9,22 +9,23 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-
-public enum DkmClrDebuggerBrowsableAttributeState
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
-    Never,
-    Collapsed,
-    RootHidden,
-}
-
-public class DkmClrDebuggerBrowsableAttribute : DkmClrEvalAttribute
-{
-    internal DkmClrDebuggerBrowsableAttribute(string targetMember, DkmClrDebuggerBrowsableAttributeState state) :
-        base(targetMember)
+    public enum DkmClrDebuggerBrowsableAttributeState
     {
-        this.State = state;
+        Never,
+        Collapsed,
+        RootHidden,
     }
 
-    public readonly DkmClrDebuggerBrowsableAttributeState State;
+    public class DkmClrDebuggerBrowsableAttribute : DkmClrEvalAttribute
+    {
+        internal DkmClrDebuggerBrowsableAttribute(string targetMember, DkmClrDebuggerBrowsableAttributeState state) :
+            base(targetMember)
+        {
+            this.State = state;
+        }
+
+        public readonly DkmClrDebuggerBrowsableAttributeState State;
+    }
 }

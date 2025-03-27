@@ -8,17 +8,18 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal partial class CSharpCustomModifier : Cci.ICustomModifier
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    bool Cci.ICustomModifier.IsOptional
+    internal partial class CSharpCustomModifier : Cci.ICustomModifier
     {
-        get { return this.IsOptional; }
-    }
+        bool Cci.ICustomModifier.IsOptional
+        {
+            get { return this.IsOptional; }
+        }
 
-    Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
-    {
-        return ((PEModuleBuilder)context.Module).Translate(this.ModifierSymbol, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
+        Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
+        {
+            return ((PEModuleBuilder)context.Module).Translate(this.ModifierSymbol, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
+        }
     }
 }

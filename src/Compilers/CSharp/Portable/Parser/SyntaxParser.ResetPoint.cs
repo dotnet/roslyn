@@ -4,23 +4,24 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal partial class SyntaxParser
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    protected readonly struct ResetPoint
+    internal partial class SyntaxParser
     {
-        internal readonly int ResetCount;
-        internal readonly LexerMode Mode;
-        internal readonly int Position;
-        internal readonly GreenNode PrevTokenTrailingTrivia;
-
-        internal ResetPoint(int resetCount, LexerMode mode, int position, GreenNode prevTokenTrailingTrivia)
+        protected readonly struct ResetPoint
         {
-            this.ResetCount = resetCount;
-            this.Mode = mode;
-            this.Position = position;
-            this.PrevTokenTrailingTrivia = prevTokenTrailingTrivia;
+            internal readonly int ResetCount;
+            internal readonly LexerMode Mode;
+            internal readonly int Position;
+            internal readonly GreenNode PrevTokenTrailingTrivia;
+
+            internal ResetPoint(int resetCount, LexerMode mode, int position, GreenNode prevTokenTrailingTrivia)
+            {
+                this.ResetCount = resetCount;
+                this.Mode = mode;
+                this.Position = position;
+                this.PrevTokenTrailingTrivia = prevTokenTrailingTrivia;
+            }
         }
     }
 }

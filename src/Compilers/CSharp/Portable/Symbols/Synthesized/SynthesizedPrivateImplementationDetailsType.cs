@@ -13,178 +13,179 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed partial class SynthesizedPrivateImplementationDetailsType : NamedTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly PrivateImplementationDetails _privateImplementationDetails;
-    private readonly NamespaceSymbol _globalNamespace;
-    private readonly NamedTypeSymbol _objectType;
-
-    public SynthesizedPrivateImplementationDetailsType(PrivateImplementationDetails privateImplementationDetails, NamespaceSymbol globalNamespace, NamedTypeSymbol objectType)
+    internal sealed partial class SynthesizedPrivateImplementationDetailsType : NamedTypeSymbol
     {
-        Debug.Assert(globalNamespace.IsGlobalNamespace);
-        Debug.Assert(objectType.IsObjectType());
+        private readonly PrivateImplementationDetails _privateImplementationDetails;
+        private readonly NamespaceSymbol _globalNamespace;
+        private readonly NamedTypeSymbol _objectType;
 
-        _privateImplementationDetails = privateImplementationDetails;
-        _globalNamespace = globalNamespace;
-        _objectType = objectType;
-    }
+        public SynthesizedPrivateImplementationDetailsType(PrivateImplementationDetails privateImplementationDetails, NamespaceSymbol globalNamespace, NamedTypeSymbol objectType)
+        {
+            Debug.Assert(globalNamespace.IsGlobalNamespace);
+            Debug.Assert(objectType.IsObjectType());
 
-    public PrivateImplementationDetails PrivateImplementationDetails => _privateImplementationDetails;
+            _privateImplementationDetails = privateImplementationDetails;
+            _globalNamespace = globalNamespace;
+            _objectType = objectType;
+        }
 
-    public override bool IsImplicitlyDeclared => true;
+        public PrivateImplementationDetails PrivateImplementationDetails => _privateImplementationDetails;
 
-    public override int Arity => 0;
+        public override bool IsImplicitlyDeclared => true;
 
-    public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+        public override int Arity => 0;
 
-    public override NamedTypeSymbol ConstructedFrom => this;
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
-    public override bool MightContainExtensionMethods => false;
+        public override NamedTypeSymbol ConstructedFrom => this;
 
-    public override string Name => _privateImplementationDetails.Name;
+        public override bool MightContainExtensionMethods => false;
 
-    public override IEnumerable<string> MemberNames => SpecializedCollections.EmptyEnumerable<string>();
+        public override string Name => _privateImplementationDetails.Name;
 
-    public override Accessibility DeclaredAccessibility => Accessibility.Internal;
+        public override IEnumerable<string> MemberNames => SpecializedCollections.EmptyEnumerable<string>();
 
-    public override bool IsSerializable => false;
+        public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
-    public override bool AreLocalsZeroed => false;
+        public override bool IsSerializable => false;
 
-    public override TypeKind TypeKind => TypeKind.Class;
+        public override bool AreLocalsZeroed => false;
 
-    public override bool IsRefLikeType => false;
+        public override TypeKind TypeKind => TypeKind.Class;
 
-    public override bool IsReadOnly => false;
+        public override bool IsRefLikeType => false;
 
-    public override Symbol ContainingSymbol => _globalNamespace;
+        public override bool IsReadOnly => false;
 
-    public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
+        public override Symbol ContainingSymbol => _globalNamespace;
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+        public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
 
-    public override bool IsStatic => _privateImplementationDetails.IsSealed && _privateImplementationDetails.IsAbstract;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-    public override bool IsAbstract => _privateImplementationDetails.IsAbstract && !_privateImplementationDetails.IsSealed;
+        public override bool IsStatic => _privateImplementationDetails.IsSealed && _privateImplementationDetails.IsAbstract;
 
-    public override bool IsSealed => _privateImplementationDetails.IsSealed && !_privateImplementationDetails.IsAbstract;
+        public override bool IsAbstract => _privateImplementationDetails.IsAbstract && !_privateImplementationDetails.IsSealed;
 
-    internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics => ImmutableArray<TypeWithAnnotations>.Empty;
+        public override bool IsSealed => _privateImplementationDetails.IsSealed && !_privateImplementationDetails.IsAbstract;
 
-    internal override bool IsFileLocal => false;
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics => ImmutableArray<TypeWithAnnotations>.Empty;
 
-    internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal override bool IsFileLocal => false;
 
-    internal override bool MangleName => false;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-    internal override bool HasDeclaredRequiredMembers => false;
+        internal override bool MangleName => false;
 
-    internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+        internal override bool HasDeclaredRequiredMembers => false;
 
-    internal override bool HasCompilerLoweringPreserveAttribute => false;
+        internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
-    internal override bool IsInterpolatedStringHandlerType => false;
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
 
-    internal override bool HasSpecialName => _privateImplementationDetails.IsSpecialName;
+        internal override bool IsInterpolatedStringHandlerType => false;
 
-    internal override bool IsComImport => false;
+        internal override bool HasSpecialName => _privateImplementationDetails.IsSpecialName;
 
-    internal override bool IsWindowsRuntimeImport => false;
+        internal override bool IsComImport => false;
 
-    internal override bool ShouldAddWinRTMembers => false;
+        internal override bool IsWindowsRuntimeImport => false;
 
-    internal override TypeLayout Layout => new TypeLayout(_privateImplementationDetails.Layout, (int)_privateImplementationDetails.SizeOf, (byte)_privateImplementationDetails.Alignment);
+        internal override bool ShouldAddWinRTMembers => false;
 
-    internal override CharSet MarshallingCharSet => _privateImplementationDetails.StringFormat;
+        internal override TypeLayout Layout => new TypeLayout(_privateImplementationDetails.Layout, (int)_privateImplementationDetails.SizeOf, (byte)_privateImplementationDetails.Alignment);
 
-    internal override bool HasDeclarativeSecurity => false;
+        internal override CharSet MarshallingCharSet => _privateImplementationDetails.StringFormat;
 
-    internal override bool IsInterface => false;
+        internal override bool HasDeclarativeSecurity => false;
 
-    internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
+        internal override bool IsInterface => false;
 
-    internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _objectType;
+        internal override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 
-    internal override bool IsRecord => false;
+        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => _objectType;
 
-    internal override bool IsRecordStruct => false;
+        internal override bool IsRecord => false;
 
-    internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
+        internal override bool IsRecordStruct => false;
 
-    public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
+        internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-    public override ImmutableArray<Symbol> GetMembers(string name) => ImmutableArray<Symbol>.Empty;
+        public override ImmutableArray<Symbol> GetMembers() => ImmutableArray<Symbol>.Empty;
 
-    public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<Symbol> GetMembers(string name) => ImmutableArray<Symbol>.Empty;
 
-    public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
-    public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => ImmutableArray<NamedTypeSymbol>.Empty;
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-    internal override NamedTypeSymbol AsNativeInteger()
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
+        internal override NamedTypeSymbol AsNativeInteger()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override AttributeUsageInfo GetAttributeUsageInfo()
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => ImmutableArray<string>.Empty;
 
-    internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => _objectType;
+        internal override AttributeUsageInfo GetAttributeUsageInfo()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved) => _objectType;
 
-    internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => ImmutableArray<Symbol>.Empty;
+        internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-    internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => ImmutableArray<Symbol>.Empty;
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => ImmutableArray<Symbol>.Empty;
 
-    internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => ImmutableArray<Symbol>.Empty;
 
-    internal override bool GetGuidString(out string? guidString)
-    {
-        guidString = null;
-        return false;
-    }
+        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => throw ExceptionUtilities.Unreachable();
 
-    internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
 
-    internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
+        internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => ImmutableArray<NamedTypeSymbol>.Empty;
 
-    internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
-    {
-        builderArgument = null;
-        return false;
-    }
+        internal override IEnumerable<SecurityAttribute> GetSecurityInformation() => SpecializedCollections.EmptyEnumerable<SecurityAttribute>();
 
-    internal override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
-    {
-        builderType = null;
-        methodName = null;
-        return false;
-    }
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 
-    internal override bool HasInlineArrayAttribute(out int length)
-    {
-        length = 0;
-        return false;
-    }
+        internal override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            builderType = null;
+            methodName = null;
+            return false;
+        }
 
-    internal override bool HasPossibleWellKnownCloneMethod() => false;
+        internal override bool HasInlineArrayAttribute(out int length)
+        {
+            length = 0;
+            return false;
+        }
 
-    internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
-    internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
-    {
-        return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

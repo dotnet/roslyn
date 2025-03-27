@@ -8,16 +8,17 @@ using System;
 using Xunit;
 using Xunit.Sdk;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-[TraitDiscoverer("Microsoft.CodeAnalysis.Test.Utilities.CompilerTraitDiscoverer", assemblyName: "Microsoft.CodeAnalysis.Test.Utilities")]
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-public sealed class CompilerTraitAttribute : Attribute, ITraitAttribute
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public CompilerFeature[] Features { get; }
-
-    public CompilerTraitAttribute(params CompilerFeature[] features)
+    [TraitDiscoverer("Microsoft.CodeAnalysis.Test.Utilities.CompilerTraitDiscoverer", assemblyName: "Microsoft.CodeAnalysis.Test.Utilities")]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
+    public sealed class CompilerTraitAttribute : Attribute, ITraitAttribute
     {
-        Features = features;
+        public CompilerFeature[] Features { get; }
+
+        public CompilerTraitAttribute(params CompilerFeature[] features)
+        {
+            Features = features;
+        }
     }
 }

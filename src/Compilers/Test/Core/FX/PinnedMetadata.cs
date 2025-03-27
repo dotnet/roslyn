@@ -8,21 +8,22 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 
-namespace Roslyn.Test.Utilities;
-
-internal sealed class PinnedMetadata : PinnedBlob, IDisposable
+namespace Roslyn.Test.Utilities
 {
-    public MetadataReader Reader;
-
-    public unsafe PinnedMetadata(ImmutableArray<byte> metadata)
-        : base(metadata)
+    internal sealed class PinnedMetadata : PinnedBlob, IDisposable
     {
-        this.Reader = new MetadataReader((byte*)Pointer, this.Size, MetadataReaderOptions.None, null);
-    }
+        public MetadataReader Reader;
 
-    public override void Dispose()
-    {
-        base.Dispose();
-        Reader = null;
+        public unsafe PinnedMetadata(ImmutableArray<byte> metadata)
+            : base(metadata)
+        {
+            this.Reader = new MetadataReader((byte*)Pointer, this.Size, MetadataReaderOptions.None, null);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            Reader = null;
+        }
     }
 }

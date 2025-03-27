@@ -12,24 +12,25 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    [Fact]
-    public void ConvertAll()
+    public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
     {
-        var list = new SegmentedList<int>(new int[] { 1, 2, 3 });
-        var before = list.ToSegmentedList();
-        var after = list.ConvertAll((i) => { return 10 * i; });
-
-        Assert.Equal(before.Count, list.Count);
-        Assert.Equal(before.Count, after.Count);
-
-        for (int i = 0; i < list.Count; i++)
+        [Fact]
+        public void ConvertAll()
         {
-            Assert.Equal(before[i], list[i]);
-            Assert.Equal(before[i] * 10, after[i]);
+            var list = new SegmentedList<int>(new int[] { 1, 2, 3 });
+            var before = list.ToSegmentedList();
+            var after = list.ConvertAll((i) => { return 10 * i; });
+
+            Assert.Equal(before.Count, list.Count);
+            Assert.Equal(before.Count, after.Count);
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Assert.Equal(before[i], list[i]);
+                Assert.Equal(before[i] * 10, after[i]);
+            }
         }
     }
 }

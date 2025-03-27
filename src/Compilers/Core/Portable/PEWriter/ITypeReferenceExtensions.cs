@@ -8,48 +8,49 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 
-namespace Microsoft.Cci;
-
-internal static class ITypeReferenceExtensions
+namespace Microsoft.Cci
 {
-    internal static void GetConsolidatedTypeArguments(this ITypeReference typeReference, ArrayBuilder<ITypeReference> consolidatedTypeArguments, EmitContext context)
+    internal static class ITypeReferenceExtensions
     {
-        INestedTypeReference? nestedTypeReference = typeReference.AsNestedTypeReference;
-        nestedTypeReference?.GetContainingType(context).GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
-
-        IGenericTypeInstanceReference? genTypeInstance = typeReference.AsGenericTypeInstanceReference;
-        if (genTypeInstance != null)
+        internal static void GetConsolidatedTypeArguments(this ITypeReference typeReference, ArrayBuilder<ITypeReference> consolidatedTypeArguments, EmitContext context)
         {
-            consolidatedTypeArguments.AddRange(genTypeInstance.GetGenericArguments(context));
-        }
-    }
+            INestedTypeReference? nestedTypeReference = typeReference.AsNestedTypeReference;
+            nestedTypeReference?.GetContainingType(context).GetConsolidatedTypeArguments(consolidatedTypeArguments, context);
 
-    internal static ITypeReference GetUninstantiatedGenericType(this ITypeReference typeReference, EmitContext context)
-    {
-        IGenericTypeInstanceReference? genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
-        if (genericTypeInstanceReference != null)
-        {
-            return genericTypeInstanceReference.GetGenericType(context);
+            IGenericTypeInstanceReference? genTypeInstance = typeReference.AsGenericTypeInstanceReference;
+            if (genTypeInstance != null)
+            {
+                consolidatedTypeArguments.AddRange(genTypeInstance.GetGenericArguments(context));
+            }
         }
 
-        ISpecializedNestedTypeReference? specializedNestedType = typeReference.AsSpecializedNestedTypeReference;
-        if (specializedNestedType != null)
+        internal static ITypeReference GetUninstantiatedGenericType(this ITypeReference typeReference, EmitContext context)
         {
-            return specializedNestedType.GetUnspecializedVersion(context);
+            IGenericTypeInstanceReference? genericTypeInstanceReference = typeReference.AsGenericTypeInstanceReference;
+            if (genericTypeInstanceReference != null)
+            {
+                return genericTypeInstanceReference.GetGenericType(context);
+            }
+
+            ISpecializedNestedTypeReference? specializedNestedType = typeReference.AsSpecializedNestedTypeReference;
+            if (specializedNestedType != null)
+            {
+                return specializedNestedType.GetUnspecializedVersion(context);
+            }
+
+            return typeReference;
         }
 
-        return typeReference;
-    }
-
-    internal static bool IsTypeSpecification(this ITypeReference typeReference)
-    {
-        INestedTypeReference? nestedTypeReference = typeReference.AsNestedTypeReference;
-        if (nestedTypeReference != null)
+        internal static bool IsTypeSpecification(this ITypeReference typeReference)
         {
-            return nestedTypeReference.AsSpecializedNestedTypeReference != null ||
-                nestedTypeReference.AsGenericTypeInstanceReference != null;
-        }
+            INestedTypeReference? nestedTypeReference = typeReference.AsNestedTypeReference;
+            if (nestedTypeReference != null)
+            {
+                return nestedTypeReference.AsSpecializedNestedTypeReference != null ||
+                    nestedTypeReference.AsGenericTypeInstanceReference != null;
+            }
 
-        return typeReference.AsNamespaceTypeReference == null;
+            return typeReference.AsNamespaceTypeReference == null;
+        }
     }
 }

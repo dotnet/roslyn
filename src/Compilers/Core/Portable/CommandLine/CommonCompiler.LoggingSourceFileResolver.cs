@@ -5,38 +5,39 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis;
-
-internal abstract partial class CommonCompiler
+namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LoggingSourceFileResolver : SourceFileResolver
+    internal abstract partial class CommonCompiler
     {
-        private readonly TouchedFileLogger? _logger;
-
-        public LoggingSourceFileResolver(
-            ImmutableArray<string> searchPaths,
-            string? baseDirectory,
-            ImmutableArray<KeyValuePair<string, string>> pathMap,
-            TouchedFileLogger? logger)
-            : base(searchPaths, baseDirectory, pathMap)
+        internal sealed class LoggingSourceFileResolver : SourceFileResolver
         {
-            _logger = logger;
-        }
+            private readonly TouchedFileLogger? _logger;
 
-        protected override bool FileExists(string? fullPath)
-        {
-            if (fullPath != null)
+            public LoggingSourceFileResolver(
+                ImmutableArray<string> searchPaths,
+                string? baseDirectory,
+                ImmutableArray<KeyValuePair<string, string>> pathMap,
+                TouchedFileLogger? logger)
+                : base(searchPaths, baseDirectory, pathMap)
             {
-                _logger?.AddRead(fullPath);
+                _logger = logger;
             }
 
-            return base.FileExists(fullPath);
+            protected override bool FileExists(string? fullPath)
+            {
+                if (fullPath != null)
+                {
+                    _logger?.AddRead(fullPath);
+                }
+
+                return base.FileExists(fullPath);
+            }
+
+            public LoggingSourceFileResolver WithBaseDirectory(string value) =>
+                (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _logger);
+
+            public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) =>
+                (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _logger);
         }
-
-        public LoggingSourceFileResolver WithBaseDirectory(string value) =>
-            (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _logger);
-
-        public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) =>
-            (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _logger);
     }
 }

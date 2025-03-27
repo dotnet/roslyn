@@ -22,158 +22,159 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public sealed class CompilationDifference
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public readonly ImmutableArray<byte> MetadataDelta;
-    public readonly ImmutableArray<byte> ILDelta;
-    public readonly ImmutableArray<byte> PdbDelta;
-    internal readonly CompilationTestData TestData;
-    public readonly EmitDifferenceResult EmitResult;
-
-    internal CompilationDifference(
-        ImmutableArray<byte> metadata,
-        ImmutableArray<byte> il,
-        ImmutableArray<byte> pdb,
-        CompilationTestData testData,
-        EmitDifferenceResult result)
+    public sealed class CompilationDifference
     {
-        MetadataDelta = metadata;
-        ILDelta = il;
-        PdbDelta = pdb;
-        TestData = testData;
-        EmitResult = result;
-    }
+        public readonly ImmutableArray<byte> MetadataDelta;
+        public readonly ImmutableArray<byte> ILDelta;
+        public readonly ImmutableArray<byte> PdbDelta;
+        internal readonly CompilationTestData TestData;
+        public readonly EmitDifferenceResult EmitResult;
 
-    public EmitBaseline NextGeneration
-    {
-        get
+        internal CompilationDifference(
+            ImmutableArray<byte> metadata,
+            ImmutableArray<byte> il,
+            ImmutableArray<byte> pdb,
+            CompilationTestData testData,
+            EmitDifferenceResult result)
         {
-            return EmitResult.Baseline;
-        }
-    }
-
-    internal PinnedMetadata GetMetadata()
-    {
-        return new PinnedMetadata(MetadataDelta);
-    }
-
-    public void VerifyIL(
-        string expectedIL,
-        [CallerLineNumber] int callerLine = 0,
-        [CallerFilePath] string callerPath = null)
-    {
-        string actualIL = ILDelta.GetMethodIL();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-    }
-
-    public void VerifyLocalSignature(
-        string qualifiedMethodName,
-        string expectedSignature,
-        [CallerLineNumber] int callerLine = 0,
-        [CallerFilePath] string callerPath = null)
-    {
-        var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
-        string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-    }
-
-    internal void VerifyIL(
-        string qualifiedMethodName,
-        string expectedIL,
-        Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
-        MethodDefinitionHandle methodToken = default,
-        [CallerFilePath] string callerPath = null,
-        [CallerLineNumber] int callerLine = 0)
-    {
-        var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
-
-        Dictionary<int, string> sequencePointMarkers = null;
-        if (!methodToken.IsNil)
-        {
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
-            sequencePointMarkers = ILValidation.GetSequencePointMarkers(XElement.Parse(actualPdb));
-
-            Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
+            MetadataDelta = metadata;
+            ILDelta = il;
+            PdbDelta = pdb;
+            TestData = testData;
+            EmitResult = result;
         }
 
-        string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-    }
-
-    internal string GetMethodIL(string qualifiedMethodName)
-    {
-        return ILBuilderVisualizer.ILBuilderToString(this.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
-    }
-
-    private static ILVisualizer.LocalInfo ToLocalInfo(Cci.ILocalDefinition local)
-    {
-        var signature = local.Signature;
-        if (signature == null)
+        public EmitBaseline NextGeneration
         {
-            return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
-        }
-        else
-        {
-            // Decode simple types only.
-            var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
-            return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
-        }
-    }
-
-    private static string GetTypeName(SignatureTypeCode typeCode)
-    {
-        switch (typeCode)
-        {
-            case SignatureTypeCode.Boolean: return "[bool]";
-            case SignatureTypeCode.Int32: return "[int]";
-            case SignatureTypeCode.String: return "[string]";
-            case SignatureTypeCode.Object: return "[object]";
-            default: return null;
-        }
-    }
-
-    public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
-        => VerifySynthesizedMembers(EmitResult.Baseline.SynthesizedMembers, displayTypeKind: false, expectedSynthesizedTypesAndMemberCounts);
-
-    internal static void VerifySynthesizedMembers(IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> actualMembers, bool displayTypeKind, params string[] expected)
-    {
-        // Synthesized namespaces are not interesting. Explode them and display types contained in them as separate fully qualified names in the list.
-        var actual = new List<string>();
-        foreach (var (container, members) in actualMembers)
-        {
-            if (container is INamespaceSymbolInternal ns)
+            get
             {
-                actual.AddRange(members
-                    .Where(m => m is not INamespaceSymbolInternal)
-                    .Select(m => m.GetISymbol().ToDisplayString(SymbolDisplayFormat.TestFormat)));
+                return EmitResult.Baseline;
             }
         }
 
-        foreach (var (container, members) in actualMembers)
+        internal PinnedMetadata GetMetadata()
         {
-            if (container is not INamespaceSymbolInternal)
+            return new PinnedMetadata(MetadataDelta);
+        }
+
+        public void VerifyIL(
+            string expectedIL,
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
+        {
+            string actualIL = ILDelta.GetMethodIL();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        }
+
+        public void VerifyLocalSignature(
+            string qualifiedMethodName,
+            string expectedSignature,
+            [CallerLineNumber] int callerLine = 0,
+            [CallerFilePath] string callerPath = null)
+        {
+            var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
+            string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder, ToLocalInfo);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        }
+
+        internal void VerifyIL(
+            string qualifiedMethodName,
+            string expectedIL,
+            Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
+            MethodDefinitionHandle methodToken = default,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0)
+        {
+            var ilBuilder = TestData.GetMethodData(qualifiedMethodName).ILBuilder;
+
+            Dictionary<int, string> sequencePointMarkers = null;
+            if (!methodToken.IsNil)
             {
-                actual.Add(
-                    $"{(displayTypeKind && container is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{container}: " +
-                    $"{{{string.Join(", ", members.Select(v => v.Name))}}}");
+                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
+                sequencePointMarkers = ILValidation.GetSequencePointMarkers(XElement.Parse(actualPdb));
+
+                Assert.True(sequencePointMarkers.Count > 0, $"No sequence points found in:{Environment.NewLine}{actualPdb}");
+            }
+
+            string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        }
+
+        internal string GetMethodIL(string qualifiedMethodName)
+        {
+            return ILBuilderVisualizer.ILBuilderToString(this.TestData.GetMethodData(qualifiedMethodName).ILBuilder, ToLocalInfo);
+        }
+
+        private static ILVisualizer.LocalInfo ToLocalInfo(Cci.ILocalDefinition local)
+        {
+            var signature = local.Signature;
+            if (signature == null)
+            {
+                return new ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
+            }
+            else
+            {
+                // Decode simple types only.
+                var typeName = (signature.Length == 1) ? GetTypeName((SignatureTypeCode)signature[0]) : null;
+                return new ILVisualizer.LocalInfo(null, typeName ?? "[unchanged]", false, false);
             }
         }
 
-        AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-    }
+        private static string GetTypeName(SignatureTypeCode typeCode)
+        {
+            switch (typeCode)
+            {
+                case SignatureTypeCode.Boolean: return "[bool]";
+                case SignatureTypeCode.Int32: return "[int]";
+                case SignatureTypeCode.String: return "[string]";
+                case SignatureTypeCode.Object: return "[object]";
+                default: return null;
+            }
+        }
 
-    public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
-    {
-        var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
-        AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
-    }
+        public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
+            => VerifySynthesizedMembers(EmitResult.Baseline.SynthesizedMembers, displayTypeKind: false, expectedSynthesizedTypesAndMemberCounts);
 
-    public void VerifyUpdatedMethods(params string[] expectedMethodTokens)
-    {
-        AssertEx.Equal(
-            expectedMethodTokens,
-            EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
+        internal static void VerifySynthesizedMembers(IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> actualMembers, bool displayTypeKind, params string[] expected)
+        {
+            // Synthesized namespaces are not interesting. Explode them and display types contained in them as separate fully qualified names in the list.
+            var actual = new List<string>();
+            foreach (var (container, members) in actualMembers)
+            {
+                if (container is INamespaceSymbolInternal ns)
+                {
+                    actual.AddRange(members
+                        .Where(m => m is not INamespaceSymbolInternal)
+                        .Select(m => m.GetISymbol().ToDisplayString(SymbolDisplayFormat.TestFormat)));
+                }
+            }
+
+            foreach (var (container, members) in actualMembers)
+            {
+                if (container is not INamespaceSymbolInternal)
+                {
+                    actual.Add(
+                        $"{(displayTypeKind && container is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{container}: " +
+                        $"{{{string.Join(", ", members.Select(v => v.Name))}}}");
+                }
+            }
+
+            AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+        }
+
+        public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
+        {
+            var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field).Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
+            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+        }
+
+        public void VerifyUpdatedMethods(params string[] expectedMethodTokens)
+        {
+            AssertEx.Equal(
+                expectedMethodTokens,
+                EmitResult.UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
+        }
     }
 }

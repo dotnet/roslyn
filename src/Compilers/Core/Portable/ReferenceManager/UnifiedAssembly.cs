@@ -6,30 +6,31 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Assembly symbol referenced by a AssemblyRef for which we couldn't find a matching 
-/// compilation reference but we found one that differs in version. 
-/// Created only for assemblies that require runtime binding redirection policy,
-/// i.e. not for Framework assemblies.
-/// </summary>
-internal readonly struct UnifiedAssembly<TAssemblySymbol>
-    where TAssemblySymbol : class, IAssemblySymbolInternal
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Original reference that was unified to the identity of the <see cref="TargetAssembly"/>.
+    /// Assembly symbol referenced by a AssemblyRef for which we couldn't find a matching 
+    /// compilation reference but we found one that differs in version. 
+    /// Created only for assemblies that require runtime binding redirection policy,
+    /// i.e. not for Framework assemblies.
     /// </summary>
-    internal readonly AssemblyIdentity OriginalReference;
-
-    internal readonly TAssemblySymbol TargetAssembly;
-
-    public UnifiedAssembly(TAssemblySymbol targetAssembly, AssemblyIdentity originalReference)
+    internal readonly struct UnifiedAssembly<TAssemblySymbol>
+        where TAssemblySymbol : class, IAssemblySymbolInternal
     {
-        Debug.Assert(originalReference != null);
-        Debug.Assert(targetAssembly != null);
+        /// <summary>
+        /// Original reference that was unified to the identity of the <see cref="TargetAssembly"/>.
+        /// </summary>
+        internal readonly AssemblyIdentity OriginalReference;
 
-        this.OriginalReference = originalReference;
-        this.TargetAssembly = targetAssembly;
+        internal readonly TAssemblySymbol TargetAssembly;
+
+        public UnifiedAssembly(TAssemblySymbol targetAssembly, AssemblyIdentity originalReference)
+        {
+            Debug.Assert(originalReference != null);
+            Debug.Assert(targetAssembly != null);
+
+            this.OriginalReference = originalReference;
+            this.TargetAssembly = targetAssembly;
+        }
     }
 }

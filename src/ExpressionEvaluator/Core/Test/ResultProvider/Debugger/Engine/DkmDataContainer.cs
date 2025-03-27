@@ -12,39 +12,40 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.Debugger;
-
-public abstract class DkmDataContainer
+namespace Microsoft.VisualStudio.Debugger
 {
-    private readonly Dictionary<Guid, object> _dataItems = new Dictionary<Guid, object>();
-
-    public T GetDataItem<T>() where T : DkmDataItem
+    public abstract class DkmDataContainer
     {
-        object value;
-        if (_dataItems.TryGetValue(typeof(T).GUID, out value))
-        {
-            return value as T;
-        }
+        private readonly Dictionary<Guid, object> _dataItems = new Dictionary<Guid, object>();
 
-        return null;
-    }
-
-    public void SetDataItem<T>(DkmDataCreationDisposition creationDisposition, T item) where T : DkmDataItem
-    {
-        if (item == null)
+        public T GetDataItem<T>() where T : DkmDataItem
         {
-            throw new ArgumentNullException(nameof(item));
-        }
-
-        Guid key = item.GetType().GUID;
-        if (creationDisposition == DkmDataCreationDisposition.CreateNew)
-        {
-            if (_dataItems.ContainsKey(key))
+            object value;
+            if (_dataItems.TryGetValue(typeof(T).GUID, out value))
             {
-                throw new ArgumentException("Data item already exists", nameof(item));
+                return value as T;
             }
+
+            return null;
         }
 
-        _dataItems[key] = item;
+        public void SetDataItem<T>(DkmDataCreationDisposition creationDisposition, T item) where T : DkmDataItem
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            Guid key = item.GetType().GUID;
+            if (creationDisposition == DkmDataCreationDisposition.CreateNew)
+            {
+                if (_dataItems.ContainsKey(key))
+                {
+                    throw new ArgumentException("Data item already exists", nameof(item));
+                }
+            }
+
+            _dataItems[key] = item;
+        }
     }
 }

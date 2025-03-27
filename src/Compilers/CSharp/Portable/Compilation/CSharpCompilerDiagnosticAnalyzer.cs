@@ -7,31 +7,32 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.CSharp;
-
-/// <summary>
-/// DiagnosticAnalyzer for C# compiler's syntax/semantic/compilation diagnostics.
-/// </summary>
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpCompilerDiagnosticAnalyzer : CompilerDiagnosticAnalyzer
+namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
 {
-    protected override CommonMessageProvider MessageProvider
-        => CodeAnalysis.CSharp.MessageProvider.Instance;
-
-    internal override ImmutableArray<int> GetSupportedErrorCodes()
+    /// <summary>
+    /// DiagnosticAnalyzer for C# compiler's syntax/semantic/compilation diagnostics.
+    /// </summary>
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class CSharpCompilerDiagnosticAnalyzer : CompilerDiagnosticAnalyzer
     {
-        var errorCodes = Enum.GetValues(typeof(ErrorCode));
-        var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
-        foreach (ErrorCode errorCode in errorCodes)
-        {
-            // Compiler diagnostic analyzer does not support build-only diagnostics.
-            if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
-                errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
-            {
-                builder.Add((int)errorCode);
-            }
-        }
+        protected override CommonMessageProvider MessageProvider
+            => CodeAnalysis.CSharp.MessageProvider.Instance;
 
-        return builder.ToImmutableAndFree();
+        internal override ImmutableArray<int> GetSupportedErrorCodes()
+        {
+            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var builder = ArrayBuilder<int>.GetInstance(errorCodes.Length);
+            foreach (ErrorCode errorCode in errorCodes)
+            {
+                // Compiler diagnostic analyzer does not support build-only diagnostics.
+                if (!ErrorFacts.IsBuildOnlyDiagnostic(errorCode) &&
+                    errorCode is not (ErrorCode.Void or ErrorCode.Unknown))
+                {
+                    builder.Add((int)errorCode);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 }

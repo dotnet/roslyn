@@ -6,38 +6,39 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <summary>
-/// Contains information about the source of a programmatic diagnostic suppression produced by an <see cref="DiagnosticSuppressor"/>.
-/// </summary>
-internal sealed class ProgrammaticSuppressionInfo : IEquatable<ProgrammaticSuppressionInfo?>
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public ImmutableArray<Suppression> Suppressions { get; }
-
-    internal ProgrammaticSuppressionInfo(ImmutableArray<Suppression> suppressions)
+    /// <summary>
+    /// Contains information about the source of a programmatic diagnostic suppression produced by an <see cref="DiagnosticSuppressor"/>.
+    /// </summary>
+    internal sealed class ProgrammaticSuppressionInfo : IEquatable<ProgrammaticSuppressionInfo?>
     {
-        Suppressions = suppressions;
-    }
+        public ImmutableArray<Suppression> Suppressions { get; }
 
-    public bool Equals(ProgrammaticSuppressionInfo? other)
-    {
-        if (ReferenceEquals(this, other))
+        internal ProgrammaticSuppressionInfo(ImmutableArray<Suppression> suppressions)
         {
-            return true;
+            Suppressions = suppressions;
         }
 
-        return other != null &&
-            this.Suppressions.SetEquals(other.Suppressions, EqualityComparer<Suppression>.Default);
-    }
+        public bool Equals(ProgrammaticSuppressionInfo? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
 
-    public override bool Equals(object? obj)
-    {
-        return Equals(obj as ProgrammaticSuppressionInfo);
-    }
+            return other != null &&
+                this.Suppressions.SetEquals(other.Suppressions, EqualityComparer<Suppression>.Default);
+        }
 
-    public override int GetHashCode()
-    {
-        return Suppressions.Length;
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as ProgrammaticSuppressionInfo);
+        }
+
+        public override int GetHashCode()
+        {
+            return Suppressions.Length;
+        }
     }
 }

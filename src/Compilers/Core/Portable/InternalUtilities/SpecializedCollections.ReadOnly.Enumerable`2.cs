@@ -4,23 +4,24 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private partial class ReadOnly
+    internal partial class SpecializedCollections
     {
-        internal class Enumerable<TUnderlying, T> : Enumerable<TUnderlying>, IEnumerable<T>
-            where TUnderlying : IEnumerable<T>
+        private partial class ReadOnly
         {
-            public Enumerable(TUnderlying underlying)
-                : base(underlying)
+            internal class Enumerable<TUnderlying, T> : Enumerable<TUnderlying>, IEnumerable<T>
+                where TUnderlying : IEnumerable<T>
             {
-            }
+                public Enumerable(TUnderlying underlying)
+                    : base(underlying)
+                {
+                }
 
-            public new IEnumerator<T> GetEnumerator()
-            {
-                return this.Underlying.GetEnumerator();
+                public new IEnumerator<T> GetEnumerator()
+                {
+                    return this.Underlying.GetEnumerator();
+                }
             }
         }
     }

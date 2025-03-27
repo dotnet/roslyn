@@ -7,174 +7,175 @@
 using System;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-/// <summary>
-/// Object pretty printer.
-/// </summary>
-internal abstract partial class CommonObjectFormatter
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    private sealed class Builder
+    /// <summary>
+    /// Object pretty printer.
+    /// </summary>
+    internal abstract partial class CommonObjectFormatter
     {
-        private readonly StringBuilder _sb;
-
-        private readonly bool _suppressEllipsis;
-
-        private readonly BuilderOptions _options;
-
-        private int _currentLimit;
-
-        public Builder(BuilderOptions options, bool suppressEllipsis)
+        private sealed class Builder
         {
-            _sb = new StringBuilder();
-            _suppressEllipsis = suppressEllipsis;
-            _options = options;
-            _currentLimit = Math.Min(_options.MaximumLineLength, _options.MaximumOutputLength);
-        }
+            private readonly StringBuilder _sb;
 
-        public int Remaining
-        {
-            get { return _options.MaximumOutputLength - _sb.Length; }
-        }
+            private readonly bool _suppressEllipsis;
 
-        // can be negative (the min value is -Ellipsis.Length - 1)
-        private int CurrentRemaining
-        {
-            get { return _currentLimit - _sb.Length; }
-        }
+            private readonly BuilderOptions _options;
 
-        public void AppendLine()
-        {
-            // remove line length limit so that we can insert a new line even 
-            // if the previous one hit maxed out the line limit:
-            _currentLimit = _options.MaximumOutputLength;
+            private int _currentLimit;
 
-            Append(_options.NewLine);
-
-            // recalc limit for the next line:
-            _currentLimit = (int)Math.Min((long)_sb.Length + _options.MaximumLineLength, _options.MaximumOutputLength);
-        }
-
-        private void AppendEllipsis()
-        {
-            if (_suppressEllipsis)
+            public Builder(BuilderOptions options, bool suppressEllipsis)
             {
-                return;
+                _sb = new StringBuilder();
+                _suppressEllipsis = suppressEllipsis;
+                _options = options;
+                _currentLimit = Math.Min(_options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
-            var ellipsis = _options.Ellipsis;
-            if (string.IsNullOrEmpty(ellipsis))
+            public int Remaining
             {
-                return;
+                get { return _options.MaximumOutputLength - _sb.Length; }
             }
 
-            _sb.Append(ellipsis);
-        }
-
-        public void Append(char c, int count = 1)
-        {
-            if (CurrentRemaining < 0)
+            // can be negative (the min value is -Ellipsis.Length - 1)
+            private int CurrentRemaining
             {
-                return;
+                get { return _currentLimit - _sb.Length; }
             }
 
-            int length = Math.Min(count, CurrentRemaining);
-
-            _sb.Append(c, length);
-
-            if (!_suppressEllipsis && length < count)
+            public void AppendLine()
             {
-                AppendEllipsis();
-            }
-        }
+                // remove line length limit so that we can insert a new line even 
+                // if the previous one hit maxed out the line limit:
+                _currentLimit = _options.MaximumOutputLength;
 
-        public void Append(string str, int start = 0, int count = Int32.MaxValue)
-        {
-            if (str == null || CurrentRemaining < 0)
-            {
-                return;
+                Append(_options.NewLine);
+
+                // recalc limit for the next line:
+                _currentLimit = (int)Math.Min((long)_sb.Length + _options.MaximumLineLength, _options.MaximumOutputLength);
             }
 
-            count = Math.Min(count, str.Length - start);
-            int length = Math.Min(count, CurrentRemaining);
-            _sb.Append(str, start, length);
-
-            if (!_suppressEllipsis && length < count)
+            private void AppendEllipsis()
             {
-                AppendEllipsis();
+                if (_suppressEllipsis)
+                {
+                    return;
+                }
+
+                var ellipsis = _options.Ellipsis;
+                if (string.IsNullOrEmpty(ellipsis))
+                {
+                    return;
+                }
+
+                _sb.Append(ellipsis);
             }
-        }
 
-        public void AppendFormat(string format, params object[] args)
-        {
-            Append(string.Format(format, args));
-        }
-
-        public void AppendGroupOpening()
-        {
-            Append('{');
-        }
-
-        public void AppendGroupClosing(bool inline)
-        {
-            if (inline)
+            public void Append(char c, int count = 1)
             {
-                Append(" }");
-            }
-            else
-            {
-                AppendLine();
-                Append('}');
-                AppendLine();
-            }
-        }
+                if (CurrentRemaining < 0)
+                {
+                    return;
+                }
 
-        public void AppendCollectionItemSeparator(bool isFirst, bool inline)
-        {
-            if (isFirst)
+                int length = Math.Min(count, CurrentRemaining);
+
+                _sb.Append(c, length);
+
+                if (!_suppressEllipsis && length < count)
+                {
+                    AppendEllipsis();
+                }
+            }
+
+            public void Append(string str, int start = 0, int count = Int32.MaxValue)
+            {
+                if (str == null || CurrentRemaining < 0)
+                {
+                    return;
+                }
+
+                count = Math.Min(count, str.Length - start);
+                int length = Math.Min(count, CurrentRemaining);
+                _sb.Append(str, start, length);
+
+                if (!_suppressEllipsis && length < count)
+                {
+                    AppendEllipsis();
+                }
+            }
+
+            public void AppendFormat(string format, params object[] args)
+            {
+                Append(string.Format(format, args));
+            }
+
+            public void AppendGroupOpening()
+            {
+                Append('{');
+            }
+
+            public void AppendGroupClosing(bool inline)
             {
                 if (inline)
                 {
-                    Append(' ');
+                    Append(" }");
                 }
                 else
                 {
                     AppendLine();
-                }
-            }
-            else
-            {
-                if (inline)
-                {
-                    Append(", ");
-                }
-                else
-                {
-                    Append(',');
+                    Append('}');
                     AppendLine();
                 }
             }
 
-            if (!inline)
+            public void AppendCollectionItemSeparator(bool isFirst, bool inline)
             {
-                Append(_options.Indentation);
+                if (isFirst)
+                {
+                    if (inline)
+                    {
+                        Append(' ');
+                    }
+                    else
+                    {
+                        AppendLine();
+                    }
+                }
+                else
+                {
+                    if (inline)
+                    {
+                        Append(", ");
+                    }
+                    else
+                    {
+                        Append(',');
+                        AppendLine();
+                    }
+                }
+
+                if (!inline)
+                {
+                    Append(_options.Indentation);
+                }
             }
-        }
 
-        /// <remarks>
-        /// This is for conveying cyclic dependencies to the user, not for detecting them.
-        /// </remarks>
-        internal void AppendInfiniteRecursionMarker()
-        {
-            AppendGroupOpening();
-            AppendCollectionItemSeparator(isFirst: true, inline: true);
-            Append("...");
-            AppendGroupClosing(inline: true);
-        }
+            /// <remarks>
+            /// This is for conveying cyclic dependencies to the user, not for detecting them.
+            /// </remarks>
+            internal void AppendInfiniteRecursionMarker()
+            {
+                AppendGroupOpening();
+                AppendCollectionItemSeparator(isFirst: true, inline: true);
+                Append("...");
+                AppendGroupClosing(inline: true);
+            }
 
-        public override string ToString()
-        {
-            return _sb.ToString();
+            public override string ToString()
+            {
+                return _sb.ToString();
+            }
         }
     }
 }

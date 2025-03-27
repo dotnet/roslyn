@@ -10,105 +10,106 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace IdeCoreBenchmarks;
-
-public static class ProjectOperationBenchmarks
+namespace IdeCoreBenchmarks
 {
-    private static readonly SourceText s_newText = SourceText.From("text");
-
-    [MemoryDiagnoser]
-    public class IterateDocuments
+    public static class ProjectOperationBenchmarks
     {
-        private Workspace _workspace;
-        private Project _emptyProject;
-        private Project _hundredProject;
-        private Project _thousandsProject;
+        private static readonly SourceText s_newText = SourceText.From("text");
 
-        public IterateDocuments()
+        [MemoryDiagnoser]
+        public class IterateDocuments
         {
-            // These fields are initialized in GlobalSetup
-            _workspace = null!;
-            _emptyProject = null!;
-            _hundredProject = null!;
-            _thousandsProject = null!;
-        }
+            private Workspace _workspace;
+            private Project _emptyProject;
+            private Project _hundredProject;
+            private Project _thousandsProject;
 
-        [Params(0, 100, 10000)]
-        public int DocumentCount { get; set; }
-
-        private Project Project
-        {
-            get
+            public IterateDocuments()
             {
-                return DocumentCount switch
-                {
-                    0 => _emptyProject,
-                    100 => _hundredProject,
-                    10000 => _thousandsProject,
-                    _ => throw new NotSupportedException($"'{nameof(DocumentCount)}' is out of range"),
-                };
+                // These fields are initialized in GlobalSetup
+                _workspace = null!;
+                _emptyProject = null!;
+                _hundredProject = null!;
+                _thousandsProject = null!;
             }
-        }
 
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-            _workspace = new AdhocWorkspace();
+            [Params(0, 100, 10000)]
+            public int DocumentCount { get; set; }
 
-            var solution = _workspace.CurrentSolution;
-            _emptyProject = CreateProject(ref solution, name: "A", documentCount: 0);
-            _hundredProject = CreateProject(ref solution, name: "A", documentCount: 100);
-            _thousandsProject = CreateProject(ref solution, name: "A", documentCount: 10000);
-
-            static Project CreateProject(ref Solution solution, string name, int documentCount)
+            private Project Project
             {
-                var projectId = ProjectId.CreateNewId(name);
-                solution = solution.AddProject(projectId, name, name, LanguageNames.CSharp);
-
-                var emptySourceText = SourceText.From("", Encoding.UTF8);
-                for (var i = 0; i < documentCount; i++)
+                get
                 {
-                    var documentName = $"{i}.cs";
-                    var documentId = DocumentId.CreateNewId(projectId, documentName);
-                    solution = solution.AddDocument(documentId, documentName, emptySourceText);
+                    return DocumentCount switch
+                    {
+                        0 => _emptyProject,
+                        100 => _hundredProject,
+                        10000 => _thousandsProject,
+                        _ => throw new NotSupportedException($"'{nameof(DocumentCount)}' is out of range"),
+                    };
+                }
+            }
+
+            [GlobalSetup]
+            public void GlobalSetup()
+            {
+                _workspace = new AdhocWorkspace();
+
+                var solution = _workspace.CurrentSolution;
+                _emptyProject = CreateProject(ref solution, name: "A", documentCount: 0);
+                _hundredProject = CreateProject(ref solution, name: "A", documentCount: 100);
+                _thousandsProject = CreateProject(ref solution, name: "A", documentCount: 10000);
+
+                static Project CreateProject(ref Solution solution, string name, int documentCount)
+                {
+                    var projectId = ProjectId.CreateNewId(name);
+                    solution = solution.AddProject(projectId, name, name, LanguageNames.CSharp);
+
+                    var emptySourceText = SourceText.From("", Encoding.UTF8);
+                    for (var i = 0; i < documentCount; i++)
+                    {
+                        var documentName = $"{i}.cs";
+                        var documentId = DocumentId.CreateNewId(projectId, documentName);
+                        solution = solution.AddDocument(documentId, documentName, emptySourceText);
+                    }
+
+                    return solution.GetRequiredProject(projectId);
+                }
+            }
+
+            [Benchmark(Description = "Project.DocumentIds")]
+            public int DocumentIds()
+            {
+                var count = 0;
+                foreach (var _ in Project.DocumentIds)
+                {
+                    count++;
                 }
 
-                return solution.GetRequiredProject(projectId);
-            }
-        }
-
-        [Benchmark(Description = "Project.DocumentIds")]
-        public int DocumentIds()
-        {
-            var count = 0;
-            foreach (var _ in Project.DocumentIds)
-            {
-                count++;
+                return count;
             }
 
-            return count;
-        }
-
-        [Benchmark(Description = "Project.Documents")]
-        public int Documents()
-        {
-            var count = 0;
-            foreach (var _ in Project.Documents)
+            [Benchmark(Description = "Project.Documents")]
+            public int Documents()
             {
-                count++;
+                var count = 0;
+                foreach (var _ in Project.Documents)
+                {
+                    count++;
+                }
+
+                return count;
             }
 
-            return count;
-        }
-
-        [Benchmark(Description = "Solution.WithDocumentText")]
-        public void WithDocumentText()
-        {
-            var solution = Project.Solution;
-            var documentId = Project.DocumentIds.FirstOrDefault();
-            if (documentId != null)
+            [Benchmark(Description = "Solution.WithDocumentText")]
+            public void WithDocumentText()
             {
-                var _ = solution.WithDocumentText(documentId, s_newText);
+                var solution = Project.Solution;
+                var documentId = Project.DocumentIds.FirstOrDefault();
+                if (documentId != null)
+                {
+                    var _ = solution.WithDocumentText(documentId, s_newText);
+                }
             }
         }
     }

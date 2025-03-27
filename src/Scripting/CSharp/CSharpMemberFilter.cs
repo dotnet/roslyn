@@ -7,13 +7,14 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-
-internal class CSharpMemberFilter : CommonMemberFilter
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    protected override bool IsGeneratedMemberName(string name)
+    internal class CSharpMemberFilter : CommonMemberFilter
     {
-        // Generated fields, e.g. "<property_name>k__BackingField"
-        return GeneratedNames.IsGeneratedMemberName(name);
+        protected override bool IsGeneratedMemberName(string name)
+        {
+            // Generated fields, e.g. "<property_name>k__BackingField"
+            return GeneratedNames.IsGeneratedMemberName(name);
+        }
     }
 }

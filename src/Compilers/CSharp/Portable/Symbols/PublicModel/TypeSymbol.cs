@@ -7,170 +7,171 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal abstract class TypeSymbol : NamespaceOrTypeSymbol, ISymbol, ITypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    protected TypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
+    internal abstract class TypeSymbol : NamespaceOrTypeSymbol, ISymbol, ITypeSymbol
     {
-        NullableAnnotation = nullableAnnotation;
-    }
-
-    protected CodeAnalysis.NullableAnnotation NullableAnnotation { get; }
-
-    protected abstract ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation);
-
-    internal abstract Symbols.TypeSymbol UnderlyingTypeSymbol { get; }
-
-    CodeAnalysis.NullableAnnotation ITypeSymbol.NullableAnnotation => NullableAnnotation;
-
-    ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
-    {
-        if (NullableAnnotation == nullableAnnotation)
+        protected TypeSymbol(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            return this;
-        }
-        else if (nullableAnnotation == UnderlyingTypeSymbol.DefaultNullableAnnotation)
-        {
-            return (ITypeSymbol)UnderlyingSymbol.ISymbol;
+            NullableAnnotation = nullableAnnotation;
         }
 
-        return WithNullableAnnotation(nullableAnnotation);
-    }
+        protected CodeAnalysis.NullableAnnotation NullableAnnotation { get; }
 
-    bool ISymbol.IsDefinition
-    {
-        get
-        {
-            return (object)this == ((ISymbol)this).OriginalDefinition;
-        }
-    }
+        protected abstract ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation);
 
-    bool ISymbol.Equals(ISymbol other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
-    {
-        return this.Equals(other as TypeSymbol, equalityComparer);
-    }
+        internal abstract Symbols.TypeSymbol UnderlyingTypeSymbol { get; }
 
-    protected bool Equals(TypeSymbol otherType, CodeAnalysis.SymbolEqualityComparer equalityComparer)
-    {
-        if (otherType is null)
+        CodeAnalysis.NullableAnnotation ITypeSymbol.NullableAnnotation => NullableAnnotation;
+
+        ITypeSymbol ITypeSymbol.WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation)
         {
-            return false;
-        }
-        else if ((object)otherType == this)
-        {
-            return true;
+            if (NullableAnnotation == nullableAnnotation)
+            {
+                return this;
+            }
+            else if (nullableAnnotation == UnderlyingTypeSymbol.DefaultNullableAnnotation)
+            {
+                return (ITypeSymbol)UnderlyingSymbol.ISymbol;
+            }
+
+            return WithNullableAnnotation(nullableAnnotation);
         }
 
-        var compareKind = equalityComparer.CompareKind;
-
-        if (NullableAnnotation != otherType.NullableAnnotation && (compareKind & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0 &&
-            ((compareKind & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0 ||
-                (NullableAnnotation != CodeAnalysis.NullableAnnotation.None && otherType.NullableAnnotation != CodeAnalysis.NullableAnnotation.None)) &&
-            !(UnderlyingTypeSymbol.IsValueType && !UnderlyingTypeSymbol.IsNullableType()))
+        bool ISymbol.IsDefinition
         {
-            return false;
+            get
+            {
+                return (object)this == ((ISymbol)this).OriginalDefinition;
+            }
         }
 
-        return UnderlyingTypeSymbol.Equals(otherType.UnderlyingTypeSymbol, compareKind);
-    }
-
-    ITypeSymbol ITypeSymbol.OriginalDefinition
-    {
-        get
+        bool ISymbol.Equals(ISymbol other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
         {
-            return UnderlyingTypeSymbol.OriginalDefinition.GetPublicSymbol();
+            return this.Equals(other as TypeSymbol, equalityComparer);
         }
-    }
 
-    INamedTypeSymbol ITypeSymbol.BaseType
-    {
-        get
+        protected bool Equals(TypeSymbol otherType, CodeAnalysis.SymbolEqualityComparer equalityComparer)
         {
-            return UnderlyingTypeSymbol.BaseTypeNoUseSiteDiagnostics.GetPublicSymbol();
-        }
-    }
+            if (otherType is null)
+            {
+                return false;
+            }
+            else if ((object)otherType == this)
+            {
+                return true;
+            }
 
-    ImmutableArray<INamedTypeSymbol> ITypeSymbol.Interfaces
-    {
-        get
+            var compareKind = equalityComparer.CompareKind;
+
+            if (NullableAnnotation != otherType.NullableAnnotation && (compareKind & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0 &&
+                ((compareKind & TypeCompareKind.ObliviousNullableModifierMatchesAny) == 0 ||
+                    (NullableAnnotation != CodeAnalysis.NullableAnnotation.None && otherType.NullableAnnotation != CodeAnalysis.NullableAnnotation.None)) &&
+                !(UnderlyingTypeSymbol.IsValueType && !UnderlyingTypeSymbol.IsNullableType()))
+            {
+                return false;
+            }
+
+            return UnderlyingTypeSymbol.Equals(otherType.UnderlyingTypeSymbol, compareKind);
+        }
+
+        ITypeSymbol ITypeSymbol.OriginalDefinition
         {
-            return UnderlyingTypeSymbol.InterfacesNoUseSiteDiagnostics().GetPublicSymbols();
+            get
+            {
+                return UnderlyingTypeSymbol.OriginalDefinition.GetPublicSymbol();
+            }
         }
-    }
 
-    ImmutableArray<INamedTypeSymbol> ITypeSymbol.AllInterfaces
-    {
-        get
+        INamedTypeSymbol ITypeSymbol.BaseType
         {
-            return UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+            get
+            {
+                return UnderlyingTypeSymbol.BaseTypeNoUseSiteDiagnostics.GetPublicSymbol();
+            }
         }
-    }
 
-    ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
-    {
-        return interfaceMember is Symbol symbol
-            ? UnderlyingTypeSymbol.FindImplementationForInterfaceMember(symbol.UnderlyingSymbol).GetPublicSymbol()
-            : null;
-    }
-
-    bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedTypeNoUseSiteDiagnostics;
-
-    bool ITypeSymbol.IsReferenceType
-    {
-        get
+        ImmutableArray<INamedTypeSymbol> ITypeSymbol.Interfaces
         {
-            return UnderlyingTypeSymbol.IsReferenceType;
+            get
+            {
+                return UnderlyingTypeSymbol.InterfacesNoUseSiteDiagnostics().GetPublicSymbols();
+            }
         }
-    }
 
-    bool ITypeSymbol.IsValueType
-    {
-        get
+        ImmutableArray<INamedTypeSymbol> ITypeSymbol.AllInterfaces
         {
-            return UnderlyingTypeSymbol.IsValueType;
+            get
+            {
+                return UnderlyingTypeSymbol.AllInterfacesNoUseSiteDiagnostics.GetPublicSymbols();
+            }
         }
-    }
 
-    TypeKind ITypeSymbol.TypeKind
-    {
-        get
+        ISymbol ITypeSymbol.FindImplementationForInterfaceMember(ISymbol interfaceMember)
         {
-            return UnderlyingTypeSymbol.TypeKind;
+            return interfaceMember is Symbol symbol
+                ? UnderlyingTypeSymbol.FindImplementationForInterfaceMember(symbol.UnderlyingSymbol).GetPublicSymbol()
+                : null;
         }
+
+        bool ITypeSymbol.IsUnmanagedType => !UnderlyingTypeSymbol.IsManagedTypeNoUseSiteDiagnostics;
+
+        bool ITypeSymbol.IsReferenceType
+        {
+            get
+            {
+                return UnderlyingTypeSymbol.IsReferenceType;
+            }
+        }
+
+        bool ITypeSymbol.IsValueType
+        {
+            get
+            {
+                return UnderlyingTypeSymbol.IsValueType;
+            }
+        }
+
+        TypeKind ITypeSymbol.TypeKind
+        {
+            get
+            {
+                return UnderlyingTypeSymbol.TypeKind;
+            }
+        }
+
+        bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
+
+        bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
+
+        string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
+        {
+            return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
+        }
+
+        ImmutableArray<SymbolDisplayPart> ITypeSymbol.ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
+        {
+            return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
+        }
+
+        string ITypeSymbol.ToMinimalDisplayString(SemanticModel semanticModel, CodeAnalysis.NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format)
+        {
+            return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
+        }
+
+        ImmutableArray<SymbolDisplayPart> ITypeSymbol.ToMinimalDisplayParts(SemanticModel semanticModel, CodeAnalysis.NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format)
+        {
+            return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
+        }
+
+        bool ITypeSymbol.IsAnonymousType => UnderlyingTypeSymbol.IsAnonymousType;
+
+        SpecialType ITypeSymbol.SpecialType => UnderlyingTypeSymbol.SpecialType;
+
+        bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
+
+        bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
+
+        bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
     }
-
-    bool ITypeSymbol.IsTupleType => UnderlyingTypeSymbol.IsTupleType;
-
-    bool ITypeSymbol.IsNativeIntegerType => UnderlyingTypeSymbol.IsNativeIntegerType;
-
-    string ITypeSymbol.ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
-    {
-        return SymbolDisplay.ToDisplayString(this, topLevelNullability, format);
-    }
-
-    ImmutableArray<SymbolDisplayPart> ITypeSymbol.ToDisplayParts(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format)
-    {
-        return SymbolDisplay.ToDisplayParts(this, topLevelNullability, format);
-    }
-
-    string ITypeSymbol.ToMinimalDisplayString(SemanticModel semanticModel, CodeAnalysis.NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format)
-    {
-        return SymbolDisplay.ToMinimalDisplayString(this, topLevelNullability, semanticModel, position, format);
-    }
-
-    ImmutableArray<SymbolDisplayPart> ITypeSymbol.ToMinimalDisplayParts(SemanticModel semanticModel, CodeAnalysis.NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format)
-    {
-        return SymbolDisplay.ToMinimalDisplayParts(this, topLevelNullability, semanticModel, position, format);
-    }
-
-    bool ITypeSymbol.IsAnonymousType => UnderlyingTypeSymbol.IsAnonymousType;
-
-    SpecialType ITypeSymbol.SpecialType => UnderlyingTypeSymbol.SpecialType;
-
-    bool ITypeSymbol.IsRefLikeType => UnderlyingTypeSymbol.IsRefLikeType;
-
-    bool ITypeSymbol.IsReadOnly => UnderlyingTypeSymbol.IsReadOnly;
-
-    bool ITypeSymbol.IsRecord => UnderlyingTypeSymbol.IsRecord || UnderlyingTypeSymbol.IsRecordStruct;
 }

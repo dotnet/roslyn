@@ -5,17 +5,18 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal readonly struct CallingConventionInfo
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal readonly Cci.CallingConvention CallKind;
-    internal readonly ImmutableHashSet<CustomModifier>? UnmanagedCallingConventionTypes;
-
-    public CallingConventionInfo(Cci.CallingConvention callKind, ImmutableHashSet<CustomModifier> unmanagedCallingConventionTypes)
+    internal readonly struct CallingConventionInfo
     {
-        Debug.Assert(unmanagedCallingConventionTypes.IsEmpty || callKind == Cci.CallingConvention.Unmanaged);
-        CallKind = callKind;
-        UnmanagedCallingConventionTypes = unmanagedCallingConventionTypes;
+        internal readonly Cci.CallingConvention CallKind;
+        internal readonly ImmutableHashSet<CustomModifier>? UnmanagedCallingConventionTypes;
+
+        public CallingConventionInfo(Cci.CallingConvention callKind, ImmutableHashSet<CustomModifier> unmanagedCallingConventionTypes)
+        {
+            Debug.Assert(unmanagedCallingConventionTypes.IsEmpty || callKind == Cci.CallingConvention.Unmanaged);
+            CallKind = callKind;
+            UnmanagedCallingConventionTypes = unmanagedCallingConventionTypes;
+        }
     }
 }

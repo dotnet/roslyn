@@ -7,16 +7,17 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-internal sealed class CSharpSymbolChanges : SymbolChanges
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    public CSharpSymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
-        : base(definitionMap, edits, isAddedSymbol)
-    { }
-
-    protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
+    internal sealed class CSharpSymbolChanges : SymbolChanges
     {
-        return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
+        public CSharpSymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
+            : base(definitionMap, edits, isAddedSymbol)
+        { }
+
+        protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
+        {
+            return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
+        }
     }
 }

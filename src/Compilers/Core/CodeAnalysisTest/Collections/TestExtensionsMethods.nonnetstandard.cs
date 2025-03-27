@@ -14,40 +14,41 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-internal static partial class TestExtensionsMethods
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    internal static IDictionary<TKey, TValue> ToReadOnlyDictionary<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
+    internal static partial class TestExtensionsMethods
     {
-        if (dictionary is null)
-            throw new ArgumentNullException(nameof(dictionary));
-
-        return (IDictionary<TKey, TValue>)dictionary;
-    }
-
-    internal static IDictionary<TKey, TValue> ToBuilder<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
-        where TKey : notnull
-    {
-        return dictionary switch
+        internal static IDictionary<TKey, TValue> ToReadOnlyDictionary<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
         {
-            ImmutableDictionary<TKey, TValue> d => d.ToBuilder(),
-            ImmutableSortedDictionary<TKey, TValue> d => d.ToBuilder(),
-            ImmutableSegmentedDictionary<TKey, TValue> d => d.ToBuilder(),
-            null => throw new ArgumentNullException(nameof(dictionary)),
-            _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
-        };
-    }
+            if (dictionary is null)
+                throw new ArgumentNullException(nameof(dictionary));
 
-    internal static IEqualityComparer<TKey> GetKeyComparer<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
-        where TKey : notnull
-    {
-        return dictionary switch
+            return (IDictionary<TKey, TValue>)dictionary;
+        }
+
+        internal static IDictionary<TKey, TValue> ToBuilder<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
         {
-            ImmutableDictionary<TKey, TValue> d => d.KeyComparer,
-            ImmutableSegmentedDictionary<TKey, TValue> d => d.KeyComparer,
-            null => throw new ArgumentNullException(nameof(dictionary)),
-            _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
-        };
+            return dictionary switch
+            {
+                ImmutableDictionary<TKey, TValue> d => d.ToBuilder(),
+                ImmutableSortedDictionary<TKey, TValue> d => d.ToBuilder(),
+                ImmutableSegmentedDictionary<TKey, TValue> d => d.ToBuilder(),
+                null => throw new ArgumentNullException(nameof(dictionary)),
+                _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
+            };
+        }
+
+        internal static IEqualityComparer<TKey> GetKeyComparer<TKey, TValue>(this IImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+        {
+            return dictionary switch
+            {
+                ImmutableDictionary<TKey, TValue> d => d.KeyComparer,
+                ImmutableSegmentedDictionary<TKey, TValue> d => d.KeyComparer,
+                null => throw new ArgumentNullException(nameof(dictionary)),
+                _ => throw ExceptionUtilities.UnexpectedValue(dictionary),
+            };
+        }
     }
 }

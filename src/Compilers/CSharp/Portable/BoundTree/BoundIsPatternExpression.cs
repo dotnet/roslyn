@@ -4,29 +4,30 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundIsPatternExpression
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
+    internal partial class BoundIsPatternExpression
     {
-        BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-        if (decisionDag.ContainsAnySynthesizedNodes())
+        public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
-            bool negated = this.Pattern.IsNegated(out var innerPattern);
-            Debug.Assert(negated == this.IsNegated);
-            decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
-                compilation,
-                this.Syntax,
-                this.Expression,
-                innerPattern,
-                this.WhenTrueLabel,
-                this.WhenFalseLabel,
-                BindingDiagnosticBag.Discarded,
-                forLowering: true);
-            Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-        }
+            BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
+            if (decisionDag.ContainsAnySynthesizedNodes())
+            {
+                bool negated = this.Pattern.IsNegated(out var innerPattern);
+                Debug.Assert(negated == this.IsNegated);
+                decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
+                    compilation,
+                    this.Syntax,
+                    this.Expression,
+                    innerPattern,
+                    this.WhenTrueLabel,
+                    this.WhenFalseLabel,
+                    BindingDiagnosticBag.Discarded,
+                    forLowering: true);
+                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
+            }
 
-        return decisionDag;
+            return decisionDag;
+        }
     }
 }

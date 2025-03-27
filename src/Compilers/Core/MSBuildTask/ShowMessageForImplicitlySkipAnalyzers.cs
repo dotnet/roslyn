@@ -9,16 +9,17 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.BuildTasks;
-
-/// <summary>
-/// Logs a localizable message for implicitly skipping analyzers for implicitly triggered builds.
-/// </summary>
-public sealed class ShowMessageForImplicitlySkipAnalyzers : Task
+namespace Microsoft.CodeAnalysis.BuildTasks
 {
-    public override bool Execute()
+    /// <summary>
+    /// Logs a localizable message for implicitly skipping analyzers for implicitly triggered builds.
+    /// </summary>
+    public sealed class ShowMessageForImplicitlySkipAnalyzers : Task
     {
-        Log.LogMessage(MessageImportance.High, ErrorString.ImplicitlySkipAnalyzersMessage);
-        return true;
+        public override bool Execute()
+        {
+            Log.LogMessage(MessageImportance.High, ErrorString.ImplicitlySkipAnalyzersMessage);
+            return true;
+        }
     }
 }

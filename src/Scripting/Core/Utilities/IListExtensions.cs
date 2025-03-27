@@ -7,23 +7,24 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Scripting;
-
-internal static class IListExtensions
+namespace Microsoft.CodeAnalysis.Scripting
 {
-    public static void AddRange<T>(this IList<T> list, ImmutableArray<T> items)
+    internal static class IListExtensions
     {
-        foreach (var item in items)
+        public static void AddRange<T>(this IList<T> list, ImmutableArray<T> items)
         {
-            list.Add(item);
+            foreach (var item in items)
+            {
+                list.Add(item);
+            }
         }
-    }
 
-    public static void AddRange<T>(this IList<T> list, T[] items)
-    {
-        foreach (var item in items)
+        public static void AddRange<T>(this IList<T> list, T[] items)
         {
-            list.Add(item);
+            foreach (var item in items)
+            {
+                list.Add(item);
+            }
         }
     }
 }

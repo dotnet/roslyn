@@ -4,12 +4,13 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundArrayInitialization
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundArrayInitialization Update(ImmutableArray<BoundExpression> initializers)
+    internal partial class BoundArrayInitialization
     {
-        return Update(this.IsInferred, initializers);
+        public BoundArrayInitialization Update(ImmutableArray<BoundExpression> initializers)
+        {
+            return Update(this.IsInferred, initializers);
+        }
     }
 }

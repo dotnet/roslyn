@@ -5,19 +5,20 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal partial class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [StructLayout(LayoutKind.Auto)]
-    private struct ExecutableCodeBlockAnalyzerActions
+    internal partial class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
-        public DiagnosticAnalyzer Analyzer;
-        public ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> CodeBlockStartActions;
-        public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockActions;
-        public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions;
-        public ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions;
-        public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions;
-        public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions;
+        [StructLayout(LayoutKind.Auto)]
+        private struct ExecutableCodeBlockAnalyzerActions
+        {
+            public DiagnosticAnalyzer Analyzer;
+            public ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> CodeBlockStartActions;
+            public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockActions;
+            public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions;
+            public ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions;
+            public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions;
+            public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions;
+        }
     }
 }

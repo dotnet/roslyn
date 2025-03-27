@@ -21,75 +21,75 @@ using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System.Collections.Generic;
 using System;
 
-namespace Microsoft.CodeAnalysis.Rebuild.UnitTests;
-
-public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<VisualBasicCompilation, VisualBasicCompilationOptions, VisualBasicParseOptions>
+namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
-    public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
-
-    protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, VisualBasicParseOptions? parseOptions) =>
-        VisualBasicSyntaxTree.ParseText(
-            SourceText.From(content, checksumAlgorithm: hashAlgorithm, encoding: Encoding.UTF8),
-            path: fileName,
-            options: parseOptions);
-
-    protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null)
-        => VisualBasicCompilation.Create(
-            "test",
-            syntaxTrees,
-            references ?? NetCoreApp.References.ToArray(),
-            options: options ?? BasicOptions);
-
-    protected override VisualBasicCompilationOptions GetCompilationOptions() => BasicOptions;
-
-    protected override VisualBasicParseOptions GetParseOptions() => VisualBasicParseOptions.Default;
-
-    private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => VisualBasicDeterministicKeyBuilder.Instance;
-
-    /// <summary>
-    /// This check monitors the set of properties and fields on the various option types
-    /// that contribute to the deterministic checksum of a <see cref="Compilation"/>. When
-    /// any of these tests change that means the new property or field needs to be evaluated
-    /// for inclusion into the checksum
-    /// </summary>
-    [Fact]
-    public void VerifyUpToDate()
+    public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderTests<VisualBasicCompilation, VisualBasicCompilationOptions, VisualBasicParseOptions>
     {
-        verifyCount<ParseOptions>(11);
-        verifyCount<VisualBasicParseOptions>(10);
-        verifyCount<CompilationOptions>(63);
-        verifyCount<VisualBasicCompilationOptions>(22);
+        public static VisualBasicCompilationOptions BasicOptions { get; } = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication, deterministic: true);
 
-        static void verifyCount<T>(int expected)
+        protected override SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, VisualBasicParseOptions? parseOptions) =>
+            VisualBasicSyntaxTree.ParseText(
+                SourceText.From(content, checksumAlgorithm: hashAlgorithm, encoding: Encoding.UTF8),
+                path: fileName,
+                options: parseOptions);
+
+        protected override VisualBasicCompilation CreateCompilation(SyntaxTree[] syntaxTrees, MetadataReference[]? references = null, VisualBasicCompilationOptions? options = null)
+            => VisualBasicCompilation.Create(
+                "test",
+                syntaxTrees,
+                references ?? NetCoreApp.References.ToArray(),
+                options: options ?? BasicOptions);
+
+        protected override VisualBasicCompilationOptions GetCompilationOptions() => BasicOptions;
+
+        protected override VisualBasicParseOptions GetParseOptions() => VisualBasicParseOptions.Default;
+
+        private protected override DeterministicKeyBuilder GetDeterministicKeyBuilder() => VisualBasicDeterministicKeyBuilder.Instance;
+
+        /// <summary>
+        /// This check monitors the set of properties and fields on the various option types
+        /// that contribute to the deterministic checksum of a <see cref="Compilation"/>. When
+        /// any of these tests change that means the new property or field needs to be evaluated
+        /// for inclusion into the checksum
+        /// </summary>
+        [Fact]
+        public void VerifyUpToDate()
         {
-            var type = typeof(T);
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
-            var fields = type.GetFields(flags);
-            var properties = type.GetProperties(flags);
-            var count = fields.Length + properties.Length;
-            Assert.Equal(expected, count);
+            verifyCount<ParseOptions>(11);
+            verifyCount<VisualBasicParseOptions>(10);
+            verifyCount<CompilationOptions>(63);
+            verifyCount<VisualBasicCompilationOptions>(22);
+
+            static void verifyCount<T>(int expected)
+            {
+                var type = typeof(T);
+                var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
+                var fields = type.GetFields(flags);
+                var properties = type.GetProperties(flags);
+                var count = fields.Length + properties.Length;
+                Assert.Equal(expected, count);
+            }
         }
-    }
 
-    [Theory]
-    [InlineData(@"hello world")]
-    [InlineData(@"just need some text here")]
-    [InlineData(@"yet another case")]
-    public void ContentInAdditionalText(string content)
-    {
-        var syntaxTree = VisualBasicSyntaxTree.ParseText(
-            "",
-            path: "file.vb");
-        var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
-        var contentChecksum = GetChecksum(additionalText.GetText()!);
+        [Theory]
+        [InlineData(@"hello world")]
+        [InlineData(@"just need some text here")]
+        [InlineData(@"yet another case")]
+        public void ContentInAdditionalText(string content)
+        {
+            var syntaxTree = VisualBasicSyntaxTree.ParseText(
+                "",
+                path: "file.vb");
+            var additionalText = new TestAdditionalText(content, Encoding.UTF8, path: "file.txt", HashAlgorithm);
+            var contentChecksum = GetChecksum(additionalText.GetText()!);
 
-        var compilation = VisualBasicCompilation.Create(
-            "test",
-            new[] { syntaxTree },
-            NetCoreApp.References,
-            options: BasicOptions);
-        var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
-        var expected = @$"
+            var compilation = VisualBasicCompilation.Create(
+                "test",
+                new[] { syntaxTree },
+                NetCoreApp.References,
+                options: BasicOptions);
+            var key = compilation.GetDeterministicKey(additionalTexts: ImmutableArray.Create<AdditionalText>(additionalText));
+            var expected = @$"
 ""additionalTexts"": [
   {{
     ""fileName"": ""file.txt"",
@@ -100,29 +100,29 @@ public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderT
     }}
   }}
 ]";
-        AssertJsonSection(expected, key, "additionalTexts");
-    }
+            AssertJsonSection(expected, key, "additionalTexts");
+        }
 
-    [Fact]
-    public void GlobalImports()
-    {
-        var syntaxTree = VisualBasicSyntaxTree.ParseText(
-            "",
-            path: "file.vb");
+        [Fact]
+        public void GlobalImports()
+        {
+            var syntaxTree = VisualBasicSyntaxTree.ParseText(
+                "",
+                path: "file.vb");
 
-        var options = BasicOptions
-            .WithGlobalImports(new[]
-            {
-                GlobalImport.Parse(@"<xmlns:xmlNamespacePrefix = ""xmlNamespaceName"">"),
-                GlobalImport.Parse("System.Xml")
-            });
-        var compilation = VisualBasicCompilation.Create(
-            "test",
-            new[] { syntaxTree },
-            NetCoreApp.References,
-            options: options);
-        var key = compilation.GetDeterministicKey();
-        var expected = @"
+            var options = BasicOptions
+                .WithGlobalImports(new[]
+                {
+                    GlobalImport.Parse(@"<xmlns:xmlNamespacePrefix = ""xmlNamespaceName"">"),
+                    GlobalImport.Parse("System.Xml")
+                });
+            var compilation = VisualBasicCompilation.Create(
+                "test",
+                new[] { syntaxTree },
+                NetCoreApp.References,
+                options: options);
+            var key = compilation.GetDeterministicKey();
+            var expected = @"
 ""globalImports"": [
   {
     ""name"": ""<xmlns:xmlNamespacePrefix = \""xmlNamespaceName\"">"",
@@ -134,74 +134,74 @@ public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderT
   }
 ]";
 
-        AssertJsonSection(expected, key, "compilation.options.globalImports");
-    }
+            AssertJsonSection(expected, key, "compilation.options.globalImports");
+        }
 
-    [Theory]
-    [CombinatorialData]
-    public void BasicParseOptionsLanguageVersion(LanguageVersion languageVersion)
-    {
-        var parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(languageVersion);
-        var obj = GetParseOptionsValue(parseOptions);
-        var effective = languageVersion.MapSpecifiedToEffectiveVersion();
+        [Theory]
+        [CombinatorialData]
+        public void BasicParseOptionsLanguageVersion(LanguageVersion languageVersion)
+        {
+            var parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(languageVersion);
+            var obj = GetParseOptionsValue(parseOptions);
+            var effective = languageVersion.MapSpecifiedToEffectiveVersion();
 
-        Assert.Equal(effective.ToString(), obj.Value<string>("languageVersion"));
-        Assert.Equal(languageVersion.ToString(), obj.Value<string>("specifiedLanguageVersion"));
-    }
+            Assert.Equal(effective.ToString(), obj.Value<string>("languageVersion"));
+            Assert.Equal(languageVersion.ToString(), obj.Value<string>("specifiedLanguageVersion"));
+        }
 
-    [Fact]
-    public void BasicPreprocessorSymbols()
-    {
-        assert(@"{}");
+        [Fact]
+        public void BasicPreprocessorSymbols()
+        {
+            assert(@"{}");
 
-        assert(@"
+            assert(@"
 {
   ""DEBUG"": null
 }", ("DEBUG", null));
 
-        assert(@"
+            assert(@"
 {
   ""DEBUG"": null,
   ""TRACE"": null
 }", ("TRACE", null), ("DEBUG", null));
 
-        assert(@"
+            assert(@"
 {
   ""DEBUG"": ""13"",
   ""TRACE"": ""42""
 }", ("TRACE", 42), ("DEBUG", 13));
 
-        assert(@"
+            assert(@"
 {
   ""DEBUG"": ""4.2"",
   ""TRACE"": true
 }", ("TRACE", true), ("DEBUG", 4.2));
 
-        void assert(string? expected, params (string Key, object? Value)[] values)
-        {
-            var parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(values.Select(x => new KeyValuePair<string, object>(x.Key, x.Value!)));
-            var obj = GetParseOptionsValue(parseOptions);
-            AssertJsonCore(expected, obj.Value<JObject>("preprocessorSymbols")?.ToString(Formatting.Indented));
-        }
-    }
-
-    [ConditionalTheory(typeof(WindowsOnly))]
-    [InlineData(@"c:\src\code.vb", @"c:\src", null)]
-    [InlineData(@"d:\src\code.vb", @"d:\src\", @"/pathmap:d:\=c:\")]
-    [InlineData(@"e:\long\path\src\code.vb", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
-    public void BasicPathMapWindows(string filePath, string workingDirectory, string? pathMap)
-    {
-        var args = new List<string>(new[] { filePath, "/nostdlib", "/vbruntime-", "/langversion:15" });
-        if (pathMap is not null)
-        {
-            args.Add(pathMap);
+            void assert(string? expected, params (string Key, object? Value)[] values)
+            {
+                var parseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(values.Select(x => new KeyValuePair<string, object>(x.Key, x.Value!)));
+                var obj = GetParseOptionsValue(parseOptions);
+                AssertJsonCore(expected, obj.Value<JObject>("preprocessorSymbols")?.ToString(Formatting.Indented));
+            }
         }
 
-        var compiler = new MockVisualBasicCompiler(
-            baseDirectory: workingDirectory,
-            args.ToArray());
-        compiler.FileSystem = TestableFileSystem.CreateForFiles((filePath, new TestableFile("hello")));
-        AssertSyntaxTreePathMap(@"
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"c:\src\code.vb", @"c:\src", null)]
+        [InlineData(@"d:\src\code.vb", @"d:\src\", @"/pathmap:d:\=c:\")]
+        [InlineData(@"e:\long\path\src\code.vb", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
+        public void BasicPathMapWindows(string filePath, string workingDirectory, string? pathMap)
+        {
+            var args = new List<string>(new[] { filePath, "/nostdlib", "/vbruntime-", "/langversion:15" });
+            if (pathMap is not null)
+            {
+                args.Add(pathMap);
+            }
+
+            var compiler = new MockVisualBasicCompiler(
+                baseDirectory: workingDirectory,
+                args.ToArray());
+            compiler.FileSystem = TestableFileSystem.CreateForFiles((filePath, new TestableFile("hello")));
+            AssertSyntaxTreePathMap(@"
 [
   {
     ""fileName"": ""c:\\src\\code.vb"",
@@ -226,21 +226,21 @@ public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderT
   }
 ]
 ", compiler);
-    }
+        }
 
-    [Fact]
-    public void MetadataReferenceCompilation()
-    {
-        var utilCompilation = VisualBasicCompilation.Create(
-            assemblyName: "util",
-            syntaxTrees: new[] { VisualBasicSyntaxTree.ParseText(@"// this is a comment", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)) },
-            options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
-        var compilation = CreateCompilation(
-            Array.Empty<SyntaxTree>(),
-            references: new[] { utilCompilation.ToMetadataReference() });
-        var references = GetReferenceValues(compilation);
-        var compilationValue = references.Values<JObject>().Single()!;
-        var expected = @"
+        [Fact]
+        public void MetadataReferenceCompilation()
+        {
+            var utilCompilation = VisualBasicCompilation.Create(
+                assemblyName: "util",
+                syntaxTrees: new[] { VisualBasicSyntaxTree.ParseText(@"// this is a comment", VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic15)) },
+                options: new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            var compilation = CreateCompilation(
+                Array.Empty<SyntaxTree>(),
+                references: new[] { utilCompilation.ToMetadataReference() });
+            var references = GetReferenceValues(compilation);
+            var compilationValue = references.Values<JObject>().Single()!;
+            var expected = @"
 {
   ""compilation"": {
     ""publicKey"": """",
@@ -300,23 +300,23 @@ public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderT
 }
 ";
 
-        AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
-    }
+            AssertJson(expected, compilationValue.ToString(Formatting.Indented), "toolsVersions", "references", "extensions");
+        }
 
-    [Fact]
-    public void FeatureFlag()
-    {
-        var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
-        var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
-        compiler.AddOutputFile("test.dll");
-        var pdbFile = compiler.AddOutputFile("test.pdb");
-        var keyFile = compiler.AddOutputFile("test.dll.key");
-        var (result, output) = compiler.Run();
-        Assert.True(string.IsNullOrEmpty(output));
-        Assert.Equal(0, result);
+        [Fact]
+        public void FeatureFlag()
+        {
+            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
+            var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
+            compiler.AddOutputFile("test.dll");
+            var pdbFile = compiler.AddOutputFile("test.pdb");
+            var keyFile = compiler.AddOutputFile("test.dll.key");
+            var (result, output) = compiler.Run();
+            Assert.True(string.IsNullOrEmpty(output));
+            Assert.Equal(0, result);
 
-        var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
-        var expected = @$"
+            var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
+            var expected = @$"
 {{
   ""compilation"": {{
     ""publicKey"": """",
@@ -417,6 +417,7 @@ public sealed class BasicDeterministicKeyBuilderTests : DeterministicKeyBuilderT
   }}
 }}
 ";
-        AssertJson(expected, json, "toolsVersions", "references", "extensions");
+            AssertJson(expected, json, "toolsVersions", "references", "extensions");
+        }
     }
 }

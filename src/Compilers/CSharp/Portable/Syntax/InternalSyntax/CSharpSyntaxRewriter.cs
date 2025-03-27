@@ -4,81 +4,82 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
-#nullable disable
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    protected readonly bool VisitIntoStructuredTrivia;
+    using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-    public CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false)
+    internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNode>
+#nullable disable
     {
-        this.VisitIntoStructuredTrivia = visitIntoStructuredTrivia;
-    }
+        protected readonly bool VisitIntoStructuredTrivia;
 
-    public override CSharpSyntaxNode VisitToken(SyntaxToken token)
-    {
-        var leading = this.VisitList(token.LeadingTrivia);
-        var trailing = this.VisitList(token.TrailingTrivia);
-
-        if (leading != token.LeadingTrivia || trailing != token.TrailingTrivia)
+        public CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false)
         {
-            if (leading != token.LeadingTrivia)
-            {
-                token = token.TokenWithLeadingTrivia(leading.Node);
-            }
-
-            if (trailing != token.TrailingTrivia)
-            {
-                token = token.TokenWithTrailingTrivia(trailing.Node);
-            }
+            this.VisitIntoStructuredTrivia = visitIntoStructuredTrivia;
         }
 
-        return token;
-    }
-
-    public SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) where TNode : CSharpSyntaxNode
-    {
-        SyntaxListBuilder alternate = null;
-        for (int i = 0, n = list.Count; i < n; i++)
+        public override CSharpSyntaxNode VisitToken(SyntaxToken token)
         {
-            var item = list[i];
-            var visited = this.Visit(item);
-            if (item != visited && alternate == null)
+            var leading = this.VisitList(token.LeadingTrivia);
+            var trailing = this.VisitList(token.TrailingTrivia);
+
+            if (leading != token.LeadingTrivia || trailing != token.TrailingTrivia)
             {
-                alternate = new SyntaxListBuilder(n);
-                alternate.AddRange(list, 0, i);
+                if (leading != token.LeadingTrivia)
+                {
+                    token = token.TokenWithLeadingTrivia(leading.Node);
+                }
+
+                if (trailing != token.TrailingTrivia)
+                {
+                    token = token.TokenWithTrailingTrivia(trailing.Node);
+                }
+            }
+
+            return token;
+        }
+
+        public SyntaxList<TNode> VisitList<TNode>(SyntaxList<TNode> list) where TNode : CSharpSyntaxNode
+        {
+            SyntaxListBuilder alternate = null;
+            for (int i = 0, n = list.Count; i < n; i++)
+            {
+                var item = list[i];
+                var visited = this.Visit(item);
+                if (item != visited && alternate == null)
+                {
+                    alternate = new SyntaxListBuilder(n);
+                    alternate.AddRange(list, 0, i);
+                }
+
+                if (alternate != null)
+                {
+                    Debug.Assert(visited != null && visited.Kind != SyntaxKind.None, "Cannot remove node using Syntax.InternalSyntax.SyntaxRewriter.");
+                    alternate.Add(visited);
+                }
             }
 
             if (alternate != null)
             {
-                Debug.Assert(visited != null && visited.Kind != SyntaxKind.None, "Cannot remove node using Syntax.InternalSyntax.SyntaxRewriter.");
-                alternate.Add(visited);
+                return alternate.ToList();
             }
+
+            return list;
         }
 
-        if (alternate != null)
+        public SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
         {
-            return alternate.ToList();
+            // A separated list is filled with C# nodes and C# tokens.  Both of which
+            // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
+            // typesafe.
+            var withSeps = (SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
+            var result = this.VisitList(withSeps);
+            if (result != withSeps)
+            {
+                return result.AsSeparatedList<TNode>();
+            }
+
+            return list;
         }
-
-        return list;
-    }
-
-    public SeparatedSyntaxList<TNode> VisitList<TNode>(SeparatedSyntaxList<TNode> list) where TNode : CSharpSyntaxNode
-    {
-        // A separated list is filled with C# nodes and C# tokens.  Both of which
-        // derive from InternalSyntax.CSharpSyntaxNode.  So this cast is appropriately
-        // typesafe.
-        var withSeps = (SyntaxList<CSharpSyntaxNode>)list.GetWithSeparators();
-        var result = this.VisitList(withSeps);
-        if (result != withSeps)
-        {
-            return result.AsSeparatedList<TNode>();
-        }
-
-        return list;
     }
 }

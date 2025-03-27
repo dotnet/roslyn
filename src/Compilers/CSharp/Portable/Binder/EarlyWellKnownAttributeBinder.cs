@@ -9,140 +9,141 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// This is a special binder used for decoding some special well-known attributes very early in the attribute binding phase.
-/// It only binds those attribute argument syntax which can produce valid attribute arguments, but doesn't report any diagnostics.
-/// Subsequent binding phase will rebind such erroneous attributes and generate appropriate diagnostics.
-/// </summary>
-internal sealed class EarlyWellKnownAttributeBinder : Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal EarlyWellKnownAttributeBinder(Binder enclosing)
-        : base(enclosing, enclosing.Flags | BinderFlags.EarlyAttributeBinding)
+    /// <summary>
+    /// This is a special binder used for decoding some special well-known attributes very early in the attribute binding phase.
+    /// It only binds those attribute argument syntax which can produce valid attribute arguments, but doesn't report any diagnostics.
+    /// Subsequent binding phase will rebind such erroneous attributes and generate appropriate diagnostics.
+    /// </summary>
+    internal sealed class EarlyWellKnownAttributeBinder : Binder
     {
-    }
-
-    internal (CSharpAttributeData, BoundAttribute) GetAttribute(
-        AttributeSyntax node, NamedTypeSymbol boundAttributeType,
-        Action<AttributeSyntax> beforeAttributePartBound,
-        Action<AttributeSyntax> afterAttributePartBound,
-        out bool generatedDiagnostics)
-    {
-        var dummyDiagnosticBag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-        var result = base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, dummyDiagnosticBag);
-        generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
-        dummyDiagnosticBag.Free();
-        return result;
-    }
-
-    // Hide the GetAttribute overload which takes a diagnostic bag.
-    // This ensures that diagnostics from the early bound attributes are never preserved.
-    [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
-    internal new (CSharpAttributeData, BoundAttribute) GetAttribute(
-        AttributeSyntax node, NamedTypeSymbol boundAttributeType,
-        Action<AttributeSyntax> beforeAttributePartBound,
-        Action<AttributeSyntax> afterAttributePartBound,
-        BindingDiagnosticBag diagnostics)
-    {
-        Debug.Assert(false, "Don't call this overload.");
-        diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
-        return base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
-    }
-
-    /// <remarks>
-    /// Since this method is expected to be called on every nested expression of the argument, it doesn't
-    /// need to recurse (directly).
-    /// </remarks>
-    internal static bool CanBeValidAttributeArgument(ExpressionSyntax node)
-    {
-        Debug.Assert(node != null);
-        switch (node.Kind())
+        internal EarlyWellKnownAttributeBinder(Binder enclosing)
+            : base(enclosing, enclosing.Flags | BinderFlags.EarlyAttributeBinding)
         {
-            // ObjectCreationExpression for primitive types, such as "new int()", are treated as constants and allowed in attribute arguments.
-            case SyntaxKind.ObjectCreationExpression:
-            case SyntaxKind.ImplicitObjectCreationExpression:
-                {
-                    var objectCreation = (BaseObjectCreationExpressionSyntax)node;
-                    return objectCreation.Initializer == null && (objectCreation.ArgumentList?.Arguments.Count ?? 0) == 0;
-                }
+        }
 
-            // sizeof(int)
-            case SyntaxKind.SizeOfExpression:
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            out bool generatedDiagnostics)
+        {
+            var dummyDiagnosticBag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var result = base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, dummyDiagnosticBag);
+            generatedDiagnostics = !dummyDiagnosticBag.DiagnosticBag.IsEmptyWithoutResolution;
+            dummyDiagnosticBag.Free();
+            return result;
+        }
 
-            // typeof(int)
-            case SyntaxKind.TypeOfExpression:
+        // Hide the GetAttribute overload which takes a diagnostic bag.
+        // This ensures that diagnostics from the early bound attributes are never preserved.
+        [Obsolete("EarlyWellKnownAttributeBinder has a better overload - GetAttribute(AttributeSyntax, NamedTypeSymbol, out bool)", true)]
+        internal new (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax> beforeAttributePartBound,
+            Action<AttributeSyntax> afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(false, "Don't call this overload.");
+            diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
+            return base.GetAttribute(node, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
+        }
 
-            // constant expressions
+        /// <remarks>
+        /// Since this method is expected to be called on every nested expression of the argument, it doesn't
+        /// need to recurse (directly).
+        /// </remarks>
+        internal static bool CanBeValidAttributeArgument(ExpressionSyntax node)
+        {
+            Debug.Assert(node != null);
+            switch (node.Kind())
+            {
+                // ObjectCreationExpression for primitive types, such as "new int()", are treated as constants and allowed in attribute arguments.
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ImplicitObjectCreationExpression:
+                    {
+                        var objectCreation = (BaseObjectCreationExpressionSyntax)node;
+                        return objectCreation.Initializer == null && (objectCreation.ArgumentList?.Arguments.Count ?? 0) == 0;
+                    }
 
-            // SPEC:    Section 7.19: Only the following constructs are permitted in constant expressions:
+                // sizeof(int)
+                case SyntaxKind.SizeOfExpression:
 
-            //  Literals (including the null literal).
-            case SyntaxKind.NumericLiteralExpression:
-            case SyntaxKind.StringLiteralExpression:
-            case SyntaxKind.Utf8StringLiteralExpression:
-            case SyntaxKind.InterpolatedStringExpression:
-            case SyntaxKind.CharacterLiteralExpression:
-            case SyntaxKind.TrueLiteralExpression:
-            case SyntaxKind.FalseLiteralExpression:
-            case SyntaxKind.NullLiteralExpression:
+                // typeof(int)
+                case SyntaxKind.TypeOfExpression:
 
-            //  References to const members of class and struct types.
-            //  References to members of enumeration types.
-            case SyntaxKind.IdentifierName:
-            case SyntaxKind.GenericName:
-            case SyntaxKind.AliasQualifiedName:
-            case SyntaxKind.QualifiedName:
-            case SyntaxKind.PredefinedType:
-            case SyntaxKind.SimpleMemberAccessExpression:
+                // constant expressions
 
-            //  References to const parameters or local variables. Not valid for attribute arguments, so skipped here.
+                // SPEC:    Section 7.19: Only the following constructs are permitted in constant expressions:
 
-            //  Parenthesized sub-expressions, which are themselves constant expressions.
-            case SyntaxKind.ParenthesizedExpression:
+                //  Literals (including the null literal).
+                case SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
+                case SyntaxKind.InterpolatedStringExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.FalseLiteralExpression:
+                case SyntaxKind.NullLiteralExpression:
 
-            //  Cast expressions, provided the target type is one of the types listed above.
-            case SyntaxKind.CastExpression:
+                //  References to const members of class and struct types.
+                //  References to members of enumeration types.
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.GenericName:
+                case SyntaxKind.AliasQualifiedName:
+                case SyntaxKind.QualifiedName:
+                case SyntaxKind.PredefinedType:
+                case SyntaxKind.SimpleMemberAccessExpression:
 
-            //  checked and unchecked expressions
-            case SyntaxKind.UncheckedExpression:
-            case SyntaxKind.CheckedExpression:
+                //  References to const parameters or local variables. Not valid for attribute arguments, so skipped here.
 
-            //  Default value expressions
-            case SyntaxKind.DefaultExpression:
+                //  Parenthesized sub-expressions, which are themselves constant expressions.
+                case SyntaxKind.ParenthesizedExpression:
 
-            //  The predefined +, –, !, and ~ unary operators.
-            case SyntaxKind.UnaryPlusExpression:
-            case SyntaxKind.UnaryMinusExpression:
-            case SyntaxKind.LogicalNotExpression:
-            case SyntaxKind.BitwiseNotExpression:
+                //  Cast expressions, provided the target type is one of the types listed above.
+                case SyntaxKind.CastExpression:
 
-            //  The predefined +, –, *, /, %, <<, >>, &, |, ^, &&, ||, ==, !=, <, >, <=, and >= binary operators, provided each operand is of a type listed above.
-            case SyntaxKind.AddExpression:
-            case SyntaxKind.MultiplyExpression:
-            case SyntaxKind.SubtractExpression:
-            case SyntaxKind.DivideExpression:
-            case SyntaxKind.ModuloExpression:
-            case SyntaxKind.LeftShiftExpression:
-            case SyntaxKind.RightShiftExpression:
-            case SyntaxKind.UnsignedRightShiftExpression:
-            case SyntaxKind.BitwiseAndExpression:
-            case SyntaxKind.BitwiseOrExpression:
-            case SyntaxKind.ExclusiveOrExpression:
-            case SyntaxKind.LogicalAndExpression:
-            case SyntaxKind.LogicalOrExpression:
-            case SyntaxKind.EqualsExpression:
-            case SyntaxKind.NotEqualsExpression:
-            case SyntaxKind.GreaterThanExpression:
-            case SyntaxKind.LessThanExpression:
-            case SyntaxKind.GreaterThanOrEqualExpression:
-            case SyntaxKind.LessThanOrEqualExpression:
-            case SyntaxKind.InvocationExpression: //  To support nameof(); anything else will be a compile-time error
-            case SyntaxKind.ConditionalExpression: //  The ?: conditional operator.
-                return true;
+                //  checked and unchecked expressions
+                case SyntaxKind.UncheckedExpression:
+                case SyntaxKind.CheckedExpression:
 
-            default:
-                return false;
+                //  Default value expressions
+                case SyntaxKind.DefaultExpression:
+
+                //  The predefined +, –, !, and ~ unary operators.
+                case SyntaxKind.UnaryPlusExpression:
+                case SyntaxKind.UnaryMinusExpression:
+                case SyntaxKind.LogicalNotExpression:
+                case SyntaxKind.BitwiseNotExpression:
+
+                //  The predefined +, –, *, /, %, <<, >>, &, |, ^, &&, ||, ==, !=, <, >, <=, and >= binary operators, provided each operand is of a type listed above.
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.SubtractExpression:
+                case SyntaxKind.DivideExpression:
+                case SyntaxKind.ModuloExpression:
+                case SyntaxKind.LeftShiftExpression:
+                case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.LogicalAndExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.InvocationExpression: //  To support nameof(); anything else will be a compile-time error
+                case SyntaxKind.ConditionalExpression: //  The ?: conditional operator.
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }

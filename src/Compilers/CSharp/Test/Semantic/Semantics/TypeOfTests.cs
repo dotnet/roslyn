@@ -11,14 +11,14 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class TypeofTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact, WorkItem(1720, "https://github.com/dotnet/roslyn/issues/1720")]
-    public void GetSymbolsOnResultOfTypeof()
+    public class TypeofTests : CSharpTestBase
     {
-        var source = @"
+        [Fact, WorkItem(1720, "https://github.com/dotnet/roslyn/issues/1720")]
+        public void GetSymbolsOnResultOfTypeof()
+        {
+            var source = @"
 class C
 {
     public C(int i)
@@ -27,100 +27,101 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilationWithMscorlib461(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        var node = (ObjectCreationExpressionSyntax)tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
-        var identifierName = node.Type;
+            var compilation = CreateCompilationWithMscorlib461(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = (ObjectCreationExpressionSyntax)tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "new C(0)").Last();
+            var identifierName = node.Type;
 
-        var symbolInfo = model.GetSymbolInfo(node);
-        Assert.Equal("C..ctor(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
-        var typeInfo = model.GetTypeInfo(node);
-        Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
-    }
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("C..ctor(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+        }
 
-    [Fact]
-    public void TypeofPointer()
-    {
-        CreateCompilation("""
-            class C
-            {
-                unsafe void M()
+        [Fact]
+        public void TypeofPointer()
+        {
+            CreateCompilation("""
+                class C
                 {
-                    var v = typeof(int*);
+                    unsafe void M()
+                    {
+                        var v = typeof(int*);
+                    }
                 }
-            }
-            """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-    }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TypeofFunctionPointer1()
-    {
-        CreateCompilation("""
-            class C
-            {
-                unsafe void M()
+        [Fact]
+        public void TypeofFunctionPointer1()
+        {
+            CreateCompilation("""
+                class C
                 {
-                    var v = typeof(delegate*<int,int>);
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<int,int>);
+                    }
                 }
-            }
-            """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-    }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TypeofFunctionPointer2()
-    {
-        CreateCompilation("""
-            using System.Collections.Generic;
+        [Fact]
+        public void TypeofFunctionPointer2()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
 
-            class C
-            {
-                unsafe void M()
+                class C
                 {
-                    var v = typeof(delegate*<List<int>,int>);
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<List<int>,int>);
+                    }
                 }
-            }
-            """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-    }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TypeofFunctionPointer3()
-    {
-        CreateCompilation("""
-            using System.Collections.Generic;
+        [Fact]
+        public void TypeofFunctionPointer3()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
 
-            class C
-            {
-                unsafe void M()
+                class C
                 {
-                    var v = typeof(delegate*<List<>,int>);
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<List<>,int>);
+                    }
                 }
-            }
-            """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (7,34): error CS7003: Unexpected use of an unbound generic name
-            //         var v = typeof(delegate*<List<>,int>);
-            Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 34));
-    }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,34): error CS7003: Unexpected use of an unbound generic name
+                //         var v = typeof(delegate*<List<>,int>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 34));
+        }
 
-    [Fact]
-    public void TypeofFunctionPointer4()
-    {
-        CreateCompilation("""
-            using System.Collections.Generic;
+        [Fact]
+        public void TypeofFunctionPointer4()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
 
-            class D<A, B, C>
-            {
-                unsafe void M()
+                class D<A, B, C>
                 {
-                    var v = typeof(D<, delegate*<int>, List<>>);
+                    unsafe void M()
+                    {
+                        var v = typeof(D<, delegate*<int>, List<>>);
+                    }
                 }
-            }
-            """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (7,26): error CS1031: Type expected
-            //         var v = typeof(D<, delegate*<int>, List<>>);
-            Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(7, 26),
-            // (7,44): error CS7003: Unexpected use of an unbound generic name
-            //         var v = typeof(D<, delegate*<int>, List<>>);
-            Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 44));
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,26): error CS1031: Type expected
+                //         var v = typeof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(7, 26),
+                // (7,44): error CS7003: Unexpected use of an unbound generic name
+                //         var v = typeof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 44));
+        }
     }
 }

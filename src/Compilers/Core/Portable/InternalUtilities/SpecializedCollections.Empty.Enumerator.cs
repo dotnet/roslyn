@@ -5,30 +5,31 @@
 using System;
 using System.Collections;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private partial class Empty
+    internal partial class SpecializedCollections
     {
-        internal class Enumerator : IEnumerator
+        private partial class Empty
         {
-            public static readonly IEnumerator Instance = new Enumerator();
-
-            protected Enumerator()
+            internal class Enumerator : IEnumerator
             {
-            }
+                public static readonly IEnumerator Instance = new Enumerator();
 
-            public object? Current => throw new InvalidOperationException();
+                protected Enumerator()
+                {
+                }
 
-            public bool MoveNext()
-            {
-                return false;
-            }
+                public object? Current => throw new InvalidOperationException();
 
-            public void Reset()
-            {
-                throw new InvalidOperationException();
+                public bool MoveNext()
+                {
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    throw new InvalidOperationException();
+                }
             }
         }
     }

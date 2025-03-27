@@ -8,79 +8,80 @@ using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities;
-
-public delegate Stream OpenFileExFunc(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath);
-public delegate Stream OpenFileFunc(string filePath, FileMode mode, FileAccess access, FileShare share);
-
-public sealed class TestableFileSystem : ICommonCompilerFileSystem
+namespace Roslyn.Test.Utilities
 {
-    private readonly Dictionary<string, TestableFile>? _map;
+    public delegate Stream OpenFileExFunc(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath);
+    public delegate Stream OpenFileFunc(string filePath, FileMode mode, FileAccess access, FileShare share);
 
-    public OpenFileFunc OpenFileFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
-    public OpenFileExFunc OpenFileExFunc { get; private set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();
-    public Func<string, bool> FileExistsFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
-
-    public Dictionary<string, TestableFile> Map => _map ?? throw new InvalidOperationException();
-    public bool UsingMap => _map is not null;
-
-    private TestableFileSystem(Dictionary<string, TestableFile>? map = null)
+    public sealed class TestableFileSystem : ICommonCompilerFileSystem
     {
-        _map = map;
-    }
+        private readonly Dictionary<string, TestableFile>? _map;
 
-    public Stream OpenFile(string filePath, FileMode mode, FileAccess access, FileShare share)
-        => OpenFileFunc(filePath, mode, access, share);
+        public OpenFileFunc OpenFileFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
+        public OpenFileExFunc OpenFileExFunc { get; private set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();
+        public Func<string, bool> FileExistsFunc { get; private set; } = delegate { throw new InvalidOperationException(); };
 
-    public Stream OpenFileEx(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath)
-        => OpenFileExFunc(filePath, mode, access, share, bufferSize, options, out normalizedFilePath);
+        public Dictionary<string, TestableFile> Map => _map ?? throw new InvalidOperationException();
+        public bool UsingMap => _map is not null;
 
-    public bool FileExists(string filePath) => FileExistsFunc(filePath);
-
-    public static TestableFileSystem CreateForStandard(
-        OpenFileFunc? openFileFunc = null,
-        OpenFileExFunc? openFileExFunc = null,
-        Func<string, bool>? fileExistsFunc = null)
-        => new TestableFileSystem()
+        private TestableFileSystem(Dictionary<string, TestableFile>? map = null)
         {
-            OpenFileFunc = openFileFunc ?? StandardFileSystem.Instance.OpenFile,
-            OpenFileExFunc = openFileExFunc ?? StandardFileSystem.Instance.OpenFileEx,
-            FileExistsFunc = fileExistsFunc ?? StandardFileSystem.Instance.FileExists,
-        };
+            _map = map;
+        }
 
-    public static TestableFileSystem CreateForOpenFile(OpenFileFunc openFileFunc)
-        => new TestableFileSystem() { OpenFileFunc = openFileFunc };
+        public Stream OpenFile(string filePath, FileMode mode, FileAccess access, FileShare share)
+            => OpenFileFunc(filePath, mode, access, share);
 
-    public static TestableFileSystem CreateForExistingPaths(IEnumerable<string> existingPaths, StringComparer? comparer = null)
-    {
-        comparer ??= StringComparer.OrdinalIgnoreCase;
-        var set = new HashSet<string>(existingPaths, comparer);
-        return new TestableFileSystem()
-        {
-            FileExistsFunc = filePath => set.Contains(filePath)
-        };
-    }
+        public Stream OpenFileEx(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath)
+            => OpenFileExFunc(filePath, mode, access, share, bufferSize, options, out normalizedFilePath);
 
-    public static TestableFileSystem CreateForFiles(params (string FilePath, TestableFile TestableFile)[] files)
-    {
-        var map = files.ToDictionary(
-            x => x.FilePath,
-            x => x.TestableFile);
-        return CreateForMap(map);
-    }
+        public bool FileExists(string filePath) => FileExistsFunc(filePath);
 
-    public static TestableFileSystem CreateForMap() => CreateForMap(new());
-
-    public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
-        => new TestableFileSystem(map)
-        {
-            OpenFileExFunc = (string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath) =>
+        public static TestableFileSystem CreateForStandard(
+            OpenFileFunc? openFileFunc = null,
+            OpenFileExFunc? openFileExFunc = null,
+            Func<string, bool>? fileExistsFunc = null)
+            => new TestableFileSystem()
             {
-                normalizedFilePath = filePath;
-                return map[filePath].GetStream(access);
-            },
+                OpenFileFunc = openFileFunc ?? StandardFileSystem.Instance.OpenFile,
+                OpenFileExFunc = openFileExFunc ?? StandardFileSystem.Instance.OpenFileEx,
+                FileExistsFunc = fileExistsFunc ?? StandardFileSystem.Instance.FileExists,
+            };
 
-            OpenFileFunc = (string filePath, FileMode mode, FileAccess access, FileShare share) => map[filePath].GetStream(access),
-            FileExistsFunc = filePath => map.ContainsKey(filePath),
-        };
+        public static TestableFileSystem CreateForOpenFile(OpenFileFunc openFileFunc)
+            => new TestableFileSystem() { OpenFileFunc = openFileFunc };
+
+        public static TestableFileSystem CreateForExistingPaths(IEnumerable<string> existingPaths, StringComparer? comparer = null)
+        {
+            comparer ??= StringComparer.OrdinalIgnoreCase;
+            var set = new HashSet<string>(existingPaths, comparer);
+            return new TestableFileSystem()
+            {
+                FileExistsFunc = filePath => set.Contains(filePath)
+            };
+        }
+
+        public static TestableFileSystem CreateForFiles(params (string FilePath, TestableFile TestableFile)[] files)
+        {
+            var map = files.ToDictionary(
+                x => x.FilePath,
+                x => x.TestableFile);
+            return CreateForMap(map);
+        }
+
+        public static TestableFileSystem CreateForMap() => CreateForMap(new());
+
+        public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
+            => new TestableFileSystem(map)
+            {
+                OpenFileExFunc = (string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath) =>
+                {
+                    normalizedFilePath = filePath;
+                    return map[filePath].GetStream(access);
+                },
+
+                OpenFileFunc = (string filePath, FileMode mode, FileAccess access, FileShare share) => map[filePath].GetStream(access),
+                FileExistsFunc = filePath => map.ContainsKey(filePath),
+            };
+    }
 }

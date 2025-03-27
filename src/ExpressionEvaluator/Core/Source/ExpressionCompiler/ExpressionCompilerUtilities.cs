@@ -4,12 +4,13 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal static class ExpressionCompilerUtilities
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static string GenerateUniqueName()
+    internal static class ExpressionCompilerUtilities
     {
-        return Guid.NewGuid().ToString("N");
+        internal static string GenerateUniqueName()
+        {
+            return Guid.NewGuid().ToString("N");
+        }
     }
 }

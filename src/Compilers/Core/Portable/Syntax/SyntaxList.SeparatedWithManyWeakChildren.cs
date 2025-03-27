@@ -4,48 +4,49 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Syntax;
-
-internal partial class SyntaxList
+namespace Microsoft.CodeAnalysis.Syntax
 {
-    internal sealed class SeparatedWithManyWeakChildren : SyntaxList
+    internal partial class SyntaxList
     {
-        private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
-
-        internal SeparatedWithManyWeakChildren(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
-            : base(green, parent, position)
+        internal sealed class SeparatedWithManyWeakChildren : SyntaxList
         {
-            _children = new ArrayElement<WeakReference<SyntaxNode>?>[(((green.SlotCount + 1) >> 1) - 1)];
-        }
+            private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
 
-        internal override SyntaxNode? GetNodeSlot(int i)
-        {
-            SyntaxNode? result = null;
-
-            if ((i & 1) == 0)
+            internal SeparatedWithManyWeakChildren(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
+                : base(green, parent, position)
             {
-                // not a separator
-                result = GetWeakRedElement(ref this._children[i >> 1].Value, i);
+                _children = new ArrayElement<WeakReference<SyntaxNode>?>[(((green.SlotCount + 1) >> 1) - 1)];
             }
 
-            return result;
-        }
-
-        internal override SyntaxNode? GetCachedSlot(int i)
-        {
-            SyntaxNode? result = null;
-
-            if ((i & 1) == 0)
+            internal override SyntaxNode? GetNodeSlot(int i)
             {
-                // not a separator
-                var weak = this._children[i >> 1].Value;
-                if (weak != null)
+                SyntaxNode? result = null;
+
+                if ((i & 1) == 0)
                 {
-                    weak.TryGetTarget(out result);
+                    // not a separator
+                    result = GetWeakRedElement(ref this._children[i >> 1].Value, i);
                 }
+
+                return result;
             }
 
-            return result;
+            internal override SyntaxNode? GetCachedSlot(int i)
+            {
+                SyntaxNode? result = null;
+
+                if ((i & 1) == 0)
+                {
+                    // not a separator
+                    var weak = this._children[i >> 1].Value;
+                    if (weak != null)
+                    {
+                        weak.TryGetTarget(out result);
+                    }
+                }
+
+                return result;
+            }
         }
     }
 }

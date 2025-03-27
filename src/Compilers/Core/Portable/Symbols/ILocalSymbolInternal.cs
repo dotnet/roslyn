@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Symbols;
-
-internal interface ILocalSymbolInternal : ISymbolInternal
+namespace Microsoft.CodeAnalysis.Symbols
 {
-    bool IsImportedFromMetadata { get; }
+    internal interface ILocalSymbolInternal : ISymbolInternal
+    {
+        bool IsImportedFromMetadata { get; }
 
-    SynthesizedLocalKind SynthesizedKind { get; }
+        SynthesizedLocalKind SynthesizedKind { get; }
 
-    SyntaxNode GetDeclaratorSyntax();
+        SyntaxNode GetDeclaratorSyntax();
+    }
 }

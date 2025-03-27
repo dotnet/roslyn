@@ -9,22 +9,23 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal static class DiagnosticExtensions
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public static void Verify(this IEnumerable<DiagnosticInfo> actual, params DiagnosticDescription[] expected)
+    internal static class DiagnosticExtensions
     {
-        actual.Select(info => new CSDiagnostic(info, NoLocation.Singleton)).Verify(expected);
-    }
+        public static void Verify(this IEnumerable<DiagnosticInfo> actual, params DiagnosticDescription[] expected)
+        {
+            actual.Select(info => new CSDiagnostic(info, NoLocation.Singleton)).Verify(expected);
+        }
 
-    public static void Verify(this ImmutableArray<DiagnosticInfo> actual, params DiagnosticDescription[] expected)
-    {
-        actual.Select(info => new CSDiagnostic(info, NoLocation.Singleton)).Verify(expected);
-    }
+        public static void Verify(this ImmutableArray<DiagnosticInfo> actual, params DiagnosticDescription[] expected)
+        {
+            actual.Select(info => new CSDiagnostic(info, NoLocation.Singleton)).Verify(expected);
+        }
 
-    public static string ToLocalizedString(this MessageID id)
-    {
-        return new LocalizableErrorArgument(id).ToString(null, null);
+        public static string ToLocalizedString(this MessageID id)
+        {
+            return new LocalizableErrorArgument(id).ToString(null, null);
+        }
     }
 }

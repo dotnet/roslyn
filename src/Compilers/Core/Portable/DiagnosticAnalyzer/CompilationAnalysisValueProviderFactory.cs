@@ -7,30 +7,31 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal sealed class CompilationAnalysisValueProviderFactory
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    private Dictionary<object, object> _lazySharedStateProviderMap;
-
-    public CompilationAnalysisValueProvider<TKey, TValue> GetValueProvider<TKey, TValue>(AnalysisValueProvider<TKey, TValue> analysisSharedStateProvider)
-        where TKey : class
+    internal sealed class CompilationAnalysisValueProviderFactory
     {
-        if (_lazySharedStateProviderMap == null)
-        {
-            Interlocked.CompareExchange(ref _lazySharedStateProviderMap, new Dictionary<object, object>(), null);
-        }
+        private Dictionary<object, object> _lazySharedStateProviderMap;
 
-        object value;
-        lock (_lazySharedStateProviderMap)
+        public CompilationAnalysisValueProvider<TKey, TValue> GetValueProvider<TKey, TValue>(AnalysisValueProvider<TKey, TValue> analysisSharedStateProvider)
+            where TKey : class
         {
-            if (!_lazySharedStateProviderMap.TryGetValue(analysisSharedStateProvider, out value))
+            if (_lazySharedStateProviderMap == null)
             {
-                value = new CompilationAnalysisValueProvider<TKey, TValue>(analysisSharedStateProvider);
-                _lazySharedStateProviderMap[analysisSharedStateProvider] = value;
+                Interlocked.CompareExchange(ref _lazySharedStateProviderMap, new Dictionary<object, object>(), null);
             }
-        }
 
-        return value as CompilationAnalysisValueProvider<TKey, TValue>;
+            object value;
+            lock (_lazySharedStateProviderMap)
+            {
+                if (!_lazySharedStateProviderMap.TryGetValue(analysisSharedStateProvider, out value))
+                {
+                    value = new CompilationAnalysisValueProvider<TKey, TValue>(analysisSharedStateProvider);
+                    _lazySharedStateProviderMap[analysisSharedStateProvider] = value;
+                }
+            }
+
+            return value as CompilationAnalysisValueProvider<TKey, TValue>;
+        }
     }
 }

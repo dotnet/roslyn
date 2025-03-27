@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal abstract partial class AnalyzerDriver
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    protected abstract IGroupedAnalyzerActions EmptyGroupedActions { get; }
-    protected abstract IGroupedAnalyzerActions CreateGroupedActions(DiagnosticAnalyzer analyzer, in AnalyzerActions analyzerActions);
-
-    protected interface IGroupedAnalyzerActions
+    internal abstract partial class AnalyzerDriver
     {
-        bool IsEmpty { get; }
-        AnalyzerActions AnalyzerActions { get; }
-        IGroupedAnalyzerActions Append(IGroupedAnalyzerActions groupedAnalyzerActions);
+        protected abstract IGroupedAnalyzerActions EmptyGroupedActions { get; }
+        protected abstract IGroupedAnalyzerActions CreateGroupedActions(DiagnosticAnalyzer analyzer, in AnalyzerActions analyzerActions);
+
+        protected interface IGroupedAnalyzerActions
+        {
+            bool IsEmpty { get; }
+            AnalyzerActions AnalyzerActions { get; }
+            IGroupedAnalyzerActions Append(IGroupedAnalyzerActions groupedAnalyzerActions);
+        }
     }
 }

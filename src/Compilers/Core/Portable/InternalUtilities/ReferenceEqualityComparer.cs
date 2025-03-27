@@ -5,31 +5,32 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Roslyn.Utilities;
-
-/// <summary>
-/// Compares objects based upon their reference identity.
-/// </summary>
-internal class ReferenceEqualityComparer : IEqualityComparer<object?>
+namespace Roslyn.Utilities
 {
-    public static readonly ReferenceEqualityComparer Instance = new();
-
-    private ReferenceEqualityComparer()
+    /// <summary>
+    /// Compares objects based upon their reference identity.
+    /// </summary>
+    internal class ReferenceEqualityComparer : IEqualityComparer<object?>
     {
-    }
+        public static readonly ReferenceEqualityComparer Instance = new();
 
-    bool IEqualityComparer<object?>.Equals(object? a, object? b)
-    {
-        return a == b;
-    }
+        private ReferenceEqualityComparer()
+        {
+        }
 
-    int IEqualityComparer<object?>.GetHashCode(object? a)
-    {
-        return ReferenceEqualityComparer.GetHashCode(a);
-    }
+        bool IEqualityComparer<object?>.Equals(object? a, object? b)
+        {
+            return a == b;
+        }
 
-    public static int GetHashCode(object? a)
-    {
-        return RuntimeHelpers.GetHashCode(a);
+        int IEqualityComparer<object?>.GetHashCode(object? a)
+        {
+            return ReferenceEqualityComparer.GetHashCode(a);
+        }
+
+        public static int GetHashCode(object? a)
+        {
+            return RuntimeHelpers.GetHashCode(a);
+        }
     }
 }

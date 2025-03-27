@@ -6,27 +6,28 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal sealed class ExceptionLocalSymbol : PlaceholderLocalSymbol
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    private readonly string _getExceptionMethodName;
-
-    internal ExceptionLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, string getExceptionMethodName) :
-        base(method, name, displayName, type)
+    internal sealed class ExceptionLocalSymbol : PlaceholderLocalSymbol
     {
-        _getExceptionMethodName = getExceptionMethodName;
-    }
+        private readonly string _getExceptionMethodName;
 
-    internal override bool IsWritableVariable
-    {
-        get { return false; }
-    }
+        internal ExceptionLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, string getExceptionMethodName) :
+            base(method, name, displayName, type)
+        {
+            _getExceptionMethodName = getExceptionMethodName;
+        }
 
-    internal override BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
-    {
-        var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
-        var call = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: method);
-        return ConvertToLocalType(compilation, call, this.Type, diagnostics);
+        internal override bool IsWritableVariable
+        {
+            get { return false; }
+        }
+
+        internal override BoundExpression RewriteLocal(CSharpCompilation compilation, SyntaxNode syntax, DiagnosticBag diagnostics)
+        {
+            var method = GetIntrinsicMethod(compilation, _getExceptionMethodName);
+            var call = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: method);
+            return ConvertToLocalType(compilation, call, this.Type, diagnostics);
+        }
     }
 }

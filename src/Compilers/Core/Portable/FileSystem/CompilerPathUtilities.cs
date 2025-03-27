@@ -4,20 +4,21 @@
 
 using System;
 
-namespace Roslyn.Utilities;
-
-internal static class CompilerPathUtilities
+namespace Roslyn.Utilities
 {
-    internal static void RequireAbsolutePath(string path, string argumentName)
+    internal static class CompilerPathUtilities
     {
-        if (path == null)
+        internal static void RequireAbsolutePath(string path, string argumentName)
         {
-            throw new ArgumentNullException(argumentName);
-        }
+            if (path == null)
+            {
+                throw new ArgumentNullException(argumentName);
+            }
 
-        if (!PathUtilities.IsAbsolute(path))
-        {
-            throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.AbsolutePathExpected, argumentName);
+            if (!PathUtilities.IsAbsolute(path))
+            {
+                throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.AbsolutePathExpected, argumentName);
+            }
         }
     }
 }

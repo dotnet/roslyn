@@ -8,50 +8,51 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace Roslyn.Test.Utilities;
-
-public sealed class EqualityUnit<T>
+namespace Roslyn.Test.Utilities
 {
-    private static readonly ReadOnlyCollection<T> s_emptyCollection = new ReadOnlyCollection<T>(new T[] { });
-
-    public readonly T Value;
-    public readonly ReadOnlyCollection<T> EqualValues;
-    public readonly ReadOnlyCollection<T> NotEqualValues;
-    public IEnumerable<T> AllValues
+    public sealed class EqualityUnit<T>
     {
-        get { return Enumerable.Repeat(Value, 1).Concat(EqualValues).Concat(NotEqualValues); }
-    }
+        private static readonly ReadOnlyCollection<T> s_emptyCollection = new ReadOnlyCollection<T>(new T[] { });
 
-    public EqualityUnit(T value)
-    {
-        Value = value;
-        EqualValues = s_emptyCollection;
-        NotEqualValues = s_emptyCollection;
-    }
+        public readonly T Value;
+        public readonly ReadOnlyCollection<T> EqualValues;
+        public readonly ReadOnlyCollection<T> NotEqualValues;
+        public IEnumerable<T> AllValues
+        {
+            get { return Enumerable.Repeat(Value, 1).Concat(EqualValues).Concat(NotEqualValues); }
+        }
 
-    public EqualityUnit(
-        T value,
-        ReadOnlyCollection<T> equalValues,
-        ReadOnlyCollection<T> notEqualValues)
-    {
-        Value = value;
-        EqualValues = equalValues;
-        NotEqualValues = notEqualValues;
-    }
+        public EqualityUnit(T value)
+        {
+            Value = value;
+            EqualValues = s_emptyCollection;
+            NotEqualValues = s_emptyCollection;
+        }
 
-    public EqualityUnit<T> WithEqualValues(params T[] equalValues)
-    {
-        return new EqualityUnit<T>(
-            Value,
-            EqualValues.Concat(equalValues).ToList().AsReadOnly(),
-            NotEqualValues);
-    }
+        public EqualityUnit(
+            T value,
+            ReadOnlyCollection<T> equalValues,
+            ReadOnlyCollection<T> notEqualValues)
+        {
+            Value = value;
+            EqualValues = equalValues;
+            NotEqualValues = notEqualValues;
+        }
 
-    public EqualityUnit<T> WithNotEqualValues(params T[] notEqualValues)
-    {
-        return new EqualityUnit<T>(
-            Value,
-            EqualValues,
-            NotEqualValues.Concat(notEqualValues).ToList().AsReadOnly());
+        public EqualityUnit<T> WithEqualValues(params T[] equalValues)
+        {
+            return new EqualityUnit<T>(
+                Value,
+                EqualValues.Concat(equalValues).ToList().AsReadOnly(),
+                NotEqualValues);
+        }
+
+        public EqualityUnit<T> WithNotEqualValues(params T[] notEqualValues)
+        {
+            return new EqualityUnit<T>(
+                Value,
+                EqualValues,
+                NotEqualValues.Concat(notEqualValues).ToList().AsReadOnly());
+        }
     }
 }

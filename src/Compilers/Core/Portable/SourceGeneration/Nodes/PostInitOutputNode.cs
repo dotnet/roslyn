@@ -5,23 +5,24 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class PostInitOutputNode : IIncrementalGeneratorOutputNode
+namespace Microsoft.CodeAnalysis
 {
-    private readonly Action<IncrementalGeneratorPostInitializationContext, CancellationToken> _callback;
-    private readonly string _embeddedAttributeDefinition;
-
-    public PostInitOutputNode(Action<IncrementalGeneratorPostInitializationContext, CancellationToken> callback, string embeddedAttributeDefinition)
+    internal sealed class PostInitOutputNode : IIncrementalGeneratorOutputNode
     {
-        _callback = callback;
-        _embeddedAttributeDefinition = embeddedAttributeDefinition;
-    }
+        private readonly Action<IncrementalGeneratorPostInitializationContext, CancellationToken> _callback;
+        private readonly string _embeddedAttributeDefinition;
 
-    public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.PostInit;
+        public PostInitOutputNode(Action<IncrementalGeneratorPostInitializationContext, CancellationToken> callback, string embeddedAttributeDefinition)
+        {
+            _callback = callback;
+            _embeddedAttributeDefinition = embeddedAttributeDefinition;
+        }
 
-    public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
-    {
-        _callback(new IncrementalGeneratorPostInitializationContext(context.Sources, _embeddedAttributeDefinition, cancellationToken), cancellationToken);
+        public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.PostInit;
+
+        public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
+        {
+            _callback(new IncrementalGeneratorPostInitializationContext(context.Sources, _embeddedAttributeDefinition, cancellationToken), cancellationToken);
+        }
     }
 }

@@ -8,14 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal static class EventSymbolExtensions
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal static MethodSymbol GetOwnOrInheritedAccessor(this EventSymbol @event, bool isAdder)
+    internal static class EventSymbolExtensions
     {
-        return isAdder
-            ? @event.GetOwnOrInheritedAddMethod()
-            : @event.GetOwnOrInheritedRemoveMethod();
+        internal static MethodSymbol GetOwnOrInheritedAccessor(this EventSymbol @event, bool isAdder)
+        {
+            return isAdder
+                ? @event.GetOwnOrInheritedAddMethod()
+                : @event.GetOwnOrInheritedRemoveMethod();
+        }
     }
 }

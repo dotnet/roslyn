@@ -12,112 +12,112 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
-
-public class IntegrationTests : TestBase
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
-    private static readonly string? s_msbuildDirectory;
-
-    static IntegrationTests()
+    public class IntegrationTests : TestBase
     {
-        s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
-    }
+        private static readonly string? s_msbuildDirectory;
 
-    private readonly string _msbuildExecutable;
-    private readonly TempDirectory _tempDirectory;
-    private readonly List<Process> _existingServerList = new List<Process>();
-    private readonly string _buildTaskDll;
-
-    public IntegrationTests()
-    {
-        if (s_msbuildDirectory == null)
+        static IntegrationTests()
         {
-            throw new InvalidOperationException("Could not locate MSBuild");
+            s_msbuildDirectory = DesktopTestHelpers.GetMSBuildDirectory();
         }
 
-        _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-        _tempDirectory = Temp.CreateDirectory();
-        _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
-        _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
-    }
+        private readonly string _msbuildExecutable;
+        private readonly TempDirectory _tempDirectory;
+        private readonly List<Process> _existingServerList = new List<Process>();
+        private readonly string _buildTaskDll;
 
-    private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
-    {
-        vars = vars ?? new KeyValuePair<string, string>[] { };
-        if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
+        public IntegrationTests()
         {
-            var list = vars.ToList();
-            list.Add(new KeyValuePair<string, string>(
-                "RoslynCommandLineLogFile",
-                typeof(IntegrationTests).Assembly.Location + ".client-server.log"));
-            return list;
-        }
-        return vars;
-    }
+            if (s_msbuildDirectory == null)
+            {
+                throw new InvalidOperationException("Could not locate MSBuild");
+            }
 
-    private ProcessResult RunCommandLineCompiler(
-        string compilerPath,
-        string arguments,
-        string currentDirectory,
-        IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-    {
-        return ProcessUtilities.Run(
-            compilerPath,
-            arguments,
-            currentDirectory,
-            additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-    }
-
-    private ProcessResult RunCommandLineCompiler(
-        string compilerPath,
-        string arguments,
-        TempDirectory currentDirectory,
-        IEnumerable<KeyValuePair<string, string>> filesInDirectory,
-        IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
-    {
-        foreach (var pair in filesInDirectory)
-        {
-            TempFile file = currentDirectory.CreateFile(pair.Key);
-            file.WriteAllText(pair.Value);
+            _msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
+            _tempDirectory = Temp.CreateDirectory();
+            _existingServerList = Process.GetProcessesByName(Path.GetFileNameWithoutExtension("VBCSCompiler")).ToList();
+            _buildTaskDll = typeof(ManagedCompiler).Assembly.Location;
         }
 
-        return RunCommandLineCompiler(
-            compilerPath,
-            arguments,
-            currentDirectory.Path,
-            additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
-    }
-
-    private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
-    {
-        return new DisposableFile(Path.Combine(directory.Path, resultFileName));
-    }
-
-    private ProcessResult RunCompilerOutput(TempFile file)
-    {
-        return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
-    }
-
-    private static void VerifyResult(ProcessResult result)
-    {
-        Assert.Equal("", result.Output);
-        Assert.Equal("", result.Errors);
-        Assert.Equal(0, result.ExitCode);
-    }
-
-    private void VerifyResultAndOutput(ProcessResult result, TempDirectory path, string expectedOutput)
-    {
-        using (var resultFile = GetResultFile(path, "hello.exe"))
+        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>>? vars)
         {
-            VerifyResult(result);
-
-            var runningResult = RunCompilerOutput(resultFile);
-            Assert.Equal(expectedOutput, runningResult.Output);
+            vars = vars ?? new KeyValuePair<string, string>[] { };
+            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
+            {
+                var list = vars.ToList();
+                list.Add(new KeyValuePair<string, string>(
+                    "RoslynCommandLineLogFile",
+                    typeof(IntegrationTests).Assembly.Location + ".client-server.log"));
+                return list;
+            }
+            return vars;
         }
-    }
 
-    // A dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
-    private Dictionary<string, string> SimpleMsBuildFiles => new Dictionary<string, string> {
+        private ProcessResult RunCommandLineCompiler(
+            string compilerPath,
+            string arguments,
+            string currentDirectory,
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
+        {
+            return ProcessUtilities.Run(
+                compilerPath,
+                arguments,
+                currentDirectory,
+                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
+        }
+
+        private ProcessResult RunCommandLineCompiler(
+            string compilerPath,
+            string arguments,
+            TempDirectory currentDirectory,
+            IEnumerable<KeyValuePair<string, string>> filesInDirectory,
+            IEnumerable<KeyValuePair<string, string>>? additionalEnvironmentVars = null)
+        {
+            foreach (var pair in filesInDirectory)
+            {
+                TempFile file = currentDirectory.CreateFile(pair.Key);
+                file.WriteAllText(pair.Value);
+            }
+
+            return RunCommandLineCompiler(
+                compilerPath,
+                arguments,
+                currentDirectory.Path,
+                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
+        }
+
+        private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
+        {
+            return new DisposableFile(Path.Combine(directory.Path, resultFileName));
+        }
+
+        private ProcessResult RunCompilerOutput(TempFile file)
+        {
+            return ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+        }
+
+        private static void VerifyResult(ProcessResult result)
+        {
+            Assert.Equal("", result.Output);
+            Assert.Equal("", result.Errors);
+            Assert.Equal(0, result.ExitCode);
+        }
+
+        private void VerifyResultAndOutput(ProcessResult result, TempDirectory path, string expectedOutput)
+        {
+            using (var resultFile = GetResultFile(path, "hello.exe"))
+            {
+                VerifyResult(result);
+
+                var runningResult = RunCompilerOutput(resultFile);
+                Assert.Equal(expectedOutput, runningResult.Output);
+            }
+        }
+
+        // A dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
+        private Dictionary<string, string> SimpleMsBuildFiles => new Dictionary<string, string> {
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
@@ -325,7 +325,7 @@ namespace HelloLib
 }
 "},
 
-{ "VBLib.vbproj",
+ { "VBLib.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -391,7 +391,7 @@ namespace HelloLib
   -->
 </Project>"},
 
-{ "VBLib.vb",
+ { "VBLib.vb",
 @"
 Public Class VBLibClass
     Public Shared Sub SayThere()
@@ -399,31 +399,31 @@ Public Class VBLibClass
     End Sub
 End Class
 "}
-        };
+            };
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
-    public void SimpleMSBuild()
-    {
-        string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-        var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
-
-        using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
+        public void SimpleMSBuild()
         {
-            // once we stop issuing BC40998 (NYI), we can start making stronger assertions
-            // about our output in the general case
-            if (result.ExitCode != 0)
-            {
-                Assert.Equal("", result.Output);
-                Assert.Equal("", result.Errors);
-            }
-            Assert.Equal(0, result.ExitCode);
-            var runningResult = RunCompilerOutput(resultFile);
-            Assert.Equal("Hello\r\nthere\r\nWorld\r\n", runningResult.Output);
-        }
-    }
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
 
-    // A dictionary with name and contents of all the files we want to create for the ReportAnalyzerMSBuild test.
-    private Dictionary<string, string> ReportAnalyzerMsBuildFiles => new Dictionary<string, string> {
+            using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
+            {
+                // once we stop issuing BC40998 (NYI), we can start making stronger assertions
+                // about our output in the general case
+                if (result.ExitCode != 0)
+                {
+                    Assert.Equal("", result.Output);
+                    Assert.Equal("", result.Errors);
+                }
+                Assert.Equal(0, result.ExitCode);
+                var runningResult = RunCompilerOutput(resultFile);
+                Assert.Equal("Hello\r\nthere\r\nWorld\r\n", runningResult.Output);
+            }
+        }
+
+        // A dictionary with name and contents of all the files we want to create for the ReportAnalyzerMSBuild test.
+        private Dictionary<string, string> ReportAnalyzerMsBuildFiles => new Dictionary<string, string> {
 { "HelloSolution.sln",
 @"
 Microsoft Visual Studio Solution File, Format Version 11.00
@@ -523,7 +523,7 @@ EndGlobal
 { "HelloLib.cs",
 @"public class $P {}"},
 
-{ "VBLib.vbproj",
+ { "VBLib.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _buildTaskDll + @""" />
@@ -593,31 +593,31 @@ EndGlobal
   -->
 </Project>"},
 
-{ "VBLib.vb",
+ { "VBLib.vb",
 @"
 Public Class $P
 End Class
 "}
-        };
+            };
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
-    public void ReportAnalyzerMSBuild()
-    {
-        string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
-        var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
-            new Dictionary<string, string>
-            { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16301")]
+        public void ReportAnalyzerMSBuild()
+        {
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseSharedCompilation=false /p:UseRoslyn=1 HelloSolution.sln");
+            var result = RunCommandLineCompiler(_msbuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+                new Dictionary<string, string>
+                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(IntegrationTests).Assembly.Location) } });
 
-        Assert.True(result.ExitCode != 0);
-        Assert.Contains("/reportanalyzer", result.Output);
-    }
+            Assert.True(result.ExitCode != 0);
+            Assert.Contains("/reportanalyzer", result.Output);
+        }
 
-    [Fact(Skip = "failing msbuild")]
-    public void SolutionWithPunctuation()
-    {
-        var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
-        var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
-@"
+        [Fact(Skip = "failing msbuild")]
+        public void SolutionWithPunctuation()
+        {
+            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(goo)'^1");
+            var slnFile = testDir.CreateFile("Console;!@(goo)'^(Application1.sln").WriteAllText(
+    @"
 Microsoft Visual Studio Solution File, Format Version 10.00
 \u0023 Visual Studio 2005
 Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(goo)'^(Application1"", ""Console;!@(goo)'^(Application1\Cons.ole;!@(goo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
@@ -644,9 +644,9 @@ Global
     EndGlobalSection
 EndGlobal
 ");
-        var appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
-        var appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
-@"
+            var appDir = testDir.CreateDirectory(@"Console;!@(goo)'^(Application1");
+            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(goo)'^(Application1.csproj").WriteAllText(
+    @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
     <PropertyGroup>
@@ -695,8 +695,8 @@ EndGlobal
 </Project>
 ");
 
-        var appProgramFile = appDir.CreateFile("Program.cs").WriteAllText(
-@"
+            var appProgramFile = appDir.CreateFile("Program.cs").WriteAllText(
+    @"
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -712,9 +712,9 @@ namespace Console____goo____Application1
     }
 }");
 
-        var libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
-        var libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
-@"
+            var libraryDir = testDir.CreateDirectory(@"Class;!@(goo)'^(Library1");
+            var libraryProjFile = libraryDir.CreateFile("Class;!@(goo)'^(Library1.csproj").WriteAllText(
+    @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
     <PropertyGroup>
@@ -769,8 +769,8 @@ namespace Console____goo____Application1
 </Project>
 ");
 
-        var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
-@"
+            var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
+    @"
 namespace Class____goo____Library1
 {
     public class Class1
@@ -779,9 +779,10 @@ namespace Class____goo____Library1
 }
 ");
 
-        var result = RunCommandLineCompiler(_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal("", result.Errors);
+            var result = RunCommandLineCompiler(_msbuildExecutable, "/p:UseSharedCompilation=false", testDir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("", result.Errors);
+        }
     }
 }
 #endif

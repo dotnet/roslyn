@@ -15,96 +15,96 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class GetSemanticInfoTests : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    #region helpers
-
-    internal List<string> GetLookupNames(string testSrc)
+    public class GetSemanticInfoTests : SemanticModelTestBase
     {
-        var parseOptions = TestOptions.Regular;
-        var compilation = CreateCompilationWithMscorlib461(testSrc, parseOptions: parseOptions);
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
-        var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
-        return model.LookupNames(position);
-    }
+        #region helpers
 
-    internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
-    {
-        var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-        var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
-        var model = compilation.GetSemanticModel(tree);
-        var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
-        return model.LookupSymbols(position, container.GetPublicSymbol(), name).Where(s => !arity.HasValue || arity == s.GetSymbol().GetMemberArity()).ToList();
-    }
+        internal List<string> GetLookupNames(string testSrc)
+        {
+            var parseOptions = TestOptions.Regular;
+            var compilation = CreateCompilationWithMscorlib461(testSrc, parseOptions: parseOptions);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
+            return model.LookupNames(position);
+        }
 
-    #endregion helpers
+        internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
+        {
+            var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
+            var model = compilation.GetSemanticModel(tree);
+            var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
+            return model.LookupSymbols(position, container.GetPublicSymbol(), name).Where(s => !arity.HasValue || arity == s.GetSymbol().GetMemberArity()).ToList();
+        }
 
-    #region tests
+        #endregion helpers
 
-    [Fact]
-    public void LookupExpressionBodyProp01()
-    {
-        var text = @"
+        #region tests
+
+        [Fact]
+        public void LookupExpressionBodyProp01()
+        {
+            var text = @"
 class C
 {
     public int P => /*<bind>*/10/*</bind>*/;
 }";
-        var actual = GetLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
-        var expected_lookupNames = new List<string>
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "P",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [Fact]
+        public void LookupExpressionBodiedMethod01()
         {
-            "C",
-            "Equals",
-            "Finalize",
-            "GetHashCode",
-            "GetType",
-            "MemberwiseClone",
-            "Microsoft",
-            "P",
-            "ReferenceEquals",
-            "System",
-            "ToString"
-        };
-
-        Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
-    }
-
-    [Fact]
-    public void LookupExpressionBodiedMethod01()
-    {
-        var text = @"
+            var text = @"
 class C
 {
     public int M() => /*<bind>*/10/*</bind>*/;
 }";
-        var actual = GetLookupNames(text).ListToSortedString();
+            var actual = GetLookupNames(text).ListToSortedString();
 
-        var expected_lookupNames = new List<string>
+            var expected_lookupNames = new List<string>
+            {
+                "C",
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "MemberwiseClone",
+                "Microsoft",
+                "M",
+                "ReferenceEquals",
+                "System",
+                "ToString"
+            };
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
+        }
+
+        [WorkItem(538262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538262")]
+        [Fact]
+        public void LookupCompilationUnitSyntax()
         {
-            "C",
-            "Equals",
-            "Finalize",
-            "GetHashCode",
-            "GetType",
-            "MemberwiseClone",
-            "Microsoft",
-            "M",
-            "ReferenceEquals",
-            "System",
-            "ToString"
-        };
-
-        Assert.Equal(expected_lookupNames.ListToSortedString(), actual);
-    }
-
-    [WorkItem(538262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538262")]
-    [Fact]
-    public void LookupCompilationUnitSyntax()
-    {
-        var testSrc = @"
+            var testSrc = @"
 /*<bind>*/
 class Test
 {
@@ -112,18 +112,18 @@ class Test
 /*</bind>*/
 ";
 
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupNames(testSrc);
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupNames(testSrc);
 
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupSymbols(testSrc);
-    }
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupSymbols(testSrc);
+        }
 
-    [WorkItem(527476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527476")]
-    [Fact]
-    public void LookupConstrAndDestr()
-    {
-        var testSrc = @"
+        [WorkItem(527476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527476")]
+        [Fact]
+        public void LookupConstrAndDestr()
+        {
+            var testSrc = @"
 class Test
 {
     Test()
@@ -143,53 +143,53 @@ class Test
     }
 }
 ";
-        List<string> expected_lookupNames = new List<string>
+            List<string> expected_lookupNames = new List<string>
+            {
+                "Equals",
+                "Finalize",
+                "GetHashCode",
+                "GetType",
+                "Main",
+                "MemberwiseClone",
+                "Microsoft",
+                "ReferenceEquals",
+                "System",
+                "Test",
+                "ToString"
+            };
+
+            List<string> expected_lookupSymbols = new List<string>
+            {
+                "Microsoft",
+                "System",
+                "System.Boolean System.Object.Equals(System.Object obj)",
+                "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
+                "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
+                "System.Int32 System.Object.GetHashCode()",
+                "System.Object System.Object.MemberwiseClone()",
+                "void System.Object.Finalize()",
+                "System.String System.Object.ToString()",
+                "System.Type System.Object.GetType()",
+                "void Test.Finalize()",
+                "void Test.Main()",
+                "Test"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+
+            Assert.Equal(expected_lookupNames.ListToSortedString(), actual_lookupNames.ListToSortedString());
+            Assert.Equal(expected_lookupSymbols.ListToSortedString(), actual_lookupSymbols.ListToSortedString());
+        }
+
+        [WorkItem(527477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527477")]
+        [Fact]
+        public void LookupNotYetDeclLocalVar()
         {
-            "Equals",
-            "Finalize",
-            "GetHashCode",
-            "GetType",
-            "Main",
-            "MemberwiseClone",
-            "Microsoft",
-            "ReferenceEquals",
-            "System",
-            "Test",
-            "ToString"
-        };
-
-        List<string> expected_lookupSymbols = new List<string>
-        {
-            "Microsoft",
-            "System",
-            "System.Boolean System.Object.Equals(System.Object obj)",
-            "System.Boolean System.Object.Equals(System.Object objA, System.Object objB)",
-            "System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)",
-            "System.Int32 System.Object.GetHashCode()",
-            "System.Object System.Object.MemberwiseClone()",
-            "void System.Object.Finalize()",
-            "System.String System.Object.ToString()",
-            "System.Type System.Object.GetType()",
-            "void Test.Finalize()",
-            "void Test.Main()",
-            "Test"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-
-        Assert.Equal(expected_lookupNames.ListToSortedString(), actual_lookupNames.ListToSortedString());
-        Assert.Equal(expected_lookupSymbols.ListToSortedString(), actual_lookupSymbols.ListToSortedString());
-    }
-
-    [WorkItem(527477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527477")]
-    [Fact]
-    public void LookupNotYetDeclLocalVar()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
     static void Main()
@@ -200,36 +200,36 @@ class Test
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "j",
+                "k"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "j",
+                "k"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(538301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538301")]
+        [Fact]
+        public void LookupByNameIncorrectArity()
         {
-            "j",
-            "k"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "j",
-            "k"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(538301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538301")]
-    [Fact]
-    public void LookupByNameIncorrectArity()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
     public static void Main()
@@ -239,36 +239,36 @@ class Test
 }
 ";
 
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupSymbols(testSrc, name: "i", arity: 1);
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupSymbols(testSrc, name: "i", arity: 1);
 
-        var actual_lookupSymbols = GetLookupSymbols(testSrc, name: "i", arity: 1);
+            var actual_lookupSymbols = GetLookupSymbols(testSrc, name: "i", arity: 1);
 
-        Assert.Empty(actual_lookupSymbols);
-    }
+            Assert.Empty(actual_lookupSymbols);
+        }
 
-    [WorkItem(538310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538310")]
-    [Fact]
-    public void LookupInProtectedNonNestedType()
-    {
-        var testSrc = @"
+        [WorkItem(538310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538310")]
+        [Fact]
+        public void LookupInProtectedNonNestedType()
+        {
+            var testSrc = @"
 protected class MyClass {
     /*<bind>*/public static void Main()/*</bind>*/ {}	
 }
 ";
 
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupNames(testSrc);
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupNames(testSrc);
 
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupSymbols(testSrc);
-    }
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupSymbols(testSrc);
+        }
 
-    [WorkItem(538311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538311")]
-    [Fact]
-    public void LookupClassContainsVolatileEnumField()
-    {
-        var testSrc = @"
+        [WorkItem(538311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538311")]
+        [Fact]
+        public void LookupClassContainsVolatileEnumField()
+        {
+            var testSrc = @"
 enum E{} 
 class Test {
     static volatile E x;
@@ -278,18 +278,18 @@ class Test {
 }
 ";
 
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupNames(testSrc);
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupNames(testSrc);
 
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        GetLookupSymbols(testSrc);
-    }
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            GetLookupSymbols(testSrc);
+        }
 
-    [WorkItem(538312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538312")]
-    [Fact]
-    public void LookupUsingAlias()
-    {
-        var testSrc = @"
+        [WorkItem(538312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538312")]
+        [Fact]
+        public void LookupUsingAlias()
+        {
+            var testSrc = @"
 using T2 = System.IO;
 
 namespace T1
@@ -303,37 +303,37 @@ namespace T1
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "T1",
+                "T2"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "T1",
+                "T2"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(538313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538313")]
+        [Fact]
+        public void LookupUsingNameSpaceContSameTypeNames()
         {
-            "T1",
-            "T2"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "T1",
-            "T2"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(538313, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538313")]
-    [Fact]
-    public void LookupUsingNameSpaceContSameTypeNames()
-    {
-        var testSrc = @"
+            var testSrc = @"
 namespace T1
 {
     using T2;
@@ -354,42 +354,42 @@ namespace T2
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "T1",
+                "T2",
+                "Test"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "T1",
+                "T2",
+                "T1.Test",
+                //"T2.Test" this is hidden by T1.Test
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(527489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527489")]
+        [Fact]
+        public void LookupMustNotBeNonInvocableMember()
         {
-            "T1",
-            "T2",
-            "Test"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "T1",
-            "T2",
-            "T1.Test",
-            //"T2.Test" this is hidden by T1.Test
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(527489, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527489")]
-    [Fact]
-    public void LookupMustNotBeNonInvocableMember()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
     public void TestMeth(int i, int j)
@@ -399,83 +399,83 @@ class Test
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "TestMeth",
+                "i",
+                "j",
+                "m",
+                "System",
+                "Microsoft",
+                "Test"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "void Test.TestMeth(System.Int32 i, System.Int32 j)",
+                "System.Int32 i",
+                "System.Int32 j",
+                "System.Int32 m",
+                "System",
+                "Microsoft",
+                "Test"
+            };
+
+            var comp = CreateCompilation(testSrc);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var position = GetPositionForBinding(tree);
+            var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var info = LookupSymbolsInfo.GetInstance();
+            binder.AddLookupSymbolsInfo(info, LookupOptions.MustBeInvocableIfMember);
+            var actual_lookupNames = info.Names;
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = actual_lookupNames.SelectMany(name =>
+            {
+                var lookupResult = LookupResult.GetInstance();
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                binder.LookupSymbolsSimpleName(
+                    lookupResult,
+                    qualifierOpt: null,
+                    plainName: name,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    options: LookupOptions.MustBeInvocableIfMember,
+                    diagnose: false,
+                    useSiteDiagnostics: ref useSiteDiagnostics);
+                Assert.Null(useSiteDiagnostics);
+                Assert.True(lookupResult.IsMultiViable || lookupResult.Kind == LookupResultKind.NotReferencable);
+                var result = lookupResult.Symbols.ToArray();
+                lookupResult.Free();
+                return result;
+            });
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[3], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[4], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[5], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[4], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[5], actual_lookupSymbols_as_string);
+
+            info.Free();
+        }
+
+        [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
+        [Fact]
+        public void LookupWithNameZeroArity()
         {
-            "TestMeth",
-            "i",
-            "j",
-            "m",
-            "System",
-            "Microsoft",
-            "Test"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "void Test.TestMeth(System.Int32 i, System.Int32 j)",
-            "System.Int32 i",
-            "System.Int32 j",
-            "System.Int32 m",
-            "System",
-            "Microsoft",
-            "Test"
-        };
-
-        var comp = CreateCompilation(testSrc);
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var position = GetPositionForBinding(tree);
-        var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var info = LookupSymbolsInfo.GetInstance();
-        binder.AddLookupSymbolsInfo(info, LookupOptions.MustBeInvocableIfMember);
-        var actual_lookupNames = info.Names;
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = actual_lookupNames.SelectMany(name =>
-        {
-            var lookupResult = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            binder.LookupSymbolsSimpleName(
-                lookupResult,
-                qualifierOpt: null,
-                plainName: name,
-                arity: 0,
-                basesBeingResolved: null,
-                options: LookupOptions.MustBeInvocableIfMember,
-                diagnose: false,
-                useSiteDiagnostics: ref useSiteDiagnostics);
-            Assert.Null(useSiteDiagnostics);
-            Assert.True(lookupResult.IsMultiViable || lookupResult.Kind == LookupResultKind.NotReferencable);
-            var result = lookupResult.Symbols.ToArray();
-            lookupResult.Free();
-            return result;
-        });
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[3], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[4], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[5], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[4], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[5], actual_lookupSymbols_as_string);
-
-        info.Free();
-    }
-
-    [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
-    [Fact]
-    public void LookupWithNameZeroArity()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
     private void F<T>(T i)
@@ -500,44 +500,44 @@ class Test
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "F"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "void Test.F(System.Int32 i)",
+                "void Test.F(System.Int32 i, System.Int32 j)"
+            };
+
+            List<string> not_expected_in_lookupSymbols = new List<string>
+            {
+                "void Test.F<T>(T i)",
+                "void Test.F<T, U>(T i, U j)"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc, name: "F", arity: 0);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+
+            Assert.Equal(2, actual_lookupSymbols.Count);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.DoesNotContain(not_expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
+        [Fact]
+        public void LookupWithNameZeroArityAndLookupOptionsAllMethods()
         {
-            "F"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "void Test.F(System.Int32 i)",
-            "void Test.F(System.Int32 i, System.Int32 j)"
-        };
-
-        List<string> not_expected_in_lookupSymbols = new List<string>
-        {
-            "void Test.F<T>(T i)",
-            "void Test.F<T, U>(T i, U j)"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc, name: "F", arity: 0);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-
-        Assert.Equal(2, actual_lookupSymbols.Count);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.DoesNotContain(not_expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(538365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538365")]
-    [Fact]
-    public void LookupWithNameZeroArityAndLookupOptionsAllMethods()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
     public void F<T>(T i)
@@ -563,50 +563,50 @@ class Test
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "F"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "void Test.F(System.Int32 i)",
+                "void Test.F(System.Int32 i, System.Int32 j)",
+                "void Test.F<T>(T i)",
+                "void Test.F<T, U>(T i, U j)"
+            };
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var comp = CreateCompilation(testSrc);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var position = testSrc.IndexOf("return", StringComparison.Ordinal);
+            var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
+            var lookupResult = LookupResult.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            binder.LookupSymbolsSimpleName(lookupResult, qualifierOpt: null, plainName: "F", arity: 0, basesBeingResolved: null, options: LookupOptions.AllMethodsOnArityZero, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            Assert.Null(useSiteDiagnostics);
+            Assert.True(lookupResult.IsMultiViable);
+            var actual_lookupSymbols_as_string = lookupResult.Symbols.Select(e => e.ToTestDisplayString()).ToArray();
+            lookupResult.Free();
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = model.LookupNames(position);
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+
+            Assert.Equal(4, actual_lookupSymbols_as_string.Length);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(539160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539160")]
+        [Fact]
+        public void LookupExcludeInAppropriateNS()
         {
-            "F"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "void Test.F(System.Int32 i)",
-            "void Test.F(System.Int32 i, System.Int32 j)",
-            "void Test.F<T>(T i)",
-            "void Test.F<T, U>(T i, U j)"
-        };
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var comp = CreateCompilation(testSrc);
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var position = testSrc.IndexOf("return", StringComparison.Ordinal);
-        var binder = ((CSharpSemanticModel)model).GetEnclosingBinder(position);
-        var lookupResult = LookupResult.GetInstance();
-        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-        binder.LookupSymbolsSimpleName(lookupResult, qualifierOpt: null, plainName: "F", arity: 0, basesBeingResolved: null, options: LookupOptions.AllMethodsOnArityZero, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
-        Assert.Null(useSiteDiagnostics);
-        Assert.True(lookupResult.IsMultiViable);
-        var actual_lookupSymbols_as_string = lookupResult.Symbols.Select(e => e.ToTestDisplayString()).ToArray();
-        lookupResult.Free();
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = model.LookupNames(position);
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-
-        Assert.Equal(4, actual_lookupSymbols_as_string.Length);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[3], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(539160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539160")]
-    [Fact]
-    public void LookupExcludeInAppropriateNS()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Test
 {
    public static /*<bind>*/void/*</bind>*/ Main()
@@ -614,49 +614,49 @@ class Test
    }
 }
 ";
-        var srcTrees = new SyntaxTree[] { Parse(testSrc) };
-        var refs = new MetadataReference[] { SystemDataRef };
-        CSharpCompilation compilation = CSharpCompilation.Create("Test.dll", srcTrees, refs);
+            var srcTrees = new SyntaxTree[] { Parse(testSrc) };
+            var refs = new MetadataReference[] { SystemDataRef };
+            CSharpCompilation compilation = CSharpCompilation.Create("Test.dll", srcTrees, refs);
 
-        var tree = srcTrees[0];
-        var model = compilation.GetSemanticModel(tree);
+            var tree = srcTrees[0];
+            var model = compilation.GetSemanticModel(tree);
 
-        List<string> not_expected_in_lookup = new List<string>
+            List<string> not_expected_in_lookup = new List<string>
+            {
+                "<CrtImplementationDetails>",
+                "<CppImplementationDetails>"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = model.LookupNames(GetPositionForBinding(tree), null).ToList();
+            var actual_lookupNames_ignoreAcc = model.LookupNames(GetPositionForBinding(tree), null).ToList();
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = model.LookupSymbols(GetPositionForBinding(tree));
+            var actual_lookupSymbols_ignoreAcc = model.LookupSymbols(GetPositionForBinding(tree));
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+            var actual_lookupSymbols_ignoreAcc_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupNames);
+            Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupNames);
+            Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupNames_ignoreAcc);
+            Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupNames_ignoreAcc);
+
+            Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupSymbols_as_string);
+            Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_as_string);
+            Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupSymbols_ignoreAcc_as_string);
+            Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_ignoreAcc_as_string);
+        }
+
+        /// <summary>
+        /// Verify that there's a way to look up only the members of the base type that are visible
+        /// from the current type.
+        /// </summary>
+        [Fact]
+        [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
+        public void LookupProtectedInBase()
         {
-            "<CrtImplementationDetails>",
-            "<CppImplementationDetails>"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = model.LookupNames(GetPositionForBinding(tree), null).ToList();
-        var actual_lookupNames_ignoreAcc = model.LookupNames(GetPositionForBinding(tree), null).ToList();
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = model.LookupSymbols(GetPositionForBinding(tree));
-        var actual_lookupSymbols_ignoreAcc = model.LookupSymbols(GetPositionForBinding(tree));
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-        var actual_lookupSymbols_ignoreAcc_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupNames);
-        Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupNames);
-        Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupNames_ignoreAcc);
-        Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupNames_ignoreAcc);
-
-        Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupSymbols_as_string);
-        Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_as_string);
-        Assert.DoesNotContain(not_expected_in_lookup[0], actual_lookupSymbols_ignoreAcc_as_string);
-        Assert.DoesNotContain(not_expected_in_lookup[1], actual_lookupSymbols_ignoreAcc_as_string);
-    }
-
-    /// <summary>
-    /// Verify that there's a way to look up only the members of the base type that are visible
-    /// from the current type.
-    /// </summary>
-    [Fact]
-    [WorkItem(539814, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539814")]
-    public void LookupProtectedInBase()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class A
 {
     private void Hidden() { }
@@ -671,132 +671,132 @@ class B : A
     }
 }
 ";
-        var srcTrees = new SyntaxTree[] { Parse(testSrc) };
-        var refs = new MetadataReference[] { SystemDataRef };
-        CSharpCompilation compilation = CSharpCompilation.Create("Test.dll", srcTrees, refs);
+            var srcTrees = new SyntaxTree[] { Parse(testSrc) };
+            var refs = new MetadataReference[] { SystemDataRef };
+            CSharpCompilation compilation = CSharpCompilation.Create("Test.dll", srcTrees, refs);
 
-        var tree = srcTrees[0];
-        var model = compilation.GetSemanticModel(tree);
+            var tree = srcTrees[0];
+            var model = compilation.GetSemanticModel(tree);
 
-        var baseExprNode = GetSyntaxNodeForBinding(GetSyntaxNodeList(tree));
-        Assert.Equal("base", baseExprNode.ToString());
+            var baseExprNode = GetSyntaxNodeForBinding(GetSyntaxNodeList(tree));
+            Assert.Equal("base", baseExprNode.ToString());
 
-        var baseExprLocation = baseExprNode.SpanStart;
-        Assert.NotEqual(0, baseExprLocation);
+            var baseExprLocation = baseExprNode.SpanStart;
+            Assert.NotEqual(0, baseExprLocation);
 
-        var baseExprInfo = model.GetTypeInfo((ExpressionSyntax)baseExprNode);
-        Assert.NotEqual(default, baseExprInfo);
+            var baseExprInfo = model.GetTypeInfo((ExpressionSyntax)baseExprNode);
+            Assert.NotEqual(default, baseExprInfo);
 
-        var baseExprType = (INamedTypeSymbol)baseExprInfo.Type;
-        Assert.NotNull(baseExprType);
-        Assert.Equal("A", baseExprType.Name);
+            var baseExprType = (INamedTypeSymbol)baseExprInfo.Type;
+            Assert.NotNull(baseExprType);
+            Assert.Equal("A", baseExprType.Name);
 
-        var symbols = model.LookupBaseMembers(baseExprLocation);
-        Assert.Equal("void A.Goo()", symbols.Single().ToTestDisplayString());
+            var symbols = model.LookupBaseMembers(baseExprLocation);
+            Assert.Equal("void A.Goo()", symbols.Single().ToTestDisplayString());
 
-        var names = model.LookupNames(baseExprLocation, useBaseReferenceAccessibility: true);
-        Assert.Equal("Goo", names.Single());
-    }
+            var names = model.LookupNames(baseExprLocation, useBaseReferenceAccessibility: true);
+            Assert.Equal("Goo", names.Single());
+        }
 
-    [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
-    [Fact]
-    public void LookupStartOfScopeMethodBody()
-    {
-        var testSrc = @"public class start
+        [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
+        [Fact]
+        public void LookupStartOfScopeMethodBody()
+        {
+            var testSrc = @"public class start
 {
        static public void Main()
 /*pos*/{
           int num=10;
        } 
 ";
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "Main",
+                "start",
+                "num"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "void start.Main()",
+                "start",
+                "System.Int32 num"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Equal('{', testSrc[GetPositionForBinding(testSrc)]);
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
+        [Fact]
+        public void LookupEndOfScopeMethodBody()
         {
-            "Main",
-            "start",
-            "num"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "void start.Main()",
-            "start",
-            "System.Int32 num"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Equal('{', testSrc[GetPositionForBinding(testSrc)]);
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(528263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528263")]
-    [Fact]
-    public void LookupEndOfScopeMethodBody()
-    {
-        var testSrc = @"public class start
+            var testSrc = @"public class start
 {
        static public void Main()
        {
           int num=10;
 /*pos*/} 
 ";
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "Main",
+                "start"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "void start.Main()",
+                "start"
+            };
+
+            List<string> not_expected_in_lookupNames = new List<string>
+            {
+                "num"
+            };
+
+            List<string> not_expected_in_lookupSymbols = new List<string>
+            {
+                "System.Int32 num"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Equal('}', testSrc[GetPositionForBinding(testSrc)]);
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(540888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
+        [Fact]
+        public void LookupLambdaParamInConstructorInitializer()
         {
-            "Main",
-            "start"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "void start.Main()",
-            "start"
-        };
-
-        List<string> not_expected_in_lookupNames = new List<string>
-        {
-            "num"
-        };
-
-        List<string> not_expected_in_lookupSymbols = new List<string>
-        {
-            "System.Int32 num"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Equal('}', testSrc[GetPositionForBinding(testSrc)]);
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(540888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540888")]
-    [Fact]
-    public void LookupLambdaParamInConstructorInitializer()
-    {
-        var testSrc = @"
+            var testSrc = @"
 using System;
 
 class MyClass
@@ -811,41 +811,41 @@ class MyClass
     }
 }
 ";
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "j",
+                "k",
+                "lambdaParam"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "System.Int32 j",
+                "System.Int32 k",
+                "System.Int32 lambdaParam"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(540893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540893")]
+        [Fact]
+        public void TestForLocalVarDeclLookupAtForKeywordInForStmt()
         {
-            "j",
-            "k",
-            "lambdaParam"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "System.Int32 j",
-            "System.Int32 k",
-            "System.Int32 lambdaParam"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[2], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[2], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(540893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540893")]
-    [Fact]
-    public void TestForLocalVarDeclLookupAtForKeywordInForStmt()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class MyClass
 {
     static void Main()
@@ -856,33 +856,33 @@ class MyClass
     }
 }
 ";
-        List<string> not_expected_in_lookupNames = new List<string>
+            List<string> not_expected_in_lookupNames = new List<string>
+            {
+                "forVar"
+            };
+
+            List<string> not_expected_in_lookupSymbols = new List<string>
+            {
+                "System.Int32 forVar",
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
+
+            Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(540894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540894")]
+        [Fact]
+        public void TestForeachIterVarLookupAtForeachKeyword()
         {
-            "forVar"
-        };
-
-        List<string> not_expected_in_lookupSymbols = new List<string>
-        {
-            "System.Int32 forVar",
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
-
-        Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(540894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540894")]
-    [Fact]
-    public void TestForeachIterVarLookupAtForeachKeyword()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class MyClass
 {
     static void Main()
@@ -895,33 +895,33 @@ class MyClass
     }
 }
 ";
-        List<string> not_expected_in_lookupNames = new List<string>
+            List<string> not_expected_in_lookupNames = new List<string>
+            {
+                "number"
+            };
+
+            List<string> not_expected_in_lookupSymbols = new List<string>
+            {
+                "System.Int32 number",
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
+
+            Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(540912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540912")]
+        [Fact]
+        public void TestLookupInConstrInitIncompleteConstrDecl()
         {
-            "number"
-        };
-
-        List<string> not_expected_in_lookupSymbols = new List<string>
-        {
-            "System.Int32 number",
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.DoesNotContain(not_expected_in_lookupNames[0], actual_lookupNames);
-
-        Assert.DoesNotContain(not_expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(540912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540912")]
-    [Fact]
-    public void TestLookupInConstrInitIncompleteConstrDecl()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class MyClass
 {
     public MyClass(int x)
@@ -930,37 +930,37 @@ class MyClass
 
     public MyClass(int j, int k) :this(/*pos*/k)
 ";
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "j",
+                "k"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "System.Int32 j",
+                "System.Int32 k",
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
+
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+            Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(541060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541060")]
+        [Fact]
+        public void TestLookupInsideIncompleteNestedLambdaBody()
         {
-            "j",
-            "k"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "System.Int32 j",
-            "System.Int32 k",
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupNames[1], actual_lookupNames);
-
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-        Assert.Contains(expected_in_lookupSymbols[1], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(541060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541060")]
-    [Fact]
-    public void TestLookupInsideIncompleteNestedLambdaBody()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class C
 {
     C()
@@ -972,35 +972,35 @@ class C
             }/*pos*/
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "C"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "C"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.NotEmpty(actual_lookupNames);
+            Assert.NotEmpty(actual_lookupSymbols);
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(541611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541611")]
+        [Fact]
+        public void LookupLambdaInsideAttributeUsage()
         {
-            "C"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "C"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.NotEmpty(actual_lookupNames);
-        Assert.NotEmpty(actual_lookupSymbols);
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(541611, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541611")]
-    [Fact]
-    public void LookupLambdaInsideAttributeUsage()
-    {
-        var testSrc = @"
+            var testSrc = @"
 using System;
 
 class Program
@@ -1012,31 +1012,31 @@ class Program
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "x"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "? x"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [Fact]
+        public void LookupInsideLocalFunctionAttribute()
         {
-            "x"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "? x"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [Fact]
-    public void LookupInsideLocalFunctionAttribute()
-    {
-        var testSrc = @"
+            var testSrc = @"
 using System;
 
 class Program
@@ -1055,19 +1055,19 @@ class Program
 }
 ";
 
-        var lookupNames = GetLookupNames(testSrc);
-        var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
 
-        Assert.Contains("w", lookupNames);
-        Assert.Contains("y", lookupNames);
-        Assert.Contains("System.Int32 Program.w", lookupSymbols);
-        Assert.Contains("System.Int32 y", lookupSymbols);
-    }
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
 
-    [Fact]
-    public void LookupInsideLambdaAttribute()
-    {
-        var testSrc = @"
+        [Fact]
+        public void LookupInsideLambdaAttribute()
+        {
+            var testSrc = @"
 using System;
 
 class Program
@@ -1085,19 +1085,19 @@ class Program
 }
 ";
 
-        var lookupNames = GetLookupNames(testSrc);
-        var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
 
-        Assert.Contains("w", lookupNames);
-        Assert.Contains("y", lookupNames);
-        Assert.Contains("System.Int32 Program.w", lookupSymbols);
-        Assert.Contains("System.Int32 y", lookupSymbols);
-    }
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
 
-    [Fact]
-    public void LookupInsideIncompleteStatementAttribute()
-    {
-        var testSrc = @"
+        [Fact]
+        public void LookupInsideIncompleteStatementAttribute()
+        {
+            var testSrc = @"
 using System;
 
 class Program
@@ -1114,20 +1114,20 @@ class Program
 }
 ";
 
-        var lookupNames = GetLookupNames(testSrc);
-        var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
 
-        Assert.Contains("w", lookupNames);
-        Assert.Contains("y", lookupNames);
-        Assert.Contains("System.Int32 Program.w", lookupSymbols);
-        Assert.Contains("System.Int32 y", lookupSymbols);
-    }
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
 
-    [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
-    [Fact]
-    public void LookupFromRangeVariableAfterFromClause()
-    {
-        var testSrc = @"
+        [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
+        [Fact]
+        public void LookupFromRangeVariableAfterFromClause()
+        {
+            var testSrc = @"
 class Program
 {
     static void Main(string[] args)
@@ -1138,32 +1138,32 @@ class Program
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "i"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "? i"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(541921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541921")]
+        [Fact]
+        public void LookupFromRangeVariableInsideNestedFromClause()
         {
-            "i"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "? i"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(541921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541921")]
-    [Fact]
-    public void LookupFromRangeVariableInsideNestedFromClause()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Program
 {
     static void Main(string[] args)
@@ -1176,32 +1176,32 @@ class Program
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "s"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "? s"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(541919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541919")]
+        [Fact]
+        public void LookupLambdaVariableInQueryExpr()
         {
-            "s"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "? s"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(541919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541919")]
-    [Fact]
-    public void LookupLambdaVariableInQueryExpr()
-    {
-        var testSrc = @"
+            var testSrc = @"
 class Program
 {
     static void Main(string[] args)
@@ -1211,49 +1211,49 @@ class Program
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "x"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "x"
+            };
+
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.Name);
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(541910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541910")]
+        [Fact]
+        public void LookupInsideQueryExprOutsideTypeDecl()
         {
-            "x"
-        };
+            var testSrc = @"var q = from i in/*pos*/ f";
 
-        List<string> expected_in_lookupSymbols = new List<string>
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+
+            Assert.NotEmpty(actual_lookupNames);
+            Assert.NotEmpty(actual_lookupSymbols_as_string);
+        }
+
+        [WorkItem(542203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542203")]
+        [Fact]
+        public void LookupInsideQueryExprInMalformedFromClause()
         {
-            "x"
-        };
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.Name);
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(541910, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541910")]
-    [Fact]
-    public void LookupInsideQueryExprOutsideTypeDecl()
-    {
-        var testSrc = @"var q = from i in/*pos*/ f";
-
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
-
-        Assert.NotEmpty(actual_lookupNames);
-        Assert.NotEmpty(actual_lookupSymbols_as_string);
-    }
-
-    [WorkItem(542203, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542203")]
-    [Fact]
-    public void LookupInsideQueryExprInMalformedFromClause()
-    {
-        var testSrc = @"
+            var testSrc = @"
 using System;
 using System.Linq;
 
@@ -1267,22 +1267,22 @@ class Program
     }
 }
 ";
-        // Get the list of LookupNames at the location at the end of the /*pos*/ tag
-        var actual_lookupNames = GetLookupNames(testSrc);
+            // Get the list of LookupNames at the location at the end of the /*pos*/ tag
+            var actual_lookupNames = GetLookupNames(testSrc);
 
-        // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+            // Get the list of LookupSymbols at the location at the end of the /*pos*/ tag
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
 
-        Assert.NotEmpty(actual_lookupNames);
-        Assert.NotEmpty(actual_lookupSymbols_as_string);
-    }
+            Assert.NotEmpty(actual_lookupNames);
+            Assert.NotEmpty(actual_lookupSymbols_as_string);
+        }
 
-    [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
-    [Fact]
-    public void MultipleOverlappingInterfaceConstraints()
-    {
-        var testSrc =
+        [WorkItem(543295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543295")]
+        [Fact]
+        public void MultipleOverlappingInterfaceConstraints()
+        {
+            var testSrc =
 @"public interface IEntity
 {
     object Key { get; }
@@ -1315,14 +1315,14 @@ public class NumberSpecification<TCandidate>
         var key = candidate.Key;
     }
 }";
-        CreateCompilation(testSrc).VerifyDiagnostics();
-    }
+            CreateCompilation(testSrc).VerifyDiagnostics();
+        }
 
-    [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
-    [Fact]
-    public void FixedPointerInitializer()
-    {
-        var testSrc = @"
+        [WorkItem(529406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529406")]
+        [Fact]
+        public void FixedPointerInitializer()
+        {
+            var testSrc = @"
 class Program
 {
     static int num = 0;
@@ -1335,47 +1335,47 @@ class Program
 }
 ";
 
-        List<string> expected_in_lookupNames = new List<string>
+            List<string> expected_in_lookupNames = new List<string>
+            {
+                "p2"
+            };
+
+            List<string> expected_in_lookupSymbols = new List<string>
+            {
+                "p2"
+            };
+
+            // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupNames = GetLookupNames(testSrc);
+
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
+            var actual_lookupSymbols = GetLookupSymbols(testSrc);
+            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString()).ToList();
+
+            Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
+            Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
+        }
+
+        [Fact]
+        public void LookupSymbolsAtEOF()
         {
-            "p2"
-        };
-
-        List<string> expected_in_lookupSymbols = new List<string>
-        {
-            "p2"
-        };
-
-        // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupNames = GetLookupNames(testSrc);
-
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-        var actual_lookupSymbols = GetLookupSymbols(testSrc);
-        var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToString()).ToList();
-
-        Assert.Contains(expected_in_lookupNames[0], actual_lookupNames);
-        Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
-    }
-
-    [Fact]
-    public void LookupSymbolsAtEOF()
-    {
-        var source =
+            var source =
 @"class
 {
 }";
-        var tree = Parse(source);
-        var comp = CreateCompilationWithMscorlib40(new[] { tree });
-        var model = comp.GetSemanticModel(tree);
-        var eof = tree.GetCompilationUnitRoot().FullSpan.End;
-        Assert.NotEqual(0, eof);
-        var symbols = model.LookupSymbols(eof);
-        CompilationUtils.CheckISymbols(symbols, "System", "Microsoft");
-    }
+            var tree = Parse(source);
+            var comp = CreateCompilationWithMscorlib40(new[] { tree });
+            var model = comp.GetSemanticModel(tree);
+            var eof = tree.GetCompilationUnitRoot().FullSpan.End;
+            Assert.NotEqual(0, eof);
+            var symbols = model.LookupSymbols(eof);
+            CompilationUtils.CheckISymbols(symbols, "System", "Microsoft");
+        }
 
-    [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
-    public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_01()
-    {
-        var source =
+        [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
+        public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_01()
+        {
+            var source =
 @"
 using System;
  
@@ -1387,21 +1387,21 @@ class Program
     }
 }
 ";
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
-        var actual_lookupSymbols = GetLookupSymbols(source);
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
+            var actual_lookupSymbols = GetLookupSymbols(source);
 
-        // Verify nested namespaces *are not* imported.
-        var systemNS = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("System") && sym.Kind == SymbolKind.Namespace).Single();
-        INamespaceSymbol systemXmlNS = systemNS.GetNestedNamespace("Xml");
-        Assert.DoesNotContain(systemXmlNS, actual_lookupSymbols);
-    }
+            // Verify nested namespaces *are not* imported.
+            var systemNS = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("System") && sym.Kind == SymbolKind.Namespace).Single();
+            INamespaceSymbol systemXmlNS = systemNS.GetNestedNamespace("Xml");
+            Assert.DoesNotContain(systemXmlNS, actual_lookupSymbols);
+        }
 
-    [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
-    public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
-    {
-        var usings = "using X;";
+        [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
+        public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
+        {
+            var usings = "using X;";
 
-        var source =
+            var source =
 @"
 using aliasY = X.Y;
 
@@ -1438,35 +1438,35 @@ class Program
     }
 }
 ";
-        // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
-        var actual_lookupSymbols = GetLookupSymbols(usings + source, isScript: false);
-        TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
+            // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
+            var actual_lookupSymbols = GetLookupSymbols(usings + source, isScript: false);
+            TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
-        actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: new[] { usings });
-        TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
+            actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: new[] { usings });
+            TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
-        Action<ModuleSymbol> validator = (module) =>
+            Action<ModuleSymbol> validator = (module) =>
+            {
+                NamespaceSymbol globalNS = module.GlobalNamespace;
+
+                Assert.Equal(1, globalNS.GetMembers("X").Length);
+                Assert.Equal(1, globalNS.GetMembers("A").Length);
+                Assert.Equal(1, globalNS.GetMembers("Program").Length);
+
+                Assert.Empty(globalNS.GetMembers("Y"));
+                Assert.Empty(globalNS.GetMembers("Z"));
+                Assert.Empty(globalNS.GetMembers("StaticZ"));
+                Assert.Empty(globalNS.GetMembers("B"));
+            };
+
+            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
+        }
+
+        [Fact]
+        [WorkItem(530826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530826")]
+        public void TestAmbiguousInterfaceLookup()
         {
-            NamespaceSymbol globalNS = module.GlobalNamespace;
-
-            Assert.Equal(1, globalNS.GetMembers("X").Length);
-            Assert.Equal(1, globalNS.GetMembers("A").Length);
-            Assert.Equal(1, globalNS.GetMembers("Program").Length);
-
-            Assert.Empty(globalNS.GetMembers("Y"));
-            Assert.Empty(globalNS.GetMembers("Z"));
-            Assert.Empty(globalNS.GetMembers("StaticZ"));
-            Assert.Empty(globalNS.GetMembers("B"));
-        };
-
-        CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator);
-    }
-
-    [Fact]
-    [WorkItem(530826, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530826")]
-    public void TestAmbiguousInterfaceLookup()
-    {
-        var source =
+            var source =
 @"delegate void D();
 interface I1
 {
@@ -1495,54 +1495,54 @@ class Q : P
         return 0;
     }
 }";
-        var compilation = CreateCompilation(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
-        var symbolInfo = model.GetSymbolInfo(node);
-        Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
-        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-        var node2 = (ExpressionSyntax)SyntaxFactory.SyntaxTree(node).GetRoot();
-        symbolInfo = model.GetSpeculativeSymbolInfo(node.Position, node2, SpeculativeBindingOption.BindAsExpression);
-        Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
-        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-    }
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "m.M").Single();
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            var node2 = (ExpressionSyntax)SyntaxFactory.SyntaxTree(node).GetRoot();
+            symbolInfo = model.GetSpeculativeSymbolInfo(node.Position, node2, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("void I1.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
 
-    [Fact]
-    public void TestLookupVerbatimVar()
-    {
-        var source = "class C { public static void Main() { @var v = 1; } }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
-            // class C { public static void Main() { @var v = 1; } }
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
-            );
-    }
+        [Fact]
+        public void TestLookupVerbatimVar()
+        {
+            var source = "class C { public static void Main() { @var v = 1; } }";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,39): error CS0246: The type or namespace name 'var' could not be found (are you missing a using directive or an assembly reference?)
+                // class C { public static void Main() { @var v = 1; } }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@var").WithArguments("var").WithLocation(1, 39)
+                );
+        }
 
-    private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)
-    {
-        var namespaceX = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();
+        private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)
+        {
+            var namespaceX = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();
 
-        // Verify nested namespaces within namespace X *are not* present in lookup symbols.
-        INamespaceSymbol namespaceY = namespaceX.GetNestedNamespace("Y");
-        Assert.DoesNotContain(namespaceY, actual_lookupSymbols);
-        INamedTypeSymbol typeInnerZ = namespaceY.GetTypeMembers("InnerZ").Single();
-        Assert.DoesNotContain(typeInnerZ, actual_lookupSymbols);
+            // Verify nested namespaces within namespace X *are not* present in lookup symbols.
+            INamespaceSymbol namespaceY = namespaceX.GetNestedNamespace("Y");
+            Assert.DoesNotContain(namespaceY, actual_lookupSymbols);
+            INamedTypeSymbol typeInnerZ = namespaceY.GetTypeMembers("InnerZ").Single();
+            Assert.DoesNotContain(typeInnerZ, actual_lookupSymbols);
 
-        // Verify nested types *are not* present in lookup symbols.
-        var typeA = (INamedTypeSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("A") && sym.Kind == SymbolKind.NamedType).Single();
-        INamedTypeSymbol typeB = typeA.GetTypeMembers("B").Single();
-        Assert.DoesNotContain(typeB, actual_lookupSymbols);
+            // Verify nested types *are not* present in lookup symbols.
+            var typeA = (INamedTypeSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("A") && sym.Kind == SymbolKind.NamedType).Single();
+            INamedTypeSymbol typeB = typeA.GetTypeMembers("B").Single();
+            Assert.DoesNotContain(typeB, actual_lookupSymbols);
 
-        // Verify aliases to nested namespaces within namespace X *are* present in lookup symbols.
-        var aliasY = (IAliasSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("aliasY") && sym.Kind == SymbolKind.Alias).Single();
-        Assert.Contains(aliasY, actual_lookupSymbols);
-    }
+            // Verify aliases to nested namespaces within namespace X *are* present in lookup symbols.
+            var aliasY = (IAliasSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("aliasY") && sym.Kind == SymbolKind.Alias).Single();
+            Assert.Contains(aliasY, actual_lookupSymbols);
+        }
 
-    [Fact]
-    public void ExtensionMethodCall()
-    {
-        var source =
+        [Fact]
+        public void ExtensionMethodCall()
+        {
+            var source =
 @"static class E
 {
     internal static void F(this object o)
@@ -1556,24 +1556,24 @@ class C
         /*<bind>*/this.F/*</bind>*/();
     }
 }";
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        compilation.VerifyDiagnostics();
-        var exprs = GetExprSyntaxList(tree);
-        var expr = GetExprSyntaxForBinding(exprs);
-        var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
-        Assert.Equal("object.F()", method.ToDisplayString());
-        var reducedFrom = method.ReducedFrom;
-        Assert.NotNull(reducedFrom);
-        Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
-    }
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
+            var expr = GetExprSyntaxForBinding(exprs);
+            var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
+        }
 
-    [WorkItem(3651, "https://github.com/dotnet/roslyn/issues/3651")]
-    [Fact]
-    public void ExtensionMethodDelegateCreation()
-    {
-        var source =
+        [WorkItem(3651, "https://github.com/dotnet/roslyn/issues/3651")]
+        [Fact]
+        public void ExtensionMethodDelegateCreation()
+        {
+            var source =
 @"static class E
 {
     internal static void F(this object o)
@@ -1588,67 +1588,67 @@ class C
         (new System.Action(/*<bind1>*/this.F/*</bind1>*/))();
     }
 }";
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        compilation.VerifyDiagnostics();
-        var exprs = GetExprSyntaxList(tree);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            compilation.VerifyDiagnostics();
+            var exprs = GetExprSyntaxList(tree);
 
-        var expr = GetExprSyntaxForBinding(exprs, index: 0);
-        var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
-        Assert.Null(method.ReducedFrom);
-        Assert.Equal("E.F(object)", method.ToDisplayString());
+            var expr = GetExprSyntaxForBinding(exprs, index: 0);
+            var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Null(method.ReducedFrom);
+            Assert.Equal("E.F(object)", method.ToDisplayString());
 
-        expr = GetExprSyntaxForBinding(exprs, index: 1);
-        method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
-        Assert.Equal("object.F()", method.ToDisplayString());
-        var reducedFrom = method.ReducedFrom;
-        Assert.NotNull(reducedFrom);
-        Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
-    }
+            expr = GetExprSyntaxForBinding(exprs, index: 1);
+            method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            Assert.Equal("object.F()", method.ToDisplayString());
+            var reducedFrom = method.ReducedFrom;
+            Assert.NotNull(reducedFrom);
+            Assert.Equal("E.F(object)", reducedFrom.ToDisplayString());
+        }
 
-    [WorkItem(7493, "https://github.com/dotnet/roslyn/issues/7493")]
-    [Fact]
-    public void GenericNameLookup()
-    {
-        var source = @"using A = List<int>;";
-        var compilation = CreateCompilation(source).VerifyDiagnostics(
-            // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
-            // using A = List<int>;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
-            // (1,1): hidden CS8019: Unnecessary using directive.
-            // using A = List<int>;
-            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = List<int>;").WithLocation(1, 1));
-    }
+        [WorkItem(7493, "https://github.com/dotnet/roslyn/issues/7493")]
+        [Fact]
+        public void GenericNameLookup()
+        {
+            var source = @"using A = List<int>;";
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (1,11): error CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
+                // using A = List<int>;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(1, 11),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A = List<int>;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A = List<int>;").WithLocation(1, 1));
+        }
 
-    #endregion tests
+        #endregion tests
 
-    #region regressions
+        #region regressions
 
-    [Fact]
-    [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
-    public void BrokenCode01()
-    {
-        var source =
+        [Fact]
+        [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
+        public void BrokenCode01()
+        {
+            var source =
 @"Dele<Str> d3 = delegate (Dele<Str> d2 = delegate ()
 {
     returne<double> d1 = delegate () { return 1; };
     {
         int result = 0;
         Dels Test : Base";
-        var compilation = CreateCompilation(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        SemanticModel imodel = model;
-        var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "returne<double>").First();
-        imodel.GetSymbolInfo(node, default(CancellationToken));
-    }
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SemanticModel imodel = model;
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "returne<double>").First();
+            imodel.GetSymbolInfo(node, default(CancellationToken));
+        }
 
-    [Fact]
-    [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
-    public void BrokenCode02()
-    {
-        var source =
+        [Fact]
+        [WorkItem(552472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552472")]
+        public void BrokenCode02()
+        {
+            var source =
 @"public delegate D D(D d);
 
 class Program
@@ -1663,18 +1663,18 @@ class Program
     }
 }
 ";
-        var compilation = CreateCompilation(source);
-        var tree = compilation.SyntaxTrees[0];
-        var model = compilation.GetSemanticModel(tree);
-        SemanticModel imodel = model;
-        var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "System.Object").First();
-        imodel.GetSymbolInfo(node, default(CancellationToken));
-    }
+            var compilation = CreateCompilation(source);
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SemanticModel imodel = model;
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "System.Object").First();
+            imodel.GetSymbolInfo(node, default(CancellationToken));
+        }
 
-    [Fact]
-    public void InterfaceDiamondHiding()
-    {
-        var source = @"
+        [Fact]
+        public void InterfaceDiamondHiding()
+        {
+            var source = @"
 interface T
 {
     int P { get; set; }
@@ -1704,43 +1704,43 @@ class Test
 }
 ";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var global = comp.GlobalNamespace;
+            var global = comp.GlobalNamespace;
 
-        var interfaceT = global.GetMember<NamedTypeSymbol>("T");
-        var interfaceL = global.GetMember<NamedTypeSymbol>("L");
-        var interfaceR = global.GetMember<NamedTypeSymbol>("R");
-        var interfaceB = global.GetMember<NamedTypeSymbol>("B");
+            var interfaceT = global.GetMember<NamedTypeSymbol>("T");
+            var interfaceL = global.GetMember<NamedTypeSymbol>("L");
+            var interfaceR = global.GetMember<NamedTypeSymbol>("R");
+            var interfaceB = global.GetMember<NamedTypeSymbol>("B");
 
-        var propertyTP = interfaceT.GetMember<PropertySymbol>("P");
-        var propertyTQ = interfaceT.GetMember<PropertySymbol>("Q");
-        var propertyLP = interfaceL.GetMember<PropertySymbol>("P");
-        var propertyRQ = interfaceR.GetMember<PropertySymbol>("Q");
+            var propertyTP = interfaceT.GetMember<PropertySymbol>("P");
+            var propertyTQ = interfaceT.GetMember<PropertySymbol>("Q");
+            var propertyLP = interfaceL.GetMember<PropertySymbol>("P");
+            var propertyRQ = interfaceR.GetMember<PropertySymbol>("Q");
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var syntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToArray();
-        Assert.Equal(2, syntaxes.Length);
+            var syntaxes = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().ToArray();
+            Assert.Equal(2, syntaxes.Length);
 
-        // The properties in T are hidden - we bind to the properties on more-derived interfaces
-        Assert.Equal(propertyLP.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[0]).Symbol);
-        Assert.Equal(propertyRQ.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[1]).Symbol);
+            // The properties in T are hidden - we bind to the properties on more-derived interfaces
+            Assert.Equal(propertyLP.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[0]).Symbol);
+            Assert.Equal(propertyRQ.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[1]).Symbol);
 
-        int position = source.IndexOf("return", StringComparison.Ordinal);
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
-        // We do the right thing with diamond inheritance (i.e. member is hidden along all paths
-        // if it is hidden along any path) because we visit base interfaces in topological order.
-        Assert.Equal(propertyLP.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "P").Single());
-        Assert.Equal(propertyRQ.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "Q").Single());
-    }
+            // We do the right thing with diamond inheritance (i.e. member is hidden along all paths
+            // if it is hidden along any path) because we visit base interfaces in topological order.
+            Assert.Equal(propertyLP.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "P").Single());
+            Assert.Equal(propertyRQ.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "Q").Single());
+        }
 
-    [Fact]
-    public void SemanticModel_OnlyInvalid()
-    {
-        var source = @"
+        [Fact]
+        public void SemanticModel_OnlyInvalid()
+        {
+            var source = @"
 public class C
 {
     void M()
@@ -1750,22 +1750,22 @@ public class C
 }
 ";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        int position = source.IndexOf("return", StringComparison.Ordinal);
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
-        var symbols = model.LookupNamespacesAndTypes(position, name: "M");
-        Assert.Equal(0, symbols.Length);
-    }
+            var symbols = model.LookupNamespacesAndTypes(position, name: "M");
+            Assert.Equal(0, symbols.Length);
+        }
 
-    [Fact]
-    public void SemanticModel_InvalidHidingValid()
-    {
-        var source = @"
+        [Fact]
+        public void SemanticModel_InvalidHidingValid()
+        {
+            var source = @"
 public class C<T>
 {
     public class Inner
@@ -1778,28 +1778,28 @@ public class C<T>
 }
 ";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-        var methodT = classC.GetMember<NamedTypeSymbol>("Inner").GetMember<MethodSymbol>("T");
+            var classC = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var methodT = classC.GetMember<NamedTypeSymbol>("Inner").GetMember<MethodSymbol>("T");
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        int position = source.IndexOf("return", StringComparison.Ordinal);
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
-        var symbols = model.LookupSymbols(position, name: "T");
-        Assert.Equal(methodT.GetPublicSymbol(), symbols.Single()); // Hides type parameter.
+            var symbols = model.LookupSymbols(position, name: "T");
+            Assert.Equal(methodT.GetPublicSymbol(), symbols.Single()); // Hides type parameter.
 
-        symbols = model.LookupNamespacesAndTypes(position, name: "T");
-        Assert.Equal(classC.TypeParameters.Single().GetPublicSymbol(), symbols.Single()); // Ignore intervening method.
-    }
+            symbols = model.LookupNamespacesAndTypes(position, name: "T");
+            Assert.Equal(classC.TypeParameters.Single().GetPublicSymbol(), symbols.Single()); // Ignore intervening method.
+        }
 
-    [Fact]
-    public void SemanticModel_MultipleValid()
-    {
-        var source = @"
+        [Fact]
+        public void SemanticModel_MultipleValid()
+        {
+            var source = @"
 public class Outer
 {
     void M(int x)
@@ -1813,22 +1813,22 @@ public class Outer
 }
 ";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        int position = source.IndexOf("return", StringComparison.Ordinal);
+            int position = source.IndexOf("return", StringComparison.Ordinal);
 
-        var symbols = model.LookupSymbols(position, name: "M");
-        Assert.Equal(2, symbols.Length);
-    }
+            var symbols = model.LookupSymbols(position, name: "M");
+            Assert.Equal(2, symbols.Length);
+        }
 
-    [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
-    public void Bug1078958()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078958")]
+        public void Bug1078958()
+        {
+            const string source = @"
 class C
 {
     static void Goo<T>()
@@ -1839,14 +1839,14 @@ class C
     static void T() { }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961()
+        {
+            const string source = @"
 class C
 {
     const int T = 42;
@@ -1861,14 +1861,14 @@ class C
     }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961_2()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961_2()
+        {
+            const string source = @"
 class A : System.Attribute
 {
     public A(int i) { }
@@ -1883,14 +1883,14 @@ class C
     }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961_3()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961_3()
+        {
+            const string source = @"
 class A : System.Attribute
 {
     public A(int i) { }
@@ -1906,14 +1906,14 @@ class C
     }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961_4()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961_4()
+        {
+            const string source = @"
 class A : System.Attribute
 {
     public A(int i) { }
@@ -1928,14 +1928,14 @@ class C
     }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961_5()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961_5()
+        {
+            const string source = @"
 class C
 {
     class T { }
@@ -1951,14 +1951,14 @@ class C
     }
 }";
 
-        var symbols = GetLookupSymbols(source);
-        Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = GetLookupSymbols(source);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
-    public void Bug1078961_6()
-    {
-        const string source = @"
+        [Fact, WorkItem(1078961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1078961")]
+        public void Bug1078961_6()
+        {
+            const string source = @"
 class C
 {
     class T { }
@@ -1974,22 +1974,22 @@ class C
     }
 }";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var position = GetPositionForBinding(tree);
+            var position = GetPositionForBinding(tree);
 
-        var symbols = model.LookupNamespacesAndTypes(position);
-        Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
-    }
+            var symbols = model.LookupNamespacesAndTypes(position);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
 
-    [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
-    public void Bug1091936_1()
-    {
-        const string source = @"
+        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        public void Bug1091936_1()
+        {
+            const string source = @"
 class Program
 {
     static object M(long l) { return null; }
@@ -2002,26 +2002,26 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics();
 
-        var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
-        var m = ms.Where(mm => mm.Parameters[0].Type.SpecialType == SpecialType.System_Int32).Single();
+            var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
+            var m = ms.Where(mm => mm.Parameters[0].Type.SpecialType == SpecialType.System_Int32).Single();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
-        var symbolInfo = model.GetSymbolInfo(call.Expression);
-        Assert.NotEqual(default, symbolInfo);
-        Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
-    }
+            var symbolInfo = model.GetSymbolInfo(call.Expression);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
+        }
 
-    [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
-    public void Bug1091936_2()
-    {
-        const string source = @"
+        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        public void Bug1091936_2()
+        {
+            const string source = @"
 class Program
 {
     static object M = null;
@@ -2033,25 +2033,25 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics();
 
-        var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
+            var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
-        var symbolInfo = model.GetSymbolInfo(node);
-        Assert.NotEqual(default, symbolInfo);
-        Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
-    }
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
+        }
 
-    [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
-    public void Bug1091936_3()
-    {
-        const string source = @"
+        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        public void Bug1091936_3()
+        {
+            const string source = @"
 class Program
 {
     object M = null;
@@ -2063,25 +2063,25 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics();
 
-        var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
+            var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
-        var symbolInfo = model.GetSymbolInfo(node);
-        Assert.NotEqual(default, symbolInfo);
-        Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
-    }
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
+        }
 
-    [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
-    public void Bug1091936_4()
-    {
-        const string source = @"
+        [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
+        public void Bug1091936_4()
+        {
+            const string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2091,53 +2091,54 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            comp.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var node = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().Single();
 
-        var symbolInfo = model.GetSymbolInfo(node);
-        Assert.NotEqual(default, symbolInfo);
-        Assert.NotNull(symbolInfo.Symbol);
-    }
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.NotNull(symbolInfo.Symbol);
+        }
 
-    [Fact]
-    public void GenericAttribute_LookupSymbols_01()
-    {
-        var source = @"
+        [Fact]
+        public void GenericAttribute_LookupSymbols_01()
+        {
+            var source = @"
 using System;
 class Attr1<T> : Attribute { public Attr1(T t) { } }
 
 [Attr1<string>(""a"")]
 class C { }";
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
-        var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
-        var symbol = model.GetSymbolInfo(node);
-        Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
-    }
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var symbol = model.GetSymbolInfo(node);
+            Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
 
-    [Fact]
-    public void GenericAttribute_LookupSymbols_02()
-    {
-        var source = @"
+        [Fact]
+        public void GenericAttribute_LookupSymbols_02()
+        {
+            var source = @"
 using System;
 class Attr1<T> : Attribute { public Attr1(T t) { } }
 
 [Attr1</*<bind>*/string/*</bind>*/>]
 class C { }";
 
-        var names = GetLookupNames(source);
-        Assert.Contains("C", names);
-        Assert.Contains("Attr1", names);
-    }
+            var names = GetLookupNames(source);
+            Assert.Contains("C", names);
+            Assert.Contains("Attr1", names);
+        }
 
-    #endregion
+        #endregion
+    }
 }

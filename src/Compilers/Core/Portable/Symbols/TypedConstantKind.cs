@@ -4,16 +4,17 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Represents the kind of a TypedConstant.
-/// </summary>
-public enum TypedConstantKind
+namespace Microsoft.CodeAnalysis
 {
-    Error = 0, // error should be the default so that default(TypedConstant) is internally consistent
-    Primitive = 1,
-    Enum = 2,
-    Type = 3,
-    Array = 4
+    /// <summary>
+    /// Represents the kind of a TypedConstant.
+    /// </summary>
+    public enum TypedConstantKind
+    {
+        Error = 0, // error should be the default so that default(TypedConstant) is internally consistent
+        Primitive = 1,
+        Enum = 2,
+        Type = 3,
+        Array = 4
+    }
 }

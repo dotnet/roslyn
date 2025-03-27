@@ -7,74 +7,75 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
+    internal sealed partial class LocalRewriter
     {
-        // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
-        // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
-        return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
-    }
-
-    private BoundStatement? RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
-    {
-        var loweredExpression = VisitUnusedExpression(node.Expression);
-
-        if (loweredExpression == null)
+        public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
         {
-            return null;
+            // NOTE: not using a BoundNoOpStatement, since we don't want a nop to be emitted.
+            // CONSIDER: could use a BoundNoOpStatement (DevDiv #12943).
+            return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
         }
-        else
+
+        private BoundStatement? RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
         {
-            BoundStatement result = node.Update(loweredExpression);
-            if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
+            var loweredExpression = VisitUnusedExpression(node.Expression);
+
+            if (loweredExpression == null)
             {
-                result = Instrumenter.InstrumentExpressionStatement(node, result);
+                return null;
+            }
+            else
+            {
+                BoundStatement result = node.Update(loweredExpression);
+                if (!suppressInstrumentation && this.Instrument && !node.WasCompilerGenerated)
+                {
+                    result = Instrumenter.InstrumentExpressionStatement(node, result);
+                }
+
+                return result;
+            }
+        }
+
+        private BoundExpression? VisitUnusedExpression(BoundExpression expression)
+        {
+            if (expression.HasErrors)
+            {
+                return expression;
             }
 
-            return result;
-        }
-    }
+            switch (expression.Kind)
+            {
+                case BoundKind.AwaitExpression:
+                    return VisitAwaitExpression((BoundAwaitExpression)expression, used: false);
 
-    private BoundExpression? VisitUnusedExpression(BoundExpression expression)
-    {
-        if (expression.HasErrors)
-        {
-            return expression;
-        }
+                case BoundKind.AssignmentOperator:
+                    // Avoid extra temporary by indicating the expression value is not used.
+                    return VisitAssignmentOperator((BoundAssignmentOperator)expression, used: false);
 
-        switch (expression.Kind)
-        {
-            case BoundKind.AwaitExpression:
-                return VisitAwaitExpression((BoundAwaitExpression)expression, used: false);
+                case BoundKind.CompoundAssignmentOperator:
+                    return VisitCompoundAssignmentOperator((BoundCompoundAssignmentOperator)expression, used: false);
 
-            case BoundKind.AssignmentOperator:
-                // Avoid extra temporary by indicating the expression value is not used.
-                return VisitAssignmentOperator((BoundAssignmentOperator)expression, used: false);
-
-            case BoundKind.CompoundAssignmentOperator:
-                return VisitCompoundAssignmentOperator((BoundCompoundAssignmentOperator)expression, used: false);
-
-            case BoundKind.Call:
-                if (_allowOmissionOfConditionalCalls)
-                {
-                    var call = (BoundCall)expression;
-                    if (call.Method.CallsAreOmitted(call.SyntaxTree))
+                case BoundKind.Call:
+                    if (_allowOmissionOfConditionalCalls)
                     {
-                        return null;
+                        var call = (BoundCall)expression;
+                        if (call.Method.CallsAreOmitted(call.SyntaxTree))
+                        {
+                            return null;
+                        }
                     }
-                }
-                break;
+                    break;
 
-            case BoundKind.DynamicInvocation:
-                // TODO (tomat): circumvents logic in VisitExpression...
-                return VisitDynamicInvocation((BoundDynamicInvocation)expression, resultDiscarded: true);
+                case BoundKind.DynamicInvocation:
+                    // TODO (tomat): circumvents logic in VisitExpression...
+                    return VisitDynamicInvocation((BoundDynamicInvocation)expression, resultDiscarded: true);
 
-            case BoundKind.ConditionalAccess:
-                return RewriteConditionalAccess((BoundConditionalAccess)expression, used: false);
+                case BoundKind.ConditionalAccess:
+                    return RewriteConditionalAccess((BoundConditionalAccess)expression, used: false);
+            }
+            return VisitExpression(expression);
         }
-        return VisitExpression(expression);
     }
 }

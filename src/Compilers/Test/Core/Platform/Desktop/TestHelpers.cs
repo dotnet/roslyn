@@ -18,47 +18,47 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Win32;
 using Basic.Reference.Assemblies;
 
-namespace Roslyn.Test.Utilities;
-
-public static class DesktopTestHelpers
+namespace Roslyn.Test.Utilities
 {
-    public static IEnumerable<Type> GetAllTypesImplementingGivenInterface(Assembly assembly, Type interfaceType)
+    public static class DesktopTestHelpers
     {
-        if (assembly == null || interfaceType == null || !interfaceType.IsInterface)
+        public static IEnumerable<Type> GetAllTypesImplementingGivenInterface(Assembly assembly, Type interfaceType)
         {
-            throw new ArgumentException("interfaceType is not an interface.", nameof(interfaceType));
-        }
-
-        return assembly.GetTypes().Where((t) =>
-        {
-            // simplest way to get types that implement mef type
-            // we might need to actually check whether type export the interface type later
-            if (t.IsAbstract)
+            if (assembly == null || interfaceType == null || !interfaceType.IsInterface)
             {
-                return false;
+                throw new ArgumentException("interfaceType is not an interface.", nameof(interfaceType));
             }
 
-            var candidate = t.GetInterface(interfaceType.ToString());
-            return candidate != null && candidate.Equals(interfaceType);
-        }).ToList();
-    }
+            return assembly.GetTypes().Where((t) =>
+            {
+                // simplest way to get types that implement mef type
+                // we might need to actually check whether type export the interface type later
+                if (t.IsAbstract)
+                {
+                    return false;
+                }
 
-    public static IEnumerable<Type> GetAllTypesSubclassingType(Assembly assembly, Type type)
-    {
-        if (assembly == null || type == null)
-        {
-            throw new ArgumentException("Invalid arguments");
+                var candidate = t.GetInterface(interfaceType.ToString());
+                return candidate != null && candidate.Equals(interfaceType);
+            }).ToList();
         }
 
-        return (from t in assembly.GetTypes()
-                where !t.IsAbstract
-                where type.IsAssignableFrom(t)
-                select t).ToList();
-    }
+        public static IEnumerable<Type> GetAllTypesSubclassingType(Assembly assembly, Type type)
+        {
+            if (assembly == null || type == null)
+            {
+                throw new ArgumentException("Invalid arguments");
+            }
 
-    public static TempFile CreateCSharpAnalyzerAssemblyWithTestAnalyzer(TempDirectory dir, string assemblyName)
-    {
-        var analyzerSource = @"
+            return (from t in assembly.GetTypes()
+                    where !t.IsAbstract
+                    where type.IsAssignableFrom(t)
+                    select t).ToList();
+        }
+
+        public static TempFile CreateCSharpAnalyzerAssemblyWithTestAnalyzer(TempDirectory dir, string assemblyName)
+        {
+            var analyzerSource = @"
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -71,44 +71,45 @@ public class TestAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
 }";
 
-        dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
-        var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
-        var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-        dir.CopyFile(typeof(Memory<>).Assembly.Location);
-        dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
+            dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
+            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            dir.CopyFile(typeof(Memory<>).Assembly.Location);
+            dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
 
-        var analyzerCompilation = CSharpCompilation.Create(
-            assemblyName,
-            new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithms.Default)) },
-            new MetadataReference[]
-            {
-                NetStandard20.References.mscorlib,
-                NetStandard20.References.netstandard,
-                NetStandard20.References.SystemRuntime,
-                MetadataReference.CreateFromFile(immutable.Path),
-                MetadataReference.CreateFromFile(analyzer.Path)
-            },
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-        return dir.CreateFile(assemblyName + ".dll").WriteAllBytes(analyzerCompilation.EmitToArray());
-    }
-
-    public static string? GetMSBuildDirectory()
-    {
-        var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-        using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
-        {
-            if (key != null)
-            {
-                var toolsPath = key.GetValue("MSBuildToolsPath");
-                if (toolsPath != null)
+            var analyzerCompilation = CSharpCompilation.Create(
+                assemblyName,
+                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(analyzerSource, encoding: null, SourceHashAlgorithms.Default)) },
+                new MetadataReference[]
                 {
-                    return toolsPath.ToString();
-                }
-            }
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime,
+                    MetadataReference.CreateFromFile(immutable.Path),
+                    MetadataReference.CreateFromFile(analyzer.Path)
+                },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            return dir.CreateFile(assemblyName + ".dll").WriteAllBytes(analyzerCompilation.EmitToArray());
         }
 
-        return null;
+        public static string? GetMSBuildDirectory()
+        {
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+            using (var key = Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}", false))
+            {
+                if (key != null)
+                {
+                    var toolsPath = key.GetValue("MSBuildToolsPath");
+                    if (toolsPath != null)
+                    {
+                        return toolsPath.ToString();
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }
 

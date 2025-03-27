@@ -6,51 +6,52 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private partial class Empty
+    internal partial class SpecializedCollections
     {
-        internal static class BoxedImmutableArray<T>
+        private partial class Empty
         {
-            // empty boxed immutable array
-            public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;
-        }
-
-        internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
-        {
-            public static new readonly List<T> Instance = new();
-
-            protected List()
+            internal static class BoxedImmutableArray<T>
             {
+                // empty boxed immutable array
+                public static readonly IReadOnlyList<T> Instance = ImmutableArray<T>.Empty;
             }
 
-            public int IndexOf(T item)
+            internal class List<T> : Collection<T>, IList<T>, IReadOnlyList<T>
             {
-                return -1;
-            }
+                public static new readonly List<T> Instance = new();
 
-            public void Insert(int index, T item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void RemoveAt(int index)
-            {
-                throw new NotSupportedException();
-            }
-
-            public T this[int index]
-            {
-                get
+                protected List()
                 {
-                    throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                set
+                public int IndexOf(T item)
+                {
+                    return -1;
+                }
+
+                public void Insert(int index, T item)
                 {
                     throw new NotSupportedException();
+                }
+
+                public void RemoveAt(int index)
+                {
+                    throw new NotSupportedException();
+                }
+
+                public T this[int index]
+                {
+                    get
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(index));
+                    }
+
+                    set
+                    {
+                        throw new NotSupportedException();
+                    }
                 }
             }
         }

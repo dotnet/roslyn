@@ -4,27 +4,28 @@
 
 using System.ComponentModel;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public sealed partial class CrefParameterSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    /// <summary>
-    /// Pre C# 7.2 back-compat overload, which simply calls the replacement property <see cref="RefKindKeyword"/>.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public SyntaxToken RefOrOutKeyword => this.RefKindKeyword;
-
-    /// <summary>
-    /// Pre C# 7.2 back-compat overload, which simply calls the replacement method <see cref="Update(SyntaxToken, TypeSyntax)"/>.
-    /// </summary>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public CrefParameterSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
+    public sealed partial class CrefParameterSyntax
     {
-        return this.Update(refOrOutKeyword, this.Type);
-    }
+        /// <summary>
+        /// Pre C# 7.2 back-compat overload, which simply calls the replacement property <see cref="RefKindKeyword"/>.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SyntaxToken RefOrOutKeyword => this.RefKindKeyword;
 
-    public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
-    {
-        return this.Update(refKindKeyword: refKindKeyword, readOnlyKeyword: this.ReadOnlyKeyword, type: type);
+        /// <summary>
+        /// Pre C# 7.2 back-compat overload, which simply calls the replacement method <see cref="Update(SyntaxToken, TypeSyntax)"/>.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CrefParameterSyntax WithRefOrOutKeyword(SyntaxToken refOrOutKeyword)
+        {
+            return this.Update(refOrOutKeyword, this.Type);
+        }
+
+        public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
+        {
+            return this.Update(refKindKeyword: refKindKeyword, readOnlyKeyword: this.ReadOnlyKeyword, type: type);
+        }
     }
 }

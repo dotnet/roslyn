@@ -5,32 +5,33 @@
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal readonly struct ExternAliasRecord
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    public readonly string Alias;
-
-    /// <summary>
-    /// IAssemblySymbolInternal or AssemblyIdentity
-    /// </summary>
-    public readonly object TargetAssembly;
-
-    public ExternAliasRecord(string alias, IAssemblySymbolInternal targetAssembly)
+    internal readonly struct ExternAliasRecord
     {
-        RoslynDebug.AssertNotNull(alias);
-        RoslynDebug.AssertNotNull(targetAssembly);
+        public readonly string Alias;
 
-        Alias = alias;
-        TargetAssembly = targetAssembly;
-    }
+        /// <summary>
+        /// IAssemblySymbolInternal or AssemblyIdentity
+        /// </summary>
+        public readonly object TargetAssembly;
 
-    public ExternAliasRecord(string alias, AssemblyIdentity targetIdentity)
-    {
-        RoslynDebug.AssertNotNull(alias);
-        RoslynDebug.AssertNotNull(targetIdentity);
+        public ExternAliasRecord(string alias, IAssemblySymbolInternal targetAssembly)
+        {
+            RoslynDebug.AssertNotNull(alias);
+            RoslynDebug.AssertNotNull(targetAssembly);
 
-        Alias = alias;
-        TargetAssembly = targetIdentity;
+            Alias = alias;
+            TargetAssembly = targetAssembly;
+        }
+
+        public ExternAliasRecord(string alias, AssemblyIdentity targetIdentity)
+        {
+            RoslynDebug.AssertNotNull(alias);
+            RoslynDebug.AssertNotNull(targetIdentity);
+
+            Alias = alias;
+            TargetAssembly = targetIdentity;
+        }
     }
 }

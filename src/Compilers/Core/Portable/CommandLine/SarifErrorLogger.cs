@@ -9,160 +9,161 @@ using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Base class for the <see cref="SarifV1ErrorLogger"/> and <see cref="SarifV2ErrorLogger"/> classes.
-/// The SarifV2ErrorLogger produces the standardized SARIF v2.1.0. The SarifV1ErrorLogger produces
-/// the non-standardized SARIF v1.0.0. It is retained (and in fact, is retained as the default)
-/// for compatibility with previous versions of the compiler. Customers who want to integrate
-/// with standardized SARIF tooling should specify /errorlog:logFilePath;version=2 on the command
-/// line to produce SARIF v2.1.0.
-/// </summary>
-internal abstract class SarifErrorLogger : ErrorLogger, IDisposable
+namespace Microsoft.CodeAnalysis
 {
-    protected JsonWriter _writer { get; }
-    protected CultureInfo _culture { get; }
-
-    protected SarifErrorLogger(Stream stream, CultureInfo culture)
+    /// <summary>
+    /// Base class for the <see cref="SarifV1ErrorLogger"/> and <see cref="SarifV2ErrorLogger"/> classes.
+    /// The SarifV2ErrorLogger produces the standardized SARIF v2.1.0. The SarifV1ErrorLogger produces
+    /// the non-standardized SARIF v1.0.0. It is retained (and in fact, is retained as the default)
+    /// for compatibility with previous versions of the compiler. Customers who want to integrate
+    /// with standardized SARIF tooling should specify /errorlog:logFilePath;version=2 on the command
+    /// line to produce SARIF v2.1.0.
+    /// </summary>
+    internal abstract class SarifErrorLogger : ErrorLogger, IDisposable
     {
-        Debug.Assert(stream != null);
-        Debug.Assert(stream!.Position == 0);
+        protected JsonWriter _writer { get; }
+        protected CultureInfo _culture { get; }
 
-        _writer = new JsonWriter(new StreamWriter(stream));
-        _culture = culture;
-    }
-
-    //
-    protected abstract string PrimaryLocationPropertyName { get; }
-
-    protected abstract void WritePhysicalLocation(Location diagnosticLocation);
-
-    public virtual void Dispose()
-    {
-        _writer.Dispose();
-    }
-
-    protected void WriteRegion(FileLinePositionSpan span)
-    {
-        // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
-        _writer.WriteObjectStart("region");
-        _writer.Write("startLine", span.StartLinePosition.Line + 1);
-        _writer.Write("startColumn", span.StartLinePosition.Character + 1);
-        _writer.Write("endLine", span.EndLinePosition.Line + 1);
-        _writer.Write("endColumn", span.EndLinePosition.Character + 1);
-        _writer.WriteObjectEnd(); // region
-    }
-
-    protected static string GetLevel(DiagnosticSeverity severity)
-    {
-        switch (severity)
+        protected SarifErrorLogger(Stream stream, CultureInfo culture)
         {
-            case DiagnosticSeverity.Info:
-                return "note";
+            Debug.Assert(stream != null);
+            Debug.Assert(stream!.Position == 0);
 
-            case DiagnosticSeverity.Error:
-                return "error";
-
-            case DiagnosticSeverity.Warning:
-                return "warning";
-
-            case DiagnosticSeverity.Hidden:
-                // Hidden diagnostics are not reported on the command line but we still report the rule metadata for them
-                // in the error logger. SARIF format does not have a special string for hidden diagnostics,
-                // so we represent them similar to Info diagnostics.
-                // In future, if required, we can represent them with a custom property in the SARIF log.
-                goto case DiagnosticSeverity.Info;
-
-            default:
-                Debug.Assert(false);
-                goto case DiagnosticSeverity.Warning;
+            _writer = new JsonWriter(new StreamWriter(stream));
+            _culture = culture;
         }
-    }
 
-    protected void WriteResultProperties(Diagnostic diagnostic)
-    {
-        // Currently, the following are always inherited from the descriptor and therefore will be
-        // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
-        // because it can be inferred from level vs. defaultLevel in the log.
-        Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.ImmutableCustomTags));
-        Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
-        Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
-        Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
+        //
+        protected abstract string PrimaryLocationPropertyName { get; }
 
-        if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
+        protected abstract void WritePhysicalLocation(Location diagnosticLocation);
+
+        public virtual void Dispose()
         {
-            _writer.WriteObjectStart("properties");
+            _writer.Dispose();
+        }
 
-            if (diagnostic.WarningLevel > 0)
+        protected void WriteRegion(FileLinePositionSpan span)
+        {
+            // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
+            _writer.WriteObjectStart("region");
+            _writer.Write("startLine", span.StartLinePosition.Line + 1);
+            _writer.Write("startColumn", span.StartLinePosition.Character + 1);
+            _writer.Write("endLine", span.EndLinePosition.Line + 1);
+            _writer.Write("endColumn", span.EndLinePosition.Character + 1);
+            _writer.WriteObjectEnd(); // region
+        }
+
+        protected static string GetLevel(DiagnosticSeverity severity)
+        {
+            switch (severity)
             {
-                _writer.Write("warningLevel", diagnostic.WarningLevel);
+                case DiagnosticSeverity.Info:
+                    return "note";
+
+                case DiagnosticSeverity.Error:
+                    return "error";
+
+                case DiagnosticSeverity.Warning:
+                    return "warning";
+
+                case DiagnosticSeverity.Hidden:
+                    // Hidden diagnostics are not reported on the command line but we still report the rule metadata for them
+                    // in the error logger. SARIF format does not have a special string for hidden diagnostics,
+                    // so we represent them similar to Info diagnostics.
+                    // In future, if required, we can represent them with a custom property in the SARIF log.
+                    goto case DiagnosticSeverity.Info;
+
+                default:
+                    Debug.Assert(false);
+                    goto case DiagnosticSeverity.Warning;
             }
+        }
 
-            if (diagnostic.Properties.Count > 0)
+        protected void WriteResultProperties(Diagnostic diagnostic)
+        {
+            // Currently, the following are always inherited from the descriptor and therefore will be
+            // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
+            // because it can be inferred from level vs. defaultLevel in the log.
+            Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.ImmutableCustomTags));
+            Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
+            Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
+            Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
+
+            if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
             {
-                _writer.WriteObjectStart("customProperties");
+                _writer.WriteObjectStart("properties");
 
-                foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                if (diagnostic.WarningLevel > 0)
                 {
-                    _writer.Write(pair.Key, pair.Value);
+                    _writer.Write("warningLevel", diagnostic.WarningLevel);
                 }
 
-                _writer.WriteObjectEnd();
+                if (diagnostic.Properties.Count > 0)
+                {
+                    _writer.WriteObjectStart("customProperties");
+
+                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                    {
+                        _writer.Write(pair.Key, pair.Value);
+                    }
+
+                    _writer.WriteObjectEnd();
+                }
+
+                _writer.WriteObjectEnd(); // properties
             }
-
-            _writer.WriteObjectEnd(); // properties
         }
-    }
 
-    protected static bool HasPath(Location location)
-    {
-        return !string.IsNullOrEmpty(location.GetLineSpan().Path);
-    }
-
-    private static readonly Uri s_fileRoot = new Uri("file:///");
-
-    protected static string GetUri(string path)
-    {
-        Debug.Assert(!string.IsNullOrEmpty(path));
-
-        // Note that in general, these "paths" are opaque strings to be
-        // interpreted by resolvers (see SyntaxTree.FilePath documentation).
-
-        // Common case: absolute path -> absolute URI
-        if (Path.IsPathRooted(path))
+        protected static bool HasPath(Location location)
         {
-            // N.B. URI does not handle multiple backslashes or `..` well, so call GetFullPath
-            // to normalize before going to URI
-            var fullPath = Path.GetFullPath(path);
-            if (Uri.TryCreate(fullPath, UriKind.Absolute, out var uri))
-            {
-                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString()
-                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore
-                // not well-formed.
-                return uri.AbsoluteUri;
-            }
+            return !string.IsNullOrEmpty(location.GetLineSpan().Path);
         }
-        else
+
+        private static readonly Uri s_fileRoot = new Uri("file:///");
+
+        protected static string GetUri(string path)
         {
-            // Attempt to normalize the directory separators
-            if (!PathUtilities.IsUnixLikePlatform)
+            Debug.Assert(!string.IsNullOrEmpty(path));
+
+            // Note that in general, these "paths" are opaque strings to be
+            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
+
+            // Common case: absolute path -> absolute URI
+            if (Path.IsPathRooted(path))
             {
-                path = path.Replace(@"\\", @"\");
-                path = PathUtilities.NormalizeWithForwardSlash(path);
+                // N.B. URI does not handle multiple backslashes or `..` well, so call GetFullPath
+                // to normalize before going to URI
+                var fullPath = Path.GetFullPath(path);
+                if (Uri.TryCreate(fullPath, UriKind.Absolute, out var uri))
+                {
+                    // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString()
+                    // is unescaped (e.g. spaces remain unreplaced by %20) and therefore
+                    // not well-formed.
+                    return uri.AbsoluteUri;
+                }
+            }
+            else
+            {
+                // Attempt to normalize the directory separators
+                if (!PathUtilities.IsUnixLikePlatform)
+                {
+                    path = path.Replace(@"\\", @"\");
+                    path = PathUtilities.NormalizeWithForwardSlash(path);
+                }
+
+                if (Uri.TryCreate(path, UriKind.Relative, out var uri))
+                {
+                    // First fallback attempt: attempt to interpret as relative path/URI.
+                    // (Perhaps the resolver works that way.)
+                    // There is no AbsoluteUri equivalent for relative URI references and ToString()
+                    // won't escape without this relative -> absolute -> relative trick.
+                    return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
+                }
             }
 
-            if (Uri.TryCreate(path, UriKind.Relative, out var uri))
-            {
-                // First fallback attempt: attempt to interpret as relative path/URI.
-                // (Perhaps the resolver works that way.)
-                // There is no AbsoluteUri equivalent for relative URI references and ToString()
-                // won't escape without this relative -> absolute -> relative trick.
-                return s_fileRoot.MakeRelativeUri(new Uri(s_fileRoot, uri)).ToString();
-            }
+            // Last resort: UrlEncode the whole opaque string.
+            return System.Net.WebUtility.UrlEncode(path);
         }
-
-        // Last resort: UrlEncode the whole opaque string.
-        return System.Net.WebUtility.UrlEncode(path);
     }
 }

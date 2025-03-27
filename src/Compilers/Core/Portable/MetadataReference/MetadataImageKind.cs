@@ -2,28 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// The kind of metadata a PE file image contains.
-/// </summary>
-public enum MetadataImageKind : byte
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// The PE file is an assembly.
+    /// The kind of metadata a PE file image contains.
     /// </summary>
-    Assembly = 0,
-
-    /// <summary>
-    /// The PE file is a module.
-    /// </summary>
-    Module = 1
-}
-
-internal static partial class EnumBounds
-{
-    internal static bool IsValid(this MetadataImageKind kind)
+    public enum MetadataImageKind : byte
     {
-        return kind >= MetadataImageKind.Assembly && kind <= MetadataImageKind.Module;
+        /// <summary>
+        /// The PE file is an assembly.
+        /// </summary>
+        Assembly = 0,
+
+        /// <summary>
+        /// The PE file is a module.
+        /// </summary>
+        Module = 1
+    }
+
+    internal static partial class EnumBounds
+    {
+        internal static bool IsValid(this MetadataImageKind kind)
+        {
+            return kind >= MetadataImageKind.Assembly && kind <= MetadataImageKind.Module;
+        }
     }
 }

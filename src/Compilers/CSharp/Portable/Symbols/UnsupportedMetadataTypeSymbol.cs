@@ -6,38 +6,39 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class UnsupportedMetadataTypeSymbol : ErrorTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly BadImageFormatException? _mrEx;
-
-    internal UnsupportedMetadataTypeSymbol(BadImageFormatException? mrEx = null)
+    internal sealed class UnsupportedMetadataTypeSymbol : ErrorTypeSymbol
     {
-        _mrEx = mrEx;
-    }
+        private readonly BadImageFormatException? _mrEx;
 
-    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-    {
-        return this;
-    }
-
-    internal override DiagnosticInfo ErrorInfo
-    {
-        get
+        internal UnsupportedMetadataTypeSymbol(BadImageFormatException? mrEx = null)
         {
-            return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+            _mrEx = mrEx;
         }
-    }
 
-    internal override bool MangleName
-    {
-        get
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return false;
+            return this;
         }
-    }
 
-    internal override bool IsFileLocal => false;
-    internal override FileIdentifier? AssociatedFileIdentifier => null;
+        internal override DiagnosticInfo ErrorInfo
+        {
+            get
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_BogusType, string.Empty);
+            }
+        }
+
+        internal override bool MangleName
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override bool IsFileLocal => false;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+    }
 }

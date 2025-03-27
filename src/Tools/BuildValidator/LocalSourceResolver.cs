@@ -12,48 +12,49 @@ using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
-namespace BuildValidator;
-
-internal class LocalSourceResolver
+namespace BuildValidator
 {
-    internal Options Options { get; }
-    internal ImmutableArray<SourceLinkEntry> SourceLinkEntries { get; }
-    internal ILogger Logger { get; }
-
-    public LocalSourceResolver(Options options, ImmutableArray<SourceLinkEntry> sourceLinkEntries, ILogger logger)
+    internal class LocalSourceResolver
     {
-        Options = options;
-        SourceLinkEntries = sourceLinkEntries;
-        Logger = logger;
-    }
+        internal Options Options { get; }
+        internal ImmutableArray<SourceLinkEntry> SourceLinkEntries { get; }
+        internal ILogger Logger { get; }
 
-    public SourceText ResolveSource(SourceTextInfo sourceTextInfo)
-    {
-        var originalFilePath = sourceTextInfo.OriginalSourceFilePath;
-        string? onDiskPath = null;
-        foreach (var link in SourceLinkEntries)
+        public LocalSourceResolver(Options options, ImmutableArray<SourceLinkEntry> sourceLinkEntries, ILogger logger)
         {
-            if (originalFilePath.StartsWith(link.Prefix, FileNameEqualityComparer.StringComparison))
+            Options = options;
+            SourceLinkEntries = sourceLinkEntries;
+            Logger = logger;
+        }
+
+        public SourceText ResolveSource(SourceTextInfo sourceTextInfo)
+        {
+            var originalFilePath = sourceTextInfo.OriginalSourceFilePath;
+            string? onDiskPath = null;
+            foreach (var link in SourceLinkEntries)
             {
-                onDiskPath = Path.GetFullPath(Path.Combine(Options.SourcePath, originalFilePath.Substring(link.Prefix.Length)));
-                if (File.Exists(onDiskPath))
+                if (originalFilePath.StartsWith(link.Prefix, FileNameEqualityComparer.StringComparison))
                 {
-                    break;
+                    onDiskPath = Path.GetFullPath(Path.Combine(Options.SourcePath, originalFilePath.Substring(link.Prefix.Length)));
+                    if (File.Exists(onDiskPath))
+                    {
+                        break;
+                    }
                 }
             }
+
+            // if no source links exist to let us prefix the source path,
+            // then assume the file path in the pdb points to the on-disk location of the file.
+            onDiskPath ??= originalFilePath;
+
+            using var fileStream = File.OpenRead(onDiskPath);
+            var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: false);
+            if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
+            {
+                throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
+            }
+
+            return sourceText;
         }
-
-        // if no source links exist to let us prefix the source path,
-        // then assume the file path in the pdb points to the on-disk location of the file.
-        onDiskPath ??= originalFilePath;
-
-        using var fileStream = File.OpenRead(onDiskPath);
-        var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: false);
-        if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
-        {
-            throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
-        }
-
-        return sourceText;
     }
 }

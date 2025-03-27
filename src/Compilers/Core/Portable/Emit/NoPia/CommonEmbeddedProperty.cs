@@ -10,210 +10,211 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Cci = Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.Emit.NoPia;
-
-internal abstract partial class EmbeddedTypesManager<
-    TPEModuleBuilder,
-    TModuleCompilationState,
-    TEmbeddedTypesManager,
-    TSyntaxNode,
-    TAttributeData,
-    TSymbol,
-    TAssemblySymbol,
-    TNamedTypeSymbol,
-    TFieldSymbol,
-    TMethodSymbol,
-    TEventSymbol,
-    TPropertySymbol,
-    TParameterSymbol,
-    TTypeParameterSymbol,
-    TEmbeddedType,
-    TEmbeddedField,
-    TEmbeddedMethod,
-    TEmbeddedEvent,
-    TEmbeddedProperty,
-    TEmbeddedParameter,
-    TEmbeddedTypeParameter>
+namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
-    internal abstract class CommonEmbeddedProperty : CommonEmbeddedMember<TPropertySymbol>, Cci.IPropertyDefinition
+    internal abstract partial class EmbeddedTypesManager<
+        TPEModuleBuilder,
+        TModuleCompilationState,
+        TEmbeddedTypesManager,
+        TSyntaxNode,
+        TAttributeData,
+        TSymbol,
+        TAssemblySymbol,
+        TNamedTypeSymbol,
+        TFieldSymbol,
+        TMethodSymbol,
+        TEventSymbol,
+        TPropertySymbol,
+        TParameterSymbol,
+        TTypeParameterSymbol,
+        TEmbeddedType,
+        TEmbeddedField,
+        TEmbeddedMethod,
+        TEmbeddedEvent,
+        TEmbeddedProperty,
+        TEmbeddedParameter,
+        TEmbeddedTypeParameter>
     {
-        private readonly ImmutableArray<TEmbeddedParameter> _parameters;
-        private readonly TEmbeddedMethod _getter;
-        private readonly TEmbeddedMethod _setter;
-
-        protected CommonEmbeddedProperty(TPropertySymbol underlyingProperty, TEmbeddedMethod getter, TEmbeddedMethod setter) :
-            base(underlyingProperty)
+        internal abstract class CommonEmbeddedProperty : CommonEmbeddedMember<TPropertySymbol>, Cci.IPropertyDefinition
         {
-            Debug.Assert(getter != null || setter != null);
+            private readonly ImmutableArray<TEmbeddedParameter> _parameters;
+            private readonly TEmbeddedMethod _getter;
+            private readonly TEmbeddedMethod _setter;
 
-            _getter = getter;
-            _setter = setter;
-            _parameters = GetParameters();
-        }
-
-        internal override TEmbeddedTypesManager TypeManager
-        {
-            get
+            protected CommonEmbeddedProperty(TPropertySymbol underlyingProperty, TEmbeddedMethod getter, TEmbeddedMethod setter) :
+                base(underlyingProperty)
             {
-                return AnAccessor.TypeManager;
-            }
-        }
+                Debug.Assert(getter != null || setter != null);
 
-        protected abstract ImmutableArray<TEmbeddedParameter> GetParameters();
-        protected abstract bool IsRuntimeSpecial { get; }
-        protected abstract bool IsSpecialName { get; }
-        protected abstract Cci.ISignature UnderlyingPropertySignature { get; }
-        protected abstract TEmbeddedType ContainingType { get; }
-        protected abstract Cci.TypeMemberVisibility Visibility { get; }
-        protected abstract string Name { get; }
-
-        public TPropertySymbol UnderlyingProperty
-        {
-            get
-            {
-                return this.UnderlyingSymbol;
-            }
-        }
-
-        Cci.IMethodReference Cci.IPropertyDefinition.Getter
-        {
-            get { return _getter; }
-        }
-
-        Cci.IMethodReference Cci.IPropertyDefinition.Setter
-        {
-            get { return _setter; }
-        }
-
-        IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
-        {
-            if (_getter != null)
-            {
-                yield return _getter;
+                _getter = getter;
+                _setter = setter;
+                _parameters = GetParameters();
             }
 
-            if (_setter != null)
+            internal override TEmbeddedTypesManager TypeManager
             {
-                yield return _setter;
+                get
+                {
+                    return AnAccessor.TypeManager;
+                }
             }
-        }
 
-        bool Cci.IPropertyDefinition.HasDefaultValue
-        {
-            get { return false; }
-        }
+            protected abstract ImmutableArray<TEmbeddedParameter> GetParameters();
+            protected abstract bool IsRuntimeSpecial { get; }
+            protected abstract bool IsSpecialName { get; }
+            protected abstract Cci.ISignature UnderlyingPropertySignature { get; }
+            protected abstract TEmbeddedType ContainingType { get; }
+            protected abstract Cci.TypeMemberVisibility Visibility { get; }
+            protected abstract string Name { get; }
 
-        MetadataConstant Cci.IPropertyDefinition.DefaultValue
-        {
-            get { return null; }
-        }
-
-        bool Cci.IPropertyDefinition.IsRuntimeSpecial
-        {
-            get { return IsRuntimeSpecial; }
-        }
-
-        bool Cci.IPropertyDefinition.IsSpecialName
-        {
-            get
+            public TPropertySymbol UnderlyingProperty
             {
-                return IsSpecialName;
+                get
+                {
+                    return this.UnderlyingSymbol;
+                }
             }
-        }
 
-        ImmutableArray<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
-        {
-            get { return StaticCast<Cci.IParameterDefinition>.From(_parameters); }
-        }
-
-        Cci.CallingConvention Cci.ISignature.CallingConvention
-        {
-            get
+            Cci.IMethodReference Cci.IPropertyDefinition.Getter
             {
-                return UnderlyingPropertySignature.CallingConvention;
+                get { return _getter; }
             }
-        }
 
-        ushort Cci.ISignature.ParameterCount
-        {
-            get { return (ushort)_parameters.Length; }
-        }
-
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
-        {
-            return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
-        }
-
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
-        {
-            get
+            Cci.IMethodReference Cci.IPropertyDefinition.Setter
             {
-                return UnderlyingPropertySignature.ReturnValueCustomModifiers;
+                get { return _setter; }
             }
-        }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
-        {
-            get
+            IEnumerable<Cci.IMethodReference> Cci.IPropertyDefinition.GetAccessors(EmitContext context)
             {
-                return UnderlyingPropertySignature.RefCustomModifiers;
+                if (_getter != null)
+                {
+                    yield return _getter;
+                }
+
+                if (_setter != null)
+                {
+                    yield return _setter;
+                }
             }
-        }
 
-        bool Cci.ISignature.ReturnValueIsByRef
-        {
-            get
+            bool Cci.IPropertyDefinition.HasDefaultValue
             {
-                return UnderlyingPropertySignature.ReturnValueIsByRef;
+                get { return false; }
             }
-        }
 
-        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
-        {
-            return UnderlyingPropertySignature.GetType(context);
-        }
-
-        protected TEmbeddedMethod AnAccessor
-        {
-            get
+            MetadataConstant Cci.IPropertyDefinition.DefaultValue
             {
-                return _getter ?? _setter;
+                get { return null; }
             }
-        }
 
-        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-        {
-            get { return ContainingType; }
-        }
-
-        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-        {
-            get
+            bool Cci.IPropertyDefinition.IsRuntimeSpecial
             {
-                return Visibility;
+                get { return IsRuntimeSpecial; }
             }
-        }
 
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
-        {
-            return ContainingType;
-        }
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-        {
-            visitor.Visit((Cci.IPropertyDefinition)this);
-        }
-
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return this;
-        }
-
-        string Cci.INamedEntity.Name
-        {
-            get
+            bool Cci.IPropertyDefinition.IsSpecialName
             {
-                return Name;
+                get
+                {
+                    return IsSpecialName;
+                }
+            }
+
+            ImmutableArray<Cci.IParameterDefinition> Cci.IPropertyDefinition.Parameters
+            {
+                get { return StaticCast<Cci.IParameterDefinition>.From(_parameters); }
+            }
+
+            Cci.CallingConvention Cci.ISignature.CallingConvention
+            {
+                get
+                {
+                    return UnderlyingPropertySignature.CallingConvention;
+                }
+            }
+
+            ushort Cci.ISignature.ParameterCount
+            {
+                get { return (ushort)_parameters.Length; }
+            }
+
+            ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
+            {
+                return StaticCast<Cci.IParameterTypeInformation>.From(_parameters);
+            }
+
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+            {
+                get
+                {
+                    return UnderlyingPropertySignature.ReturnValueCustomModifiers;
+                }
+            }
+
+            ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+            {
+                get
+                {
+                    return UnderlyingPropertySignature.RefCustomModifiers;
+                }
+            }
+
+            bool Cci.ISignature.ReturnValueIsByRef
+            {
+                get
+                {
+                    return UnderlyingPropertySignature.ReturnValueIsByRef;
+                }
+            }
+
+            Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
+            {
+                return UnderlyingPropertySignature.GetType(context);
+            }
+
+            protected TEmbeddedMethod AnAccessor
+            {
+                get
+                {
+                    return _getter ?? _setter;
+                }
+            }
+
+            Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
+            {
+                get { return ContainingType; }
+            }
+
+            Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
+            {
+                get
+                {
+                    return Visibility;
+                }
+            }
+
+            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+            {
+                return ContainingType;
+            }
+
+            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+            {
+                visitor.Visit((Cci.IPropertyDefinition)this);
+            }
+
+            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+            {
+                return this;
+            }
+
+            string Cci.INamedEntity.Name
+            {
+                get
+                {
+                    return Name;
+                }
             }
         }
     }

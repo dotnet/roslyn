@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CodeGen;
-
-internal enum ScopeType
+namespace Microsoft.CodeAnalysis.CodeGen
 {
-    Variable,
-    TryCatchFinally,
-    Try,
-    Catch,
-    Filter,
-    Finally,
-    Fault,
+    internal enum ScopeType
+    {
+        Variable,
+        TryCatchFinally,
+        Try,
+        Catch,
+        Filter,
+        Finally,
+        Fault,
 
-    /// <summary>
-    /// Scope of user-defined variable hoisted to state machine.
-    /// </summary>
-    StateMachineVariable,
+        /// <summary>
+        /// Scope of user-defined variable hoisted to state machine.
+        /// </summary>
+        StateMachineVariable,
+    }
 }

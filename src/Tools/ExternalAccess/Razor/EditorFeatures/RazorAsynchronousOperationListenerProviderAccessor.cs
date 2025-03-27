@@ -7,27 +7,28 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-[Export(typeof(IRazorAsynchronousOperationListenerProviderAccessor))]
-[Shared]
-internal sealed class RazorAsynchronousOperationListenerProviderAccessor : IRazorAsynchronousOperationListenerProviderAccessor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    private readonly IAsynchronousOperationListenerProvider _implementation;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorAsynchronousOperationListenerProviderAccessor(
-        IAsynchronousOperationListenerProvider implementation)
+    [Export(typeof(IRazorAsynchronousOperationListenerProviderAccessor))]
+    [Shared]
+    internal sealed class RazorAsynchronousOperationListenerProviderAccessor : IRazorAsynchronousOperationListenerProviderAccessor
     {
-        _implementation = implementation;
-    }
+        private readonly IAsynchronousOperationListenerProvider _implementation;
 
-    public RazorAsynchronousOperationListenerWrapper GetListener(string featureName)
-    {
-        var inner = _implementation.GetListener(featureName);
-        var razorListener = new RazorAsynchronousOperationListenerWrapper(inner);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RazorAsynchronousOperationListenerProviderAccessor(
+            IAsynchronousOperationListenerProvider implementation)
+        {
+            _implementation = implementation;
+        }
 
-        return razorListener;
+        public RazorAsynchronousOperationListenerWrapper GetListener(string featureName)
+        {
+            var inner = _implementation.GetListener(featureName);
+            var razorListener = new RazorAsynchronousOperationListenerWrapper(inner);
+
+            return razorListener;
+        }
     }
 }

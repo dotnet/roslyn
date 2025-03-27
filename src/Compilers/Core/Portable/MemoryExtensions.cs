@@ -6,98 +6,99 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class MemoryExtensions
+namespace Microsoft.CodeAnalysis
 {
-    public static int IndexOf(this ReadOnlySpan<char> span, char target, int startIndex)
+    internal static class MemoryExtensions
     {
-        for (int i = startIndex; i < span.Length; i++)
+        public static int IndexOf(this ReadOnlySpan<char> span, char target, int startIndex)
         {
-            if (span[i] == target)
+            for (int i = startIndex; i < span.Length; i++)
             {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    public static int IndexOfAny(this ReadOnlySpan<char> span, char[] characters)
-    {
-        for (int i = 0; i < span.Length; i++)
-        {
-            var c = span[i];
-            foreach (var target in characters)
-            {
-                if (c == target)
+                if (span[i] == target)
                 {
                     return i;
                 }
             }
+
+            return -1;
         }
 
-        return -1;
-    }
+        public static int IndexOfAny(this ReadOnlySpan<char> span, char[] characters)
+        {
+            for (int i = 0; i < span.Length; i++)
+            {
+                var c = span[i];
+                foreach (var target in characters)
+                {
+                    if (c == target)
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
+        }
 
 #if !NETCOREAPP
-    internal static ReadOnlyMemory<char> TrimStart(this ReadOnlyMemory<char> memory)
-    {
-        var span = memory.Span;
-        var index = 0;
-        while (index < span.Length && char.IsWhiteSpace(span[index]))
+        internal static ReadOnlyMemory<char> TrimStart(this ReadOnlyMemory<char> memory)
         {
-            index++;
+            var span = memory.Span;
+            var index = 0;
+            while (index < span.Length && char.IsWhiteSpace(span[index]))
+            {
+                index++;
+            }
+
+            return memory.Slice(index, span.Length - index);
         }
 
-        return memory.Slice(index, span.Length - index);
-    }
-
-    internal static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> memory)
-    {
-        var span = memory.Span;
-        var length = span.Length;
-        while (length - 1 >= 0 && char.IsWhiteSpace(span[length - 1]))
+        internal static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> memory)
         {
-            length--;
+            var span = memory.Span;
+            var length = span.Length;
+            while (length - 1 >= 0 && char.IsWhiteSpace(span[length - 1]))
+            {
+                length--;
+            }
+
+            return memory.Slice(0, length);
         }
 
-        return memory.Slice(0, length);
-    }
-
-    internal static ReadOnlyMemory<char> Trim(this ReadOnlyMemory<char> memory) => memory.TrimStart().TrimEnd();
+        internal static ReadOnlyMemory<char> Trim(this ReadOnlyMemory<char> memory) => memory.TrimStart().TrimEnd();
 #endif
 
-    internal static bool IsNullOrEmpty(this ReadOnlyMemory<char>? memory) =>
-        memory is not { Length: > 0 };
+        internal static bool IsNullOrEmpty(this ReadOnlyMemory<char>? memory) =>
+            memory is not { Length: > 0 };
 
-    internal static bool IsNullOrWhiteSpace(this ReadOnlyMemory<char>? memory) =>
-        memory is not { } m || IsWhiteSpace(m);
+        internal static bool IsNullOrWhiteSpace(this ReadOnlyMemory<char>? memory) =>
+            memory is not { } m || IsWhiteSpace(m);
 
-    internal static bool IsWhiteSpace(this ReadOnlyMemory<char> memory)
-    {
-        var span = memory.Span;
-        foreach (var c in span)
+        internal static bool IsWhiteSpace(this ReadOnlyMemory<char> memory)
         {
-            if (!char.IsWhiteSpace(c))
+            var span = memory.Span;
+            foreach (var c in span)
             {
-                return false;
+                if (!char.IsWhiteSpace(c))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
-    }
+        internal static bool StartsWith(this ReadOnlyMemory<char> memory, char c) => memory.Length > 0 && memory.Span[0] == c;
 
-    internal static bool StartsWith(this ReadOnlyMemory<char> memory, char c) => memory.Length > 0 && memory.Span[0] == c;
-
-    internal static ReadOnlyMemory<char> Unquote(this ReadOnlyMemory<char> memory)
-    {
-        var span = memory.Span;
-        if (span.Length > 1 && span[0] == '"' && span[span.Length - 1] == '"')
+        internal static ReadOnlyMemory<char> Unquote(this ReadOnlyMemory<char> memory)
         {
-            return memory.Slice(1, memory.Length - 2);
-        }
+            var span = memory.Span;
+            if (span.Length > 1 && span[0] == '"' && span[span.Length - 1] == '"')
+            {
+                return memory.Slice(1, memory.Length - 2);
+            }
 
-        return memory;
+            return memory;
+        }
     }
 }

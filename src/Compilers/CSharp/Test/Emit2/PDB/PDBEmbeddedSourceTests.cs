@@ -14,17 +14,17 @@ using Microsoft.DiaSymReader;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
-
-public class PDBEmbeddedSourceTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    [Theory]
-    [InlineData(DebugInformationFormat.PortablePdb)]
-    [InlineData(DebugInformationFormat.Pdb)]
-    [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
-    public void StandalonePdb(DebugInformationFormat format)
+    public class PDBEmbeddedSourceTests : CSharpTestBase
     {
-        string source1 = WithWindowsLineBreaks(@"
+        [Theory]
+        [InlineData(DebugInformationFormat.PortablePdb)]
+        [InlineData(DebugInformationFormat.Pdb)]
+        [WorkItem(28045, "https://github.com/dotnet/roslyn/issues/28045")]
+        public void StandalonePdb(DebugInformationFormat format)
+        {
+            string source1 = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -35,20 +35,20 @@ class C
     }
 }
 ");
-        string source2 = WithWindowsLineBreaks(@"
+            string source2 = WithWindowsLineBreaks(@"
 // no code
 ");
 
-        var tree1 = Parse(source1, "f:/build/goo.cs");
-        var tree2 = Parse(source2, "f:/build/nocode.cs");
-        var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
-        var embeddedTexts = new[]
-        {
-            EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
-            EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
-        };
+            var tree1 = Parse(source1, "f:/build/goo.cs");
+            var tree2 = Parse(source2, "f:/build/nocode.cs");
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+            var embeddedTexts = new[]
+            {
+                EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
+                EmbeddedText.FromSource(tree2.FilePath, tree2.GetText())
+            };
 
-        c.VerifyPdb(@"
+            c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""f:/build/goo.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""5D-7D-CF-1B-79-12-0E-0A-80-13-E0-98-7E-5C-AA-3B-63-D8-7E-4F""><![CDATA[﻿
@@ -84,12 +84,12 @@ class C
   </methods>
 </symbols>
 ", embeddedTexts, format: format);
-    }
+        }
 
-    [Fact]
-    public void EmbeddedPdb()
-    {
-        string source = @"
+        [Fact]
+        public void EmbeddedPdb()
+        {
+            string source = @"
 using System;
 
 class C
@@ -100,34 +100,35 @@ class C
     }
 }
 ";
-        var tree = Parse(source, "f:/build/goo.cs");
-        var c = CreateCompilation(tree, options: TestOptions.DebugDll);
+            var tree = Parse(source, "f:/build/goo.cs");
+            var c = CreateCompilation(tree, options: TestOptions.DebugDll);
 
-        var pdbStream = new MemoryStream();
-        var peBlob = c.EmitToArray(
-            EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
-            embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
-        pdbStream.Position = 0;
+            var pdbStream = new MemoryStream();
+            var peBlob = c.EmitToArray(
+                EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded),
+                embeddedTexts: new[] { EmbeddedText.FromSource(tree.FilePath, tree.GetText()) });
+            pdbStream.Position = 0;
 
-        using (var peReader = new PEReader(peBlob))
-        {
-            var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-
-            using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+            using (var peReader = new PEReader(peBlob))
             {
-                var pdbReader = embeddedMetadataProvider.GetMetadataReader();
+                var embeddedEntry = peReader.ReadDebugDirectory().Single(e => e.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
 
-                var embeddedSource =
-                    (from documentHandle in pdbReader.Documents
-                     let document = pdbReader.GetDocument(documentHandle)
-                     select new
-                     {
-                         FilePath = pdbReader.GetString(document.Name),
-                         Text = pdbReader.GetEmbeddedSource(documentHandle)
-                     }).Single();
+                using (var embeddedMetadataProvider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embeddedEntry))
+                {
+                    var pdbReader = embeddedMetadataProvider.GetMetadataReader();
 
-                Assert.Equal("f:/build/goo.cs", embeddedSource.FilePath);
-                Assert.Equal(source, embeddedSource.Text.ToString());
+                    var embeddedSource =
+                        (from documentHandle in pdbReader.Documents
+                         let document = pdbReader.GetDocument(documentHandle)
+                         select new
+                         {
+                             FilePath = pdbReader.GetString(document.Name),
+                             Text = pdbReader.GetEmbeddedSource(documentHandle)
+                         }).Single();
+
+                    Assert.Equal("f:/build/goo.cs", embeddedSource.FilePath);
+                    Assert.Equal(source, embeddedSource.Text.ToString());
+                }
             }
         }
     }

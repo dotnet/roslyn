@@ -8,60 +8,61 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis;
-
-internal partial class ControlFlowGraphBuilder
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
-    private class InterpolatedStringHandlerArgumentsContext
+    internal partial class ControlFlowGraphBuilder
     {
-        public readonly ImmutableArray<IInterpolatedStringHandlerCreationOperation> ApplicableCreationOperations;
-        public readonly int StartingStackDepth;
-        public readonly bool HasReceiver;
-
-        public InterpolatedStringHandlerArgumentsContext(ImmutableArray<IInterpolatedStringHandlerCreationOperation> applicableCreationOperations, int startingStackDepth, bool hasReceiver)
+        private class InterpolatedStringHandlerArgumentsContext
         {
-            ApplicableCreationOperations = applicableCreationOperations;
-            HasReceiver = hasReceiver;
-            StartingStackDepth = startingStackDepth;
-        }
-    }
+            public readonly ImmutableArray<IInterpolatedStringHandlerCreationOperation> ApplicableCreationOperations;
+            public readonly int StartingStackDepth;
+            public readonly bool HasReceiver;
 
-    private class InterpolatedStringHandlerCreationContext
-    {
-        public readonly IInterpolatedStringHandlerCreationOperation ApplicableCreationOperation;
-        public readonly int MaximumStackDepth;
-        public readonly int HandlerPlaceholder;
-        public readonly int OutPlaceholder;
-
-        public InterpolatedStringHandlerCreationContext(IInterpolatedStringHandlerCreationOperation applicableCreationOperation, int maximumStackDepth, int handlerPlaceholder, int outParameterPlaceholder)
-        {
-            ApplicableCreationOperation = applicableCreationOperation;
-            MaximumStackDepth = maximumStackDepth;
-            OutPlaceholder = outParameterPlaceholder;
-            HandlerPlaceholder = handlerPlaceholder;
-        }
-    }
-
-    [Conditional("DEBUG")]
-    [MemberNotNull(nameof(_currentInterpolatedStringHandlerCreationContext))]
-    private void AssertContainingContextIsForThisCreation(IOperation placeholderOperation, bool assertArgumentContext)
-    {
-        Debug.Assert(_currentInterpolatedStringHandlerCreationContext != null);
-        Debug.Assert(placeholderOperation is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.InterpolatedStringHandler } or IInterpolatedStringHandlerArgumentPlaceholderOperation);
-
-        IOperation? operation = placeholderOperation.Parent;
-        while (operation is not (null or IInterpolatedStringHandlerCreationOperation))
-        {
-            operation = operation.Parent;
+            public InterpolatedStringHandlerArgumentsContext(ImmutableArray<IInterpolatedStringHandlerCreationOperation> applicableCreationOperations, int startingStackDepth, bool hasReceiver)
+            {
+                ApplicableCreationOperations = applicableCreationOperations;
+                HasReceiver = hasReceiver;
+                StartingStackDepth = startingStackDepth;
+            }
         }
 
-        Debug.Assert(operation != null);
-        Debug.Assert(_currentInterpolatedStringHandlerCreationContext.ApplicableCreationOperation == operation);
-
-        if (assertArgumentContext)
+        private class InterpolatedStringHandlerCreationContext
         {
-            Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
-            Debug.Assert(_currentInterpolatedStringHandlerArgumentContext.ApplicableCreationOperations.Contains((IInterpolatedStringHandlerCreationOperation)operation));
+            public readonly IInterpolatedStringHandlerCreationOperation ApplicableCreationOperation;
+            public readonly int MaximumStackDepth;
+            public readonly int HandlerPlaceholder;
+            public readonly int OutPlaceholder;
+
+            public InterpolatedStringHandlerCreationContext(IInterpolatedStringHandlerCreationOperation applicableCreationOperation, int maximumStackDepth, int handlerPlaceholder, int outParameterPlaceholder)
+            {
+                ApplicableCreationOperation = applicableCreationOperation;
+                MaximumStackDepth = maximumStackDepth;
+                OutPlaceholder = outParameterPlaceholder;
+                HandlerPlaceholder = handlerPlaceholder;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        [MemberNotNull(nameof(_currentInterpolatedStringHandlerCreationContext))]
+        private void AssertContainingContextIsForThisCreation(IOperation placeholderOperation, bool assertArgumentContext)
+        {
+            Debug.Assert(_currentInterpolatedStringHandlerCreationContext != null);
+            Debug.Assert(placeholderOperation is IInstanceReferenceOperation { ReferenceKind: InstanceReferenceKind.InterpolatedStringHandler } or IInterpolatedStringHandlerArgumentPlaceholderOperation);
+
+            IOperation? operation = placeholderOperation.Parent;
+            while (operation is not (null or IInterpolatedStringHandlerCreationOperation))
+            {
+                operation = operation.Parent;
+            }
+
+            Debug.Assert(operation != null);
+            Debug.Assert(_currentInterpolatedStringHandlerCreationContext.ApplicableCreationOperation == operation);
+
+            if (assertArgumentContext)
+            {
+                Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
+                Debug.Assert(_currentInterpolatedStringHandlerArgumentContext.ApplicableCreationOperations.Contains((IInterpolatedStringHandlerCreationOperation)operation));
+            }
         }
     }
 }

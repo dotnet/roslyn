@@ -5,39 +5,40 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Text;
-
-internal class SourceTextComparer : IEqualityComparer<SourceText?>
+namespace Microsoft.CodeAnalysis.Text
 {
-    public static readonly SourceTextComparer Instance = new SourceTextComparer();
-
-    public bool Equals(SourceText? x, SourceText? y)
+    internal class SourceTextComparer : IEqualityComparer<SourceText?>
     {
-        if (x == null)
-        {
-            return y == null;
-        }
-        else if (y == null)
-        {
-            return false;
-        }
+        public static readonly SourceTextComparer Instance = new SourceTextComparer();
 
-        return x.ContentEquals(y);
-    }
-
-    public int GetHashCode(SourceText? obj)
-    {
-        if (obj is null)
+        public bool Equals(SourceText? x, SourceText? y)
         {
-            return 0;
+            if (x == null)
+            {
+                return y == null;
+            }
+            else if (y == null)
+            {
+                return false;
+            }
+
+            return x.ContentEquals(y);
         }
 
-        var checksum = obj.GetChecksum();
-        var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
-        var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
+        public int GetHashCode(SourceText? obj)
+        {
+            if (obj is null)
+            {
+                return 0;
+            }
 
-        return Hash.Combine(obj.Length,
-            Hash.Combine(contentsHash,
-            Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
+            var checksum = obj.GetChecksum();
+            var contentsHash = !checksum.IsDefault ? Hash.CombineValues(checksum) : 0;
+            var encodingHash = obj.Encoding != null ? obj.Encoding.GetHashCode() : 0;
+
+            return Hash.Combine(obj.Length,
+                Hash.Combine(contentsHash,
+                Hash.Combine(encodingHash, ((int)obj.ChecksumAlgorithm).GetHashCode())));
+        }
     }
 }

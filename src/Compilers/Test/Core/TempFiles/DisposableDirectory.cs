@@ -7,25 +7,26 @@
 using System;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public sealed class DisposableDirectory : TempDirectory, IDisposable
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public DisposableDirectory(TempRoot root)
-        : base(root)
+    public sealed class DisposableDirectory : TempDirectory, IDisposable
     {
-    }
-
-    public void Dispose()
-    {
-        if (Path != null && Directory.Exists(Path))
+        public DisposableDirectory(TempRoot root)
+            : base(root)
         {
-            try
+        }
+
+        public void Dispose()
+        {
+            if (Path != null && Directory.Exists(Path))
             {
-                Directory.Delete(Path, recursive: true);
-            }
-            catch
-            {
+                try
+                {
+                    Directory.Delete(Path, recursive: true);
+                }
+                catch
+                {
+                }
             }
         }
     }

@@ -8,22 +8,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class GenericNameSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public bool IsUnboundGenericName
+    public partial class GenericNameSyntax
     {
-        get
+        public bool IsUnboundGenericName
         {
-            return this.TypeArgumentList.Arguments.Any(SyntaxKind.OmittedTypeArgument);
+            get
+            {
+                return this.TypeArgumentList.Arguments.Any(SyntaxKind.OmittedTypeArgument);
+            }
         }
-    }
 
-    internal override string ErrorDisplayName()
-    {
-        var pb = PooledStringBuilder.GetInstance();
-        pb.Builder.Append(Identifier.ValueText).Append('<').Append(',', Arity - 1).Append('>');
-        return pb.ToStringAndFree();
+        internal override string ErrorDisplayName()
+        {
+            var pb = PooledStringBuilder.GetInstance();
+            pb.Builder.Append(Identifier.ValueText).Append('<').Append(',', Arity - 1).Append('>');
+            return pb.ToStringAndFree();
+        }
     }
 }

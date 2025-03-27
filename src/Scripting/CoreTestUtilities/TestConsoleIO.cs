@@ -9,132 +9,133 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Scripting.Test;
-
-internal sealed class TestConsoleIO : ConsoleIO
+namespace Microsoft.CodeAnalysis.Scripting.Test
 {
-    private const ConsoleColor InitialColor = ConsoleColor.Gray;
-
-    public TestConsoleIO(string input)
-        : this(new Reader(input))
+    internal sealed class TestConsoleIO : ConsoleIO
     {
-    }
+        private const ConsoleColor InitialColor = ConsoleColor.Gray;
 
-    private TestConsoleIO(Reader reader)
-        : this(reader, new Writer(reader))
-    {
-    }
-
-    private TestConsoleIO(Reader reader, TextWriter output)
-        : base(output: output, error: new TeeWriter(output), input: reader)
-    {
-    }
-
-    public override void SetForegroundColor(ConsoleColor consoleColor) => ((Writer)Out).CurrentColor = consoleColor;
-
-    public override void ResetColor() => SetForegroundColor(InitialColor);
-
-    private sealed class Reader : StringReader
-    {
-        public readonly StringBuilder ContentRead = new StringBuilder();
-
-        public Reader(string input)
-            : base(input)
+        public TestConsoleIO(string input)
+            : this(new Reader(input))
         {
         }
 
-        public override string ReadLine()
+        private TestConsoleIO(Reader reader)
+            : this(reader, new Writer(reader))
         {
-            string result = base.ReadLine();
-            ContentRead.AppendLine(result);
-            return result;
-        }
-    }
-
-    private sealed class Writer : StringWriter
-    {
-        private ConsoleColor _lastColor = InitialColor;
-        public ConsoleColor CurrentColor = InitialColor;
-        public override Encoding Encoding => Encoding.UTF8;
-        private readonly Reader _reader;
-
-        public Writer(Reader reader)
-        {
-            _reader = reader;
         }
 
-        private void OnBeforeWrite()
+        private TestConsoleIO(Reader reader, TextWriter output)
+            : base(output: output, error: new TeeWriter(output), input: reader)
         {
-            if (_reader.ContentRead.Length > 0)
+        }
+
+        public override void SetForegroundColor(ConsoleColor consoleColor) => ((Writer)Out).CurrentColor = consoleColor;
+
+        public override void ResetColor() => SetForegroundColor(InitialColor);
+
+        private sealed class Reader : StringReader
+        {
+            public readonly StringBuilder ContentRead = new StringBuilder();
+
+            public Reader(string input)
+                : base(input)
             {
-                GetStringBuilder().Append(_reader.ContentRead.ToString());
-                _reader.ContentRead.Clear();
             }
 
-            if (_lastColor != CurrentColor)
+            public override string ReadLine()
             {
-                GetStringBuilder().AppendLine($"«{CurrentColor}»");
-                _lastColor = CurrentColor;
+                string result = base.ReadLine();
+                ContentRead.AppendLine(result);
+                return result;
             }
         }
 
-        public override void Write(char value)
+        private sealed class Writer : StringWriter
         {
-            OnBeforeWrite();
-            base.Write(value);
+            private ConsoleColor _lastColor = InitialColor;
+            public ConsoleColor CurrentColor = InitialColor;
+            public override Encoding Encoding => Encoding.UTF8;
+            private readonly Reader _reader;
+
+            public Writer(Reader reader)
+            {
+                _reader = reader;
+            }
+
+            private void OnBeforeWrite()
+            {
+                if (_reader.ContentRead.Length > 0)
+                {
+                    GetStringBuilder().Append(_reader.ContentRead.ToString());
+                    _reader.ContentRead.Clear();
+                }
+
+                if (_lastColor != CurrentColor)
+                {
+                    GetStringBuilder().AppendLine($"«{CurrentColor}»");
+                    _lastColor = CurrentColor;
+                }
+            }
+
+            public override void Write(char value)
+            {
+                OnBeforeWrite();
+                base.Write(value);
+            }
+
+            public override void Write(string value)
+            {
+                OnBeforeWrite();
+                GetStringBuilder().Append(value);
+            }
+
+            public override void WriteLine(string value)
+            {
+                OnBeforeWrite();
+                GetStringBuilder().AppendLine(value);
+            }
+
+            public override void WriteLine()
+            {
+                OnBeforeWrite();
+                GetStringBuilder().AppendLine();
+            }
         }
 
-        public override void Write(string value)
+        private sealed class TeeWriter : StringWriter
         {
-            OnBeforeWrite();
-            GetStringBuilder().Append(value);
-        }
+            public override Encoding Encoding => Encoding.UTF8;
+            private readonly TextWriter _other;
 
-        public override void WriteLine(string value)
-        {
-            OnBeforeWrite();
-            GetStringBuilder().AppendLine(value);
-        }
+            public TeeWriter(TextWriter other)
+            {
+                _other = other;
+            }
 
-        public override void WriteLine()
-        {
-            OnBeforeWrite();
-            GetStringBuilder().AppendLine();
-        }
-    }
+            public override void Write(char value)
+            {
+                _other.Write(value);
+                GetStringBuilder().Append(value);
+            }
 
-    private sealed class TeeWriter : StringWriter
-    {
-        public override Encoding Encoding => Encoding.UTF8;
-        private readonly TextWriter _other;
+            public override void Write(string value)
+            {
+                _other.Write(value);
+                GetStringBuilder().Append(value);
+            }
 
-        public TeeWriter(TextWriter other)
-        {
-            _other = other;
-        }
+            public override void WriteLine(string value)
+            {
+                _other.WriteLine(value);
+                GetStringBuilder().AppendLine(value);
+            }
 
-        public override void Write(char value)
-        {
-            _other.Write(value);
-            GetStringBuilder().Append(value);
-        }
-
-        public override void Write(string value)
-        {
-            _other.Write(value);
-            GetStringBuilder().Append(value);
-        }
-
-        public override void WriteLine(string value)
-        {
-            _other.WriteLine(value);
-            GetStringBuilder().AppendLine(value);
-        }
-
-        public override void WriteLine()
-        {
-            _other.WriteLine();
-            GetStringBuilder().AppendLine();
+            public override void WriteLine()
+            {
+                _other.WriteLine();
+                GetStringBuilder().AppendLine();
+            }
         }
     }
 }

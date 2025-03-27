@@ -11,12 +11,13 @@
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-internal static partial class TestExtensionsMethods
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    internal static void ValidateDefaultThisBehavior(Action a)
+    internal static partial class TestExtensionsMethods
     {
-        Assert.Throws<NullReferenceException>(a);
+        internal static void ValidateDefaultThisBehavior(Action a)
+        {
+            Assert.Throws<NullReferenceException>(a);
+        }
     }
 }

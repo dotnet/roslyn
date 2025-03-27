@@ -6,75 +6,76 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal static class PropertySymbolExtensions
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public static bool IsParams(this PropertySymbol property)
+    internal static class PropertySymbolExtensions
     {
-        return property.ParameterCount != 0 && property.Parameters[property.ParameterCount - 1].IsParams;
-    }
-
-    /// <summary>
-    /// If the property has a GetMethod, return that.  Otherwise check the overridden
-    /// property, if any.  Repeat for each overridden property.
-    /// </summary>
-    public static MethodSymbol? GetOwnOrInheritedGetMethod(this PropertySymbol? property)
-    {
-        while ((object?)property != null)
+        public static bool IsParams(this PropertySymbol property)
         {
-            MethodSymbol getMethod = property.GetMethod;
-            if ((object?)getMethod != null)
+            return property.ParameterCount != 0 && property.Parameters[property.ParameterCount - 1].IsParams;
+        }
+
+        /// <summary>
+        /// If the property has a GetMethod, return that.  Otherwise check the overridden
+        /// property, if any.  Repeat for each overridden property.
+        /// </summary>
+        public static MethodSymbol? GetOwnOrInheritedGetMethod(this PropertySymbol? property)
+        {
+            while ((object?)property != null)
             {
-                return getMethod;
+                MethodSymbol getMethod = property.GetMethod;
+                if ((object?)getMethod != null)
+                {
+                    return getMethod;
+                }
+
+                property = property.OverriddenProperty;
             }
 
-            property = property.OverriddenProperty;
+            return null;
         }
 
-        return null;
-    }
-
-    /// <summary>
-    /// If the property has a SetMethod, return that.  Otherwise check the overridden
-    /// property, if any.  Repeat for each overridden property.
-    /// </summary>
-    public static MethodSymbol? GetOwnOrInheritedSetMethod(this PropertySymbol? property)
-    {
-        while ((object?)property != null)
+        /// <summary>
+        /// If the property has a SetMethod, return that.  Otherwise check the overridden
+        /// property, if any.  Repeat for each overridden property.
+        /// </summary>
+        public static MethodSymbol? GetOwnOrInheritedSetMethod(this PropertySymbol? property)
         {
-            MethodSymbol setMethod = property.SetMethod;
-            if ((object?)setMethod != null)
+            while ((object?)property != null)
             {
-                return setMethod;
+                MethodSymbol setMethod = property.SetMethod;
+                if ((object?)setMethod != null)
+                {
+                    return setMethod;
+                }
+
+                property = property.OverriddenProperty;
             }
 
-            property = property.OverriddenProperty;
+            return null;
         }
 
-        return null;
-    }
-
-    public static bool CanCallMethodsDirectly(this PropertySymbol property)
-    {
-        if (property.MustCallMethodsDirectly)
+        public static bool CanCallMethodsDirectly(this PropertySymbol property)
         {
-            return true;
-        }
-
-        // Indexed property accessors can always be called directly, to support legacy code.
-        return property.IsIndexedProperty && (!property.IsIndexer || property.HasRefOrOutParameter());
-    }
-
-    public static bool HasRefOrOutParameter(this PropertySymbol property)
-    {
-        foreach (ParameterSymbol param in property.Parameters)
-        {
-            if (param.RefKind == RefKind.Ref || param.RefKind == RefKind.Out)
+            if (property.MustCallMethodsDirectly)
             {
                 return true;
             }
+
+            // Indexed property accessors can always be called directly, to support legacy code.
+            return property.IsIndexedProperty && (!property.IsIndexer || property.HasRefOrOutParameter());
         }
-        return false;
+
+        public static bool HasRefOrOutParameter(this PropertySymbol property)
+        {
+            foreach (ParameterSymbol param in property.Parameters)
+            {
+                if (param.RefKind == RefKind.Ref || param.RefKind == RefKind.Out)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

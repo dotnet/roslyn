@@ -7,38 +7,39 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Roslyn.Test.Utilities.Syntax;
-
-internal sealed class RandomizedSourceText : SourceText
+namespace Roslyn.Test.Utilities.Syntax
 {
-    private readonly char[] _buffer = new char[2048];
-
-    public RandomizedSourceText()
+    internal sealed class RandomizedSourceText : SourceText
     {
-        var random = new Random(12345);
-        for (var i = 0; i < _buffer.Length; i++)
+        private readonly char[] _buffer = new char[2048];
+
+        public RandomizedSourceText()
         {
-            _buffer[i] = (char)random.Next();
+            var random = new Random(12345);
+            for (var i = 0; i < _buffer.Length; i++)
+            {
+                _buffer[i] = (char)random.Next();
+            }
         }
-    }
 
-    public override char this[int position] => _buffer[position % _buffer.Length];
+        public override char this[int position] => _buffer[position % _buffer.Length];
 
-    public override Encoding Encoding => Encoding.UTF8;
+        public override Encoding Encoding => Encoding.UTF8;
 
-    public override int Length
-    {
-        get
+        public override int Length
         {
-            return 40 * 1000 * 1000;
+            get
+            {
+                return 40 * 1000 * 1000;
+            }
         }
-    }
 
-    public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
-    {
-        for (var i = 0; i < count; i++)
+        public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            destination[destinationIndex + i] = this[sourceIndex + i];
+            for (var i = 0; i < count; i++)
+            {
+                destination[destinationIndex + i] = this[sourceIndex + i];
+            }
         }
     }
 }

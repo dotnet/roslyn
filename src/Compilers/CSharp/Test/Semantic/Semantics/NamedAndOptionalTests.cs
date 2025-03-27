@@ -16,14 +16,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class NamedAndOptionalTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void Test13984()
+    public class NamedAndOptionalTests : CompilingTestBase
     {
-        string source = @"
+        [Fact]
+        public void Test13984()
+        {
+            string source = @"
 using System;
 class Program
 {
@@ -35,24 +35,24 @@ class Program
     }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
-            // (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
-            //     static void M(DateTime da = new DateTime(2012, 6, 22),
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new DateTime(2012, 6, 22)").WithArguments("da"),
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
+                //     static void M(DateTime da = new DateTime(2012, 6, 22),
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new DateTime(2012, 6, 22)").WithArguments("da"),
 
-            // (7,31): error CS1736: Default parameter value for 'd' must be a compile-time constant
-            //                   decimal d = new decimal(5),
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
-    }
+                // (7,31): error CS1736: Default parameter value for 'd' must be a compile-time constant
+                //                   decimal d = new decimal(5),
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new decimal(5)").WithArguments("d"));
+        }
 
-    [Fact]
-    public void Test13861()
-    {
-        // * There are two decimal constant attribute constructors; we should honour both of them.
-        // * Using named arguments to re-order the arguments must not change the value of the constant.
+        [Fact]
+        public void Test13861()
+        {
+            // * There are two decimal constant attribute constructors; we should honour both of them.
+            // * Using named arguments to re-order the arguments must not change the value of the constant.
 
-        string source = @"
+            string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
  
@@ -72,14 +72,14 @@ class Program
         Goo2();
     }
 }";
-        string expected = "100200";
-        CompileAndVerify(source, expectedOutput: expected);
-    }
+            string expected = "100200";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsInCtors()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsInCtors()
+        {
+            string source = @"
 class Alpha
 {
     public Alpha(int x = 123) { }
@@ -124,13 +124,13 @@ abstract class Golf : Echo
 
 
 ";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsErrors()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsErrors()
+        {
+            string source = @"
 
 class Base
 {
@@ -171,45 +171,45 @@ class C : Middle
         c.Goo(optArg1: 3333, 11111);
     }
 }";
-        CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
-            // (37,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optParam3'
-            //         c.Goo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Goo", "optParam3").WithLocation(37, 15),
-            // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
-            //         c.Goo(optArg1: 3333, 11111);
-            Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithArguments("7.2").WithLocation(39, 30),
-            // (39,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optArg1'
-            //         c.Goo(optArg1: 3333, 11111);
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Goo", "optArg1").WithLocation(39, 15)
-            );
-    }
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (37,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optParam3'
+                //         c.Goo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Goo", "optParam3").WithLocation(37, 15),
+                // (39,30): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         c.Goo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "11111").WithArguments("7.2").WithLocation(39, 30),
+                // (39,15): error CS1739: The best overload for 'Goo' does not have a parameter named 'optArg1'
+                //         c.Goo(optArg1: 3333, 11111);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "optArg1").WithArguments("Goo", "optArg1").WithLocation(39, 15)
+                );
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsErrors2()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsErrors2()
+        {
+            string source = @"
 class C
 {
     //error CS1736 
     public void M(string s = new string('c',5)) {}
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,30): error CS1736: Default parameter value for 's' must be a compile-time constant
-            //     public void M(string s = new string('c',5)) {}
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new string('c',5)").WithArguments("s").WithLocation(5, 30));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,30): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     public void M(string s = new string('c',5)) {}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new string('c',5)").WithArguments("s").WithLocation(5, 30));
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsErrors3()
-    {
-        // Here we cannot report that "no overload of M takes two arguments" because of course
-        // M(1, 2) is legal. We cannot report that any argument does not correspond to a formal;
-        // all of them do. We cannot report that named arguments precede positional arguments.
-        // We cannot report that any argument is not convertible to its corresponding formal;
-        // all of them are convertible. The only error we can report here is that a formal 
-        // parameter has no corresponding argument.
+        [Fact]
+        public void TestNamedAndOptionalParamsErrors3()
+        {
+            // Here we cannot report that "no overload of M takes two arguments" because of course
+            // M(1, 2) is legal. We cannot report that any argument does not correspond to a formal;
+            // all of them do. We cannot report that named arguments precede positional arguments.
+            // We cannot report that any argument is not convertible to its corresponding formal;
+            // all of them are convertible. The only error we can report here is that a formal 
+            // parameter has no corresponding argument.
 
-        string source = @"
+            string source = @"
 class C
 {
     // CS7036 (ERR_NoCorrespondingArgument) 
@@ -223,24 +223,24 @@ class C
         new C(0, cz : 456);
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'fg' of 'C.F'
-            //         f(0, fz : 456);
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
-            // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'my' of 'C.M(int, int, int)'
-            //         M(0, mz : 456);
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
-            // (12,13): error CS7036: There is no argument given that corresponds to the required parameter 'cy' of 'C.C(int, int, int)'
-            //         new C(0, cz : 456);
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'fg' of 'C.F'
+                //         f(0, fz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "f").WithArguments("fg", "C.F").WithLocation(10, 9),
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'my' of 'C.M(int, int, int)'
+                //         M(0, mz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("my", "C.M(int, int, int)").WithLocation(11, 9),
+                // (12,13): error CS7036: There is no argument given that corresponds to the required parameter 'cy' of 'C.C(int, int, int)'
+                //         new C(0, cz : 456);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("cy", "C.C(int, int, int)").WithLocation(12, 13));
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsCrazy()
-    {
-        // This was never supposed to work and the spec does not require it, but
-        // nevertheless, the native compiler allows this:
-        const string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsCrazy()
+        {
+            // This was never supposed to work and the spec does not require it, but
+            // nevertheless, the native compiler allows this:
+            const string source = @"
 class C
 {
   static void C(int q = 10, params int[] x) {}
@@ -251,19 +251,19 @@ class C
     C(x:X(), q:Q());
   }
 }";
-        // and so Roslyn does too. It seems likely that someone has taken a dependency
-        // on the bad pattern.
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
-            //   static void C(int q = 10, params int[] x) {}
-            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15));
-    }
+            // and so Roslyn does too. It seems likely that someone has taken a dependency
+            // on the bad pattern.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //   static void C(int q = 10, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15));
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsCrazyError()
-    {
-        // Fortunately, however, this is still illegal:
-        const string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsCrazyError()
+        {
+            // Fortunately, however, this is still illegal:
+            const string source = @"
 class C
 {
   static void C(int q = 10, params int[] x) {}
@@ -272,19 +272,19 @@ class C
     C(1, 2, 3, x:4);
   }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
-            //   static void C(int q = 10, params int[] x) {}
-            Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15),
-            // (7,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
-            //     C(1, 2, 3, x:4);
-            Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(7, 16));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,15): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //   static void C(int q = 10, params int[] x) {}
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 15),
+                // (7,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+                //     C(1, 2, 3, x:4);
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(7, 16));
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsBasic()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsBasic()
+        {
+            string source = @"
     using System;
 
     public enum E
@@ -542,7 +542,7 @@ class C
     }
 ";
 
-        string expected = @"BasicOptional
+            string expected = @"BasicOptional
 Foxtrot: xray=0 yankee=sam
 Foxtrot: xray=10 yankee=sam
 ParamArray: xray=1,2,3
@@ -591,13 +591,13 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-        CompileAndVerify(source, expectedOutput: expected);
-    }
+            CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsOnAttributes()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsOnAttributes()
+        {
+            string source = @"
 using System;
 class MyAttribute : Attribute
 {
@@ -640,13 +640,13 @@ class C
         }
     }
 }";
-        CompileAndVerify(source, expectedOutput: "123012704256");
-    }
+            CompileAndVerify(source, expectedOutput: "123012704256");
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsOnIndexers()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsOnIndexers()
+        {
+            string source = @"
 using System; 
 class D
 {
@@ -681,7 +681,7 @@ class C
     }
 }";
 
-        string expected = @"20
+            string expected = @"20
 6
 2
 7
@@ -693,13 +693,13 @@ D.this[str: 'goo', i: 1].set
 D.this[str: 'bar', i: 13].set
 D.this[str: 'baz', i: 2].set
 D.this[str: 'bah', i: 3].set";
-        CompileAndVerify(source, expectedOutput: expected);
-    }
+            CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsOnPartialMethods()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsOnPartialMethods()
+        {
+            string source = @"
 using System; 
 partial class C
 {
@@ -714,14 +714,14 @@ partial class C
         PartialMethod(x:123);
     }
 }";
-        string expected = "123";
-        CompileAndVerify(source, expectedOutput: expected);
-    }
+            string expected = "123";
+            CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParamsOnPartialMethodsErrors()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParamsOnPartialMethodsErrors()
+        {
+            string source = @"
 using System; 
 partial class C
 {
@@ -737,20 +737,20 @@ partial class C
     }
 }";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (9,25): warning CS8826: Partial method declarations 'void C.PartialMethod(int x)' and 'void C.PartialMethod(int y)' have signature differences.
-            //     static partial void PartialMethod(int y) { Console.WriteLine(y); }
-            Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "PartialMethod").WithArguments("void C.PartialMethod(int x)", "void C.PartialMethod(int y)").WithLocation(9, 25),
-            // (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
-            //         PartialMethod(y:123);
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y").WithLocation(13, 23)
-            );
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,25): warning CS8826: Partial method declarations 'void C.PartialMethod(int x)' and 'void C.PartialMethod(int y)' have signature differences.
+                //     static partial void PartialMethod(int y) { Console.WriteLine(y); }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "PartialMethod").WithArguments("void C.PartialMethod(int x)", "void C.PartialMethod(int y)").WithLocation(9, 25),
+                // (13,23): error CS1739: The best overload for 'PartialMethod' does not have a parameter named 'y'
+                //         PartialMethod(y:123);
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "y").WithArguments("PartialMethod", "y").WithLocation(13, 23)
+                );
+        }
 
-    [Fact]
-    public void TestNamedAndOptionalParametersUnsafe()
-    {
-        string source = @"
+        [Fact]
+        public void TestNamedAndOptionalParametersUnsafe()
+        {
+            string source = @"
 using System;
 unsafe class C
 {
@@ -767,13 +767,13 @@ unsafe class C
     }
 }";
 
-        // We make an improvement on the native compiler here; we generate default(UIntPtr) and 
-        // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
-        // init on it.
+            // We make an improvement on the native compiler here; we generate default(UIntPtr) and 
+            // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
+            // init on it.
 
-        var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
+            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.FailsPEVerify);
 
-        c.VerifyIL("C.Main", @"{
+            c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
   .maxstack  4
   IL_0000:  ldc.i4.0
@@ -786,13 +786,13 @@ unsafe class C
   IL_0007:  call       ""void C.M(int*, System.IntPtr, System.UIntPtr, int)""
   IL_000c:  ret
 }");
-    }
+        }
 
-    [WorkItem(528783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528783")]
-    [Fact]
-    public void TestNamedAndOptionalParametersArgumentName()
-    {
-        const string text = @"
+        [WorkItem(528783, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528783")]
+        [Fact]
+        public void TestNamedAndOptionalParametersArgumentName()
+        {
+            const string text = @"
 using System;
 
 namespace NS
@@ -807,59 +807,59 @@ namespace NS
     }
 }
 ";
-        var comp = CreateCompilation(text);
-        var nodeAndModel = GetBindingNodeAndModel<IdentifierNameSyntax>(comp);
+            var comp = CreateCompilation(text);
+            var nodeAndModel = GetBindingNodeAndModel<IdentifierNameSyntax>(comp);
 
-        var typeInfo = nodeAndModel.Item2.GetTypeInfo(nodeAndModel.Item1);
-        // parameter name has no type
-        Assert.Null(typeInfo.Type);
+            var typeInfo = nodeAndModel.Item2.GetTypeInfo(nodeAndModel.Item1);
+            // parameter name has no type
+            Assert.Null(typeInfo.Type);
 
-        var symInfo = nodeAndModel.Item2.GetSymbolInfo(nodeAndModel.Item1);
-        Assert.NotNull(symInfo.Symbol);
-        Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
-        Assert.Equal("ss", symInfo.Symbol.Name);
-    }
+            var symInfo = nodeAndModel.Item2.GetSymbolInfo(nodeAndModel.Item1);
+            Assert.NotNull(symInfo.Symbol);
+            Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
+            Assert.Equal("ss", symInfo.Symbol.Name);
+        }
 
-    [WorkItem(542418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542418")]
-    [Fact]
-    public void OptionalValueInvokesInstanceMethod()
-    {
-        var source =
+        [WorkItem(542418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542418")]
+        [Fact]
+        public void OptionalValueInvokesInstanceMethod()
+        {
+            var source =
 @"class C
 {
     object F() { return null; }
     void M1(object value = F()) { }
     object M2(object value = M2()) { return null; }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,28): error CS1736: Default parameter value for 'value' must be a compile-time constant
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 28),
-            // (5,30): error CS1736: Default parameter value for 'value' must be a compile-time constant
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 30));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,28): error CS1736: Default parameter value for 'value' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 28),
+                // (5,30): error CS1736: Default parameter value for 'value' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 30));
+        }
 
-    [Fact]
-    public void OptionalValueInvokesStaticMethod()
-    {
-        var source =
+        [Fact]
+        public void OptionalValueInvokesStaticMethod()
+        {
+            var source =
 @"class C
 {
     static object F() { return null; }
     static void M1(object value = F()) { }
     static object M2(object value = M2()) { return null; }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,35): error CS1736: Default parameter value for 'value' must be a compile-time constant
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 35),
-            // (5,37): error CS1736: Default parameter value for 'value' must be a compile-time constant
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,35): error CS1736: Default parameter value for 'value' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("value").WithLocation(4, 35),
+                // (5,37): error CS1736: Default parameter value for 'value' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
+        }
 
-    [WorkItem(11638, "https://github.com/dotnet/roslyn/issues/11638")]
-    [Fact]
-    public void OptionalValueHasObjectInitializer()
-    {
-        var source =
+        [WorkItem(11638, "https://github.com/dotnet/roslyn/issues/11638")]
+        [Fact]
+        public void OptionalValueHasObjectInitializer()
+        {
+            var source =
 @"class C
 {
     static void Test(Vector3 vector = new Vector3() { X = 1f, Y = 1f, Z = 1f}) { }
@@ -871,34 +871,34 @@ public struct Vector3
     public float Y;
     public float Z;
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (3,39): error CS1736: Default parameter value for 'vector' must be a compile-time constant
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,39): error CS1736: Default parameter value for 'vector' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
+        }
 
-    [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
-    [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
-    [Fact]
-    public void GenericOptionalParameters()
-    {
-        var source =
+        [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
+        [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
+        [Fact]
+        public void GenericOptionalParameters()
+        {
+            var source =
 @"class C
 {
     static void Goo<T>(T t = default(T)) {}
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
-    [Fact]
-    public void OptionalValueTypeFromReferencedAssembly()
-    {
-        // public struct S{}
-        // public class C
-        // {
-        //     public static void Goo(string s, S t = default(S)) {}
-        // }            
-        string ilSource = @"
+        [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
+        [Fact]
+        public void OptionalValueTypeFromReferencedAssembly()
+        {
+            // public struct S{}
+            // public class C
+            // {
+            //     public static void Goo(string s, S t = default(S)) {}
+            // }            
+            string ilSource = @"
 // =============== CLASS MEMBERS DECLARATION ===================
 
 .class public sequential ansi sealed beforefieldinit S
@@ -924,8 +924,8 @@ public struct Vector3
 
 ";
 
-        var source =
-            @"
+            var source =
+                @"
 public class D
 {
     public static void Caller()
@@ -934,14 +934,14 @@ public class D
     }
 }";
 
-        CompileWithCustomILSource(source, ilSource);
-    }
+            CompileWithCustomILSource(source, ilSource);
+        }
 
-    [WorkItem(542867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542867")]
-    [Fact]
-    public void OptionalParameterDeclaredWithAttributes()
-    {
-        string source = @"
+        [WorkItem(542867, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542867")]
+        [Fact]
+        public void OptionalParameterDeclaredWithAttributes()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 public class Parent{
@@ -961,24 +961,24 @@ class Test{
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-            //     public int Bar([DefaultParameterValue(1)]int i = 2) {
-            Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
-            // (9,54): error CS8017: The parameter has multiple distinct default values.
-            //     public int Bar([DefaultParameterValue(1)]int i = 2) {
-            Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
-            // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-            //     public int Goo([Optional]object i = null) {
-            Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
-            );
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
+                // (9,54): error CS8017: The parameter has multiple distinct default values.
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
+                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                //     public int Goo([Optional]object i = null) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
+                );
+        }
 
-    [WorkItem(10290, "DevDiv_Projects/Roslyn")]
-    [Fact]
-    public void OptionalParamOfTypeObject()
-    {
-        string source = @"
+        [WorkItem(10290, "DevDiv_Projects/Roslyn")]
+        [Fact]
+        public void OptionalParamOfTypeObject()
+        {
+            string source = @"
 public class Test
 {
     public static int M1(object p1 = null) { if (p1 == null) return 0; else return 1; }
@@ -988,17 +988,17 @@ public class Test
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: "0");
-    }
+            CompileAndVerify(source, expectedOutput: "0");
+        }
 
-    [WorkItem(543871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
-    [Fact]
-    public void RefParameterDeclaredWithOptionalAttribute()
-    {
-        // The native compiler produces "CS1501: No overload for method 'Goo' takes 0 arguments."
-        // Roslyn produces a slightly more informative error message.
+        [WorkItem(543871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543871")]
+        [Fact]
+        public void RefParameterDeclaredWithOptionalAttribute()
+        {
+            // The native compiler produces "CS1501: No overload for method 'Goo' takes 0 arguments."
+            // Roslyn produces a slightly more informative error message.
 
-        string source = @"
+            string source = @"
 using System.Runtime.InteropServices;
 public class Parent
 {
@@ -1009,17 +1009,17 @@ public class Parent
      }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
-// (8,10): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Parent.Goo(ref int)'
-//          Goo();
-Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
-    }
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+ // (8,10): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Parent.Goo(ref int)'
+ //          Goo();
+ Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Goo").WithArguments("x", "Parent.Goo(ref int)"));
+        }
 
-    [Fact, WorkItem(544491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
-    public void EnumAsDefaultParameterValue()
-    {
-        string source = @"
+        [Fact, WorkItem(544491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544491")]
+        public void EnumAsDefaultParameterValue()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 public enum MyEnum { one, two, three }
@@ -1028,13 +1028,13 @@ public interface IOptionalRef
     MyEnum MethodRef([In, Out, Optional, DefaultParameterValue(MyEnum.three)] ref MyEnum v);
 }
 ";
-        CompileAndVerify(source).VerifyDiagnostics();
-    }
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void DefaultParameterValueErrors()
-    {
-        string source = @"
+        [Fact]
+        public void DefaultParameterValueErrors()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 public enum I8 : sbyte { v = 1 }
@@ -1119,104 +1119,104 @@ public static class ErrorCases
     }
 }
 ";
-        // NOTE: anywhere dev10 reported CS1909, roslyn reports CS1910.
-        CreateCompilation(source).VerifyDiagnostics(
-            // (27,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(0)]         bool b1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (28,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue("hello")]   bool b2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (31,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(12)]        sbyte sb1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (32,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue("hello")]   byte by1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (35,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue("c")]       char ch1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (38,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(1.0)]       float fl1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (42,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(0)]         I8 i8,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (43,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(12)]        U8 u8,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (44,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue("hello")]   I16 i16,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (47,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(5)]         string str1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (48,20): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
-            //         [Optional][DefaultParameterValue(new int[] { 12 })] string str2,
-            Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
-            // (51,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(2)]         C c1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (52,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue("hello")]   C c2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (54,10): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
-            //         [DefaultParameterValue(new int[] { 1, 2 })]  int[] arr1,
-            Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
+            // NOTE: anywhere dev10 reported CS1909, roslyn reports CS1910.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (27,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(0)]         bool b1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (28,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue("hello")]   bool b2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (31,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(12)]        sbyte sb1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (32,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue("hello")]   byte by1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (35,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue("c")]       char ch1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (38,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(1.0)]       float fl1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (42,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(0)]         I8 i8,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (43,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(12)]        U8 u8,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (44,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue("hello")]   I16 i16,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (47,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(5)]         string str1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (48,20): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
+                //         [Optional][DefaultParameterValue(new int[] { 12 })] string str2,
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
+                // (51,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(2)]         C c1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (52,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue("hello")]   C c2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (54,10): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
+                //         [DefaultParameterValue(new int[] { 1, 2 })]  int[] arr1,
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
 
-            // NOTE: Roslyn specifically allows this usage (illegal in dev10).
+                // NOTE: Roslyn specifically allows this usage (illegal in dev10).
 
-            //// (55,10): error CS1909: The DefaultParameterValue attribute is not applicable on parameters of type 'int[]', unless the default value is null
-            ////         [DefaultParameterValue(null)]                int[] arr2,
-            //Diagnostic(ErrorCode.ERR_DefaultValueBadParamType, "DefaultParameterValue").WithArguments("int[]"),
+                //// (55,10): error CS1909: The DefaultParameterValue attribute is not applicable on parameters of type 'int[]', unless the default value is null
+                ////         [DefaultParameterValue(null)]                int[] arr2,
+                //Diagnostic(ErrorCode.ERR_DefaultValueBadParamType, "DefaultParameterValue").WithArguments("int[]"),
 
-            // (56,10): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
-            //         [DefaultParameterValue(new int[] { 1, 2 })]  object arr3,
-            Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
-            // (58,10): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultParameterValue attribute
-            //         [DefaultParameterValue(typeof(object))]      System.Type type1,
-            Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"),
+                // (56,10): error CS1910: Argument of type 'int[]' is not applicable for the DefaultParameterValue attribute
+                //         [DefaultParameterValue(new int[] { 1, 2 })]  object arr3,
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("int[]"),
+                // (58,10): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultParameterValue attribute
+                //         [DefaultParameterValue(typeof(object))]      System.Type type1,
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"),
 
-            // NOTE: Roslyn specifically allows this usage (illegal in dev10).
+                // NOTE: Roslyn specifically allows this usage (illegal in dev10).
 
-            //// (59,10): error CS1909: The DefaultParameterValue attribute is not applicable on parameters of type 'System.Type', unless the default value is null
-            ////         [DefaultParameterValue(null)]                System.Type type2,
-            //Diagnostic(ErrorCode.ERR_DefaultValueBadParamType, "DefaultParameterValue").WithArguments("System.Type"),
+                //// (59,10): error CS1909: The DefaultParameterValue attribute is not applicable on parameters of type 'System.Type', unless the default value is null
+                ////         [DefaultParameterValue(null)]                System.Type type2,
+                //Diagnostic(ErrorCode.ERR_DefaultValueBadParamType, "DefaultParameterValue").WithArguments("System.Type"),
 
-            // (60,10): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultParameterValue attribute
-            //         [DefaultParameterValue(typeof(object))]      object type3,
-            Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"),
-            // (63,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [DefaultParameterValue(null)]                S userStruct1,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (64,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [DefaultParameterValue(0)]                   S userStruct2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (65,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [DefaultParameterValue("hel")]               S userStruct3,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (68,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(null)]      bool b3,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (71,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(null)]      int i2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (74,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(null)]      char ch2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (77,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(null)]      float fl2,
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
-            // (80,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
-            //         [Optional][DefaultParameterValue(null)]      I8 i82
-            Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
-    }
+                // (60,10): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultParameterValue attribute
+                //         [DefaultParameterValue(typeof(object))]      object type3,
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"),
+                // (63,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [DefaultParameterValue(null)]                S userStruct1,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (64,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [DefaultParameterValue(0)]                   S userStruct2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (65,10): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [DefaultParameterValue("hel")]               S userStruct3,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (68,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(null)]      bool b3,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (71,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(null)]      int i2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (74,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(null)]      char ch2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (77,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(null)]      float fl2,
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"),
+                // (80,20): error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
+                //         [Optional][DefaultParameterValue(null)]      I8 i82
+                Diagnostic(ErrorCode.ERR_DefaultValueTypeMustMatch, "DefaultParameterValue"));
+        }
 
-    [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void TestBug12768()
-    {
-        string sourceDefinitions = @"
+        [WorkItem(544440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544440")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void TestBug12768()
+        {
+            string sourceDefinitions = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -1297,7 +1297,7 @@ public class C
   }
 }
 ";
-        string sourceCalls = @"
+            string sourceCalls = @"
 internal class D
 {  
   static void Main()
@@ -1323,7 +1323,7 @@ internal class D
   }
 }";
 
-        string expected = @"1
+            string expected = @"1
 System.Reflection.Missing
 3
 4
@@ -1341,20 +1341,20 @@ System.Runtime.InteropServices.UnknownWrapper
 16
 17
 18";
-        // definitions in source:
-        var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, expectedOutput: expected);
+            // definitions in source:
+            var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, expectedOutput: expected);
 
-        // definitions in metadata:
-        using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
-        {
-            CompileAndVerify(new[] { sourceCalls }, new[] { assembly.GetReference() }, expectedOutput: expected);
+            // definitions in metadata:
+            using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
+            {
+                CompileAndVerify(new[] { sourceCalls }, new[] { assembly.GetReference() }, expectedOutput: expected);
+            }
         }
-    }
 
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void IUnknownConstant_MissingType()
-    {
-        var source = @"
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void IUnknownConstant_MissingType()
+        {
+            var source = @"
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
@@ -1374,29 +1374,29 @@ class C
     }
 }
 ";
-        CompileAndVerify(source).VerifyDiagnostics();
+            CompileAndVerify(source).VerifyDiagnostics();
 
-        var comp = CreateCompilation(source);
-        comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
-        comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
-        comp.MakeMemberMissing(WellKnownMember.System_Type__Missing);
-        comp.VerifyDiagnostics(
-            // (15,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.UnknownWrapper..ctor'
-            //         M1();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M1()").WithArguments("System.Runtime.InteropServices.UnknownWrapper", ".ctor").WithLocation(15, 9),
-            // (16,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.DispatchWrapper..ctor'
-            //         M2();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M2()").WithArguments("System.Runtime.InteropServices.DispatchWrapper", ".ctor").WithLocation(16, 9),
-            // (17,9): error CS0656: Missing compiler required member 'System.Type.Missing'
-            //         M3();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3()").WithArguments("System.Type", "Missing").WithLocation(17, 9));
-    }
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_Type__Missing);
+            comp.VerifyDiagnostics(
+                // (15,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.UnknownWrapper..ctor'
+                //         M1();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M1()").WithArguments("System.Runtime.InteropServices.UnknownWrapper", ".ctor").WithLocation(15, 9),
+                // (16,9): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.DispatchWrapper..ctor'
+                //         M2();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M2()").WithArguments("System.Runtime.InteropServices.DispatchWrapper", ".ctor").WithLocation(16, 9),
+                // (17,9): error CS0656: Missing compiler required member 'System.Type.Missing'
+                //         M3();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3()").WithArguments("System.Type", "Missing").WithLocation(17, 9));
+        }
 
-    [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
-    [Fact()]
-    public void ComOptionalRefParameter()
-    {
-        string source = @"
+        [WorkItem(545329, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545329")]
+        [Fact()]
+        public void ComOptionalRefParameter()
+        {
+            string source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -1424,17 +1424,17 @@ class C
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'D.M(ref object)'
-            //         d.M(); //CS1501
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'D.M(ref object)'
+                //         d.M(); //CS1501
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "D.M(ref object)").WithLocation(25, 11));
+        }
 
-    [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
-    [ClrOnlyFact]
-    public void TestVbDecimalAndDateTimeDefaultParameters()
-    {
-        var vb = @"
+        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
+        [ClrOnlyFact]
+        public void TestVbDecimalAndDateTimeDefaultParameters()
+        {
+            var vb = @"
 Imports System
 
 public Module VBModule
@@ -1469,7 +1469,7 @@ public Module VBModule
 End Module
 ";
 
-        var csharp = @"
+            var csharp = @"
 using System;
 
 public class D
@@ -1501,7 +1501,7 @@ public class D
 }
 ";
 
-        string expected = @"456
+            string expected = @"456
 457
 12.3
 12.4
@@ -1511,7 +1511,7 @@ True
 True
 True";
 
-        string il = @"{
+            string il = @"{
   // Code size      181 (0xb5)
   .maxstack  5
   IL_0000:  call       ""System.Threading.Thread System.Threading.Thread.CurrentThread.get""
@@ -1562,23 +1562,23 @@ True";
   IL_00b4:  ret
 }";
 
-        var vbCompilation = CreateVisualBasicCompilation("VB", vb,
-            compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-        vbCompilation.VerifyDiagnostics();
+            var vbCompilation = CreateVisualBasicCompilation("VB", vb,
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            vbCompilation.VerifyDiagnostics();
 
-        var csharpCompilation = CreateCSharpCompilation("CS", csharp,
-            compilationOptions: TestOptions.ReleaseExe,
-            referencedCompilations: new[] { vbCompilation });
+            var csharpCompilation = CreateCSharpCompilation("CS", csharp,
+                compilationOptions: TestOptions.ReleaseExe,
+                referencedCompilations: new[] { vbCompilation });
 
-        var verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
-        verifier.VerifyIL("D.Main", il);
-    }
+            var verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
+            verifier.VerifyIL("D.Main", il);
+        }
 
-    [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
-    [Fact]
-    public void TestCSharpDecimalAndDateTimeDefaultParameters()
-    {
-        var library = @"
+        [WorkItem(545337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545337")]
+        [Fact]
+        public void TestCSharpDecimalAndDateTimeDefaultParameters()
+        {
+            var library = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -1655,7 +1655,7 @@ public struct S
 }
 ";
 
-        var main = @"
+            var main = @"
 using System;
 
 public class D
@@ -1673,12 +1673,12 @@ public class D
 }
 ";
 
-        var libComp = CreateCompilation(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
-        libComp.VerifyDiagnostics();
+            var libComp = CreateCompilation(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
+            libComp.VerifyDiagnostics();
 
-        var exeComp = CreateCompilation(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
+            var exeComp = CreateCompilation(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
-        var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
+            var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
 12345678901234567890
 0
 null
@@ -1688,7 +1688,7 @@ null
 one
 0");
 
-        verifier.VerifyIL("D.Main", @"{
+            verifier.VerifyIL("D.Main", @"{
   // Code size       97 (0x61)
   .maxstack  9
   .locals init (int? V_0,
@@ -1722,13 +1722,13 @@ one
   IL_005b:  callvirt   ""void C.Baz(E?, long?)""
   IL_0060:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void OmittedComOutParameter()
-    {
-        // We allow omitting optional ref arguments but not optional out arguments.
-        var source = @"
+        [Fact]
+        public void OmittedComOutParameter()
+        {
+            // We allow omitting optional ref arguments but not optional out arguments.
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 [ComImport, Guid(""989FE455-5A6D-4D05-A349-1A221DA05FDA"")]
@@ -1741,20 +1741,20 @@ class P
     static void Q(I i) { i.M(); }
 }
 ";
-        // Note that the native compiler gives a slightly less informative error message here.
+            // Note that the native compiler gives a slightly less informative error message here.
 
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
 // (11,26): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "I.M(out object)")
-            );
-    }
+                );
+        }
 
-    [Fact]
-    public void OmittedComRefParameter()
-    {
-        var source = @"
+        [Fact]
+        public void OmittedComRefParameter()
+        {
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -1790,12 +1790,12 @@ class Com : ICom
     }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: @"
+            var verifier = CompileAndVerify(source, expectedOutput: @"
 100
 System.Reflection.Missing
 10
 123");
-        verifier.VerifyIL("Com.Main", @"
+            verifier.VerifyIL("Com.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  5
@@ -1813,12 +1813,12 @@ System.Reflection.Missing
   IL_0019:  call       ""void System.Console.WriteLine(int)""
   IL_001e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void ArrayElementComRefParameter()
-    {
-        var source =
+        [Fact]
+        public void ArrayElementComRefParameter()
+        {
+            var source =
 @"using System;
 using System.Runtime.InteropServices;
 [ComImport]
@@ -1864,12 +1864,12 @@ class B
         i = new[] { 0 };
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"F()
 0
 F()
 2");
-        verifier.VerifyIL("B.M(IA)",
+            verifier.VerifyIL("B.M(IA)",
 @"{
   // Code size       17 (0x11)
   .maxstack  3
@@ -1883,7 +1883,7 @@ F()
   IL_000b:  callvirt   ""void IA.M(ref int)""
   IL_0010:  ret
 }");
-        verifier.VerifyIL("B.MByRef(IA)",
+            verifier.VerifyIL("B.MByRef(IA)",
 @"{
   // Code size       18 (0x12)
   .maxstack  3
@@ -1894,12 +1894,12 @@ F()
   IL_000c:  callvirt   ""void IA.M(ref int)""
   IL_0011:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void ArrayElementComRefParametersReordered()
-    {
-        var source =
+        [Fact]
+        public void ArrayElementComRefParametersReordered()
+        {
+            var source =
 @"using System;
 using System.Runtime.InteropServices;
 [ComImport]
@@ -1941,12 +1941,12 @@ class B
         Console.WriteLine(""{0}, {1}"", i1[0], i2[0]);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"F2()
 F1()
 2, 3
 ");
-        verifier.VerifyIL("B.M(IA)",
+            verifier.VerifyIL("B.M(IA)",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
@@ -1963,13 +1963,13 @@ F1()
   IL_0019:  callvirt   ""void IA.M(ref int, ref int)""
   IL_001e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [WorkItem(546713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546713")]
-    public void Test16631()
-    {
-        var source =
+        [Fact]
+        [WorkItem(546713, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546713")]
+        public void Test16631()
+        {
+            var source =
 @"    
 public abstract class B
 {
@@ -2010,8 +2010,8 @@ public class D : B
     }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: "2");
-        verifier.VerifyIL("D.M()",
+            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            verifier.VerifyIL("D.M()",
 @"{
   // Code size       11 (0xb)
   .maxstack  1
@@ -2019,13 +2019,13 @@ public class D : B
   IL_0005:  call       ""void D.E<int>(int)""
   IL_000a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
-    public void IsOptionalVsHasDefaultValue_PrimitiveStruct()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        public void IsOptionalVsHasDefaultValue_PrimitiveStruct()
+        {
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2042,72 +2042,72 @@ public class C
 }
 ";
 
-        Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            {
+                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                Assert.Equal(8, methods.Length);
+
+                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+
+                Assert.False(parameters[0].IsOptional);
+                Assert.False(parameters[0].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
+                Assert.Null(parameters[0].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[0].GetAttributes().Length);
+
+                Assert.True(parameters[1].IsOptional);
+                Assert.True(parameters[1].HasExplicitDefaultValue);
+                Assert.Equal(0, parameters[1].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(0), parameters[1].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
+
+                Assert.True(parameters[2].IsOptional);
+                Assert.True(parameters[2].HasExplicitDefaultValue);
+                Assert.Equal(1, parameters[2].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(1), parameters[2].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[2].GetAttributes().Length);
+
+                Assert.True(parameters[3].IsOptional);
+                Assert.False(parameters[3].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
+                Assert.Null(parameters[3].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
+
+                Assert.False(parameters[4].IsOptional);
+                Assert.False(parameters[4].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.True(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create(0), parameters[4].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
+
+                Assert.False(parameters[5].IsOptional);
+                Assert.False(parameters[5].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
+                Assert.True(parameters[5].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create(1), parameters[5].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[5].GetAttributes().Length);
+
+                Assert.True(parameters[6].IsOptional);
+                Assert.True(parameters[6].HasExplicitDefaultValue);
+                Assert.Equal(0, parameters[6].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(0), parameters[6].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length);
+
+                Assert.True(parameters[7].IsOptional);
+                Assert.True(parameters[7].HasExplicitDefaultValue);
+                Assert.Equal(1, parameters[7].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(1), parameters[7].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
+            };
+
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        public void IsOptionalVsHasDefaultValue_UserDefinedStruct()
         {
-            var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(8, methods.Length);
-
-            var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
-
-            Assert.False(parameters[0].IsOptional);
-            Assert.False(parameters[0].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
-            Assert.Null(parameters[0].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[0].GetAttributes().Length);
-
-            Assert.True(parameters[1].IsOptional);
-            Assert.True(parameters[1].HasExplicitDefaultValue);
-            Assert.Equal(0, parameters[1].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(0), parameters[1].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[1].GetAttributes().Length);
-
-            Assert.True(parameters[2].IsOptional);
-            Assert.True(parameters[2].HasExplicitDefaultValue);
-            Assert.Equal(1, parameters[2].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(1), parameters[2].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[2].GetAttributes().Length);
-
-            Assert.True(parameters[3].IsOptional);
-            Assert.False(parameters[3].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
-            Assert.Null(parameters[3].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
-
-            Assert.False(parameters[4].IsOptional);
-            Assert.False(parameters[4].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-            Assert.True(parameters[4].HasMetadataConstantValue);
-            Assert.Equal(ConstantValue.Create(0), parameters[4].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
-
-            Assert.False(parameters[5].IsOptional);
-            Assert.False(parameters[5].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
-            Assert.True(parameters[5].HasMetadataConstantValue);
-            Assert.Equal(ConstantValue.Create(1), parameters[5].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[5].GetAttributes().Length);
-
-            Assert.True(parameters[6].IsOptional);
-            Assert.True(parameters[6].HasExplicitDefaultValue);
-            Assert.Equal(0, parameters[6].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(0), parameters[6].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length);
-
-            Assert.True(parameters[7].IsOptional);
-            Assert.True(parameters[7].HasExplicitDefaultValue);
-            Assert.Equal(1, parameters[7].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(1), parameters[7].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
-        };
-
-        CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
-    }
-
-    [Fact]
-    [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
-    public void IsOptionalVsHasDefaultValue_UserDefinedStruct()
-    {
-        var source = @"
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2124,41 +2124,41 @@ public struct S
 }
 ";
 
-        Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            {
+                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                Assert.Equal(3, methods.Length);
+
+                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+
+                Assert.False(parameters[0].IsOptional);
+                Assert.False(parameters[0].HasExplicitDefaultValue);
+                Assert.Null(parameters[0].ExplicitDefaultConstantValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
+                Assert.Equal(0, parameters[0].GetAttributes().Length);
+
+                Assert.True(parameters[1].IsOptional);
+                Assert.True(parameters[1].HasExplicitDefaultValue);
+                Assert.Null(parameters[1].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
+
+                Assert.True(parameters[2].IsOptional);
+                Assert.False(parameters[2].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[2].ExplicitDefaultValue);
+                Assert.Null(parameters[2].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[2].GetAttributes().Length);
+            };
+
+            // TODO: RefEmit doesn't emit the default value of M1's parameter.
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        public void IsOptionalVsHasDefaultValue_String()
         {
-            var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(3, methods.Length);
-
-            var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
-
-            Assert.False(parameters[0].IsOptional);
-            Assert.False(parameters[0].HasExplicitDefaultValue);
-            Assert.Null(parameters[0].ExplicitDefaultConstantValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
-            Assert.Equal(0, parameters[0].GetAttributes().Length);
-
-            Assert.True(parameters[1].IsOptional);
-            Assert.True(parameters[1].HasExplicitDefaultValue);
-            Assert.Null(parameters[1].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[1].GetAttributes().Length);
-
-            Assert.True(parameters[2].IsOptional);
-            Assert.False(parameters[2].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[2].ExplicitDefaultValue);
-            Assert.Null(parameters[2].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[2].GetAttributes().Length);
-        };
-
-        // TODO: RefEmit doesn't emit the default value of M1's parameter.
-        CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
-    }
-
-    [Fact]
-    [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
-    public void IsOptionalVsHasDefaultValue_String()
-    {
-        var source = @"
+            var source = @"
 using System;
 using System.Runtime.InteropServices;
 
@@ -2175,72 +2175,72 @@ public class C
 }
 ";
 
-        Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            {
+                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                Assert.Equal(8, methods.Length);
+
+                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+
+                Assert.False(parameters[0].IsOptional);
+                Assert.False(parameters[0].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
+                Assert.Null(parameters[0].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[0].GetAttributes().Length);
+
+                Assert.True(parameters[1].IsOptional);
+                Assert.True(parameters[1].HasExplicitDefaultValue);
+                Assert.Null(parameters[1].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
+
+                Assert.True(parameters[2].IsOptional);
+                Assert.True(parameters[2].HasExplicitDefaultValue);
+                Assert.Equal("A", parameters[2].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create("A"), parameters[2].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[2].GetAttributes().Length);
+
+                Assert.True(parameters[3].IsOptional);
+                Assert.False(parameters[3].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
+                Assert.Null(parameters[3].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
+
+                Assert.False(parameters[4].IsOptional);
+                Assert.False(parameters[4].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.True(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Null, parameters[4].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
+
+                Assert.True(parameters[5].IsOptional);
+                Assert.True(parameters[5].HasExplicitDefaultValue);
+                Assert.Null(parameters[5].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length);
+
+                Assert.False(parameters[6].IsOptional);
+                Assert.False(parameters[6].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[6].ExplicitDefaultValue);
+                Assert.True(parameters[6].HasMetadataConstantValue);
+                Assert.Equal(ConstantValue.Create("A"), parameters[6].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[6].GetAttributes().Length);
+
+                Assert.True(parameters[7].IsOptional);
+                Assert.True(parameters[7].HasExplicitDefaultValue);
+                Assert.Equal("A", parameters[7].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create("A"), parameters[7].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
+            };
+
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        public void IsOptionalVsHasDefaultValue_Decimal()
         {
-            var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(8, methods.Length);
-
-            var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
-
-            Assert.False(parameters[0].IsOptional);
-            Assert.False(parameters[0].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
-            Assert.Null(parameters[0].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[0].GetAttributes().Length);
-
-            Assert.True(parameters[1].IsOptional);
-            Assert.True(parameters[1].HasExplicitDefaultValue);
-            Assert.Null(parameters[1].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[1].GetAttributes().Length);
-
-            Assert.True(parameters[2].IsOptional);
-            Assert.True(parameters[2].HasExplicitDefaultValue);
-            Assert.Equal("A", parameters[2].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create("A"), parameters[2].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[2].GetAttributes().Length);
-
-            Assert.True(parameters[3].IsOptional);
-            Assert.False(parameters[3].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
-            Assert.Null(parameters[3].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
-
-            Assert.False(parameters[4].IsOptional);
-            Assert.False(parameters[4].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-            Assert.True(parameters[4].HasMetadataConstantValue);
-            Assert.Equal(ConstantValue.Null, parameters[4].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[4].GetAttributes().Length);
-
-            Assert.True(parameters[5].IsOptional);
-            Assert.True(parameters[5].HasExplicitDefaultValue);
-            Assert.Null(parameters[5].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Null, parameters[5].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length);
-
-            Assert.False(parameters[6].IsOptional);
-            Assert.False(parameters[6].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[6].ExplicitDefaultValue);
-            Assert.True(parameters[6].HasMetadataConstantValue);
-            Assert.Equal(ConstantValue.Create("A"), parameters[6].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[6].GetAttributes().Length);
-
-            Assert.True(parameters[7].IsOptional);
-            Assert.True(parameters[7].HasExplicitDefaultValue);
-            Assert.Equal("A", parameters[7].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create("A"), parameters[7].ExplicitDefaultConstantValue); // not imported for non-optional parameter
-            Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length);
-        };
-
-        CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
-    }
-
-    [Fact]
-    [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
-    public void IsOptionalVsHasDefaultValue_Decimal()
-    {
-        var source = @"
+            var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -2258,72 +2258,72 @@ public class C
 }
 ";
 
-        Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            {
+                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                Assert.Equal(8, methods.Length);
+
+                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+
+                Assert.False(parameters[0].IsOptional);
+                Assert.False(parameters[0].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
+                Assert.Null(parameters[0].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[0].GetAttributes().Length);
+
+                Assert.True(parameters[1].IsOptional);
+                Assert.True(parameters[1].HasExplicitDefaultValue);
+                Assert.Equal(0M, parameters[1].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(0M), parameters[1].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[1].GetAttributes().Length);
+
+                Assert.True(parameters[2].IsOptional);
+                Assert.True(parameters[2].HasExplicitDefaultValue);
+                Assert.Equal(1M, parameters[2].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(1M), parameters[2].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[2].GetAttributes().Length);
+
+                Assert.True(parameters[3].IsOptional);
+                Assert.False(parameters[3].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
+                Assert.Null(parameters[3].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
+
+                Assert.False(parameters[4].IsOptional);
+                Assert.False(parameters[4].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.False(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(isFromSource ? ConstantValue.Create(0M) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(1, parameters[4].GetAttributes().Length); // DecimalConstantAttribute
+
+                Assert.False(parameters[5].IsOptional);
+                Assert.False(parameters[5].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
+                Assert.False(parameters[5].HasMetadataConstantValue);
+                Assert.Equal(isFromSource ? ConstantValue.Create(1M) : null, parameters[5].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(1, parameters[5].GetAttributes().Length); // DecimalConstantAttribute
+
+                Assert.True(parameters[6].IsOptional);
+                Assert.True(parameters[6].HasExplicitDefaultValue);
+                Assert.Equal(0M, parameters[6].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(0M), parameters[6].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
+
+                Assert.True(parameters[7].IsOptional);
+                Assert.True(parameters[7].HasExplicitDefaultValue);
+                Assert.Equal(1M, parameters[7].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(1M), parameters[7].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
+            };
+
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
+        public void IsOptionalVsHasDefaultValue_DateTime()
         {
-            var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(8, methods.Length);
-
-            var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
-
-            Assert.False(parameters[0].IsOptional);
-            Assert.False(parameters[0].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
-            Assert.Null(parameters[0].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[0].GetAttributes().Length);
-
-            Assert.True(parameters[1].IsOptional);
-            Assert.True(parameters[1].HasExplicitDefaultValue);
-            Assert.Equal(0M, parameters[1].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(0M), parameters[1].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[1].GetAttributes().Length);
-
-            Assert.True(parameters[2].IsOptional);
-            Assert.True(parameters[2].HasExplicitDefaultValue);
-            Assert.Equal(1M, parameters[2].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(1M), parameters[2].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[2].GetAttributes().Length);
-
-            Assert.True(parameters[3].IsOptional);
-            Assert.False(parameters[3].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
-            Assert.Null(parameters[3].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[3].GetAttributes().Length);
-
-            Assert.False(parameters[4].IsOptional);
-            Assert.False(parameters[4].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-            Assert.False(parameters[4].HasMetadataConstantValue);
-            Assert.Equal(isFromSource ? ConstantValue.Create(0M) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
-            Assert.Equal(1, parameters[4].GetAttributes().Length); // DecimalConstantAttribute
-
-            Assert.False(parameters[5].IsOptional);
-            Assert.False(parameters[5].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[5].ExplicitDefaultValue);
-            Assert.False(parameters[5].HasMetadataConstantValue);
-            Assert.Equal(isFromSource ? ConstantValue.Create(1M) : null, parameters[5].ExplicitDefaultConstantValue); // not imported for non-optional parameter
-            Assert.Equal(1, parameters[5].GetAttributes().Length); // DecimalConstantAttribute
-
-            Assert.True(parameters[6].IsOptional);
-            Assert.True(parameters[6].HasExplicitDefaultValue);
-            Assert.Equal(0M, parameters[6].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(0M), parameters[6].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
-
-            Assert.True(parameters[7].IsOptional);
-            Assert.True(parameters[7].HasExplicitDefaultValue);
-            Assert.Equal(1M, parameters[7].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(1M), parameters[7].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[7].GetAttributes().Length); // Optional+DecimalConstantAttribute / DecimalConstantAttribute
-        };
-
-        CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
-    }
-
-    [Fact]
-    [WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")]
-    public void IsOptionalVsHasDefaultValue_DateTime()
-    {
-        var source = @"
+            var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -2340,66 +2340,66 @@ public class C
 }
 ";
 
-        Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
+            {
+                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                Assert.Equal(7, methods.Length);
+
+                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+
+                Assert.False(parameters[0].IsOptional);
+                Assert.False(parameters[0].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
+                Assert.Null(parameters[0].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[0].GetAttributes().Length);
+
+                Assert.True(parameters[1].IsOptional);
+                Assert.True(parameters[1].HasExplicitDefaultValue);
+                Assert.Null(parameters[1].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
+                Assert.Equal(0, parameters[1].GetAttributes().Length); // As in dev11, [DateTimeConstant] is not emitted in this case.
+
+                Assert.True(parameters[2].IsOptional);
+                Assert.False(parameters[2].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[2].ExplicitDefaultValue);
+                Assert.Null(parameters[2].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 1 : 0, parameters[2].GetAttributes().Length);
+
+                Assert.False(parameters[3].IsOptional);
+                Assert.False(parameters[3].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
+                Assert.False(parameters[3].HasMetadataConstantValue);
+                Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(0)) : null, parameters[3].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(1, parameters[3].GetAttributes().Length); // DateTimeConstant
+
+                Assert.False(parameters[4].IsOptional);
+                Assert.False(parameters[4].HasExplicitDefaultValue);
+                Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
+                Assert.False(parameters[4].HasMetadataConstantValue);
+                Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(1)) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
+                Assert.Equal(1, parameters[4].GetAttributes().Length); // DateTimeConstant
+
+                Assert.True(parameters[5].IsOptional);
+                Assert.True(parameters[5].HasExplicitDefaultValue);
+                Assert.Equal(new DateTime(0), parameters[5].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(new DateTime(0)), parameters[5].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length); // Optional+DateTimeConstant / DateTimeConstant
+
+                Assert.True(parameters[6].IsOptional);
+                Assert.True(parameters[6].HasExplicitDefaultValue);
+                Assert.Equal(new DateTime(1), parameters[6].ExplicitDefaultValue);
+                Assert.Equal(ConstantValue.Create(new DateTime(1)), parameters[6].ExplicitDefaultConstantValue);
+                Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length); // Optional+DateTimeConstant / DateTimeConstant
+            };
+
+            // TODO: Guess - RefEmit doesn't like DateTime constants.
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+        }
+
+        [Fact]
+        public void InvalidConversionForDefaultArgument_InIL()
         {
-            var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
-            Assert.Equal(7, methods.Length);
-
-            var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
-
-            Assert.False(parameters[0].IsOptional);
-            Assert.False(parameters[0].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[0].ExplicitDefaultValue);
-            Assert.Null(parameters[0].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[0].GetAttributes().Length);
-
-            Assert.True(parameters[1].IsOptional);
-            Assert.True(parameters[1].HasExplicitDefaultValue);
-            Assert.Null(parameters[1].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Null, parameters[1].ExplicitDefaultConstantValue);
-            Assert.Equal(0, parameters[1].GetAttributes().Length); // As in dev11, [DateTimeConstant] is not emitted in this case.
-
-            Assert.True(parameters[2].IsOptional);
-            Assert.False(parameters[2].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[2].ExplicitDefaultValue);
-            Assert.Null(parameters[2].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 1 : 0, parameters[2].GetAttributes().Length);
-
-            Assert.False(parameters[3].IsOptional);
-            Assert.False(parameters[3].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[3].ExplicitDefaultValue);
-            Assert.False(parameters[3].HasMetadataConstantValue);
-            Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(0)) : null, parameters[3].ExplicitDefaultConstantValue); // not imported for non-optional parameter
-            Assert.Equal(1, parameters[3].GetAttributes().Length); // DateTimeConstant
-
-            Assert.False(parameters[4].IsOptional);
-            Assert.False(parameters[4].HasExplicitDefaultValue);
-            Assert.Throws<InvalidOperationException>(() => parameters[4].ExplicitDefaultValue);
-            Assert.False(parameters[4].HasMetadataConstantValue);
-            Assert.Equal(isFromSource ? ConstantValue.Create(new DateTime(1)) : null, parameters[4].ExplicitDefaultConstantValue); // not imported for non-optional parameter
-            Assert.Equal(1, parameters[4].GetAttributes().Length); // DateTimeConstant
-
-            Assert.True(parameters[5].IsOptional);
-            Assert.True(parameters[5].HasExplicitDefaultValue);
-            Assert.Equal(new DateTime(0), parameters[5].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(new DateTime(0)), parameters[5].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[5].GetAttributes().Length); // Optional+DateTimeConstant / DateTimeConstant
-
-            Assert.True(parameters[6].IsOptional);
-            Assert.True(parameters[6].HasExplicitDefaultValue);
-            Assert.Equal(new DateTime(1), parameters[6].ExplicitDefaultValue);
-            Assert.Equal(ConstantValue.Create(new DateTime(1)), parameters[6].ExplicitDefaultConstantValue);
-            Assert.Equal(isFromSource ? 2 : 0, parameters[6].GetAttributes().Length); // Optional+DateTimeConstant / DateTimeConstant
-        };
-
-        // TODO: Guess - RefEmit doesn't like DateTime constants.
-        CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
-    }
-
-    [Fact]
-    public void InvalidConversionForDefaultArgument_InIL()
-    {
-        var il = @"
+            var il = @"
 .class public auto ansi beforefieldinit P
        extends [mscorlib]System.Object
 {
@@ -2426,7 +2426,7 @@ public class C
 } // end of class P
 ";
 
-        var csharp = @"
+            var csharp = @"
 class C
 {
     public static void Main()
@@ -2436,37 +2436,37 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithIL(csharp, il, options: TestOptions.DebugExe);
-        comp.VerifyDiagnostics(
-            // (7,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
-            //          System.Console.Write(p.M1());
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.M1()").WithArguments("string", "int").WithLocation(7, 31));
-    }
+            var comp = CreateCompilationWithIL(csharp, il, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //          System.Console.Write(p.M1());
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "p.M1()").WithArguments("string", "int").WithLocation(7, 31));
+        }
 
-    [Fact]
-    public void DefaultArgument_LoopInUsage()
-    {
-        var csharp = @"
+        [Fact]
+        public void DefaultArgument_LoopInUsage()
+        {
+            var csharp = @"
 class C
 {
     static object F(object param = F()) => param; // 1
 }
 ";
-        var comp = CreateCompilation(csharp);
-        comp.VerifyDiagnostics(
-            // (4,36): error CS1736: Default parameter value for 'param' must be a compile-time constant
-            //     static object F(object param = F()) => param; // 1
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("param").WithLocation(4, 36));
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,36): error CS1736: Default parameter value for 'param' must be a compile-time constant
+                //     static object F(object param = F()) => param; // 1
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("param").WithLocation(4, 36));
 
-        var method = comp.GetMember<MethodSymbol>("C.F");
-        var param = method.Parameters.Single();
-        Assert.Equal(ConstantValue.Bad, param.ExplicitDefaultConstantValue);
-    }
+            var method = comp.GetMember<MethodSymbol>("C.F");
+            var param = method.Parameters.Single();
+            Assert.Equal(ConstantValue.Bad, param.ExplicitDefaultConstantValue);
+        }
 
-    [Fact]
-    public void DefaultValue_Boxing()
-    {
-        var csharp = @"
+        [Fact]
+        public void DefaultValue_Boxing()
+        {
+            var csharp = @"
 class C
 {
     void M1(object obj = 1) // 1
@@ -2478,20 +2478,20 @@ class C
     }
 }
 ";
-        var comp = CreateCompilation(csharp);
-        comp.VerifyDiagnostics(
-            // (4,20): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
-            //     void M1(object obj = 1) // 1
-            Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(4, 20),
-            // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
-            //     C(object obj = System.DayOfWeek.Monday) // 2
-            Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
-    }
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M1(object obj = 1) // 1
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(4, 20),
+                // (8,14): error CS1763: 'obj' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     C(object obj = System.DayOfWeek.Monday) // 2
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "obj").WithArguments("obj", "object").WithLocation(8, 14));
+        }
 
-    [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
-    public void DefaultValue_NonNullConvertedString()
-    {
-        var source = @"
+        [Fact, WorkItem(59789, "https://github.com/dotnet/roslyn/issues/59789")]
+        public void DefaultValue_NonNullConvertedString()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 class C
@@ -2518,26 +2518,27 @@ class C
     }
 }
 ";
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
-            // (6,33): error CS0134: 'C.y' is of type 'IEnumerable<char>'. A const field of a reference type other than string can only be initialized with null.
-            //     const IEnumerable<char> y = "world"; // 1
-            Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y", "System.Collections.Generic.IEnumerable<char>").WithLocation(6, 33),
-            // (8,23): error CS0134: 'C.y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
-            //     const object y3 = "world"; // 2
-            Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y3", "object").WithLocation(8, 23),
-            // (9,24): error CS0134: 'C.y4' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
-            //     const dynamic y4 = "world"; // 3
-            Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y4", "dynamic").WithLocation(9, 24),
-            // (11,30): error CS1763: 'x' is of type 'IEnumerable<char>'. A default parameter value of a reference type other than string can only be initialized with null
-            //     void M(IEnumerable<char> x = "hello") // 4
-            Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "System.Collections.Generic.IEnumerable<char>").WithLocation(11, 30),
-            // (19,20): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
-            //     void M3(object x = "hello") // 5
-            Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(19, 20),
-            // (23,21): error CS1763: 'x' is of type 'dynamic'. A default parameter value of a reference type other than string can only be initialized with null
-            //     void M4(dynamic x = "hello") // 6
-            Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "dynamic").WithLocation(23, 21)
-            );
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS0134: 'C.y' is of type 'IEnumerable<char>'. A const field of a reference type other than string can only be initialized with null.
+                //     const IEnumerable<char> y = "world"; // 1
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y", "System.Collections.Generic.IEnumerable<char>").WithLocation(6, 33),
+                // (8,23): error CS0134: 'C.y3' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //     const object y3 = "world"; // 2
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y3", "object").WithLocation(8, 23),
+                // (9,24): error CS0134: 'C.y4' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
+                //     const dynamic y4 = "world"; // 3
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, @"""world""").WithArguments("C.y4", "dynamic").WithLocation(9, 24),
+                // (11,30): error CS1763: 'x' is of type 'IEnumerable<char>'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M(IEnumerable<char> x = "hello") // 4
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "System.Collections.Generic.IEnumerable<char>").WithLocation(11, 30),
+                // (19,20): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M3(object x = "hello") // 5
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "object").WithLocation(19, 20),
+                // (23,21): error CS1763: 'x' is of type 'dynamic'. A default parameter value of a reference type other than string can only be initialized with null
+                //     void M4(dynamic x = "hello") // 6
+                Diagnostic(ErrorCode.ERR_NotNullRefDefaultParameter, "x").WithArguments("x", "dynamic").WithLocation(23, 21)
+                );
+        }
     }
 }

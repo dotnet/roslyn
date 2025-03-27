@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IConditionalAccessExpression : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IConditionalAccessExpression_SimpleMethodAccess()
+    public class IOperationTests_IConditionalAccessExpression : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IConditionalAccessExpression_SimpleMethodAccess()
+        {
+            string source = @"
 using System;
 
 public class C1
@@ -28,7 +28,7 @@ public class C1
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.String) (Syntax: 'o?.ToString()')
   Operation: 
     ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
@@ -38,16 +38,16 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Strin
         IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: System.Object, IsImplicit) (Syntax: 'o')
       Arguments(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ConditionalAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ConditionalAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IConditionalAccessExpression_SimplePropertyAccess()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IConditionalAccessExpression_SimplePropertyAccess()
+        {
+            string source = @"
 using System;
 
 public class C1
@@ -60,7 +60,7 @@ public class C1
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Int32?) (Syntax: 'c1?.Prop1')
   Operation: 
     ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
@@ -69,16 +69,16 @@ IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Int32
       Instance Receiver: 
         IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C1, IsImplicit) (Syntax: 'c1')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ConditionalAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ConditionalAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void IConditionalAccessExpression_NestedConditionalAndNonConditionalAccesses()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IConditionalAccessExpression_NestedConditionalAndNonConditionalAccesses()
+        {
+            string source = @"
 using System;
 
 public class C1
@@ -91,7 +91,7 @@ public class C1
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = c1 ... p1)?.Prop1;')
     Expression: 
@@ -126,12 +126,12 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
                     Instance Receiver: 
                       IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: C1, IsImplicit) (Syntax: '.Prop1.M1(c2?.Prop1)')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source);
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, expectedDiagnostics);
 
-        var expectedFlowGraph = @"
+            var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -274,14 +274,14 @@ Block[B12] - Exit
     Statements (0)
 ";
 
-        VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_01()
+        {
+            string source = @"
 class P
 {
     void M1(System.Array input, int? result)
@@ -290,7 +290,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -370,16 +370,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_02()
+        {
+            string source = @"
 class P
 {
     void M1(int? input, string result)
@@ -388,7 +388,7 @@ class P
     }/*</bind>*/
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -466,16 +466,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_03()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_03()
+        {
+            string source = @"
 class P
 {
     void M1(P input, int? result)
@@ -486,7 +486,7 @@ class P
     int? Access() => null;
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -563,16 +563,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_04()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_04()
+        {
+            string source = @"
 class P
 {
     void M1(P input, P result)
@@ -585,7 +585,7 @@ class P
     P Access2() => null;
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -756,16 +756,16 @@ Block[B13] - Exit
     Predecessors: [B12]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_05()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_05()
+        {
+            string source = @"
 struct P
 {
     void M1(P? input, P? result)
@@ -778,7 +778,7 @@ struct P
     P Access2() => default;
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -966,16 +966,16 @@ Block[B13] - Exit
     Predecessors: [B12]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_06()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_06()
+        {
+            string source = @"
 struct P
 {
     void M1(S1? x)
@@ -988,7 +988,7 @@ public struct S1
 {
     public int P1 { get; set; }
 }";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1059,20 +1059,20 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         x?.P1 = 0;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
-        };
+            var expectedDiagnostics = new[] {
+                // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         x?.P1 = 0;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_07()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_07()
+        {
+            string source = @"
 struct P
 {
     void M1(S1? x)
@@ -1085,7 +1085,7 @@ public struct S1
 {
     public int P1;
 }";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1156,20 +1156,20 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         x?.P1 = 0;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
-        };
+            var expectedDiagnostics = new[] {
+                // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         x?.P1 = 0;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x?.P1").WithLocation(6, 9)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_08()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_08()
+        {
+            string source = @"
 struct P
 {
     void M1(P? input, int? result)
@@ -1180,10 +1180,10 @@ struct P
     public int Length { get; }
 }
 ";
-        var compilation = CreateCompilationWithMscorlib461(source);
-        compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            var compilation = CreateCompilationWithMscorlib461(source);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1265,16 +1265,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConditionalAccessFlow_09()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_09()
+        {
+            string source = @"
 class C
 {
     void M1(C input1, C input2, C input3)
@@ -1285,7 +1285,7 @@ class C
     public string M(string x) => x;
 }
 ";
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1424,15 +1424,15 @@ Block[B9] - Exit
     Predecessors: [B1] [B8]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void NestedConditionalAccess()
-    {
-        var comp = CreateCompilation(@"
+        [Fact]
+        public void NestedConditionalAccess()
+        {
+            var comp = CreateCompilation(@"
 class C
 {
     C Prop { get; set; }
@@ -1443,7 +1443,7 @@ class C
     }/*</bind>*/
 }");
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, @"
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1554,12 +1554,12 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ", DiagnosticDescription.None);
-    }
+        }
 
-    [Fact]
-    public void InvalidConditionalAccess_01()
-    {
-        var code = @"
+        [Fact]
+        public void InvalidConditionalAccess_01()
+        {
+            var code = @"
 class C
 {
     void M()
@@ -1569,14 +1569,14 @@ class C
 }
 ";
 
-        var expectedDiagnostics = new[]
-        {
-            // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
-            //         _ = 123?[1, 2];
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
-         };
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+                //         _ = 123?[1, 2];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
+             };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1644,12 +1644,12 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ", expectedDiagnostics);
-    }
+        }
 
-    [Fact]
-    public void InvalidConditionalAccess_02()
-    {
-        var code = @"
+        [Fact]
+        public void InvalidConditionalAccess_02()
+        {
+            var code = @"
 class C
 {
     void M()
@@ -1659,14 +1659,14 @@ class C
 }
 ";
 
-        var expectedDiagnostics = new[]
-        {
-            // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
-            //         _ = 123?[1, 2];
-            Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
-        };
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+                //         _ = 123?[1, 2];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1738,5 +1738,6 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ", expectedDiagnostics);
+        }
     }
 }

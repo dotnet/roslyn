@@ -7,64 +7,65 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+    internal sealed partial class LocalRewriter
     {
-        var rewrittenExpression = VisitExpression(node.InvokedExpression);
-        Debug.Assert(rewrittenExpression != null);
-
-        // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
-        // be involved.
-        AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments, allowConversionsWithNoContext: true);
-        MethodSymbol functionPointer = node.FunctionPointer.Signature;
-        var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-        BoundExpression? discardedReceiver = null;
-        ArrayBuilder<LocalSymbol>? temps = null;
-        var rewrittenArgs = VisitArgumentsAndCaptureReceiverIfNeeded(
-            rewrittenReceiver: ref discardedReceiver,
-            captureReceiverMode: ReceiverCaptureMode.Default,
-            node.Arguments,
-            functionPointer,
-            argsToParamsOpt: default,
-            argumentRefKindsOpt: argumentRefKindsOpt,
-            storesOpt: null,
-            ref temps);
-
-        Debug.Assert(discardedReceiver is null);
-
-        if (node.InterceptableNameSyntax is { } nameSyntax && this._compilation.TryGetInterceptor(nameSyntax) is var (attributeLocation, _))
+        public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
-            this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
+            var rewrittenExpression = VisitExpression(node.InvokedExpression);
+            Debug.Assert(rewrittenExpression != null);
+
+            // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
+            // be involved.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments, allowConversionsWithNoContext: true);
+            MethodSymbol functionPointer = node.FunctionPointer.Signature;
+            var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            BoundExpression? discardedReceiver = null;
+            ArrayBuilder<LocalSymbol>? temps = null;
+            var rewrittenArgs = VisitArgumentsAndCaptureReceiverIfNeeded(
+                rewrittenReceiver: ref discardedReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                node.Arguments,
+                functionPointer,
+                argsToParamsOpt: default,
+                argumentRefKindsOpt: argumentRefKindsOpt,
+                storesOpt: null,
+                ref temps);
+
+            Debug.Assert(discardedReceiver is null);
+
+            if (node.InterceptableNameSyntax is { } nameSyntax && this._compilation.TryGetInterceptor(nameSyntax) is var (attributeLocation, _))
+            {
+                this._diagnostics.Add(ErrorCode.ERR_InterceptableMethodMustBeOrdinary, attributeLocation, nameSyntax.Identifier.ValueText);
+            }
+
+            rewrittenArgs = MakeArguments(
+                rewrittenArgs,
+                functionPointer,
+                expanded: false,
+                argsToParamsOpt: default,
+                ref argumentRefKindsOpt,
+                ref temps,
+                invokedAsExtensionMethod: false);
+
+            BoundExpression rewrittenInvocation = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
+
+            if (temps.Count == 0)
+            {
+                temps.Free();
+            }
+            else
+            {
+                rewrittenInvocation = new BoundSequence(rewrittenInvocation.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, rewrittenInvocation, node.Type);
+            }
+
+            if (Instrument)
+            {
+                rewrittenInvocation = Instrumenter.InstrumentFunctionPointerInvocation(node, rewrittenInvocation);
+            }
+
+            return rewrittenInvocation;
         }
-
-        rewrittenArgs = MakeArguments(
-            rewrittenArgs,
-            functionPointer,
-            expanded: false,
-            argsToParamsOpt: default,
-            ref argumentRefKindsOpt,
-            ref temps,
-            invokedAsExtensionMethod: false);
-
-        BoundExpression rewrittenInvocation = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
-
-        if (temps.Count == 0)
-        {
-            temps.Free();
-        }
-        else
-        {
-            rewrittenInvocation = new BoundSequence(rewrittenInvocation.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, rewrittenInvocation, node.Type);
-        }
-
-        if (Instrument)
-        {
-            rewrittenInvocation = Instrumenter.InstrumentFunctionPointerInvocation(node, rewrittenInvocation);
-        }
-
-        return rewrittenInvocation;
     }
 }

@@ -9,75 +9,76 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal class SyntaxFirstTokenReplacer : CSharpSyntaxRewriter
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    private readonly SyntaxToken _oldToken;
-    private readonly SyntaxToken _newToken;
-    private readonly int _diagnosticOffsetDelta;
-    private bool _foundOldToken;
-
-    private SyntaxFirstTokenReplacer(SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
+    internal class SyntaxFirstTokenReplacer : CSharpSyntaxRewriter
     {
-        _oldToken = oldToken;
-        _newToken = newToken;
-        _diagnosticOffsetDelta = diagnosticOffsetDelta;
-        _foundOldToken = false;
-    }
+        private readonly SyntaxToken _oldToken;
+        private readonly SyntaxToken _newToken;
+        private readonly int _diagnosticOffsetDelta;
+        private bool _foundOldToken;
 
-    internal static TRoot Replace<TRoot>(TRoot root, SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
-        where TRoot : CSharpSyntaxNode
-    {
-        var replacer = new SyntaxFirstTokenReplacer(oldToken, newToken, diagnosticOffsetDelta);
-        var newRoot = (TRoot)replacer.Visit(root);
-        Debug.Assert(replacer._foundOldToken);
-        return newRoot;
-    }
-
-    public override CSharpSyntaxNode Visit(CSharpSyntaxNode node)
-    {
-        if (node != null)
+        private SyntaxFirstTokenReplacer(SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
         {
-            if (!_foundOldToken)
-            {
-                var token = node as SyntaxToken;
-                if (token != null)
-                {
-                    Debug.Assert(token == _oldToken);
-                    _foundOldToken = true;
-                    return _newToken; // NB: diagnostic offsets have already been updated (by SyntaxParser.AddSkippedSyntax)
-                }
-
-                return UpdateDiagnosticOffset(base.Visit(node), _diagnosticOffsetDelta);
-            }
+            _oldToken = oldToken;
+            _newToken = newToken;
+            _diagnosticOffsetDelta = diagnosticOffsetDelta;
+            _foundOldToken = false;
         }
 
-        return node;
-    }
-
-    private static TSyntax UpdateDiagnosticOffset<TSyntax>(TSyntax node, int diagnosticOffsetDelta) where TSyntax : CSharpSyntaxNode
-    {
-        DiagnosticInfo[] oldDiagnostics = node.GetDiagnostics();
-        if (oldDiagnostics == null || oldDiagnostics.Length == 0)
+        internal static TRoot Replace<TRoot>(TRoot root, SyntaxToken oldToken, SyntaxToken newToken, int diagnosticOffsetDelta)
+            where TRoot : CSharpSyntaxNode
         {
+            var replacer = new SyntaxFirstTokenReplacer(oldToken, newToken, diagnosticOffsetDelta);
+            var newRoot = (TRoot)replacer.Visit(root);
+            Debug.Assert(replacer._foundOldToken);
+            return newRoot;
+        }
+
+        public override CSharpSyntaxNode Visit(CSharpSyntaxNode node)
+        {
+            if (node != null)
+            {
+                if (!_foundOldToken)
+                {
+                    var token = node as SyntaxToken;
+                    if (token != null)
+                    {
+                        Debug.Assert(token == _oldToken);
+                        _foundOldToken = true;
+                        return _newToken; // NB: diagnostic offsets have already been updated (by SyntaxParser.AddSkippedSyntax)
+                    }
+
+                    return UpdateDiagnosticOffset(base.Visit(node), _diagnosticOffsetDelta);
+                }
+            }
+
             return node;
         }
 
-        var numDiagnostics = oldDiagnostics.Length;
-        DiagnosticInfo[] newDiagnostics = new DiagnosticInfo[numDiagnostics];
-        for (int i = 0; i < numDiagnostics; i++)
+        private static TSyntax UpdateDiagnosticOffset<TSyntax>(TSyntax node, int diagnosticOffsetDelta) where TSyntax : CSharpSyntaxNode
         {
-            DiagnosticInfo oldDiagnostic = oldDiagnostics[i];
-            SyntaxDiagnosticInfo oldSyntaxDiagnostic = oldDiagnostic as SyntaxDiagnosticInfo;
-            newDiagnostics[i] = oldSyntaxDiagnostic == null ?
-                oldDiagnostic :
-                new SyntaxDiagnosticInfo(
-                    oldSyntaxDiagnostic.Offset + diagnosticOffsetDelta,
-                    oldSyntaxDiagnostic.Width,
-                    (ErrorCode)oldSyntaxDiagnostic.Code,
-                    oldSyntaxDiagnostic.Arguments);
+            DiagnosticInfo[] oldDiagnostics = node.GetDiagnostics();
+            if (oldDiagnostics == null || oldDiagnostics.Length == 0)
+            {
+                return node;
+            }
+
+            var numDiagnostics = oldDiagnostics.Length;
+            DiagnosticInfo[] newDiagnostics = new DiagnosticInfo[numDiagnostics];
+            for (int i = 0; i < numDiagnostics; i++)
+            {
+                DiagnosticInfo oldDiagnostic = oldDiagnostics[i];
+                SyntaxDiagnosticInfo oldSyntaxDiagnostic = oldDiagnostic as SyntaxDiagnosticInfo;
+                newDiagnostics[i] = oldSyntaxDiagnostic == null ?
+                    oldDiagnostic :
+                    new SyntaxDiagnosticInfo(
+                        oldSyntaxDiagnostic.Offset + diagnosticOffsetDelta,
+                        oldSyntaxDiagnostic.Width,
+                        (ErrorCode)oldSyntaxDiagnostic.Code,
+                        oldSyntaxDiagnostic.Arguments);
+            }
+            return node.WithDiagnosticsGreen(newDiagnostics);
         }
-        return node.WithDiagnosticsGreen(newDiagnostics);
     }
 }

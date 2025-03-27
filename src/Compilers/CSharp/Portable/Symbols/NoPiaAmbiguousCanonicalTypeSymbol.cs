@@ -10,87 +10,88 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
-/// embedded type symbol that was attempted to be substituted with canonical type, but the
-/// canonical type was ambiguous.
-/// </summary>
-internal class NoPiaAmbiguousCanonicalTypeSymbol : ErrorTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly AssemblySymbol _embeddingAssembly;
-    private readonly NamedTypeSymbol _firstCandidate;
-    private readonly NamedTypeSymbol _secondCandidate;
-
-    public NoPiaAmbiguousCanonicalTypeSymbol(
-        AssemblySymbol embeddingAssembly,
-        NamedTypeSymbol firstCandidate,
-        NamedTypeSymbol secondCandidate,
-        TupleExtraData? tupleData = null)
-        : base(tupleData)
+    /// <summary>
+    /// A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
+    /// embedded type symbol that was attempted to be substituted with canonical type, but the
+    /// canonical type was ambiguous.
+    /// </summary>
+    internal class NoPiaAmbiguousCanonicalTypeSymbol : ErrorTypeSymbol
     {
-        _embeddingAssembly = embeddingAssembly;
-        _firstCandidate = firstCandidate;
-        _secondCandidate = secondCandidate;
-    }
+        private readonly AssemblySymbol _embeddingAssembly;
+        private readonly NamedTypeSymbol _firstCandidate;
+        private readonly NamedTypeSymbol _secondCandidate;
 
-    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-    {
-        return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);
-    }
-
-    internal override bool MangleName
-    {
-        get
+        public NoPiaAmbiguousCanonicalTypeSymbol(
+            AssemblySymbol embeddingAssembly,
+            NamedTypeSymbol firstCandidate,
+            NamedTypeSymbol secondCandidate,
+            TupleExtraData? tupleData = null)
+            : base(tupleData)
         {
-            Debug.Assert(Arity == 0);
-            return false;
+            _embeddingAssembly = embeddingAssembly;
+            _firstCandidate = firstCandidate;
+            _secondCandidate = secondCandidate;
         }
-    }
 
-    internal sealed override bool IsFileLocal => false;
-    internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
-
-    public AssemblySymbol EmbeddingAssembly
-    {
-        get
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return _embeddingAssembly;
+            return new NoPiaAmbiguousCanonicalTypeSymbol(_embeddingAssembly, _firstCandidate, _secondCandidate, newData);
         }
-    }
 
-    public NamedTypeSymbol FirstCandidate
-    {
-        get
+        internal override bool MangleName
         {
-            return _firstCandidate;
+            get
+            {
+                Debug.Assert(Arity == 0);
+                return false;
+            }
         }
-    }
 
-    public NamedTypeSymbol SecondCandidate
-    {
-        get
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
+        public AssemblySymbol EmbeddingAssembly
         {
-            return _secondCandidate;
+            get
+            {
+                return _embeddingAssembly;
+            }
         }
-    }
 
-    internal override DiagnosticInfo ErrorInfo
-    {
-        get
+        public NamedTypeSymbol FirstCandidate
         {
-            return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _firstCandidate);
+            get
+            {
+                return _firstCandidate;
+            }
         }
-    }
 
-    public override int GetHashCode()
-    {
-        return RuntimeHelpers.GetHashCode(this);
-    }
+        public NamedTypeSymbol SecondCandidate
+        {
+            get
+            {
+                return _secondCandidate;
+            }
+        }
 
-    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
-    {
-        return ReferenceEquals(this, t2);
+        internal override DiagnosticInfo ErrorInfo
+        {
+            get
+            {
+                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _firstCandidate);
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return RuntimeHelpers.GetHashCode(this);
+        }
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        {
+            return ReferenceEquals(this, t2);
+        }
     }
 }

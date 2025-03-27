@@ -8,73 +8,74 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-/// <summary>
-/// Used when capturing output from a running test to prevent runaway
-/// output from allocating extreme amounts of memory.
-/// </summary>
-public sealed class CappedStringWriter : StringWriter
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    private readonly int _expectedLength;
-    private int _remaining;
-
-    public int Length => GetStringBuilder().Length;
-
-    public CappedStringWriter(int expectedLength)
+    /// <summary>
+    /// Used when capturing output from a running test to prevent runaway
+    /// output from allocating extreme amounts of memory.
+    /// </summary>
+    public sealed class CappedStringWriter : StringWriter
     {
-        if (expectedLength < 0)
-        {
-            _expectedLength = _remaining = 1024 * 1024;
-        }
-        else
-        {
-            _expectedLength = expectedLength;
-            _remaining = Math.Max(256, expectedLength * 4);
-        }
-    }
+        private readonly int _expectedLength;
+        private int _remaining;
 
-    private void CapReached()
-    {
-        throw new Exception($"Test produced more output than expected ({_expectedLength} characters). Is it in an infinite loop? Output so far:\r\n{GetStringBuilder()}");
-    }
+        public int Length => GetStringBuilder().Length;
 
-    public override void Write(char value)
-    {
-        if (1 <= _remaining)
+        public CappedStringWriter(int expectedLength)
         {
-            _remaining--;
-            base.Write(value);
+            if (expectedLength < 0)
+            {
+                _expectedLength = _remaining = 1024 * 1024;
+            }
+            else
+            {
+                _expectedLength = expectedLength;
+                _remaining = Math.Max(256, expectedLength * 4);
+            }
         }
-        else
-        {
-            CapReached();
-        }
-    }
 
-    public override void Write(char[] buffer, int index, int count)
-    {
-        if (count <= _remaining)
+        private void CapReached()
         {
-            _remaining -= count;
-            base.Write(buffer, index, count);
+            throw new Exception($"Test produced more output than expected ({_expectedLength} characters). Is it in an infinite loop? Output so far:\r\n{GetStringBuilder()}");
         }
-        else
-        {
-            CapReached();
-        }
-    }
 
-    public override void Write(string value)
-    {
-        if (value.Length <= _remaining)
+        public override void Write(char value)
         {
-            _remaining -= value.Length;
-            base.Write(value);
+            if (1 <= _remaining)
+            {
+                _remaining--;
+                base.Write(value);
+            }
+            else
+            {
+                CapReached();
+            }
         }
-        else
+
+        public override void Write(char[] buffer, int index, int count)
         {
-            CapReached();
+            if (count <= _remaining)
+            {
+                _remaining -= count;
+                base.Write(buffer, index, count);
+            }
+            else
+            {
+                CapReached();
+            }
+        }
+
+        public override void Write(string value)
+        {
+            if (value.Length <= _remaining)
+            {
+                _remaining -= value.Length;
+                base.Write(value);
+            }
+            else
+            {
+                CapReached();
+            }
         }
     }
 }

@@ -6,9 +6,10 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public interface ISyntaxNodeKindProvider
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    string Kind(object node);
+    public interface ISyntaxNodeKindProvider
+    {
+        string Kind(object node);
+    }
 }

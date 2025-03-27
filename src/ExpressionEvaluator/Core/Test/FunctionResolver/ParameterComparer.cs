@@ -7,19 +7,20 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
-
-internal sealed class ParameterComparer : IEqualityComparer<ParameterSignature>
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {
-    internal static readonly ParameterComparer Instance = new ParameterComparer();
-
-    public bool Equals(ParameterSignature x, ParameterSignature y)
+    internal sealed class ParameterComparer : IEqualityComparer<ParameterSignature>
     {
-        return TypeComparer.Instance.Equals(x.Type, y.Type);
-    }
+        internal static readonly ParameterComparer Instance = new ParameterComparer();
 
-    public int GetHashCode(ParameterSignature obj)
-    {
-        throw new NotImplementedException();
+        public bool Equals(ParameterSignature x, ParameterSignature y)
+        {
+            return TypeComparer.Instance.Equals(x.Type, y.Type);
+        }
+
+        public int GetHashCode(ParameterSignature obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -17,55 +17,55 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGen_DynamicTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    #region Helpers
-
-    private CompilationVerifier CompileAndVerifyIL(
-        string source,
-        string methodName,
-        string expectedOptimizedIL = null,
-        string expectedUnoptimizedIL = null,
-        MetadataReference[] references = null,
-        bool allowUnsafe = false,
-        [CallerFilePath] string callerPath = null,
-        [CallerLineNumber] int callerLine = 0,
-        CSharpParseOptions parseOptions = null,
-        Verification verify = default)
+    public class CodeGen_DynamicTests : CSharpTestBase
     {
-        references = references ?? new[] { SystemCoreRef, CSharpRef };
+        #region Helpers
 
-        // verify that we emit correct optimized and unoptimized IL:
-        var unoptimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
-        var optimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
-
-        var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
-        var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
-
-        // check what IL we emit exactly:
-        if (expectedUnoptimizedIL != null)
+        private CompilationVerifier CompileAndVerifyIL(
+            string source,
+            string methodName,
+            string expectedOptimizedIL = null,
+            string expectedUnoptimizedIL = null,
+            MetadataReference[] references = null,
+            bool allowUnsafe = false,
+            [CallerFilePath] string callerPath = null,
+            [CallerLineNumber] int callerLine = 0,
+            CSharpParseOptions parseOptions = null,
+            Verification verify = default)
         {
-            unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true, sequencePoints: methodName, callerPath: callerPath, callerLine: callerLine);
+            references = references ?? new[] { SystemCoreRef, CSharpRef };
+
+            // verify that we emit correct optimized and unoptimized IL:
+            var unoptimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+            var optimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+
+            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
+
+            // check what IL we emit exactly:
+            if (expectedUnoptimizedIL != null)
+            {
+                unoptimizedVerifier.VerifyIL(methodName, expectedUnoptimizedIL, realIL: true, sequencePoints: methodName, callerPath: callerPath, callerLine: callerLine);
+            }
+
+            if (expectedOptimizedIL != null)
+            {
+                optimizedVerifier.VerifyIL(methodName, expectedOptimizedIL, realIL: true, callerPath: callerPath, callerLine: callerLine);
+            }
+
+            // return null if ambiguous
+            return (expectedUnoptimizedIL != null) ^ (expectedOptimizedIL != null) ? (unoptimizedVerifier ?? optimizedVerifier) : null;
         }
 
-        if (expectedOptimizedIL != null)
-        {
-            optimizedVerifier.VerifyIL(methodName, expectedOptimizedIL, realIL: true, callerPath: callerPath, callerLine: callerLine);
-        }
+        private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular;
 
-        // return null if ambiguous
-        return (expectedUnoptimizedIL != null) ^ (expectedOptimizedIL != null) ? (unoptimizedVerifier ?? optimizedVerifier) : null;
-    }
+        #endregion
 
-    private readonly CSharpParseOptions _localFunctionParseOptions = TestOptions.Regular;
+        #region C# Runtime and System.Core sources
 
-    #endregion
-
-    #region C# Runtime and System.Core sources
-
-    private const string CSharpBinderTemplate = @"
+        private const string CSharpBinderTemplate = @"
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -77,7 +77,7 @@ namespace Microsoft.CSharp.RuntimeBinder
 }}
 ";
 
-    private const string CSharpBinderFlagsSource = @"
+        private const string CSharpBinderFlagsSource = @"
 public enum CSharpBinderFlags
 {
     None = 0,
@@ -93,7 +93,7 @@ public enum CSharpBinderFlags
 }
 ";
 
-    private const string CSharpArgumentInfoFlagsSource = @"
+        private const string CSharpArgumentInfoFlagsSource = @"
 public enum CSharpArgumentInfoFlags
 {
     None = 0,
@@ -105,46 +105,46 @@ public enum CSharpArgumentInfoFlags
     IsStaticType = 32
 }
 ";
-    private const string CSharpArgumentInfoSource = @"
+        private const string CSharpArgumentInfoSource = @"
 public sealed class CSharpArgumentInfo
 {
     public static CSharpArgumentInfo Create(CSharpArgumentInfoFlags flags, string name) { return null; }
 }
 ";
-    private readonly string[] _binderFactoriesSource = new[]
-    {
-        "CallSiteBinder BinaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder Convert(CSharpBinderFlags flags, Type type, Type context)",
-        "CallSiteBinder GetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder GetMember(CSharpBinderFlags flags, string name, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder Invoke(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder InvokeMember(CSharpBinderFlags flags, string name, IEnumerable<Type> typeArguments, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder InvokeConstructor(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder IsEvent(CSharpBinderFlags flags, string name, Type context)",
-        "CallSiteBinder SetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder SetMember(CSharpBinderFlags flags, string name, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-        "CallSiteBinder UnaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
-    };
-
-    private MetadataReference MakeCSharpRuntime(string excludeBinder = null, bool excludeBinderFlags = false, bool excludeArgumentInfoFlags = false, MetadataReference systemCore = null)
-    {
-        var sb = new StringBuilder();
-
-        sb.AppendLine(excludeBinderFlags ? "public enum CSharpBinderFlags { A }" : CSharpBinderFlagsSource);
-        sb.AppendLine(excludeArgumentInfoFlags ? "public enum CSharpArgumentInfoFlags { A }" : CSharpArgumentInfoFlagsSource);
-        sb.AppendLine(CSharpArgumentInfoSource);
-
-        foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder, StringComparison.Ordinal) == -1))
+        private readonly string[] _binderFactoriesSource = new[]
         {
-            sb.AppendFormat("public partial class Binder {{ public static {0} {{ return null; }} }}", src);
-            sb.AppendLine();
+            "CallSiteBinder BinaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder Convert(CSharpBinderFlags flags, Type type, Type context)",
+            "CallSiteBinder GetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder GetMember(CSharpBinderFlags flags, string name, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder Invoke(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder InvokeMember(CSharpBinderFlags flags, string name, IEnumerable<Type> typeArguments, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder InvokeConstructor(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder IsEvent(CSharpBinderFlags flags, string name, Type context)",
+            "CallSiteBinder SetIndex(CSharpBinderFlags flags, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder SetMember(CSharpBinderFlags flags, string name, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+            "CallSiteBinder UnaryOperation(CSharpBinderFlags flags, ExpressionType operation, Type context, IEnumerable<CSharpArgumentInfo> argumentInfo)",
+        };
+
+        private MetadataReference MakeCSharpRuntime(string excludeBinder = null, bool excludeBinderFlags = false, bool excludeArgumentInfoFlags = false, MetadataReference systemCore = null)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine(excludeBinderFlags ? "public enum CSharpBinderFlags { A }" : CSharpBinderFlagsSource);
+            sb.AppendLine(excludeArgumentInfoFlags ? "public enum CSharpArgumentInfoFlags { A }" : CSharpArgumentInfoFlagsSource);
+            sb.AppendLine(CSharpArgumentInfoSource);
+
+            foreach (var src in excludeBinder == null ? _binderFactoriesSource : _binderFactoriesSource.Where(src => src.IndexOf(excludeBinder, StringComparison.Ordinal) == -1))
+            {
+                sb.AppendFormat("public partial class Binder {{ public static {0} {{ return null; }} }}", src);
+                sb.AppendLine();
+            }
+
+            string source = string.Format(CSharpBinderTemplate, sb.ToString());
+            return CreateCompilationWithMscorlib40(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
         }
 
-        string source = string.Format(CSharpBinderTemplate, sb.ToString());
-        return CreateCompilationWithMscorlib40(source, new[] { systemCore ?? SystemCoreRef }, assemblyName: GetUniqueName()).EmitToImageReference();
-    }
-
-    private const string ExpressionTypeSource = @"
+        private const string ExpressionTypeSource = @"
 namespace System.Linq.Expressions
 {
     public enum ExpressionType
@@ -160,7 +160,7 @@ namespace System.Linq.Expressions
     }
 }
 ";
-    private const string DynamicAttributeSource = @"
+        private const string DynamicAttributeSource = @"
 namespace System.Runtime.CompilerServices
 {
     public sealed class DynamicAttribute : Attribute
@@ -170,7 +170,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-    private const string CallSiteSource = @"
+        private const string CallSiteSource = @"
 namespace System.Runtime.CompilerServices
 {
     public class CallSite { }
@@ -188,16 +188,16 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-    private const string SystemCoreSource = ExpressionTypeSource + DynamicAttributeSource + CallSiteSource;
+        private const string SystemCoreSource = ExpressionTypeSource + DynamicAttributeSource + CallSiteSource;
 
-    #endregion
+        #endregion
 
-    #region Missing Well-Known Members
+        #region Missing Well-Known Members
 
-    [Fact]
-    public void Missing_CSharpArgumentInfo()
-    {
-        string source = @"
+        [Fact]
+        public void Missing_CSharpArgumentInfo()
+        {
+            string source = @"
 class C
 {
     public event System.Action e;
@@ -220,19 +220,19 @@ class C
     }
 }
 ";
-        CreateCompilationWithMscorlib40AndSystemCore(source).VerifyEmitDiagnostics(
-// (9,18): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
-//         var a1 = d * d;
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(9, 18)
-        );
-    }
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyEmitDiagnostics(
+    // (9,18): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+    //         var a1 = d * d;
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(9, 18)
+            );
+        }
 
-    [Fact]
-    public void Missing_Binder()
-    {
-        var csrtRef = MakeCSharpRuntime(excludeBinder: "InvokeConstructor");
+        [Fact]
+        public void Missing_Binder()
+        {
+            var csrtRef = MakeCSharpRuntime(excludeBinder: "InvokeConstructor");
 
-        string source = @"
+            string source = @"
 class C
 {
     public C(int a) { }
@@ -243,19 +243,19 @@ class C
     }
 }
 ";
-        CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
-            // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
-            //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
-            );
-    }
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+                // (8,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.Binder.InvokeConstructor'
+                //         new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "new C(d.M(d.M = d[-d], d[(int)d()] = d * d.M))").WithArguments("Microsoft.CSharp.RuntimeBinder.Binder", "InvokeConstructor")
+                );
+        }
 
-    [Fact]
-    public void Missing_Flags()
-    {
-        var csrtRef = MakeCSharpRuntime(excludeBinderFlags: true, excludeArgumentInfoFlags: true);
+        [Fact]
+        public void Missing_Flags()
+        {
+            var csrtRef = MakeCSharpRuntime(excludeBinderFlags: true, excludeArgumentInfoFlags: true);
 
-        string source = @"
+            string source = @"
 class C
 {
     public static void G(int a) { }
@@ -267,17 +267,17 @@ class C
     }
 }
 ";
-        // the compiler ignores the enum values, uses hardcoded values:
-        CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
-    }
+            // the compiler ignores the enum values, uses hardcoded values:
+            CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef, csrtRef }).VerifyEmitDiagnostics();
+        }
 
-    [Fact]
-    public void Missing_Func()
-    {
-        var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-        var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+        [Fact]
+        public void Missing_Func()
+        {
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
-        string source = @"
+            string source = @"
 class C
 {
     dynamic F(dynamic d) 
@@ -286,18 +286,18 @@ class C
     }
 }
 ";
-        // the delegate is generated, no error is reported
-        CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef });
-    }
+            // the delegate is generated, no error is reported
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef });
+        }
 
-    [Fact]
-    public void InvalidFunc_Arity()
-    {
-        var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-        var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
-        var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
+        [Fact]
+        public void InvalidFunc_Arity()
+        {
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
-        string source = @"
+            string source = @"
 class C
 {
     dynamic F(dynamic d) 
@@ -306,18 +306,18 @@ class C
     }
 }
 ";
-        // the delegate is generated, no error is reported
-        var c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
-        Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
-    }
+            // the delegate is generated, no error is reported
+            var c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
+            Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
+        }
 
-    [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
-    public void InvalidFunc_Constraints()
-    {
-        var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-        var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+        [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
+        public void InvalidFunc_Constraints()
+        {
+            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
-        string source = @"
+            string source = @"
 namespace System
 {
     public delegate TResult Func<in T1, in T2, in T3, in T4, in T5, in T6, in T7, in T8, in T9, in T10, in T11, in T12, out TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
@@ -332,9 +332,9 @@ class C
     }
 }
 ";
-        // Desired: the delegate is generated, no error is reported.
-        // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
-        CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
+            // Desired: the delegate is generated, no error is reported.
+            // Actual: use the malformed Func`13 time and failed to PEVerify.  Not presently worthwhile to fix.
+            CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef }, verify: Verification.Fails).VerifyIL("C.F", @"
 {
   // Code size      189 (0xbd)
   .maxstack  13
@@ -432,12 +432,12 @@ class C
   IL_00bc:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Missing_CallSite()
-    {
-        string systemCoreSource = ExpressionTypeSource + DynamicAttributeSource + @"
+        [Fact]
+        public void Missing_CallSite()
+        {
+            string systemCoreSource = ExpressionTypeSource + DynamicAttributeSource + @"
 namespace System.Runtime.CompilerServices
 {
     public class CallSite<T> where T : class
@@ -453,10 +453,10 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-        var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-        var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
-        string source = @"
+            string source = @"
 class C 
 {
     dynamic F(dynamic d)
@@ -465,27 +465,27 @@ class C
     }
 }
 ";
-        CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
-            // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite' is not defined or imported
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite"),
-            // error CS1969: One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?
-            Diagnostic(ErrorCode.ERR_DynamicRequiredTypesMissing));
-    }
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+                // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite"),
+                // error CS1969: One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?
+                Diagnostic(ErrorCode.ERR_DynamicRequiredTypesMissing));
+        }
 
-    [Fact]
-    public void Missing_CallSiteOfT()
-    {
-        string systemCoreSource = ExpressionTypeSource + DynamicAttributeSource + @"
+        [Fact]
+        public void Missing_CallSiteOfT()
+        {
+            string systemCoreSource = ExpressionTypeSource + DynamicAttributeSource + @"
 namespace System.Runtime.CompilerServices
 {
     public class CallSite { }
     public class CallSiteBinder {}
 }";
 
-        var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-        var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
-        string source = @"
+            string source = @"
 class C 
 {
     dynamic F(dynamic d)
@@ -494,27 +494,27 @@ class C
     }
 }
 ";
-        CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
-// (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite`1' is not defined or imported
-//         return d * d;
-Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1").WithLocation(6, 16),
-// (6,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CallSite`1.Create'
-//         return d * d;
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1", "Create").WithLocation(6, 16)
-            );
-    }
+            CreateCompilationWithMscorlib40(source, new[] { systemCoreRef, csrtRef }).VerifyEmitDiagnostics(
+    // (6,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.CallSite`1' is not defined or imported
+    //         return d * d;
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1").WithLocation(6, 16),
+    // (6,16): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CallSite`1.Create'
+    //         return d * d;
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("System.Runtime.CompilerServices.CallSite`1", "Create").WithLocation(6, 16)
+                );
+        }
 
-    #endregion
+        #endregion
 
-    #region Generated Metadata (call-site containers, delegates)
+        #region Generated Metadata (call-site containers, delegates)
 
-    /// <summary>
-    /// Dev11 doesn't include name of explicit interface implementation method into site container name.
-    /// </summary>
-    [Fact]
-    public void ExplicitInterfaceImplementation()
-    {
-        string source = @"
+        /// <summary>
+        /// Dev11 doesn't include name of explicit interface implementation method into site container name.
+        /// </summary>
+        [Fact]
+        public void ExplicitInterfaceImplementation()
+        {
+            string source = @"
 public interface I
 {
     dynamic M(dynamic d);
@@ -527,7 +527,7 @@ public class C : I
         return checked(d * d);
     }
 }";
-        CompileAndVerifyIL(source, "C.I.M", @"
+            CompileAndVerifyIL(source, "C.I.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -563,12 +563,12 @@ public class C : I
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CallSiteContainers()
-    {
-        string source = @"
+        [Fact]
+        public void CallSiteContainers()
+        {
+            string source = @"
 public class C
 {
     public void M1(dynamic d)
@@ -581,53 +581,53 @@ public class C
         d.m(1,2,3);
     }
 }";
-        var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
-        {
-            var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
-            Assert.Equal(2, containers.Length);
-
-            foreach (var container in containers)
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
-                Assert.True(container.IsStatic);
-                Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
-                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
+                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
+                Assert.Equal(2, containers.Length);
 
-                var members = container.GetMembers();
-                Assert.Equal(1, members.Length);
-                var field = (FieldSymbol)members[0];
-
-                Assert.Equal(Accessibility.Public, field.DeclaredAccessibility);
-                Assert.True(field.IsStatic);
-                Assert.False(field.IsReadOnly);
-
-                Assert.Equal("System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, int, int, int>>",
-                    field.TypeWithAnnotations.ToDisplayString());
-
-                Assert.Equal(0, field.GetAttributes().Length);
-
-                switch (container.Name)
+                foreach (var container in containers)
                 {
-                    case "<>o__0":
-                        Assert.Equal("<>p__0", field.Name);
-                        break;
+                    Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
+                    Assert.True(container.IsStatic);
+                    Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
+                    AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
-                    case "<>o__1":
-                        Assert.Equal("<>p__0", field.Name);
-                        break;
+                    var members = container.GetMembers();
+                    Assert.Equal(1, members.Length);
+                    var field = (FieldSymbol)members[0];
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(container.Name);
+                    Assert.Equal(Accessibility.Public, field.DeclaredAccessibility);
+                    Assert.True(field.IsStatic);
+                    Assert.False(field.IsReadOnly);
+
+                    Assert.Equal("System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, object, int, int, int>>",
+                        field.TypeWithAnnotations.ToDisplayString());
+
+                    Assert.Equal(0, field.GetAttributes().Length);
+
+                    switch (container.Name)
+                    {
+                        case "<>o__0":
+                            Assert.Equal("<>p__0", field.Name);
+                            break;
+
+                        case "<>o__1":
+                            Assert.Equal("<>p__0", field.Name);
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(container.Name);
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void CallSiteContainers_MultipleSitesInMethod_DisplayClass()
-    {
-        string source = @"
+        [Fact]
+        public void CallSiteContainers_MultipleSitesInMethod_DisplayClass()
+        {
+            string source = @"
 public class C
 {
     public void M1(dynamic d)
@@ -637,29 +637,29 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-        var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            {
+                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
+
+                var container = c.GetMember<NamedTypeSymbol>("<>o__0");
+
+                // all call-site storage fields of the method are added to a single container:
+                var memberNames = container.GetMembers().Select(m => m.Name);
+                AssertEx.SetEqual(new[] { "<>p__0", "<>p__1", "<>p__2" }, memberNames);
+
+                var displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
+                var d = displayClass.GetMember<FieldSymbol>("d");
+                var attributes = d.GetAttributes();
+                Assert.Equal(1, attributes.Length);
+                Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attributes[0].AttributeClass.ToDisplayString());
+            });
+        }
+
+        [Fact]
+        public void Iterator()
         {
-            var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
-
-            var container = c.GetMember<NamedTypeSymbol>("<>o__0");
-
-            // all call-site storage fields of the method are added to a single container:
-            var memberNames = container.GetMembers().Select(m => m.Name);
-            AssertEx.SetEqual(new[] { "<>p__0", "<>p__1", "<>p__2" }, memberNames);
-
-            var displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
-            var d = displayClass.GetMember<FieldSymbol>("d");
-            var attributes = d.GetAttributes();
-            Assert.Equal(1, attributes.Length);
-            Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attributes[0].AttributeClass.ToDisplayString());
-        });
-    }
-
-    [Fact]
-    public void Iterator()
-    {
-        string source = @"
+            string source = @"
 using System.Collections.Generic;
 
 public class C
@@ -672,53 +672,53 @@ public class C
         yield return d;        
     }
 }";
-        var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
-        {
-            var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
-
-            foreach (var member in iteratorClass.GetMembers())
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                switch (member.Kind)
+                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
+
+                foreach (var member in iteratorClass.GetMembers())
                 {
-                    case SymbolKind.Field:
-                        // no field is marked with DynamicAttribute
-                        Assert.Equal(0, member.GetAttributes().Length);
-                        break;
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Field:
+                            // no field is marked with DynamicAttribute
+                            Assert.Equal(0, member.GetAttributes().Length);
+                            break;
 
-                    case SymbolKind.Method:
-                        var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
-                        switch (member.MetadataName)
-                        {
-                            case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
-                            case "System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator":
-                                Assert.Equal(1, attributes.Length);
-                                break;
-                            default:
-                                Assert.Equal(0, attributes.Length);
-                                break;
-                        }
-                        break;
+                        case SymbolKind.Method:
+                            var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
+                            switch (member.MetadataName)
+                            {
+                                case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
+                                case "System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator":
+                                    Assert.Equal(1, attributes.Length);
+                                    break;
+                                default:
+                                    Assert.Equal(0, attributes.Length);
+                                    break;
+                            }
+                            break;
 
-                    case SymbolKind.Property:
-                        // "Current" properties or return types are not marked with attributes
-                        break;
+                        case SymbolKind.Property:
+                            // "Current" properties or return types are not marked with attributes
+                            break;
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(member.Kind);
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(member.Kind);
+                    }
                 }
-            }
 
-            var container = c.GetMember<NamedTypeSymbol>("<>o__0");
-            Assert.Equal(1, container.GetMembers().Length);
-        });
-    }
+                var container = c.GetMember<NamedTypeSymbol>("<>o__0");
+                Assert.Equal(1, container.GetMembers().Length);
+            });
+        }
 
-    [Fact]
-    [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
-    public void GenericIterator()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(625282, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/625282")]
+        public void GenericIterator()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 class C
@@ -731,7 +731,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.<Run>d__1<T>.System.Collections.IEnumerator.MoveNext", @"
+            CompileAndVerifyIL(source, "C.<Run>d__1<T>.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      123 (0x7b)
   .maxstack  4
@@ -783,12 +783,12 @@ class C
   IL_007a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void NoDynamicAttributeOnCallSiteStorageField()
-    {
-        string source = @"
+        [Fact]
+        public void NoDynamicAttributeOnCallSiteStorageField()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 public class C
@@ -798,17 +798,17 @@ public class C
         return d(a, b);
     }
 }";
-        var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
-        {
-            var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
-            Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
-        });
-    }
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            {
+                var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
+                Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
+            });
+        }
 
-    [Fact]
-    public void GeneratedDelegates()
-    {
-        string source = @"
+        [Fact]
+        public void GeneratedDelegates()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 public class C
@@ -818,51 +818,51 @@ public class C
         return d(ref d);
     }
 }";
-        var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
-        {
-            var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000040}");
-
-            // the type:
-            Assert.Equal(Accessibility.Internal, d.DeclaredAccessibility);
-            Assert.Equal(4, d.TypeParameters.Length);
-            Assert.True(d.IsSealed);
-            Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
-            Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
-            Assert.Equal(0, d.Interfaces().Length);
-            AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
-
-            // members:
-            var members = d.GetMembers();
-            Assert.Equal(2, members.Length);
-            foreach (var member in members)
+            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
+                var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000040}");
 
-                switch (member.Name)
+                // the type:
+                Assert.Equal(Accessibility.Internal, d.DeclaredAccessibility);
+                Assert.Equal(4, d.TypeParameters.Length);
+                Assert.True(d.IsSealed);
+                Assert.Equal(CharSet.Ansi, d.MarshallingCharSet);
+                Assert.Equal(SpecialType.System_MulticastDelegate, d.BaseType().SpecialType);
+                Assert.Equal(0, d.Interfaces().Length);
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
+
+                // members:
+                var members = d.GetMembers();
+                Assert.Equal(2, members.Length);
+                foreach (var member in members)
                 {
-                    case ".ctor":
-                        Assert.False(member.IsStatic);
-                        Assert.False(member.IsSealed);
-                        Assert.False(member.IsVirtual);
-                        break;
+                    Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
 
-                    case "Invoke":
-                        Assert.False(member.IsStatic);
-                        Assert.False(member.IsSealed);
-                        Assert.True(member.IsVirtual);
-                        break;
+                    switch (member.Name)
+                    {
+                        case ".ctor":
+                            Assert.False(member.IsStatic);
+                            Assert.False(member.IsSealed);
+                            Assert.False(member.IsVirtual);
+                            break;
 
-                    default:
-                        throw TestExceptionUtilities.UnexpectedValue(member.Name);
+                        case "Invoke":
+                            Assert.False(member.IsStatic);
+                            Assert.False(member.IsSealed);
+                            Assert.True(member.IsVirtual);
+                            break;
+
+                        default:
+                            throw TestExceptionUtilities.UnexpectedValue(member.Name);
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void GenericContainer1()
-    {
-        string source = @"
+        [Fact]
+        public void GenericContainer1()
+        {
+            string source = @"
 public class C
 {
     public T M<T>(dynamic d)
@@ -871,7 +871,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M<T>", @"
+            CompileAndVerifyIL(source, "C.M<T>", @"
 {
   // Code size       66 (0x42)
   .maxstack  3
@@ -893,12 +893,12 @@ public class C
   IL_0041:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GenericContainer2()
-    {
-        string source = @"
+        [Fact]
+        public void GenericContainer2()
+        {
+            string source = @"
 public class E<P, Q, R> {}
 
 public class C<U>
@@ -910,7 +910,7 @@ public class C<U>
     }
 }
 ";
-        CompileAndVerifyIL(source, "C<U>.M<S, T>", @"
+            CompileAndVerifyIL(source, "C<U>.M<S, T>", @"
 {
   // Code size       86 (0x56)
   .maxstack  7
@@ -948,12 +948,12 @@ public class C<U>
   IL_0055:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GenericContainer3()
-    {
-        string source = @"
+        [Fact]
+        public void GenericContainer3()
+        {
+            string source = @"
 public class C<U>
 {
     public dynamic M(dynamic d)
@@ -962,7 +962,7 @@ public class C<U>
     }
 }
 ";
-        CompileAndVerifyIL(source, "C<U>.M", @"
+            CompileAndVerifyIL(source, "C<U>.M", @"
 {
   // Code size       71 (0x47)
   .maxstack  7
@@ -990,12 +990,12 @@ public class C<U>
   IL_0046:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GenericContainer4()
-    {
-        string source = @"
+        [Fact]
+        public void GenericContainer4()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1011,14 +1011,14 @@ class C
     }
 }
 ";
-        CompileAndVerifyWithCSharp(source);
-    }
+            CompileAndVerifyWithCSharp(source);
+        }
 
-    [Fact]
-    [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
-    public void GenericContainer_Lambda()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
+        public void GenericContainer_Lambda()
+        {
+            string source = @"
 class C
 {
     static void Goo<T>(T a, dynamic b)
@@ -1027,7 +1027,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0<T>.<Goo>b__0", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0<T>.<Goo>b__0", @"
 {
   // Code size      123 (0x7b)
   .maxstack  9
@@ -1074,12 +1074,12 @@ class C
   IL_007a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void DynamicErasure_MetadataConstant()
-    {
-        string source = @"
+        [Fact]
+        public void DynamicErasure_MetadataConstant()
+        {
+            string source = @"
 public class C 
 {
     const dynamic f = null;
@@ -1090,13 +1090,13 @@ public class C
     }
 }
 ";
-        CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef });
-    }
+            CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef });
+        }
 
-    [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
-    public void RemoveAtOfKeywordAsDynamicMemberName()
-    {
-        string source = @"
+        [Fact, WorkItem(16, "http://roslyn.codeplex.com/workitem/16")]
+        public void RemoveAtOfKeywordAsDynamicMemberName()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1140,7 +1140,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.Main", @"
+            CompileAndVerifyIL(source, "C.Main", @"
 {
   // Code size     1130 (0x46a)
   .maxstack  13
@@ -1509,16 +1509,16 @@ class C
   IL_0469:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Conversions
+        #region Conversions
 
-    [Fact]
-    public void LocalFunctionArgumentConversion()
-    {
-        string src = @"
+        [Fact]
+        public void LocalFunctionArgumentConversion()
+        {
+            string src = @"
 using System;
 public class C
 {
@@ -1542,12 +1542,12 @@ public class C
         l3(d);
     }
 }";
-        CompileAndVerifyWithCSharp(src,
-            expectedOutput: "2024",
-            parseOptions: _localFunctionParseOptions).VerifyDiagnostics();
-        CompileAndVerifyIL(src, "C.Main",
-            parseOptions: _localFunctionParseOptions,
-            expectedOptimizedIL: @"
+            CompileAndVerifyWithCSharp(src,
+                expectedOutput: "2024",
+                parseOptions: _localFunctionParseOptions).VerifyDiagnostics();
+            CompileAndVerifyIL(src, "C.Main",
+                parseOptions: _localFunctionParseOptions,
+                expectedOptimizedIL: @"
 {
   // Code size      242 (0xf2)
   .maxstack  7
@@ -1624,12 +1624,12 @@ public class C
   IL_00ec:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_00f1:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Assignment()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Assignment()
+        {
+            string source = @"
 public class C
 {
     dynamic d = null;
@@ -1640,7 +1640,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       71 (0x47)
   .maxstack  3
@@ -1664,12 +1664,12 @@ public class C
   IL_0046:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Implicit()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Implicit()
+        {
+            string source = @"
 public class C
 {
     public int M(dynamic d)
@@ -1677,7 +1677,7 @@ public class C
         return d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       65 (0x41)
   .maxstack  3
@@ -1699,12 +1699,12 @@ public class C
   IL_0040:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Explicit()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Explicit()
+        {
+            string source = @"
 public class C
 {
     public int M(dynamic d)
@@ -1712,7 +1712,7 @@ public class C
         return (int)d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       66 (0x42)
   .maxstack  3
@@ -1733,12 +1733,12 @@ public class C
   IL_003c:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0041:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Implicit_Checked()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Implicit_Checked()
+        {
+            string source = @"
 public class C
 {
     public int M(dynamic d)
@@ -1746,7 +1746,7 @@ public class C
         checked { return d; }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       65 (0x41)
   .maxstack  3
@@ -1767,12 +1767,12 @@ public class C
   IL_003b:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0040:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Explicit_Checked()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Explicit_Checked()
+        {
+            string source = @"
 public class C
 {
     public int M(dynamic d)
@@ -1780,7 +1780,7 @@ public class C
         checked { return (int)d; }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       66 (0x42)
   .maxstack  3
@@ -1801,12 +1801,12 @@ public class C
   IL_003c:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0041:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Implicit_Reference_Return()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Implicit_Reference_Return()
+        {
+            string source = @"
 class D { }
 
 class C
@@ -1817,7 +1817,7 @@ class C
     }   
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       65 (0x41)
   .maxstack  3
@@ -1839,12 +1839,12 @@ class C
   IL_0040:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Implicit_Reference_Assignment()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Implicit_Reference_Assignment()
+        {
+            string source = @"
 class D { }
 
 class C
@@ -1857,7 +1857,7 @@ class C
     }   
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       71 (0x47)
   .maxstack  4
@@ -1881,12 +1881,12 @@ class C
   IL_0046:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_Explicit_Reference()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_Explicit_Reference()
+        {
+            string source = @"
 class D { }
 
 class C
@@ -1897,7 +1897,7 @@ class C
     }   
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       66 (0x42)
   .maxstack  3
@@ -1919,12 +1919,12 @@ class C
   IL_0041:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_ArrayIndex()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_ArrayIndex()
+        {
+            string source = @"
 public class C
 {
     public object M(object[] a, dynamic d)
@@ -1932,7 +1932,7 @@ public class C
         return a[d];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       68 (0x44)
   .maxstack  4
@@ -1956,12 +1956,12 @@ public class C
   IL_0043:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Conversion_ArrayIndex_Checked()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_ArrayIndex_Checked()
+        {
+            string source = @"
 public class C
 {
     public object M(object[] a, dynamic d)
@@ -1969,7 +1969,7 @@ public class C
         return checked(a[d]);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       68 (0x44)
   .maxstack  4
@@ -1992,12 +1992,12 @@ public class C
   IL_0042:  ldelem.ref
   IL_0043:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Conversion_ArrayIndex_Explicit()
-    {
-        string source = @"
+        [Fact]
+        public void Conversion_ArrayIndex_Explicit()
+        {
+            string source = @"
 public class C
 {
     public object M(object[] a, dynamic d)
@@ -2005,7 +2005,7 @@ public class C
         return a[(int)d];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       68 (0x44)
   .maxstack  4
@@ -2028,12 +2028,12 @@ public class C
   IL_0042:  ldelem.ref
   IL_0043:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void IdentityConversion1()
-    {
-        string source = @"
+        [Fact]
+        public void IdentityConversion1()
+        {
+            string source = @"
 public class C
 {
     public object M(dynamic d)
@@ -2041,7 +2041,7 @@ public class C
         return d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -2049,12 +2049,12 @@ public class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void IdentityConversion2()
-    {
-        string source = @"
+        [Fact]
+        public void IdentityConversion2()
+        {
+            string source = @"
 public class C
 {
     public static void M()
@@ -2062,7 +2062,7 @@ public class C
         dynamic d = new object();
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2071,12 +2071,12 @@ public class C
   IL_0006:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void IdentityConversion3()
-    {
-        string source = @"
+        [Fact]
+        public void IdentityConversion3()
+        {
+            string source = @"
 public class C
 {
     public dynamic Null()
@@ -2085,7 +2085,7 @@ public class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.Null", @"
+            CompileAndVerifyIL(source, "C.Null", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -2093,12 +2093,12 @@ public class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_ReturnValue()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_ReturnValue()
+        {
+            string source = @"
 public class C
 {
     public dynamic Int32()
@@ -2107,7 +2107,7 @@ public class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.Int32", @"
+            CompileAndVerifyIL(source, "C.Int32", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2116,12 +2116,12 @@ public class C
   IL_0006:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_AssignmentToDynamicField1()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_AssignmentToDynamicField1()
+        {
+            string source = @"
 class C
 {
     dynamic d;
@@ -2132,7 +2132,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -2143,12 +2143,12 @@ class C
   IL_000c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_AssignmentToDynamicField2()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_AssignmentToDynamicField2()
+        {
+            string source = @"
 class C
 {
     dynamic d;
@@ -2159,7 +2159,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -2170,12 +2170,12 @@ class C
   IL_0010:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_AssignmentToDynamicIndex()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_AssignmentToDynamicIndex()
+        {
+            string source = @"
 class C
 {
     dynamic this[int i] { get { return 1; } set { } }
@@ -2186,7 +2186,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
@@ -2198,12 +2198,12 @@ class C
   IL_000d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_AssignmentToProperty1()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_AssignmentToProperty1()
+        {
+            string source = @"
 class C
 {
     dynamic d { get; set; }
@@ -2214,7 +2214,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -2225,12 +2225,12 @@ class C
   IL_000c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Boxing_AssignmentToProperty2()
-    {
-        string source = @"
+        [Fact]
+        public void Boxing_AssignmentToProperty2()
+        {
+            string source = @"
 class C
 {
     dynamic d { get; set; }
@@ -2241,7 +2241,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -2252,12 +2252,12 @@ class C
   IL_0010:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void IsAs()
-    {
-        string source = @"
+        [Fact]
+        public void IsAs()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 public class C
@@ -2277,16 +2277,16 @@ public class C
         return d as List<dynamic>;
     }
 }";
-        // TODO: Why does RefEmit use fat header with maxstack = 2?
-        var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
-        {
-            var pe = (PEModuleSymbol)module;
+            // TODO: Why does RefEmit use fat header with maxstack = 2?
+            var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
+            {
+                var pe = (PEModuleSymbol)module;
 
-            // all occurrences of List<dynamic> and List<object> should be unified to a single TypeSpec:
-            Assert.Equal(1, pe.Module.GetMetadataReader().GetTableRowCount(TableIndex.TypeSpec));
-        });
+                // all occurrences of List<dynamic> and List<object> should be unified to a single TypeSpec:
+                Assert.Equal(1, pe.Module.GetMetadataReader().GetTableRowCount(TableIndex.TypeSpec));
+            });
 
-        verifier.VerifyIL("C.IsObject", @"
+            verifier.VerifyIL("C.IsObject", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -2298,7 +2298,7 @@ public class C
 }
 ", realIL: true);
 
-        verifier.VerifyIL("C.IsDynamic", @"
+            verifier.VerifyIL("C.IsDynamic", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -2310,7 +2310,7 @@ public class C
 }
 ", realIL: true);
 
-        verifier.VerifyIL("C.As", @"
+            verifier.VerifyIL("C.As", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2319,12 +2319,12 @@ public class C
   IL_0006:  ret
 }
 ", realIL: true);
-    }
+        }
 
-    [Fact]
-    public void DelegateCreation()
-    {
-        string source = @"
+        [Fact]
+        public void DelegateCreation()
+        {
+            string source = @"
 using System;
 
 public class C
@@ -2337,7 +2337,7 @@ public class C
         a = new System.Action(d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       87 (0x57)
   .maxstack  4
@@ -2364,12 +2364,12 @@ public class C
   IL_0056:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestThrowDynamic()
-    {
-        var source = @"
+        [Fact]
+        public void TestThrowDynamic()
+        {
+            var source = @"
 using System;
 class C
 {
@@ -2393,21 +2393,21 @@ class C
     }
 }
 ";
-        CompileAndVerifyWithCSharp(source, expectedOutput:
+            CompileAndVerifyWithCSharp(source, expectedOutput:
 @"NullReferenceException
 Exception
 ArgumentException
 RuntimeBinderException");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Operators
+        #region Operators
 
-    [Fact]
-    public void Multiplication_Dynamic_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_Dynamic_Dynamic()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2415,7 +2415,7 @@ public class C
         return d * d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2451,12 +2451,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Multiplication_Dynamic_Static()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_Dynamic_Static()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(C c, dynamic d)
@@ -2464,7 +2464,7 @@ public class C
         return c * d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2500,12 +2500,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Multiplication_Dynamic_Literal()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_Dynamic_Literal()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2513,7 +2513,7 @@ public class C
         return d * 1;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2549,12 +2549,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Multiplication_Checked()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_Checked()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2562,7 +2562,7 @@ public class C
         return checked(d * d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2598,12 +2598,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Division()
-    {
-        string source = @"
+        [Fact]
+        public void Division()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2611,7 +2611,7 @@ public class C
         return d / d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2647,12 +2647,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Remainder()
-    {
-        string source = @"
+        [Fact]
+        public void Remainder()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2660,7 +2660,7 @@ public class C
         return d % d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2696,12 +2696,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LeftShift()
-    {
-        string source = @"
+        [Fact]
+        public void LeftShift()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2709,7 +2709,7 @@ public class C
         return d << d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2745,12 +2745,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void RightShift()
-    {
-        string source = @"
+        [Fact]
+        public void RightShift()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2758,7 +2758,7 @@ public class C
         return d >> d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2794,12 +2794,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void And()
-    {
-        string source = @"
+        [Fact]
+        public void And()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2807,7 +2807,7 @@ public class C
         return d & d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       83 (0x53)
   .maxstack  8
@@ -2843,12 +2843,12 @@ public class C
   IL_0052:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Or()
-    {
-        string source = @"
+        [Fact]
+        public void Or()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2856,7 +2856,7 @@ public class C
         return d | d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2892,12 +2892,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Xor()
-    {
-        string source = @"
+        [Fact]
+        public void Xor()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -2905,7 +2905,7 @@ public class C
         return d ^ d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2941,12 +2941,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Equal()
-    {
-        string source = @"
+        [Fact]
+        public void Equal()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -2954,7 +2954,7 @@ public class C
         return d1 == d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -2989,12 +2989,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void NotEqual()
-    {
-        string source = @"
+        [Fact]
+        public void NotEqual()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -3002,7 +3002,7 @@ public class C
         return d1 != d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -3037,12 +3037,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LessThan()
-    {
-        string source = @"
+        [Fact]
+        public void LessThan()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -3050,7 +3050,7 @@ public class C
         return d1 < d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -3085,12 +3085,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void GreaterThan()
-    {
-        string source = @"
+        [Fact]
+        public void GreaterThan()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -3098,7 +3098,7 @@ public class C
         return d1 > d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -3133,12 +3133,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LessThanEquals()
-    {
-        string source = @"
+        [Fact]
+        public void LessThanEquals()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -3146,7 +3146,7 @@ public class C
         return d1 <= d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -3181,12 +3181,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void GreaterThanEquals()
-    {
-        string source = @"
+        [Fact]
+        public void GreaterThanEquals()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d1, dynamic d2)
@@ -3194,7 +3194,7 @@ public class C
         return d1 >= d2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  8
@@ -3229,12 +3229,12 @@ public class C
   IL_004e:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void UnaryPlus()
-    {
-        string source = @"
+        [Fact]
+        public void UnaryPlus()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -3242,7 +3242,7 @@ public class C
         return +d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       73 (0x49)
   .maxstack  8
@@ -3271,12 +3271,12 @@ public class C
   IL_0048:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void UnaryMinus()
-    {
-        string source = @"
+        [Fact]
+        public void UnaryMinus()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -3284,7 +3284,7 @@ public class C
         return -d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       73 (0x49)
   .maxstack  8
@@ -3312,12 +3312,12 @@ public class C
   IL_0043:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0048:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void BitwiseComplement()
-    {
-        string source = @"
+        [Fact]
+        public void BitwiseComplement()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -3325,7 +3325,7 @@ public class C
         return ~d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       73 (0x49)
   .maxstack  8
@@ -3354,12 +3354,12 @@ public class C
   IL_0048:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_IsTrue()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_IsTrue()
+        {
+            string source = @"
 class C
 {
     public static int M()
@@ -3375,7 +3375,7 @@ class C
         }
     }
 }";
-        var verifier = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
+            var verifier = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
 {
   // Code size      169 (0xa9)
   .maxstack  10
@@ -3445,7 +3445,7 @@ class C
   IL_00a8:  ret
 }
 ",
-expectedOptimizedIL: @"
+ expectedOptimizedIL: @"
 {
   // Code size      154 (0x9a)
   .maxstack  10
@@ -3502,12 +3502,12 @@ expectedOptimizedIL: @"
   IL_0099:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Not()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Not()
+        {
+            string source = @"
 public class C
 {
     public static int M(dynamic d)
@@ -3522,7 +3522,7 @@ public class C
         }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      149 (0x95)
   .maxstack  10
@@ -3576,12 +3576,12 @@ public class C
   IL_0094:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_And()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_And()
+        {
+            string source = @"
 public class C
 {
     public static int M(dynamic d1, dynamic d2)
@@ -3596,7 +3596,7 @@ public class C
         }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      236 (0xec)
   .maxstack  10
@@ -3681,13 +3681,13 @@ public class C
   IL_00ea:  ldc.i4.0
   IL_00eb:  ret
 }");
-    }
+        }
 
-    [WorkItem(547676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
-    [Fact]
-    public void BooleanOperation_Bug547676()
-    {
-        string source = @"
+        [WorkItem(547676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547676")]
+        [Fact]
+        public void BooleanOperation_Bug547676()
+        {
+            string source = @"
 public class C
 {
     public static int M(dynamic d1, dynamic d2)
@@ -3702,7 +3702,7 @@ public class C
         }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      480 (0x1e0)
   .maxstack  10
@@ -3874,12 +3874,12 @@ public class C
   IL_01de:  ldc.i4.0
   IL_01df:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_Dynamic_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_Dynamic_Dynamic()
+        {
+            string source = @"
 public class C
 {
     public static int M(dynamic d1, dynamic d2)
@@ -3894,13 +3894,13 @@ public class C
         }
     }
 }";
-        // Dev11 emits less efficient code:
-        //   IsTrue(IsTrue(d1) ? d1 : Or(d1, d2)) 
-        //
-        // Roslyn optimizes away the second dynamic call IsTrue on d1:
-        //   IsTrue(d1) || IsTrue(Or(d1, d2))
+            // Dev11 emits less efficient code:
+            //   IsTrue(IsTrue(d1) ? d1 : Or(d1, d2)) 
+            //
+            // Roslyn optimizes away the second dynamic call IsTrue on d1:
+            //   IsTrue(d1) || IsTrue(Or(d1, d2))
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      237 (0xed)
   .maxstack  10
@@ -3984,12 +3984,12 @@ public class C
   IL_00ec:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_Static_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_Static_Dynamic()
+        {
+            string source = @"
 public class C
 {
     public static int M(bool b, dynamic d)
@@ -4004,7 +4004,7 @@ public class C
         }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      166 (0xa6)
   .maxstack  10
@@ -4066,12 +4066,12 @@ public class C
   IL_00a4:  ldc.i4.0
   IL_00a5:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_ConstantOperand_False()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_ConstantOperand_False()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4081,7 +4081,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      162 (0xa2)
   .maxstack  10
@@ -4145,12 +4145,12 @@ class C
   IL_00a1:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_ConstantOperand_True()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_ConstantOperand_True()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4160,9 +4160,9 @@ class C
     }
 }
 ";
-        // Dev11 emits: 
-        // IsTrue(IsTrue(true) ? true : Or(true, d)) ? 1 : 2
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 emits: 
+            // IsTrue(IsTrue(true) ? true : Or(true, d)) ? 1 : 2
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -4170,12 +4170,12 @@ class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Add_ConstantOperand_False()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Add_ConstantOperand_False()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4185,8 +4185,8 @@ class C
     }
 }
 ";
-        // Dev11:  IsTrue(IsFalse(false) ? false : And(false, d)) ? 1 : 2
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11:  IsTrue(IsFalse(false) ? false : And(false, d)) ? 1 : 2
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -4194,12 +4194,12 @@ class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_ConstantPropagation()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_ConstantPropagation()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4209,7 +4209,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -4217,12 +4217,12 @@ class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_ConstantPropagation2()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_ConstantPropagation2()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4232,7 +4232,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -4240,12 +4240,12 @@ class C
   IL_0001:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Add_ConstantOperand_True()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Add_ConstantOperand_True()
+        {
+            string source = @"
 class C
 {  
     int M()
@@ -4255,9 +4255,9 @@ class C
     }
 }
 ";
-        // Dev11:  IsTrue(IsFalse(true) ? true : And(true, d)) ? 1 : 2
-        // Roslyn: IsTrue(And(true, d)) ? 1 : 2 
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11:  IsTrue(IsFalse(true) ? true : And(true, d)) ? 1 : 2
+            // Roslyn: IsTrue(And(true, d)) ? 1 : 2 
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      161 (0xa1)
   .maxstack  10
@@ -4321,12 +4321,12 @@ class C
   IL_00a0:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_BoxedOperand()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_BoxedOperand()
+        {
+            string source = @"
 class C
 {  
     bool b = false;
@@ -4338,7 +4338,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      103 (0x67)
   .maxstack  8
@@ -4386,12 +4386,12 @@ class C
   IL_0066:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_And_BoxedOperand()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_And_BoxedOperand()
+        {
+            string source = @"
 class C
 {  
     bool b = false;
@@ -4403,7 +4403,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      102 (0x66)
   .maxstack  8
@@ -4451,12 +4451,12 @@ class C
   IL_0065:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_Or_UserDefinedTrue_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_Or_UserDefinedTrue_Dynamic()
+        {
+            string source = @"
 class B
 {
     public static bool operator true(B t) { return true; }
@@ -4478,9 +4478,9 @@ class C
     }
 }
 ";
-        // Dev11:  IsTrue(B.op_True(b) ? b : Or(b, d)) ? 1 : 2
-        // Roslyn: B.op_True(b) || IsTrue(Or(b,d)) ? 1 : 2 
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11:  IsTrue(B.op_True(b) ? b : Or(b, d)) ? 1 : 2
+            // Roslyn: B.op_True(b) || IsTrue(Or(b,d)) ? 1 : 2 
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      178 (0xb2)
   .maxstack  10
@@ -4548,15 +4548,15 @@ class C
   IL_00b1:  ret
 }
 ");
-    }
+        }
 
-    /// <summary>
-    /// Implicit conversion has precedence over operator true/false.
-    /// </summary>
-    [Fact]
-    public void BooleanOperation_Or_UserDefinedImplicitConversion_Dynamic()
-    {
-        string source = @"
+        /// <summary>
+        /// Implicit conversion has precedence over operator true/false.
+        /// </summary>
+        [Fact]
+        public void BooleanOperation_Or_UserDefinedImplicitConversion_Dynamic()
+        {
+            string source = @"
 class B
 {
     public static implicit operator bool(B t) { return true; }
@@ -4579,9 +4579,9 @@ class C
     }
 }
 ";
-        // Dev11:  IsTrue(B.op_Implicit(b) ? b : Or(b, d)) ? 1 : 2
-        // Roslyn: B.op_Implicit(b) || IsTrue(Or(b,d)) ? 1 : 2 
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11:  IsTrue(B.op_Implicit(b) ? b : Or(b, d)) ? 1 : 2
+            // Roslyn: B.op_Implicit(b) || IsTrue(Or(b,d)) ? 1 : 2 
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      178 (0xb2)
   .maxstack  10
@@ -4648,12 +4648,12 @@ class C
   IL_00b0:  ldc.i4.2
   IL_00b1:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void BooleanOperation_And_UserDefinedTrue_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_And_UserDefinedTrue_Dynamic()
+        {
+            string source = @"
 class B
 {
     public static bool operator true(B t) { return true; }
@@ -4675,7 +4675,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      177 (0xb1)
   .maxstack  10
@@ -4745,15 +4745,15 @@ class C
   IL_00b0:  ret
 }
 ");
-    }
+        }
 
-    /// <summary>
-    /// Implicit conversion has precedence over operator true/false.
-    /// </summary>
-    [Fact]
-    public void BooleanOperation_And_UserDefinedImplicitConversion_Dynamic()
-    {
-        string source = @"
+        /// <summary>
+        /// Implicit conversion has precedence over operator true/false.
+        /// </summary>
+        [Fact]
+        public void BooleanOperation_And_UserDefinedImplicitConversion_Dynamic()
+        {
+            string source = @"
 class B
 {
     public static implicit operator bool(B t) { return true; }
@@ -4776,7 +4776,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      177 (0xb1)
   .maxstack  10
@@ -4846,9 +4846,9 @@ class C
   IL_00b0:  ret
 }
 ");
-    }
+        }
 
-    private const string StructWithUserDefinedBooleanOperators = @"
+        private const string StructWithUserDefinedBooleanOperators = @"
 struct S
 {
     private int num;
@@ -4893,12 +4893,12 @@ struct S
 }
 ";
 
-    [Fact]
-    public void BooleanOperation_NestedOperators1()
-    {
-        // Analogue to OperatorTests.TestUserDefinedLogicalOperators1.
+        [Fact]
+        public void BooleanOperation_NestedOperators1()
+        {
+            // Analogue to OperatorTests.TestUserDefinedLogicalOperators1.
 
-        string source = @"
+            string source = @"
 using System;
 
 class C
@@ -4983,7 +4983,7 @@ class C
 
 " + StructWithUserDefinedBooleanOperators;
 
-        string output = @"0:f
+            string output = @"0:f
 0:f
 0:f
 0:f
@@ -5055,15 +5055,15 @@ class C
 1:t
 1:t";
 
-        CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
-    }
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
+        }
 
-    [Fact]
-    public void BooleanOperation_NestedOperators2()
-    {
-        // Analogue to OperatorTests.TestUserDefinedLogicalOperators2.
+        [Fact]
+        public void BooleanOperation_NestedOperators2()
+        {
+            // Analogue to OperatorTests.TestUserDefinedLogicalOperators2.
 
-        string source = @"
+            string source = @"
 using System;
 
 class C
@@ -5147,7 +5147,7 @@ class C
 }
 " + StructWithUserDefinedBooleanOperators;
 
-        string output = @"
+            string output = @"
 00000001-
 01010111-
 00010101-
@@ -5157,13 +5157,13 @@ class C
 00011111-
 01111111";
 
-        CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
-    }
+            CompileAndVerifyWithCSharp(source: source, expectedOutput: output);
+        }
 
-    [Fact]
-    public void BooleanOperation_EvaluationOrder()
-    {
-        string source = @"
+        [Fact]
+        public void BooleanOperation_EvaluationOrder()
+        {
+            string source = @"
 public class C
 {
     public static dynamic f(ref dynamic d) 
@@ -5187,13 +5187,13 @@ public class C
     }
 }
 ";
-        CompileAndVerifyWithCSharp(source, expectedOutput: "");
-    }
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
+        }
 
-    [Fact]
-    public void Multiplication_CompoundAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_CompoundAssignment()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5201,7 +5201,7 @@ public class C
         return d *= d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       87 (0x57)
   .maxstack  8
@@ -5239,12 +5239,12 @@ public class C
   IL_0056:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Multiplication_CompoundAssignment_Checked()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_CompoundAssignment_Checked()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5252,7 +5252,7 @@ public class C
         return checked(d *= d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       87 (0x57)
   .maxstack  8
@@ -5290,12 +5290,12 @@ public class C
   IL_0056:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Multiplication_CompoundAssignment_DiscardResult()
-    {
-        string source = @"
+        [Fact]
+        public void Multiplication_CompoundAssignment_DiscardResult()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d)
@@ -5303,7 +5303,7 @@ public class C
         d *= d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       86 (0x56)
   .maxstack  8
@@ -5340,12 +5340,12 @@ public class C
   IL_0055:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Addition_CompoundAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void Addition_CompoundAssignment()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d, dynamic v)
@@ -5353,7 +5353,7 @@ public class C
         return d += v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       87 (0x57)
   .maxstack  8
@@ -5391,12 +5391,12 @@ public class C
   IL_0056:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Addition_EventHandler_SimpleConversion()
-    {
-        string source = @"
+        [Fact]
+        public void Addition_EventHandler_SimpleConversion()
+        {
+            string source = @"
 public class C
 {    
     event System.Action e;
@@ -5407,7 +5407,7 @@ public class C
         e += v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       76 (0x4c)
   .maxstack  4
@@ -5431,12 +5431,12 @@ public class C
   IL_0046:  call       ""void C.e.add""
   IL_004b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PostIncrement()
-    {
-        string source = @"
+        [Fact]
+        public void PostIncrement()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5444,7 +5444,7 @@ public class C
         return d++;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       78 (0x4e)
   .maxstack  8
@@ -5477,12 +5477,12 @@ public class C
   IL_004c:  ldloc.0
   IL_004d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PostDecrement()
-    {
-        string source = @"
+        [Fact]
+        public void PostDecrement()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5490,7 +5490,7 @@ public class C
         return d--;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       78 (0x4e)
   .maxstack  8
@@ -5523,12 +5523,12 @@ public class C
   IL_004c:  ldloc.0
   IL_004d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PreIncrement()
-    {
-        string source = @"
+        [Fact]
+        public void PreIncrement()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5536,7 +5536,7 @@ public class C
         return ++d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       76 (0x4c)
   .maxstack  8
@@ -5566,12 +5566,12 @@ public class C
   IL_0049:  starg.s    V_1
   IL_004b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PreDecrement()
-    {
-        string source = @"
+        [Fact]
+        public void PreDecrement()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -5579,7 +5579,7 @@ public class C
         return --d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       76 (0x4c)
   .maxstack  8
@@ -5610,12 +5610,12 @@ public class C
   IL_004b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void PostIncrement_DynamicArrayElementAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PostIncrement_DynamicArrayElementAccess()
+        {
+            string source = @"
 public class C
 {
     static dynamic[] d;
@@ -5626,7 +5626,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  10
@@ -5662,12 +5662,12 @@ public class C
   IL_0052:  stelem.ref
   IL_0053:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PreIncrement_DynamicArrayElementAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PreIncrement_DynamicArrayElementAccess()
+        {
+            string source = @"
 public class C
 {
     static dynamic[] d;
@@ -5678,8 +5678,8 @@ public class C
     }
 }
 ";
-        // TODO (tomat): IL_0050 ... IL_0053 and V_1 could be optimized away
-        CompileAndVerifyIL(source, "C.M", @"
+            // TODO (tomat): IL_0050 ... IL_0053 and V_1 could be optimized away
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       86 (0x56)
   .maxstack  8
@@ -5718,12 +5718,12 @@ public class C
   IL_0054:  stelem.ref
   IL_0055:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PreIncrement_DynamicMemberAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PreIncrement_DynamicMemberAccess()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -5733,7 +5733,7 @@ class C
         return ++d.P;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      243 (0xf3)
   .maxstack  10
@@ -5820,12 +5820,12 @@ class C
   IL_00f2:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void PostIncrement_DynamicMemberAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PostIncrement_DynamicMemberAccess()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -5835,7 +5835,7 @@ class C
         return d.P++;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      243 (0xf3)
   .maxstack  11
@@ -5923,12 +5923,12 @@ class C
 }
 
 ");
-    }
+        }
 
-    [Fact]
-    public void PreIncrement_DynamicIndexerAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PreIncrement_DynamicIndexerAccess()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -5940,7 +5940,7 @@ class C
         return ++d[F()];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      262 (0x106)
   .maxstack  9
@@ -6042,12 +6042,12 @@ class C
   IL_0104:  ldloc.2
   IL_0105:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void PostIncrement_DynamicIndexerAccess()
-    {
-        string source = @"
+        [Fact]
+        public void PostIncrement_DynamicIndexerAccess()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -6059,7 +6059,7 @@ class C
         return d[F()]++;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      262 (0x106)
   .maxstack  12
@@ -6161,12 +6161,12 @@ class C
   IL_0104:  ldloc.2
   IL_0105:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void NullCoalescing()
-    {
-        string source = @"
+        [Fact]
+        public void NullCoalescing()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -6177,7 +6177,7 @@ class C
         var x = d ?? o;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -6190,16 +6190,16 @@ class C
   IL_000f:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Invoke, InvokeMember, InvokeConstructor
+        #region Invoke, InvokeMember, InvokeConstructor
 
-    [Fact]
-    public void InvokeMember_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Dynamic()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -6207,7 +6207,7 @@ public class C
         return d.m(null, this, d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -6258,12 +6258,12 @@ public class C
   IL_006d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Static()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Static()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(C c, dynamic d)
@@ -6280,7 +6280,7 @@ public class C
         return 1; 
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -6331,12 +6331,12 @@ public class C
   IL_006d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Static_SimpleName()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Static_SimpleName()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(C c, dynamic d)
@@ -6353,7 +6353,7 @@ public class C
         return 1; 
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -6404,12 +6404,12 @@ public class C
   IL_006d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Static_ResultDiscarded()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Static_ResultDiscarded()
+        {
+            string source = @"
 public class C
 {
     public void M(C c, dynamic d)
@@ -6426,7 +6426,7 @@ public class C
         return 1; 
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      114 (0x72)
   .maxstack  9
@@ -6477,13 +6477,13 @@ public class C
   IL_0071:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
-    public void InvokeMember_Static_Outer()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
+        public void InvokeMember_Static_Outer()
+        {
+            string source = @"
 using System;
 
 public class A
@@ -6500,8 +6500,8 @@ public class A
         }
     } 
 }";
-        // Dev11 passes "this" to the site, which is wrong.
-        CompileAndVerifyIL(source, "A.B.F", @"
+            // Dev11 passes "this" to the site, which is wrong.
+            CompileAndVerifyIL(source, "A.B.F", @"
 {
   // Code size      104 (0x68)
   .maxstack  9
@@ -6542,13 +6542,13 @@ public class A
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
-    public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(622532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622532")]
+        public void InvokeMember_Static_Outer_AmbiguousAtRuntime()
+        {
+            string source = @"
 using System;
 
 public class A
@@ -6585,8 +6585,8 @@ public class A
         }
     }
 }";
-        // Dev11 passes "this" to the site, which is wrong.
-        CompileAndVerifyIL(source, "A.B.F", @"
+            // Dev11 passes "this" to the site, which is wrong.
+            CompileAndVerifyIL(source, "A.B.F", @"
 {
   // Code size      104 (0x68)
   .maxstack  9
@@ -6627,14 +6627,14 @@ public class A
   IL_0067:  ret
 }");
 
-        CompileAndVerifyWithCSharp(source,
-            expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
-    }
+            CompileAndVerifyWithCSharp(source,
+                expectedOutput: "The call is ambiguous between the following methods or properties: 'A.M(A)' and 'A.M(string)'");
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_StaticContext_StaticProperty()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_StaticContext_StaticProperty()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -6662,7 +6662,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      286 (0x11e)
   .maxstack  9
@@ -6759,12 +6759,12 @@ public class C
   IL_011d:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_StaticContext_InstanceProperty()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -6792,7 +6792,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      304 (0x130)
   .maxstack  9
@@ -6892,12 +6892,12 @@ public class C
   IL_012f:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_StaticContext_Parameter()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_StaticContext_Parameter()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -6923,7 +6923,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      274 (0x112)
   .maxstack  9
@@ -7020,12 +7020,12 @@ public class C
   IL_0111:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InstanceContext_StaticProperty()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -7053,7 +7053,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      286 (0x11e)
   .maxstack  9
@@ -7150,12 +7150,12 @@ public class C
   IL_011d:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InstanceContext_Parameter()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InstanceContext_Parameter()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -7181,7 +7181,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      274 (0x112)
   .maxstack  9
@@ -7278,12 +7278,12 @@ public class C
   IL_0111:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InstanceContext_InstanceProperty()
+        {
+            string source = @"
 public class Color
 {
     public static void M1(string s) { }
@@ -7311,7 +7311,7 @@ public class C
     }
 }                    
 ";
-        CompileAndVerifyIL(source, "C.F", @"
+            CompileAndVerifyIL(source, "C.F", @"
 {
   // Code size      289 (0x121)
   .maxstack  9
@@ -7410,12 +7410,12 @@ public class C
   IL_011b:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, Color, object>.Invoke(System.Runtime.CompilerServices.CallSite, Color, object)""
   IL_0120:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InFieldInitializer()
-    {
-        string source = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InFieldInitializer()
+        {
+            string source = @"
 public class Color
 {
 	public int F(int a) { return 1; } 
@@ -7428,7 +7428,7 @@ public class C
 	dynamic x = Color.F((dynamic)1);
 }
 ";
-        CompileAndVerifyIL(source, "C..ctor", @"
+            CompileAndVerifyIL(source, "C..ctor", @"
 {
   // Code size      115 (0x73)
   .maxstack  10
@@ -7471,30 +7471,30 @@ public class C
   IL_0072:  ret
 }
 ");
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InScriptVariableInitializer()
-    {
-        var sourceLib = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InScriptVariableInitializer()
+        {
+            var sourceLib = @"
 public class Color
 {
 	public int F(int a) { return 1; } 
 	public int F(long a) { return 1; } 
 }
 ";
-        var lib = CreateCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
-        string sourceScript = @"
+            string sourceScript = @"
 Color Color;
 dynamic x = Color.F((dynamic)1);
 ";
-        var script = CreateCompilationWithMscorlib461(
-            new[] { Parse(sourceScript, options: TestOptions.Script) },
-            new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
+            var script = CreateCompilationWithMscorlib461(
+                new[] { Parse(sourceScript, options: TestOptions.Script) },
+                new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
 
-        var verifier = CompileAndVerify(script);
-        verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+            var verifier = CompileAndVerify(script);
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
   // Code size      158 (0x9e)
   .maxstack  10
@@ -7565,21 +7565,21 @@ dynamic x = Color.F((dynamic)1);
   IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
   IL_009d:  ret
 }", realIL: true);
-    }
+        }
 
-    [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
-    public void InvokeMember_ColorColor_InScriptMethod()
-    {
-        var sourceLib = @"
+        [Fact, WorkItem(649805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649805")]
+        public void InvokeMember_ColorColor_InScriptMethod()
+        {
+            var sourceLib = @"
 public class Color
 {
 	public int F(int a) { return 1; } 
 	public int F(long a) { return 1; } 
 }
 ";
-        var lib = CreateCompilation(sourceLib);
+            var lib = CreateCompilation(sourceLib);
 
-        string sourceScript = @"
+            string sourceScript = @"
 Color Color;
 
 void Goo() 
@@ -7587,12 +7587,12 @@ void Goo()
     dynamic x = Color.F((dynamic)1);
 }
 ";
-        var script = CreateCompilationWithMscorlib461(
-            new[] { Parse(sourceScript, options: TestOptions.Script) },
-            new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
-            TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var script = CreateCompilationWithMscorlib461(
+                new[] { Parse(sourceScript, options: TestOptions.Script) },
+                new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
+                TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-        CompileAndVerify(script).VerifyIL("Goo", @"
+            CompileAndVerify(script).VerifyIL("Goo", @"
 {
   // Code size       99 (0x63)
   .maxstack  9
@@ -7632,12 +7632,12 @@ void Goo()
   IL_0062:  ret
 }
 ", realIL: true);
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_UseCompileTimeType()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_UseCompileTimeType()
+        {
+            string source = @"
 class C
 {
     static char? nChar = null;
@@ -7656,7 +7656,7 @@ class C
         d.f(null);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      591 (0x24f)
   .maxstack  9
@@ -7843,12 +7843,12 @@ class C
   IL_024e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_UseCompileTimeType_ConvertedReceiver()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_UseCompileTimeType_ConvertedReceiver()
+        {
+            string source = @"
 class C
 {
     void M(object o) 
@@ -7857,7 +7857,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       81 (0x51)
   .maxstack  9
@@ -7887,12 +7887,12 @@ class C
   IL_0050:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Dynamic_Generic()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Dynamic_Generic()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -7900,7 +7900,7 @@ public class C
         return d.m<C, int>(d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      119 (0x77)
   .maxstack  9
@@ -7948,12 +7948,12 @@ public class C
   IL_0076:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Static_Generic()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Static_Generic()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(C c, dynamic d)
@@ -7970,7 +7970,7 @@ public class C
         return 1; 
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      141 (0x8d)
   .maxstack  9
@@ -8032,12 +8032,12 @@ public class C
   IL_008c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_Dynamic_NamedArguments()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_Dynamic_NamedArguments()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d, int a)
@@ -8045,7 +8045,7 @@ public class C
         return d.m(goo: d, bar: a, baz: 123);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      123 (0x7b)
   .maxstack  9
@@ -8096,13 +8096,13 @@ public class C
   IL_007a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
-    public void InvokeMember_NamedArguments_PartialMethods()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(598043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598043")]
+        public void InvokeMember_NamedArguments_PartialMethods()
+        {
+            string source = @"
 partial class C
 {
     static partial void F(int i); 
@@ -8119,13 +8119,13 @@ partial class C
     }
 }
 ";
-        CompileAndVerifyWithCSharp(source, expectedOutput: "2");
-    }
+            CompileAndVerifyWithCSharp(source, expectedOutput: "2");
+        }
 
-    [Fact]
-    public void InvokeMember_ManyArgs_F14()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ManyArgs_F14()
+        {
+            string source = @"
 public class C
 {
     public dynamic M14(dynamic d)
@@ -8133,7 +8133,7 @@ public class C
         return d.m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-        CompileAndVerifyIL(source, "C.M14", @"
+            CompileAndVerifyIL(source, "C.M14", @"
 {
   // Code size      247 (0xf7)
   .maxstack  17
@@ -8260,15 +8260,15 @@ public class C
   IL_00f1:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, int, int, int, int, int, int, int, int, int, int, int, int, int, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, int, int, int, int, int, int, int, int, int, int, int, int, int, int)""
   IL_00f6:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ManyArgs_F15()
-    {
-        // TODO: verify metadata of the synthesized delegate
-        // TODO: use VerifyRealIL to check that dynamic is erased
+        [Fact]
+        public void InvokeMember_ManyArgs_F15()
+        {
+            // TODO: verify metadata of the synthesized delegate
+            // TODO: use VerifyRealIL to check that dynamic is erased
 
-        string source = @"
+            string source = @"
 public class C
 {
     public dynamic M15(dynamic d)
@@ -8278,7 +8278,7 @@ public class C
                    (float)1.0, (decimal)1, default(System.DateTime), d, d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M15", @"
+            CompileAndVerifyIL(source, "C.M15", @"
 {
   // Code size      284 (0x11c)
   .maxstack  18
@@ -8418,13 +8418,13 @@ public class C
   IL_011b:  ret
 }
 "
-            );
-    }
+                );
+        }
 
-    [Fact]
-    public void InvokeMember_ManyArgs_A14()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ManyArgs_A14()
+        {
+            string source = @"
 public class C
 {
     public void M14(dynamic d)
@@ -8432,7 +8432,7 @@ public class C
         d.m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-        CompileAndVerifyIL(source, "C.M14", @"
+            CompileAndVerifyIL(source, "C.M14", @"
 {
   // Code size      251 (0xfb)
   .maxstack  17
@@ -8560,12 +8560,12 @@ public class C
   IL_00fa:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ManyArgs_A15()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ManyArgs_A15()
+        {
+            string source = @"
 public class C
 {
     public void M15(dynamic d)
@@ -8573,7 +8573,7 @@ public class C
         d.m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
     }
 }";
-        CompileAndVerifyIL(source, "C.M15", @"
+            CompileAndVerifyIL(source, "C.M15", @"
 {
   // Code size      264 (0x108)
   .maxstack  18
@@ -8708,12 +8708,12 @@ public class C
   IL_0107:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ByRefArgs()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ByRefArgs()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -8721,7 +8721,7 @@ public class C
         return d.m(ref d, out d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      103 (0x67)
   .maxstack  9
@@ -8765,12 +8765,12 @@ public class C
   IL_0066:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ByRefArgs_Runtime()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ByRefArgs_Runtime()
+        {
+            string source = @"
 public class C
 {
     public static dynamic d = new C();
@@ -8783,16 +8783,16 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-        CompileAndVerifyWithCSharp(source, expectedOutput: "");
-    }
+            CompileAndVerifyWithCSharp(source, expectedOutput: "");
+        }
 
-    /// <summary>
-    /// By-ref dynamic argument doesn't make the call dynamic.
-    /// </summary>
-    [Fact]
-    public void InvokeMember_ByRefDynamic()
-    {
-        string source = @"
+        /// <summary>
+        /// By-ref dynamic argument doesn't make the call dynamic.
+        /// </summary>
+        [Fact]
+        public void InvokeMember_ByRefDynamic()
+        {
+            string source = @"
 public class C
 {
     static dynamic d = true;
@@ -8806,7 +8806,7 @@ public class C
         f(ref d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -8815,13 +8815,13 @@ public class C
   IL_000a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
-    public void InvokeMember_CallSiteRefOutOmitted_01()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_01()
+        {
+            string source = @"
 public class C
 {
     dynamic d = true;
@@ -8848,27 +8848,27 @@ public class C
         d = null;
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (17,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
-            //         f(d, d, ref lo, out ld);
-            Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("1", "ref").WithLocation(17, 11),
-            // (17,14): error CS1620: Argument 2 must be passed with the 'out' keyword
-            //         f(d, d, ref lo, out ld);
-            Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("2", "out").WithLocation(17, 14),
-            // (19,15): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
-            //         f(ref d, out d, ref lo, out ld);
-            Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("1", "ref dynamic", "ref int").WithLocation(19, 15),
-            // (19,22): error CS1503: Argument 2: cannot convert from 'out dynamic' to 'out int'
-            //         f(ref d, out d, ref lo, out ld);
-            Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("2", "out dynamic", "out int").WithLocation(19, 22)
-            );
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (17,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         f(d, d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("1", "ref").WithLocation(17, 11),
+                // (17,14): error CS1620: Argument 2 must be passed with the 'out' keyword
+                //         f(d, d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "d").WithArguments("2", "out").WithLocation(17, 14),
+                // (19,15): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         f(ref d, out d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("1", "ref dynamic", "ref int").WithLocation(19, 15),
+                // (19,22): error CS1503: Argument 2: cannot convert from 'out dynamic' to 'out int'
+                //         f(ref d, out d, ref lo, out ld);
+                Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("2", "out dynamic", "out int").WithLocation(19, 22)
+                );
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
-    public void InvokeMember_CallSiteRefOutOmitted_02()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_02()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 [ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")]
@@ -8891,7 +8891,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      142 (0x8e)
   .maxstack  9
@@ -8955,13 +8955,13 @@ public class C
   IL_008d:  ret
 }
 ").VerifyDiagnostics();
-    }
+        }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
-    public void InvokeMember_CallSiteRefOutOmitted_03()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        public void InvokeMember_CallSiteRefOutOmitted_03()
+        {
+            string source = @"
 using System.Runtime.InteropServices;
 
 [ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")]
@@ -8983,7 +8983,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      142 (0x8e)
   .maxstack  9
@@ -9047,12 +9047,12 @@ public class C
   IL_008d:  ret
 }
 ").VerifyDiagnostics();
-    }
+        }
 
-    [Fact]
-    public void InvokeStaticMember1()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeStaticMember1()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d)
@@ -9067,7 +9067,7 @@ public class D
     public static void F(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      102 (0x66)
   .maxstack  9
@@ -9104,12 +9104,12 @@ public class D
   IL_0060:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, object)""
   IL_0065:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeStaticMember2()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeStaticMember2()
+        {
+            string source = @"
 public class C
 {
     static dynamic d = true;
@@ -9127,7 +9127,7 @@ public class C
     {
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      106 (0x6a)
   .maxstack  9
@@ -9165,13 +9165,13 @@ public class C
   IL_0069:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
-    public void InvokeStaticMember_InLambda()
-    {
-        string source = @"
+        [Fact]
+        [WorkItem(627091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/627091")]
+        public void InvokeStaticMember_InLambda()
+        {
+            string source = @"
 class C
 {
     static void Goo(dynamic x)
@@ -9183,7 +9183,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<Goo>b__0", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<Goo>b__0", @"
 {
   // Code size      107 (0x6b)
   .maxstack  9
@@ -9221,12 +9221,12 @@ class C
   IL_0065:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, object>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, object)""
   IL_006a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_Local()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_Local()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d) 
@@ -9243,9 +9243,9 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
+            // Dev11 produces more efficient code, see bug 547265:
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      102 (0x66)
   .maxstack  9
@@ -9284,12 +9284,12 @@ public struct S
   IL_0060:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, object)""
   IL_0065:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_Parameter()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_Parameter()
+        {
+            string source = @"
 public class C
 {
     public void M(S s, dynamic d) 
@@ -9305,7 +9305,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       94 (0x5e)
   .maxstack  9
@@ -9342,12 +9342,12 @@ public struct S
   IL_005d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_This()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_This()
+        {
+            string source = @"
 public struct S
 {
     int a;
@@ -9360,7 +9360,7 @@ public struct S
     bool Equals(int i) => false;
 }
 ";
-        CompileAndVerifyIL(source, "S.M", @"
+            CompileAndVerifyIL(source, "S.M", @"
 {
   // Code size       93 (0x5d)
   .maxstack  9
@@ -9397,12 +9397,12 @@ public struct S
   IL_005c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_FieldAccess()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_FieldAccess()
+        {
+            string source = @"
 public class C
 {
     private S s;
@@ -9420,7 +9420,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       98 (0x62)
   .maxstack  9
@@ -9458,12 +9458,12 @@ public struct S
   IL_0061:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_ArrayAccess()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_ArrayAccess()
+        {
+            string source = @"
 public class C
 {
     private S[] s;
@@ -9481,7 +9481,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      104 (0x68)
   .maxstack  9
@@ -9521,12 +9521,12 @@ public struct S
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_PointerIndirectionOperator1()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_PointerIndirectionOperator1()
+        {
+            string source = @"
 public unsafe class C
 {
     private S s;
@@ -9546,8 +9546,8 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 produces more efficient code, see bug 547265:
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      105 (0x69)
   .maxstack  9
@@ -9591,12 +9591,12 @@ public struct S
   IL_0068:  ret
 }
 ", allowUnsafe: true, verify: Verification.Fails);
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_PointerIndirectionOperator2()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_PointerIndirectionOperator2()
+        {
+            string source = @"
 public unsafe class C
 {
     private S s;
@@ -9616,8 +9616,8 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 produces more efficient code, see bug 547265:
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      105 (0x69)
   .maxstack  9
@@ -9661,12 +9661,12 @@ public struct S
   IL_0068:  ret
 }
 ", allowUnsafe: true, verify: Verification.Fails);
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_PointerElementAccess()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_PointerElementAccess()
+        {
+            string source = @"
 public unsafe class C
 {
     private S s;
@@ -9685,8 +9685,8 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 produces more efficient code, see bug 547265:
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      112 (0x70)
   .maxstack  9
@@ -9732,12 +9732,12 @@ public struct S
   IL_006f:  ret
 }
 ", allowUnsafe: true, verify: Verification.Fails);
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_TypeReference()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_TypeReference()
+        {
+            string source = @"
 using System;
 
 public class C
@@ -9749,7 +9749,7 @@ public class C
         __refvalue(tr, int).Equals(d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      108 (0x6c)
   .maxstack  9
@@ -9794,12 +9794,12 @@ public class C
   IL_006b:  ret
 }
 ", verify: Verification.FailsILVerify); // ILVerify doesn't support TypedReference
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_Literal()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_Literal()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d) 
@@ -9808,7 +9808,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       96 (0x60)
   .maxstack  9
@@ -9845,12 +9845,12 @@ public class C
   IL_005f:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_Assignment()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_Assignment()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d, S s, S t) 
@@ -9866,7 +9866,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       95 (0x5f)
   .maxstack  9
@@ -9904,12 +9904,12 @@ public struct S
   IL_0059:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, S, object)""
   IL_005e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_PropertyAccess()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_PropertyAccess()
+        {
+            string source = @"
 public class C
 {
     private S P { get; set; }
@@ -9927,7 +9927,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       97 (0x61)
   .maxstack  9
@@ -9965,12 +9965,12 @@ public struct S
   IL_0060:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_IndexerAccess()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_IndexerAccess()
+        {
+            string source = @"
 public class C
 {
     private S this[int index] { get { return new S(); } set { } }
@@ -9988,7 +9988,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       98 (0x62)
   .maxstack  9
@@ -10026,12 +10026,12 @@ public struct S
   IL_005c:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, S, object)""
   IL_0061:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_ValueTypeReceiver_Invocation()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_ValueTypeReceiver_Invocation()
+        {
+            string source = @"
 public class C
 {
     public void M(System.Func<S> f, dynamic d) 
@@ -10047,7 +10047,7 @@ public struct S
     public void goo(long a) {}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       97 (0x61)
   .maxstack  9
@@ -10084,12 +10084,12 @@ public struct S
   IL_005b:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, S, object>.Invoke(System.Runtime.CompilerServices.CallSite, S, object)""
   IL_0060:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_InvokeMember()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_InvokeMember()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10097,7 +10097,7 @@ public class C
         return d.f().g();
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      152 (0x98)
   .maxstack  11
@@ -10148,12 +10148,12 @@ public class C
   IL_0092:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_0097:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InvokeConstructor()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeConstructor()
+        {
+            string source = @"
 public class C
 {
     public D M(dynamic d)
@@ -10168,7 +10168,7 @@ public class D
     public D(string x) {}
     public D(string x, string y) {}
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       92 (0x5c)
   .maxstack  7
@@ -10204,12 +10204,12 @@ public class D
   IL_005b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Dynamic()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Dynamic()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d, int a)
@@ -10218,7 +10218,7 @@ public class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      117 (0x75)
   .maxstack  7
@@ -10267,12 +10267,12 @@ public class C
   IL_0074:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Dynamic_DiscardResult()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Dynamic_DiscardResult()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d, int a)
@@ -10280,7 +10280,7 @@ public class C
         d(goo: d, bar: a, baz: 123);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      121 (0x79)
   .maxstack  7
@@ -10329,12 +10329,12 @@ public class C
   IL_0078:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_DynamicMember()
-    {
-        const string source = @"
+        [Fact]
+        public void Invoke_DynamicMember()
+        {
+            const string source = @"
 class C
 {
     dynamic d = null;
@@ -10345,7 +10345,7 @@ class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       91 (0x5b)
   .maxstack  7
@@ -10380,12 +10380,12 @@ class C
   IL_0055:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, object, int>.Invoke(System.Runtime.CompilerServices.CallSite, object, int)""
   IL_005a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Static_01()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Static_01()
+        {
+            string source = @"
 public delegate int F(int a, bool b, params C[] c);
 
 public class C
@@ -10395,7 +10395,7 @@ public class C
         return f(d, d, d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      104 (0x68)
   .maxstack  7
@@ -10444,12 +10444,12 @@ public class C
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Static_02()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Static_02()
+        {
+            string source = @"
 public delegate int F(int a, bool b, C c);
 
 public class C
@@ -10459,7 +10459,7 @@ public class C
         return f(d, d, d);
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      104 (0x68)
   .maxstack  7
@@ -10508,12 +10508,12 @@ public class C
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Invoke()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Invoke()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10521,7 +10521,7 @@ public class C
         return d()();
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      140 (0x8c)
   .maxstack  9
@@ -10568,12 +10568,12 @@ public class C
   IL_0086:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object)""
   IL_008b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void TypeInferenceGenericParameterTainting()
-    {
-        string source = @"
+        [Fact]
+        public void TypeInferenceGenericParameterTainting()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 class C
@@ -10588,7 +10588,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -10598,12 +10598,12 @@ class C
   IL_0007:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InvokeMember_InConstructorInitializer()
-    {
-        string source = @"
+        [Fact]
+        public void InvokeMember_InConstructorInitializer()
+        {
+            string source = @"
 class B 
 {
     protected B(int x) { }
@@ -10622,7 +10622,7 @@ class C : B
         return x;
     }
 }";
-        CompileAndVerifyIL(source, "C..ctor", @"
+            CompileAndVerifyIL(source, "C..ctor", @"
 {
   // Code size      168 (0xa8)
   .maxstack  12
@@ -10676,12 +10676,12 @@ class C : B
   IL_00a7:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Field_InConstructorInitializer()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Field_InConstructorInitializer()
+        {
+            string source = @"
 using System;
 
 class B 
@@ -10698,7 +10698,7 @@ class C : B
 
 delegate void D(params object[] x);
 ";
-        CompileAndVerifyIL(source, "C..ctor", @"
+            CompileAndVerifyIL(source, "C..ctor", @"
 {
   // Code size      156 (0x9c)
   .maxstack  10
@@ -10749,12 +10749,12 @@ delegate void D(params object[] x);
   IL_009b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void Invoke_Property_InConstructorInitializer()
-    {
-        string source = @"
+        [Fact]
+        public void Invoke_Property_InConstructorInitializer()
+        {
+            string source = @"
 using System;
 
 class B 
@@ -10771,7 +10771,7 @@ class C : B
 
 delegate void D(params object[] x);
 ";
-        CompileAndVerifyIL(source, "C..ctor", @"
+            CompileAndVerifyIL(source, "C..ctor", @"
 {
   // Code size      156 (0x9c)
   .maxstack  10
@@ -10822,16 +10822,16 @@ delegate void D(params object[] x);
   IL_009b:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region GetMember, GetIndex, SetMember, SetIndex
+        #region GetMember, GetIndex, SetMember, SetIndex
 
-    [Fact]
-    public void GetMember()
-    {
-        string source = @"
+        [Fact]
+        public void GetMember()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10839,7 +10839,7 @@ public class C
         return d.m;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       76 (0x4c)
   .maxstack  8
@@ -10868,12 +10868,12 @@ public class C
   IL_004b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetMember_GetMember()
-    {
-        string source = @"
+        [Fact]
+        public void GetMember_GetMember()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10881,7 +10881,7 @@ public class C
         return d.m.n;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      150 (0x96)
   .maxstack  10
@@ -10931,12 +10931,12 @@ public class C
   IL_0095:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10944,7 +10944,7 @@ public class C
         return d[1];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       82 (0x52)
   .maxstack  7
@@ -10979,12 +10979,12 @@ public class C
   IL_0051:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetMember_GetIndex()
-    {
-        string source = @"
+        [Fact]
+        public void GetMember_GetIndex()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -10992,7 +10992,7 @@ public class C
         return d.m[1];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      157 (0x9d)
   .maxstack  10
@@ -11048,12 +11048,12 @@ public class C
   IL_009c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_GetIndex()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex_GetIndex()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -11061,7 +11061,7 @@ public class C
         return d[1][2];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      162 (0xa2)
   .maxstack  9
@@ -11123,12 +11123,12 @@ public class C
   IL_00a1:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_ManyArgs_F15()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex_ManyArgs_F15()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -11136,7 +11136,7 @@ public class C
         return d[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      254 (0xfe)
   .maxstack  18
@@ -11269,12 +11269,12 @@ public class C
   IL_00fd:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_ByRef()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex_ByRef()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -11282,7 +11282,7 @@ public class C
         return d[ref d];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       84 (0x54)
   .maxstack  7
@@ -11317,12 +11317,12 @@ public class C
   IL_0053:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_NamedArguments()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex_NamedArguments()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -11330,7 +11330,7 @@ public class C
         return d[a: 1, b: d, c: null, d: ref d];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      133 (0x85)
   .maxstack  7
@@ -11386,12 +11386,12 @@ public class C
   IL_0084:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_StaticReceiver()
-    {
-        string source = @"
+        [Fact]
+        public void GetIndex_StaticReceiver()
+        {
+            string source = @"
 public class C
 {
     C a, b;
@@ -11405,7 +11405,7 @@ public class C
 
     int this[long i] { get { return 0; } set { } }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       92 (0x5c)
   .maxstack  7
@@ -11442,12 +11442,12 @@ public class C
   IL_005b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_IndexedProperty()
-    {
-        string vbSource = @"
+        [Fact]
+        public void GetIndex_IndexedProperty()
+        {
+            string vbSource = @"
 Imports System.Runtime.InteropServices
 
 <ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")>
@@ -11464,10 +11464,10 @@ Public Class B
     End Property
 End Class
 ";
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-        var vbRef = vb.EmitToImageReference();
+            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            var vbRef = vb.EmitToImageReference();
 
-        string source = @"
+            string source = @"
 class C
 {
     B b;
@@ -11479,11 +11479,11 @@ class C
     }
 }
 ";
-        // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
-        // Roslyn: Use strongly typed receiver.
-        // Note that accessing an indexed property is the only way how to get strongly typed receiver.
+            // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
+            // Roslyn: Use strongly typed receiver.
+            // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-        CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
 {
   // Code size      167 (0xa7)
   .maxstack  10
@@ -11540,12 +11540,12 @@ class C
   IL_00a1:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_00a6:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_IndexedProperty()
-    {
-        string vbSource = @"
+        [Fact]
+        public void SetIndex_IndexedProperty()
+        {
+            string vbSource = @"
 Imports System.Runtime.InteropServices
 
 <ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")>
@@ -11566,10 +11566,10 @@ Public Class B
     End Property
 End Class
 ";
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-        var vbRef = vb.EmitToImageReference();
+            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            var vbRef = vb.EmitToImageReference();
 
-        string source = @"
+            string source = @"
 class C
 {
     B b;
@@ -11581,11 +11581,11 @@ class C
     }
 }
 ";
-        // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
-        // Roslyn: Use strongly typed receiver.
-        // Note that accessing an indexed property is the only way how to get strongly typed receiver.
+            // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
+            // Roslyn: Use strongly typed receiver.
+            // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-        CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
 {
   // Code size      179 (0xb3)
   .maxstack  10
@@ -11649,12 +11649,12 @@ class C
   IL_00ad:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int)""
   IL_00b2:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_IndexedProperty_CompoundAssignment()
-    {
-        string vbSource = @"
+        [Fact]
+        public void SetIndex_IndexedProperty_CompoundAssignment()
+        {
+            string vbSource = @"
 Imports System.Runtime.InteropServices
 
 <ComImport, Guid(""0002095E-0000-0000-C000-000000000046"")>
@@ -11675,10 +11675,10 @@ Public Class B
     End Property
 End Class
 ";
-        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-        var vbRef = vb.EmitToImageReference();
+            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            var vbRef = vb.EmitToImageReference();
 
-        string source = @"
+            string source = @"
 class C
 {
     B b;
@@ -11690,11 +11690,11 @@ class C
     }
 }
 ";
-        // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
-        // Roslyn: Use strongly typed receiver.
-        // Note that accessing an indexed property is the only way how to get strongly typed receiver.
+            // Dev11 - the receiver of GetMember is typed to Object. That seems like a bug, since InvokeMember on an early bound receiver uses the compile time type.
+            // Roslyn: Use strongly typed receiver.
+            // Note that accessing an indexed property is the only way how to get strongly typed receiver.
 
-        CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, vbRef }, expectedOptimizedIL: @"
 {
   // Code size      424 (0x1a8)
   .maxstack  16
@@ -11841,14 +11841,14 @@ class C
   IL_01a7:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void GetIndex_IndexerWithByRefParam()
-    {
-        var ilRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
+        [Fact]
+        public void GetIndex_IndexerWithByRefParam()
+        {
+            var ilRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
 
-        string source = @"
+            string source = @"
 using System.Runtime.InteropServices;
 
 class C
@@ -11868,7 +11868,7 @@ interface BB : B
     long this[long x] {get;}
 }
 ";
-        CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, ilRef }, expectedOptimizedIL: @"
+            CompileAndVerifyIL(source, "C.M", references: new MetadataReference[] { SystemCoreRef, CSharpRef, ilRef }, expectedOptimizedIL: @"
 {
   // Code size       92 (0x5c)
   .maxstack  7
@@ -11905,12 +11905,12 @@ interface BB : B
   IL_005b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_SetIndex_Receiver()
-    {
-        string source = @"
+        [Fact]
+        public void SetIndex_SetIndex_Receiver()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -11918,7 +11918,7 @@ public class C
         return (d[1] = d)[2];
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      173 (0xad)
   .maxstack  9
@@ -11987,12 +11987,12 @@ public class C
   IL_00ac:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_SetIndex_Argument()
-    {
-        string source = @"
+        [Fact]
+        public void SetIndex_SetIndex_Argument()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -12000,7 +12000,7 @@ public class C
         return d[d[d] = d] = d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      184 (0xb8)
   .maxstack  10
@@ -12076,12 +12076,12 @@ public class C
   IL_00b7:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_NamedArguments()
-    {
-        string source = @"
+        [Fact]
+        public void SetIndex_NamedArguments()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -12089,7 +12089,7 @@ public class C
         return d[a: d, b: 0, c: null, d: out d] = null;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      144 (0x90)
   .maxstack  8
@@ -12152,12 +12152,12 @@ public class C
   IL_008f:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_ValueTypeReceiver_Local_01()
-    {
-        string source = @"
+        [Fact]
+        public void SetIndex_ValueTypeReceiver_Local_01()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d) 
@@ -12174,8 +12174,8 @@ public struct S
     public long this[long index] { get { return index; } set { } }
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 produces more efficient code, see bug 547265:
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      104 (0x68)
   .maxstack  7
@@ -12220,12 +12220,12 @@ public struct S
   IL_0066:  pop
   IL_0067:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SetIndex_ValueTypeReceiver_Local_02()
-    {
-        string source = @"
+        [Fact]
+        public void SetIndex_ValueTypeReceiver_Local_02()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic d) 
@@ -12242,7 +12242,7 @@ public struct S
 }
 ";
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      104 (0x68)
   .maxstack  7
@@ -12288,12 +12288,12 @@ public struct S
   IL_0067:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetMember()
-    {
-        string source = @"
+        [Fact]
+        public void SetMember()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -12301,7 +12301,7 @@ public class C
         return d.m = d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       87 (0x57)
   .maxstack  8
@@ -12337,12 +12337,12 @@ public class C
   IL_0056:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SetMember_SetMember()
-    {
-        string source = @"
+        [Fact]
+        public void SetMember_SetMember()
+        {
+            string source = @"
 public class C
 {
     public dynamic M(dynamic d)
@@ -12350,7 +12350,7 @@ public class C
         return (d.a = d).b = d;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      172 (0xac)
   .maxstack  10
@@ -12414,16 +12414,16 @@ public class C
   IL_00ab:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Assignment
+        #region Assignment
 
-    [Fact]
-    public void AssignmentRhsConversion()
-    {
-        string source = @"
+        [Fact]
+        public void AssignmentRhsConversion()
+        {
+            string source = @"
 public class C
 {
     public void M(dynamic p) 
@@ -12435,8 +12435,8 @@ public class C
     }
 }
 ";
-        // Dev11 produces more efficient code, see bug 547265:
-        CompileAndVerifyIL(source, "C.M", @"
+            // Dev11 produces more efficient code, see bug 547265:
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      205 (0xcd)
   .maxstack  8
@@ -12516,12 +12516,12 @@ public class C
   IL_00cc:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicMemberAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicMemberAssignment()
+        {
+            string source = @"
 public class C
 {
     dynamic d, v;
@@ -12531,7 +12531,7 @@ public class C
         return d.m *= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      259 (0x103)
   .maxstack  13
@@ -12620,12 +12620,12 @@ public class C
   IL_00fd:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
   IL_0102:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicMemberAssignment_PossibleAddHandler()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicMemberAssignment_PossibleAddHandler()
+        {
+            string source = @"
 public class C
 {
     dynamic d, v;
@@ -12635,7 +12635,7 @@ public class C
         return d.m += v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      424 (0x1a8)
   .maxstack  11
@@ -12782,12 +12782,12 @@ public class C
   IL_01a7:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicMemberAssignment_PossibleRemoveHandlerNull()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicMemberAssignment_PossibleRemoveHandlerNull()
+        {
+            string source = @"
 public class C
 {
     dynamic d;
@@ -12797,7 +12797,7 @@ public class C
         d.m -= null;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      419 (0x1a3)
   .maxstack  11
@@ -12942,12 +12942,12 @@ public class C
   IL_01a2:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicMemberAssignment_PossibleRemoveHandler()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicMemberAssignment_PossibleRemoveHandler()
+        {
+            string source = @"
 public class C
 {
     dynamic d, v;
@@ -12957,7 +12957,7 @@ public class C
         return d.m -= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      424 (0x1a8)
   .maxstack  11
@@ -13104,12 +13104,12 @@ public class C
   IL_01a7:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundStaticFieldAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundStaticFieldAssignment()
+        {
+            string source = @"
 public class C
 {
     public dynamic Field;
@@ -13121,7 +13121,7 @@ public class C
         return c.Field *= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -13168,12 +13168,12 @@ public class C
   IL_006c:  ldloc.1
   IL_006d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void CompoundStaticPropertyAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundStaticPropertyAssignment()
+        {
+            string source = @"
 public class C
 {
     public dynamic Property { get; set; }
@@ -13185,7 +13185,7 @@ public class C
         return c.Property *= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      110 (0x6e)
   .maxstack  9
@@ -13233,12 +13233,12 @@ public class C
   IL_006d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicIndexerAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicIndexerAssignment()
+        {
+            string source = @"
 public class C
 {
     public int f() { return 1; }
@@ -13248,7 +13248,7 @@ public class C
         return d[i, f()] *= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M",
+            CompileAndVerifyIL(source, "C.M",
 @"
 {
   // Code size      292 (0x124)
@@ -13372,126 +13372,126 @@ public class C
 ");
 #if TODO // locals and parameters shouldn't be spilled
 @"{
-// Code size      288 (0x120)
-.maxstack  14
-.locals init (int V_0)
-IL_0000:  ldarg.0
-IL_0001:  call       ""int C.f()""
-IL_0006:  stloc.0
-IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
-IL_000c:  brtrue.s   IL_005a
-IL_000e:  ldc.i4     0x80
-IL_0013:  ldtoken    ""C""
-IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-IL_001d:  ldc.i4.4
-IL_001e:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-IL_0023:  dup
-IL_0024:  ldc.i4.0
-IL_0025:  ldc.i4.0
-IL_0026:  ldnull
-IL_0027:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_002c:  stelem.ref
-IL_002d:  dup
-IL_002e:  ldc.i4.1
-IL_002f:  ldc.i4.0
-IL_0030:  ldnull
-IL_0031:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_0036:  stelem.ref
-IL_0037:  dup
-IL_0038:  ldc.i4.2
-IL_0039:  ldc.i4.1
-IL_003a:  ldnull
-IL_003b:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_0040:  stelem.ref
-IL_0041:  dup
-IL_0042:  ldc.i4.3
-IL_0043:  ldc.i4.0
-IL_0044:  ldnull
-IL_0045:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_004a:  stelem.ref
-IL_004b:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.SetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-IL_0050:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-IL_0055:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
-IL_005a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
-IL_005f:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>>.Target""
-IL_0064:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
-IL_0069:  ldarg.1
-IL_006a:  ldarg.2
-IL_006b:  ldloc.0
-IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
-IL_0071:  brtrue.s   IL_00a9
-IL_0073:  ldc.i4.0
-IL_0074:  ldc.i4.s   69
-IL_0076:  ldtoken    ""C""
-IL_007b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-IL_0080:  ldc.i4.2
-IL_0081:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-IL_0086:  dup
-IL_0087:  ldc.i4.0
-IL_0088:  ldc.i4.0
-IL_0089:  ldnull
-IL_008a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_008f:  stelem.ref
-IL_0090:  dup
-IL_0091:  ldc.i4.1
-IL_0092:  ldc.i4.0
-IL_0093:  ldnull
-IL_0094:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_0099:  stelem.ref
-IL_009a:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-IL_009f:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-IL_00a4:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
-IL_00a9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
-IL_00ae:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
-IL_00b3:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
-IL_00b8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
-IL_00bd:  brtrue.s   IL_00fd
-IL_00bf:  ldc.i4.0
-IL_00c0:  ldtoken    ""C""
-IL_00c5:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-IL_00ca:  ldc.i4.3
-IL_00cb:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-IL_00d0:  dup
-IL_00d1:  ldc.i4.0
-IL_00d2:  ldc.i4.0
-IL_00d3:  ldnull
-IL_00d4:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_00d9:  stelem.ref
-IL_00da:  dup
-IL_00db:  ldc.i4.1
-IL_00dc:  ldc.i4.0
-IL_00dd:  ldnull
-IL_00de:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_00e3:  stelem.ref
-IL_00e4:  dup
-IL_00e5:  ldc.i4.2
-IL_00e6:  ldc.i4.1
-IL_00e7:  ldnull
-IL_00e8:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_00ed:  stelem.ref
-IL_00ee:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-IL_00f3:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-IL_00f8:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
-IL_00fd:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
-IL_0102:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>>.Target""
-IL_0107:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
-IL_010c:  ldarg.1
-IL_010d:  ldarg.2
-IL_010e:  ldloc.0
-IL_010f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int)""
-IL_0114:  ldarg.3
-IL_0115:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
-IL_011a:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int, object)""
-IL_011f:  ret
+  // Code size      288 (0x120)
+  .maxstack  14
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int C.f()""
+  IL_0006:  stloc.0
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
+  IL_000c:  brtrue.s   IL_005a
+  IL_000e:  ldc.i4     0x80
+  IL_0013:  ldtoken    ""C""
+  IL_0018:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001d:  ldc.i4.4
+  IL_001e:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0023:  dup
+  IL_0024:  ldc.i4.0
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldnull
+  IL_0027:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002c:  stelem.ref
+  IL_002d:  dup
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldnull
+  IL_0031:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0036:  stelem.ref
+  IL_0037:  dup
+  IL_0038:  ldc.i4.2
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldnull
+  IL_003b:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0040:  stelem.ref
+  IL_0041:  dup
+  IL_0042:  ldc.i4.3
+  IL_0043:  ldc.i4.0
+  IL_0044:  ldnull
+  IL_0045:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_004a:  stelem.ref
+  IL_004b:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.SetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0050:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0055:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
+  IL_005a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
+  IL_005f:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>>.Target""
+  IL_0064:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>> C.<>o__0.<>p__2""
+  IL_0069:  ldarg.1
+  IL_006a:  ldarg.2
+  IL_006b:  ldloc.0
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
+  IL_0071:  brtrue.s   IL_00a9
+  IL_0073:  ldc.i4.0
+  IL_0074:  ldc.i4.s   69
+  IL_0076:  ldtoken    ""C""
+  IL_007b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0080:  ldc.i4.2
+  IL_0081:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0086:  dup
+  IL_0087:  ldc.i4.0
+  IL_0088:  ldc.i4.0
+  IL_0089:  ldnull
+  IL_008a:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_008f:  stelem.ref
+  IL_0090:  dup
+  IL_0091:  ldc.i4.1
+  IL_0092:  ldc.i4.0
+  IL_0093:  ldnull
+  IL_0094:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0099:  stelem.ref
+  IL_009a:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_009f:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_00a4:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
+  IL_00a9:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
+  IL_00ae:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
+  IL_00b3:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__1""
+  IL_00b8:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
+  IL_00bd:  brtrue.s   IL_00fd
+  IL_00bf:  ldc.i4.0
+  IL_00c0:  ldtoken    ""C""
+  IL_00c5:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00ca:  ldc.i4.3
+  IL_00cb:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_00d0:  dup
+  IL_00d1:  ldc.i4.0
+  IL_00d2:  ldc.i4.0
+  IL_00d3:  ldnull
+  IL_00d4:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_00d9:  stelem.ref
+  IL_00da:  dup
+  IL_00db:  ldc.i4.1
+  IL_00dc:  ldc.i4.0
+  IL_00dd:  ldnull
+  IL_00de:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_00e3:  stelem.ref
+  IL_00e4:  dup
+  IL_00e5:  ldc.i4.2
+  IL_00e6:  ldc.i4.1
+  IL_00e7:  ldnull
+  IL_00e8:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_00ed:  stelem.ref
+  IL_00ee:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.GetIndex(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_00f3:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_00f8:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
+  IL_00fd:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
+  IL_0102:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>>.Target""
+  IL_0107:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>> C.<>o__0.<>p__0""
+  IL_010c:  ldarg.1
+  IL_010d:  ldarg.2
+  IL_010e:  ldloc.0
+  IL_010f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int)""
+  IL_0114:  ldarg.3
+  IL_0115:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
+  IL_011a:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, int, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object, int, object)""
+  IL_011f:  ret
 }
 ");
 #endif
-    }
+        }
 
-    [Fact]
-    public void CompoundStaticIndexerAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundStaticIndexerAssignment()
+        {
+            string source = @"
 public class C
 {
     public dynamic this[int a, object o] { get { return null; } set { } }
@@ -13503,7 +13503,7 @@ public class C
         return c[f(), null] *= v;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      111 (0x6f)
   .maxstack  11
@@ -13559,62 +13559,62 @@ public class C
 #if TODO // locals and parameters shouldn't be spilled       
 @"
 {
-// Code size      109 (0x6d)
-.maxstack  11
-.locals init (int V_0,
-object V_1)
-IL_0000:  ldarg.0
-IL_0001:  call       ""int C.f()""
-IL_0006:  stloc.0
-IL_0007:  ldarg.1
-IL_0008:  ldloc.0
-IL_0009:  ldnull
-IL_000a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
-IL_000f:  brtrue.s   IL_0047
-IL_0011:  ldc.i4.0
-IL_0012:  ldc.i4.s   69
-IL_0014:  ldtoken    ""C""
-IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-IL_001e:  ldc.i4.2
-IL_001f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-IL_0024:  dup
-IL_0025:  ldc.i4.0
-IL_0026:  ldc.i4.0
-IL_0027:  ldnull
-IL_0028:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_002d:  stelem.ref
-IL_002e:  dup
-IL_002f:  ldc.i4.1
-IL_0030:  ldc.i4.0
-IL_0031:  ldnull
-IL_0032:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-IL_0037:  stelem.ref
-IL_0038:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-IL_003d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-IL_0042:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
-IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
-IL_004c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
-IL_0051:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
-IL_0056:  ldarg.1
-IL_0057:  ldloc.0
-IL_0058:  ldnull
-IL_0059:  callvirt   ""dynamic C.this[int, object].get""
-IL_005e:  ldarg.2
-IL_005f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
-IL_0064:  dup
-IL_0065:  stloc.1
-IL_0066:  callvirt   ""void C.this[int, object].set""
-IL_006b:  ldloc.1
-IL_006c:  ret
+  // Code size      109 (0x6d)
+  .maxstack  11
+  .locals init (int V_0,
+  object V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int C.f()""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.1
+  IL_0008:  ldloc.0
+  IL_0009:  ldnull
+  IL_000a:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
+  IL_000f:  brtrue.s   IL_0047
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldc.i4.s   69
+  IL_0014:  ldtoken    ""C""
+  IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001e:  ldc.i4.2
+  IL_001f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0024:  dup
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldc.i4.0
+  IL_0027:  ldnull
+  IL_0028:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_002d:  stelem.ref
+  IL_002e:  dup
+  IL_002f:  ldc.i4.1
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldnull
+  IL_0032:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0037:  stelem.ref
+  IL_0038:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.BinaryOperation(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Linq.Expressions.ExpressionType, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_003d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0042:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
+  IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
+  IL_004c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, object, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>>.Target""
+  IL_0051:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>> C.<>o__0.<>p__0""
+  IL_0056:  ldarg.1
+  IL_0057:  ldloc.0
+  IL_0058:  ldnull
+  IL_0059:  callvirt   ""dynamic C.this[int, object].get""
+  IL_005e:  ldarg.2
+  IL_005f:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, object, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, object)""
+  IL_0064:  dup
+  IL_0065:  stloc.1
+  IL_0066:  callvirt   ""void C.this[int, object].set""
+  IL_006b:  ldloc.1
+  IL_006c:  ret
 }
 ");
 #endif
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicIndexerAssignment_ByRef()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicIndexerAssignment_ByRef()
+        {
+            string source = @"
 public class C
 {
     public dynamic Field;
@@ -13631,9 +13631,9 @@ public class C
         return d[ref f().Field, out b[10], c.c] *= v;
     }
 }";
-        // Dev11 emits different (unverifiable) code
+            // Dev11 emits different (unverifiable) code
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      342 (0x156)
   .maxstack  15
@@ -13775,12 +13775,12 @@ public class C
   IL_0150:  callvirt   ""object <>F{00000240}<System.Runtime.CompilerServices.CallSite, object, object, int, C, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, object, ref object, ref int, C, object)""
   IL_0155:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void CompoundDynamicArrayElementAccess()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundDynamicArrayElementAccess()
+        {
+            string source = @"
 public class C
 {
     static dynamic[] d;
@@ -13792,7 +13792,7 @@ public class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       99 (0x63)
   .maxstack  10
@@ -13836,12 +13836,12 @@ public class C
   IL_0062:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_WithDynamicConversion_ToStruct()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_WithDynamicConversion_ToStruct()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -13853,7 +13853,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      238 (0xee)
   .maxstack  13
@@ -13936,12 +13936,12 @@ class C
   IL_00ed:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_WithDynamicConversion_ToClass()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_WithDynamicConversion_ToClass()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -13953,7 +13953,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"      
+            CompileAndVerifyIL(source, "C.M", @"      
 {
   // Code size      238 (0xee)
   .maxstack  13
@@ -14036,12 +14036,12 @@ class C
   IL_00ed:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_WithDynamicConversion_ToPointer()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_WithDynamicConversion_ToPointer()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -14053,15 +14053,15 @@ class C
     }
 }
 ";
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
-            Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,3): error CS0019: Operator '&=' cannot be applied to operands of type 'int*' and 'dynamic'
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "ret &= (1 == d)").WithArguments("&=", "int*", "dynamic"));
+        }
 
-    [Fact]
-    public void CompoundAssignment_WithNoDynamicConversion_Object()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_WithNoDynamicConversion_Object()
+        {
+            string source = @"
 class C
 {
     dynamic d = null;
@@ -14073,7 +14073,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @" 
+            CompileAndVerifyIL(source, "C.M", @" 
 {
   // Code size      174 (0xae)
   .maxstack  11
@@ -14142,12 +14142,12 @@ class C
   IL_00ad:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_UserDefinedOperator()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_UserDefinedOperator()
+        {
+            string source = @"
 class C 
 {
     public static dynamic operator +(C lhs, int rhs)
@@ -14162,7 +14162,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       78 (0x4e)
   .maxstack  4
@@ -14190,12 +14190,12 @@ class C
   IL_004d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_Result()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_Result()
+        {
+            string source = @"
 class C
 {
     bool a = true;
@@ -14213,7 +14213,7 @@ class C
     }
 }
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      178 (0xb2)
   .maxstack  11
@@ -14276,12 +14276,12 @@ class C
   IL_00b0:  ldc.i4.2
   IL_00b1:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment_Nullable()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment_Nullable()
+        {
+            string source = @"
 class C
 {
     int M()
@@ -14297,7 +14297,7 @@ class C
         return 2;
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      278 (0x116)
   .maxstack  12
@@ -14408,12 +14408,12 @@ class C
   IL_0115:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CompoundAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void CompoundAssignment()
+        {
+            string source = @"
 class C
 {
     static void Main()
@@ -14424,20 +14424,20 @@ class C
     }
 }
 ";
-        var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
-        comp.VerifyDiagnostics();
-        // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
-        // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
-    }
+            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            comp.VerifyDiagnostics();
+            // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
+            // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
+        }
 
-    #endregion
+        #endregion
 
-    #region Object And Collection Initializers
+        #region Object And Collection Initializers
 
-    [Fact]
-    public void DynamicObjectInitializer_Level2()
-    {
-        string source = @"
+        [Fact]
+        public void DynamicObjectInitializer_Level2()
+        {
+            string source = @"
 using System;
 
 class C
@@ -14453,9 +14453,9 @@ class C
     }
 } 
 ";
-        // Bug in Dev11: it boxes the constant literal (1) and the corresponding call-site parameter is typed to object.
+            // Bug in Dev11: it boxes the constant literal (1) and the corresponding call-site parameter is typed to object.
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       99 (0x63)
   .maxstack  8
@@ -14495,15 +14495,15 @@ class C
   IL_0061:  pop
   IL_0062:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// We can shared dynamic sites for GetMembers of level n-1 on level n for n >= 3.
-    /// </summary>
-    [Fact]
-    public void DynamicObjectInitializer_Level3()
-    {
-        string source = @"
+        /// <summary>
+        /// We can shared dynamic sites for GetMembers of level n-1 on level n for n >= 3.
+        /// </summary>
+        [Fact]
+        public void DynamicObjectInitializer_Level3()
+        {
+            string source = @"
 using System;
 
 class C
@@ -14519,22 +14519,22 @@ class C
     }
 } 
 ";
-        // Dev11 creates 4 call sites: GetMember[B] #1, SetMember[P], GetMember[B] #2, SetMember[Q] and calls them as follows:
-        // var c = new C();
-        // SetMember[P](GetMember[B](c) #1, 1)
-        // SetMember[Q](GetMember[B](c) #2, 2)
-        //
-        // To maintain runtime compatibility we have to invoke GetMember[B] twice, but we can reuse the call-site:
-        // We create 3 call sites: GetMember[B] #1, SetMember[P], SetMember[Q]
-        // var c = new C();
-        // SetMember[P](GetMember[B](c) #1, 1)
-        // SetMember[Q](GetMember[B](c) #1, 2)
-        // 
-        // We initialize all sites up-front so that we are able to avoid duplication of call-site initialization.
-        //
-        // Also Dev11 emits flags (None, None) for SetMember[P], while Roslyn emits (None, UseCompileTimeType | Constant) since the RHS is a constant.
+            // Dev11 creates 4 call sites: GetMember[B] #1, SetMember[P], GetMember[B] #2, SetMember[Q] and calls them as follows:
+            // var c = new C();
+            // SetMember[P](GetMember[B](c) #1, 1)
+            // SetMember[Q](GetMember[B](c) #2, 2)
+            //
+            // To maintain runtime compatibility we have to invoke GetMember[B] twice, but we can reuse the call-site:
+            // We create 3 call sites: GetMember[B] #1, SetMember[P], SetMember[Q]
+            // var c = new C();
+            // SetMember[P](GetMember[B](c) #1, 1)
+            // SetMember[Q](GetMember[B](c) #1, 2)
+            // 
+            // We initialize all sites up-front so that we are able to avoid duplication of call-site initialization.
+            //
+            // Also Dev11 emits flags (None, None) for SetMember[P], while Roslyn emits (None, UseCompileTimeType | Constant) since the RHS is a constant.
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      285 (0x11d)
   .maxstack  8
@@ -14631,12 +14631,12 @@ class C
   IL_011c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void DynamicCollectionInitializer_DynamicReceiver_InStaticMethod()
-    {
-        string source = @"
+        [Fact]
+        public void DynamicCollectionInitializer_DynamicReceiver_InStaticMethod()
+        {
+            string source = @"
 class C
 {
     public dynamic A { get; set; }
@@ -14650,7 +14650,7 @@ class C
     }
 } 
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      103 (0x67)
   .maxstack  9
@@ -14691,12 +14691,12 @@ class C
   IL_0066:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void DynamicCollectionInitializer_DynamicReceiver_InInstanceMethod()
-    {
-        string source = @"
+        [Fact]
+        public void DynamicCollectionInitializer_DynamicReceiver_InInstanceMethod()
+        {
+            string source = @"
 class C
 {
     public dynamic A { get; set; }
@@ -14710,7 +14710,7 @@ class C
     }
 } 
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      103 (0x67)
   .maxstack  9
@@ -14751,12 +14751,12 @@ class C
   IL_0066:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void DynamicCollectionInitializer_StaticReceiver()
-    {
-        string source = @"
+        [Fact]
+        public void DynamicCollectionInitializer_StaticReceiver()
+        {
+            string source = @"
 using System.Collections;
 
 class C : IEnumerable
@@ -14775,7 +14775,7 @@ class C : IEnumerable
     public void Add(long a) { }
 }  
 ";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       98 (0x62)
   .maxstack  9
@@ -14815,12 +14815,12 @@ class C : IEnumerable
   IL_0061:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void ObjectAndCollectionInitializer()
-    {
-        string source = @"
+        [Fact]
+        public void ObjectAndCollectionInitializer()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
  
@@ -14842,7 +14842,7 @@ class X
     public List<int> Y;
 }
 ";
-        CompileAndVerifyIL(source, "Program.Main", @"
+            CompileAndVerifyIL(source, "Program.Main", @"
 {
   // Code size      177 (0xb1)
   .maxstack  9
@@ -14904,16 +14904,16 @@ class X
   IL_00b0:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Foreach
+        #region Foreach
 
-    [Fact]
-    public void ForEach_StaticallyTypedVariable()
-    {
-        string source = @"
+        [Fact]
+        public void ForEach_StaticallyTypedVariable()
+        {
+            string source = @"
 class C
 {
     void M(dynamic d)
@@ -14925,7 +14925,7 @@ class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      175 (0xaf)
   .maxstack  3
@@ -14987,12 +14987,12 @@ class C
   IL_00ae:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void ForEach_ImplicitlyTypedVariable()
-    {
-        string source = @"
+        [Fact]
+        public void ForEach_ImplicitlyTypedVariable()
+        {
+            string source = @"
 class C
 {
     void M(dynamic d)
@@ -15004,7 +15004,7 @@ class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size      208 (0xd0)
   .maxstack  9
@@ -15083,13 +15083,13 @@ class C
 }
   IL_00cf:  ret
 }");
-    }
+        }
 
-    [WorkItem(2720, "https://github.com/dotnet/roslyn/issues/2720")]
-    [Fact]
-    public void ContextTypeInAsyncLambda()
-    {
-        string source = @"
+        [WorkItem(2720, "https://github.com/dotnet/roslyn/issues/2720")]
+        [Fact]
+        public void ContextTypeInAsyncLambda()
+        {
+            string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -15106,7 +15106,7 @@ class C
     }
 }";
 
-        CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<<Main>b__0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            CompileAndVerifyIL(source, "C.<>c__DisplayClass0_0.<<Main>b__0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      537 (0x219)
   .maxstack  10
@@ -15299,13 +15299,13 @@ class C
   IL_0213:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
   IL_0218:  ret
 }");
-    }
+        }
 
-    [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
-    [Fact]
-    public void DynamicUsingWithYield1()
-    {
-        var source =
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
+        [Fact]
+        public void DynamicUsingWithYield1()
+        {
+            var source =
 @"
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15336,20 +15336,20 @@ class Program
             return Task.FromResult(1);
     }
 }";
-        var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
-        CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-        comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
-        CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
-    }
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+        }
 
-    [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
-    [Fact]
-    public void DynamicUsingWithYield2()
-    {
-        var source =
+        [WorkItem(5323, "https://github.com/dotnet/roslyn/issues/5323")]
+        [Fact]
+        public void DynamicUsingWithYield2()
+        {
+            var source =
 @"
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15381,23 +15381,23 @@ class Program
             return Task.FromResult(1);
     }
 }";
-        var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
-        CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
-        comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
+            comp = CreateCompilationWithCSharp(source, options: TestOptions.DebugExe);
 
-        CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
-    }
+            CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
+        }
 
-    #endregion
+        #endregion
 
-    #region Using
+        #region Using
 
-    [Fact]
-    public void UsingStatement()
-    {
-        string source = @"
+        [Fact]
+        public void UsingStatement()
+        {
+            string source = @"
 using System;
 
 class C
@@ -15412,7 +15412,7 @@ class C
         }
     }
 }";
-        CompileAndVerifyIL(source, "C.M", @"
+            CompileAndVerifyIL(source, "C.M", @"
 {
   // Code size       90 (0x5a)
   .maxstack  3
@@ -15453,16 +15453,16 @@ class C
   IL_0059:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Async
+        #region Async
 
-    [Fact]
-    public void AwaitAwait()
-    {
-        string source = @"
+        [Fact]
+        public void AwaitAwait()
+        {
+            string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -15475,7 +15475,7 @@ class C
         var x = await await d; 
     }
 }";
-        CompileAndVerifyIL(source, "C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+            CompileAndVerifyIL(source, "C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      855 (0x357)
   .maxstack  10
@@ -15774,12 +15774,12 @@ class C
   IL_0356:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void MissingCSharpArgumentInfoCreate()
-    {
-        string source =
+        [Fact]
+        public void MissingCSharpArgumentInfoCreate()
+        {
+            string source =
 @"class C
 {
     static void F(dynamic d)
@@ -15787,20 +15787,20 @@ class C
         d.F();
     }
 }";
-        var comp = CreateCompilationWithMscorlib461(
-            new[] { DynamicAttributeSource, source },
-            references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
-        comp.VerifyEmitDiagnostics(
-            // (5,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
-            //         d.F();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(5, 9));
-    }
+            var comp = CreateCompilationWithMscorlib461(
+                new[] { DynamicAttributeSource, source },
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         d.F();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(5, 9));
+        }
 
-    [Fact]
-    [WorkItem(377883, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377883")]
-    public void MissingCSharpArgumentInfoCreate_Async()
-    {
-        string source =
+        [Fact]
+        [WorkItem(377883, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377883")]
+        public void MissingCSharpArgumentInfoCreate_Async()
+        {
+            string source =
 @"using System.Threading.Tasks;
 class C
 {
@@ -15809,23 +15809,23 @@ class C
         await d;
     }
 }";
-        var comp = CreateCompilationWithMscorlib461(
-            new[] { DynamicAttributeSource, source },
-            references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
-        comp.VerifyEmitDiagnostics(
-            // (6,15): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
-            //         await d;
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(6, 15));
-    }
+            var comp = CreateCompilationWithMscorlib461(
+                new[] { DynamicAttributeSource, source },
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         await d;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "d").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(6, 15));
+        }
 
-    #endregion
+        #endregion
 
-    #region Regression Tests
+        #region Regression Tests
 
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void ByRefDynamic()
-    {
-        string source = @"
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void ByRefDynamic()
+        {
+            string source = @"
     public class Program
     {
         static void Main(string[] args)
@@ -15854,14 +15854,14 @@ class C
         public int Length = 123;
     }
 ";
-        var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "321 123", references: new[] { CSharpRef });
-    }
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "321 123", references: new[] { CSharpRef });
+        }
 
-    [Fact]
-    [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
-    public void DynamicInGenericLocalFunction1()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction1()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -15875,10 +15875,10 @@ class Program
         }
     }
 }";
-        VerifyTypeIL(
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
-            "Program",
-            @"
+            VerifyTypeIL(
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                "Program",
+                @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -15949,13 +15949,13 @@ class Program
 		IL_0050: ret
 	} // end of method Program::'<Main>g__M|0_0'
 } // end of class Program");
-    }
+        }
 
-    [Fact]
-    [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
-    public void DynamicInGenericLocalFunction2()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction2()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -15978,10 +15978,10 @@ class Program
         }
     }
 }";
-        VerifyTypeIL(
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
-            "Program",
-            @"
+            VerifyTypeIL(
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                "Program",
+                @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -16079,13 +16079,13 @@ class Program
 		IL_0050: ret
 	} // end of method Program::'<M1>g__M3|1_1'
 } // end of class Program");
-    }
+        }
 
-    [Fact]
-    [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
-    public void DynamicInGenericLocalFunction3()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction3()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -16104,10 +16104,10 @@ class Program
         }
     }
 }";
-        VerifyTypeIL(
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
-            "Program",
-            @"
+            VerifyTypeIL(
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                "Program",
+                @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -16190,13 +16190,13 @@ class Program
 		IL_0050: ret
 	} // end of method Program::'<M1>g__M2|1_0'
 } // end of class Program");
-    }
+        }
 
-    [Fact]
-    [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
-    public void DynamicInGenericLocalFunction4()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction4()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -16215,10 +16215,10 @@ class Program
         }
     }
 }";
-        VerifyTypeIL(
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
-            "Program",
-            @"
+            VerifyTypeIL(
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                "Program",
+                @"
 .class private auto ansi beforefieldinit Program
 	extends [netstandard]System.Object
 {
@@ -16304,13 +16304,13 @@ class Program
 		IL_0050: ret
 	} // end of method Program::'<Main>g__M2|0_1'
 } // end of class Program");
-    }
+        }
 
-    [Fact]
-    [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
-    public void DynamicInGenericLocalFunction5()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(41947, "https://github.com/dotnet/roslyn/issues/41947")]
+        public void DynamicInGenericLocalFunction5()
+        {
+            var source = @"
 using System;
 class Program
 {
@@ -16332,10 +16332,10 @@ class Class<T1>
         }
     }
 }";
-        VerifyTypeIL(
-            CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
-            "Class`1",
-            @"
+            VerifyTypeIL(
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), expectedOutput: "True", references: new[] { CSharpRef }),
+                "Class`1",
+                @"
 .class private auto ansi beforefieldinit Class`1<T1>
 	extends [netstandard]System.Object
 {
@@ -16405,16 +16405,17 @@ class Class<T1>
 		IL_0050: ret
 	} // end of method Class`1::'<M>g__M1|0_0'
 } // end of class Class`1");
-    }
-
-    private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
-    {
-        // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Framework
-        // Since we do not expect there to be any meaningful differences between output for .Net Core and .Net Framework, we will skip these tests on .Net Framework
-        if (ExecutionConditionUtil.IsCoreClr)
-        {
-            compilation.VerifyTypeIL(typeName, expected);
         }
+
+        private static void VerifyTypeIL(CompilationVerifier compilation, string typeName, string expected)
+        {
+            // .Net Core has different assemblies for the same standard library types as .Net Framework, meaning that that the emitted output will be different to the expected if we run them .Net Framework
+            // Since we do not expect there to be any meaningful differences between output for .Net Core and .Net Framework, we will skip these tests on .Net Framework
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                compilation.VerifyTypeIL(typeName, expected);
+            }
+        }
+        #endregion
     }
-    #endregion
 }

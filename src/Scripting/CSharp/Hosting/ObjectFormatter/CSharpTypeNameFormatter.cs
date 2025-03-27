@@ -8,55 +8,56 @@ using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-
-internal class CSharpTypeNameFormatter : CommonTypeNameFormatter
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
-
-    public CSharpTypeNameFormatter(CommonPrimitiveFormatter primitiveFormatter)
+    internal class CSharpTypeNameFormatter : CommonTypeNameFormatter
     {
-        PrimitiveFormatter = primitiveFormatter;
-    }
+        protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
 
-    protected override string GenericParameterOpening => "<";
-    protected override string GenericParameterClosing => ">";
-    protected override string ArrayOpening => "[";
-    protected override string ArrayClosing => "]";
-
-    protected override string GetPrimitiveTypeName(SpecialType type)
-    {
-        switch (type)
+        public CSharpTypeNameFormatter(CommonPrimitiveFormatter primitiveFormatter)
         {
-            case SpecialType.System_Boolean: return "bool";
-            case SpecialType.System_Byte: return "byte";
-            case SpecialType.System_Char: return "char";
-            case SpecialType.System_Decimal: return "decimal";
-            case SpecialType.System_Double: return "double";
-            case SpecialType.System_Int16: return "short";
-            case SpecialType.System_Int32: return "int";
-            case SpecialType.System_Int64: return "long";
-            case SpecialType.System_SByte: return "sbyte";
-            case SpecialType.System_Single: return "float";
-            case SpecialType.System_String: return "string";
-            case SpecialType.System_UInt16: return "ushort";
-            case SpecialType.System_UInt32: return "uint";
-            case SpecialType.System_UInt64: return "ulong";
-            case SpecialType.System_Object: return "object";
-
-            default:
-                return null;
-        }
-    }
-
-    public override string FormatTypeName(Type type, CommonTypeNameFormatterOptions options)
-    {
-        string stateMachineName;
-        if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
-        {
-            return stateMachineName;
+            PrimitiveFormatter = primitiveFormatter;
         }
 
-        return base.FormatTypeName(type, options);
+        protected override string GenericParameterOpening => "<";
+        protected override string GenericParameterClosing => ">";
+        protected override string ArrayOpening => "[";
+        protected override string ArrayClosing => "]";
+
+        protected override string GetPrimitiveTypeName(SpecialType type)
+        {
+            switch (type)
+            {
+                case SpecialType.System_Boolean: return "bool";
+                case SpecialType.System_Byte: return "byte";
+                case SpecialType.System_Char: return "char";
+                case SpecialType.System_Decimal: return "decimal";
+                case SpecialType.System_Double: return "double";
+                case SpecialType.System_Int16: return "short";
+                case SpecialType.System_Int32: return "int";
+                case SpecialType.System_Int64: return "long";
+                case SpecialType.System_SByte: return "sbyte";
+                case SpecialType.System_Single: return "float";
+                case SpecialType.System_String: return "string";
+                case SpecialType.System_UInt16: return "ushort";
+                case SpecialType.System_UInt32: return "uint";
+                case SpecialType.System_UInt64: return "ulong";
+                case SpecialType.System_Object: return "object";
+
+                default:
+                    return null;
+            }
+        }
+
+        public override string FormatTypeName(Type type, CommonTypeNameFormatterOptions options)
+        {
+            string stateMachineName;
+            if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
+            {
+                return stateMachineName;
+            }
+
+            return base.FormatTypeName(type, options);
+        }
     }
 }

@@ -9,136 +9,137 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-public abstract partial class Diagnostic
+namespace Microsoft.CodeAnalysis
 {
-    private sealed class DiagnosticWithProgrammaticSuppression : Diagnostic
+    public abstract partial class Diagnostic
     {
-        private readonly Diagnostic _originalUnsuppressedDiagnostic;
-        private readonly ProgrammaticSuppressionInfo _programmaticSuppressionInfo;
-
-        public DiagnosticWithProgrammaticSuppression(
-            Diagnostic originalUnsuppressedDiagnostic,
-            ProgrammaticSuppressionInfo programmaticSuppressionInfo)
+        private sealed class DiagnosticWithProgrammaticSuppression : Diagnostic
         {
-            RoslynDebug.Assert(!originalUnsuppressedDiagnostic.IsSuppressed);
-            RoslynDebug.Assert(originalUnsuppressedDiagnostic.ProgrammaticSuppressionInfo == null);
-            RoslynDebug.Assert(programmaticSuppressionInfo != null);
+            private readonly Diagnostic _originalUnsuppressedDiagnostic;
+            private readonly ProgrammaticSuppressionInfo _programmaticSuppressionInfo;
 
-            _originalUnsuppressedDiagnostic = originalUnsuppressedDiagnostic;
-            _programmaticSuppressionInfo = programmaticSuppressionInfo;
-        }
-
-        public override DiagnosticDescriptor Descriptor
-        {
-            get { return _originalUnsuppressedDiagnostic.Descriptor; }
-        }
-
-        public override string Id
-        {
-            get { return Descriptor.Id; }
-        }
-
-        public override string GetMessage(IFormatProvider? formatProvider = null)
-            => _originalUnsuppressedDiagnostic.GetMessage(formatProvider);
-
-        internal override IReadOnlyList<object?> Arguments
-        {
-            get { return _originalUnsuppressedDiagnostic.Arguments; }
-        }
-
-        public override DiagnosticSeverity Severity
-        {
-            get { return _originalUnsuppressedDiagnostic.Severity; }
-        }
-
-        public override bool IsSuppressed
-        {
-            get { return true; }
-        }
-
-        internal override ProgrammaticSuppressionInfo ProgrammaticSuppressionInfo
-        {
-            get { return _programmaticSuppressionInfo; }
-        }
-
-        public override int WarningLevel
-        {
-            get { return _originalUnsuppressedDiagnostic.WarningLevel; }
-        }
-
-        public override Location Location
-        {
-            get { return _originalUnsuppressedDiagnostic.Location; }
-        }
-
-        public override IReadOnlyList<Location> AdditionalLocations
-        {
-            get { return _originalUnsuppressedDiagnostic.AdditionalLocations; }
-        }
-
-        public override ImmutableDictionary<string, string?> Properties
-        {
-            get { return _originalUnsuppressedDiagnostic.Properties; }
-        }
-
-        public override bool Equals(Diagnostic? obj)
-        {
-            if (ReferenceEquals(this, obj))
+            public DiagnosticWithProgrammaticSuppression(
+                Diagnostic originalUnsuppressedDiagnostic,
+                ProgrammaticSuppressionInfo programmaticSuppressionInfo)
             {
-                return true;
+                RoslynDebug.Assert(!originalUnsuppressedDiagnostic.IsSuppressed);
+                RoslynDebug.Assert(originalUnsuppressedDiagnostic.ProgrammaticSuppressionInfo == null);
+                RoslynDebug.Assert(programmaticSuppressionInfo != null);
+
+                _originalUnsuppressedDiagnostic = originalUnsuppressedDiagnostic;
+                _programmaticSuppressionInfo = programmaticSuppressionInfo;
             }
 
-            var other = obj as DiagnosticWithProgrammaticSuppression;
-            if (other == null)
+            public override DiagnosticDescriptor Descriptor
             {
-                return false;
+                get { return _originalUnsuppressedDiagnostic.Descriptor; }
             }
 
-            return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&
-                Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(_originalUnsuppressedDiagnostic.GetHashCode(), _programmaticSuppressionInfo.GetHashCode());
-        }
-
-        internal override Diagnostic WithLocation(Location location)
-        {
-            if (location == null)
+            public override string Id
             {
-                throw new ArgumentNullException(nameof(location));
+                get { return Descriptor.Id; }
             }
 
-            if (this.Location != location)
+            public override string GetMessage(IFormatProvider? formatProvider = null)
+                => _originalUnsuppressedDiagnostic.GetMessage(formatProvider);
+
+            internal override IReadOnlyList<object?> Arguments
             {
-                return new DiagnosticWithProgrammaticSuppression(_originalUnsuppressedDiagnostic.WithLocation(location), _programmaticSuppressionInfo);
+                get { return _originalUnsuppressedDiagnostic.Arguments; }
             }
 
-            return this;
-        }
-
-        internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
-        {
-            if (this.Severity != severity)
+            public override DiagnosticSeverity Severity
             {
-                return new DiagnosticWithProgrammaticSuppression(_originalUnsuppressedDiagnostic.WithSeverity(severity), _programmaticSuppressionInfo);
+                get { return _originalUnsuppressedDiagnostic.Severity; }
             }
 
-            return this;
-        }
-
-        internal override Diagnostic WithIsSuppressed(bool isSuppressed)
-        {
-            // We do not support toggling suppressed diagnostic to unsuppressed.
-            if (!isSuppressed)
+            public override bool IsSuppressed
             {
-                throw new ArgumentException(nameof(isSuppressed));
+                get { return true; }
             }
 
-            return this;
+            internal override ProgrammaticSuppressionInfo ProgrammaticSuppressionInfo
+            {
+                get { return _programmaticSuppressionInfo; }
+            }
+
+            public override int WarningLevel
+            {
+                get { return _originalUnsuppressedDiagnostic.WarningLevel; }
+            }
+
+            public override Location Location
+            {
+                get { return _originalUnsuppressedDiagnostic.Location; }
+            }
+
+            public override IReadOnlyList<Location> AdditionalLocations
+            {
+                get { return _originalUnsuppressedDiagnostic.AdditionalLocations; }
+            }
+
+            public override ImmutableDictionary<string, string?> Properties
+            {
+                get { return _originalUnsuppressedDiagnostic.Properties; }
+            }
+
+            public override bool Equals(Diagnostic? obj)
+            {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
+                var other = obj as DiagnosticWithProgrammaticSuppression;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&
+                    Equals(_programmaticSuppressionInfo, other._programmaticSuppressionInfo);
+            }
+
+            public override int GetHashCode()
+            {
+                return Hash.Combine(_originalUnsuppressedDiagnostic.GetHashCode(), _programmaticSuppressionInfo.GetHashCode());
+            }
+
+            internal override Diagnostic WithLocation(Location location)
+            {
+                if (location == null)
+                {
+                    throw new ArgumentNullException(nameof(location));
+                }
+
+                if (this.Location != location)
+                {
+                    return new DiagnosticWithProgrammaticSuppression(_originalUnsuppressedDiagnostic.WithLocation(location), _programmaticSuppressionInfo);
+                }
+
+                return this;
+            }
+
+            internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                if (this.Severity != severity)
+                {
+                    return new DiagnosticWithProgrammaticSuppression(_originalUnsuppressedDiagnostic.WithSeverity(severity), _programmaticSuppressionInfo);
+                }
+
+                return this;
+            }
+
+            internal override Diagnostic WithIsSuppressed(bool isSuppressed)
+            {
+                // We do not support toggling suppressed diagnostic to unsuppressed.
+                if (!isSuppressed)
+                {
+                    throw new ArgumentException(nameof(isSuppressed));
+                }
+
+                return this;
+            }
         }
     }
 }

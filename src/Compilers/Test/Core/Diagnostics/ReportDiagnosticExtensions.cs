@@ -6,20 +6,21 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class ReportDiagnosticExtensions
+namespace Microsoft.CodeAnalysis
 {
-    public static string ToAnalyzerConfigString(this ReportDiagnostic reportDiagnostic)
+    internal static class ReportDiagnosticExtensions
     {
-        return reportDiagnostic switch
+        public static string ToAnalyzerConfigString(this ReportDiagnostic reportDiagnostic)
         {
-            ReportDiagnostic.Error => "error",
-            ReportDiagnostic.Warn => "warning",
-            ReportDiagnostic.Info => "suggestion",
-            ReportDiagnostic.Hidden => "silent",
-            ReportDiagnostic.Suppress => "none",
-            _ => throw ExceptionUtilities.Unreachable(),
-        };
+            return reportDiagnostic switch
+            {
+                ReportDiagnostic.Error => "error",
+                ReportDiagnostic.Warn => "warning",
+                ReportDiagnostic.Info => "suggestion",
+                ReportDiagnostic.Hidden => "silent",
+                ReportDiagnostic.Suppress => "none",
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+        }
     }
 }

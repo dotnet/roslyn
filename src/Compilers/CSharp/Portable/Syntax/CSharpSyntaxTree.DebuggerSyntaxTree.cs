@@ -4,32 +4,33 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-public partial class CSharpSyntaxTree
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    /// <summary>
-    /// Use by Expression Evaluator.
-    /// </summary>
-    private sealed class DebuggerSyntaxTree : ParsedSyntaxTree
+    public partial class CSharpSyntaxTree
     {
-        public DebuggerSyntaxTree(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
-            : base(
-                text,
-                text.Encoding,
-                text.ChecksumAlgorithm,
-                path: "",
-                options: options,
-                root: root,
-                directives: Syntax.InternalSyntax.DirectiveStack.Empty,
-                diagnosticOptions: null,
-                cloneRoot: true)
+        /// <summary>
+        /// Use by Expression Evaluator.
+        /// </summary>
+        private sealed class DebuggerSyntaxTree : ParsedSyntaxTree
         {
-        }
+            public DebuggerSyntaxTree(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
+                : base(
+                    text,
+                    text.Encoding,
+                    text.ChecksumAlgorithm,
+                    path: "",
+                    options: options,
+                    root: root,
+                    directives: Syntax.InternalSyntax.DirectiveStack.Empty,
+                    diagnosticOptions: null,
+                    cloneRoot: true)
+            {
+            }
 
-        internal override bool SupportsLocations
-        {
-            get { return true; }
+            internal override bool SupportsLocations
+            {
+                get { return true; }
+            }
         }
     }
 }

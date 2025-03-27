@@ -12,81 +12,82 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-internal sealed class ModuleReference : Cci.IModuleReference, Cci.IFileReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    private readonly PEModuleBuilder _moduleBeingBuilt;
-    private readonly ModuleSymbol _underlyingModule;
-
-    internal ModuleReference(PEModuleBuilder moduleBeingBuilt, ModuleSymbol underlyingModule)
+    internal sealed class ModuleReference : Cci.IModuleReference, Cci.IFileReference
     {
-        Debug.Assert(moduleBeingBuilt != null);
-        Debug.Assert((object)underlyingModule != null);
+        private readonly PEModuleBuilder _moduleBeingBuilt;
+        private readonly ModuleSymbol _underlyingModule;
 
-        _moduleBeingBuilt = moduleBeingBuilt;
-        _underlyingModule = underlyingModule;
-    }
-
-    void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit((Cci.IModuleReference)this);
-    }
-
-    string Cci.INamedEntity.Name
-    {
-        get
+        internal ModuleReference(PEModuleBuilder moduleBeingBuilt, ModuleSymbol underlyingModule)
         {
-            return _underlyingModule.MetadataName;
-        }
-    }
+            Debug.Assert(moduleBeingBuilt != null);
+            Debug.Assert((object)underlyingModule != null);
 
-    bool Cci.IFileReference.HasMetadata
-    {
-        get
+            _moduleBeingBuilt = moduleBeingBuilt;
+            _underlyingModule = underlyingModule;
+        }
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            return true;
+            visitor.Visit((Cci.IModuleReference)this);
         }
-    }
 
-    string Cci.IFileReference.FileName
-    {
-        get
+        string Cci.INamedEntity.Name
         {
-            return _underlyingModule.Name;
+            get
+            {
+                return _underlyingModule.MetadataName;
+            }
         }
-    }
 
-    ImmutableArray<byte> Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)
-    {
-        return _underlyingModule.GetHash(algorithmId);
-    }
+        bool Cci.IFileReference.HasMetadata
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-    Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
-    {
-        if (_moduleBeingBuilt.OutputKind.IsNetModule() &&
-            ReferenceEquals(_moduleBeingBuilt.SourceModule.ContainingAssembly, _underlyingModule.ContainingAssembly))
+        string Cci.IFileReference.FileName
+        {
+            get
+            {
+                return _underlyingModule.Name;
+            }
+        }
+
+        ImmutableArray<byte> Cci.IFileReference.GetHashValue(AssemblyHashAlgorithm algorithmId)
+        {
+            return _underlyingModule.GetHash(algorithmId);
+        }
+
+        Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
+        {
+            if (_moduleBeingBuilt.OutputKind.IsNetModule() &&
+                ReferenceEquals(_moduleBeingBuilt.SourceModule.ContainingAssembly, _underlyingModule.ContainingAssembly))
+            {
+                return null;
+            }
+
+            return _moduleBeingBuilt.Translate(_underlyingModule.ContainingAssembly, context.Diagnostics);
+        }
+
+        public override string ToString()
+        {
+            return _underlyingModule.ToString();
+        }
+
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+        }
+
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
             return null;
         }
 
-        return _moduleBeingBuilt.Translate(_underlyingModule.ContainingAssembly, context.Diagnostics);
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
     }
-
-    public override string ToString()
-    {
-        return _underlyingModule.ToString();
-    }
-
-    IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-    {
-        return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-    }
-
-    Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-    {
-        return null;
-    }
-
-    CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 }

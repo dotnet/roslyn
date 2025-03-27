@@ -8,68 +8,69 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// A binder that places method type parameters in scope.
-/// </summary>
-internal sealed class WithMethodTypeParametersBinder : WithTypeParametersBinder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly MethodSymbol _methodSymbol;
-    private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
-
-    internal WithMethodTypeParametersBinder(MethodSymbol methodSymbol, Binder next)
-        : base(next)
+    /// <summary>
+    /// A binder that places method type parameters in scope.
+    /// </summary>
+    internal sealed class WithMethodTypeParametersBinder : WithTypeParametersBinder
     {
-        _methodSymbol = methodSymbol;
-    }
+        private readonly MethodSymbol _methodSymbol;
+        private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
-    protected override bool InExecutableBinder => false;
-
-    internal override Symbol ContainingMemberOrLambda
-    {
-        get
+        internal WithMethodTypeParametersBinder(MethodSymbol methodSymbol, Binder next)
+            : base(next)
         {
-            return _methodSymbol;
+            _methodSymbol = methodSymbol;
         }
-    }
 
-    protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
-    {
-        get
+        protected override bool InExecutableBinder => false;
+
+        internal override Symbol ContainingMemberOrLambda
         {
-            if (_lazyTypeParameterMap == null)
+            get
             {
-                var result = new MultiDictionary<string, TypeParameterSymbol>();
-                foreach (var typeParameter in _methodSymbol.TypeParameters)
+                return _methodSymbol;
+            }
+        }
+
+        protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
+        {
+            get
+            {
+                if (_lazyTypeParameterMap == null)
                 {
-                    result.Add(typeParameter.Name, typeParameter);
+                    var result = new MultiDictionary<string, TypeParameterSymbol>();
+                    foreach (var typeParameter in _methodSymbol.TypeParameters)
+                    {
+                        result.Add(typeParameter.Name, typeParameter);
+                    }
+
+                    Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
 
-                Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
+                return _lazyTypeParameterMap;
             }
-
-            return _lazyTypeParameterMap;
         }
-    }
 
-    protected override LookupOptions LookupMask
-    {
-        get
+        protected override LookupOptions LookupMask
         {
-            return LookupOptions.NamespaceAliasesOnly | LookupOptions.MustNotBeMethodTypeParameter;
-        }
-    }
-
-    internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
-    {
-        if (CanConsiderTypeParameters(options))
-        {
-            foreach (var parameter in _methodSymbol.TypeParameters)
+            get
             {
-                if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
+                return LookupOptions.NamespaceAliasesOnly | LookupOptions.MustNotBeMethodTypeParameter;
+            }
+        }
+
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        {
+            if (CanConsiderTypeParameters(options))
+            {
+                foreach (var parameter in _methodSymbol.TypeParameters)
                 {
-                    result.AddSymbol(parameter, parameter.Name, 0);
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
+                    {
+                        result.AddSymbol(parameter, parameter.Name, 0);
+                    }
                 }
             }
         }

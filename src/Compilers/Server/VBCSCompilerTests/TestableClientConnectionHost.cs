@@ -9,70 +9,71 @@ using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
-
-internal sealed class TestableClientConnectionHost : IClientConnectionHost
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    private readonly object _guard = new object();
-    private TaskCompletionSource<IClientConnection>? _finalTaskCompletionSource;
-    private readonly Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
-
-    public bool IsListening { get; set; }
-
-    public TestableClientConnectionHost()
+    internal sealed class TestableClientConnectionHost : IClientConnectionHost
     {
+        private readonly object _guard = new object();
+        private TaskCompletionSource<IClientConnection>? _finalTaskCompletionSource;
+        private readonly Queue<Func<Task<IClientConnection>>> _waitingTasks = new Queue<Func<Task<IClientConnection>>>();
 
-    }
+        public bool IsListening { get; set; }
 
-    public void BeginListening()
-    {
-        IsListening = true;
-        _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
-    }
-
-    public void EndListening()
-    {
-        IsListening = false;
-
-        lock (_guard)
+        public TestableClientConnectionHost()
         {
-            _waitingTasks.Clear();
-            _finalTaskCompletionSource?.SetCanceled();
-            _finalTaskCompletionSource = null;
+
         }
-    }
 
-    public Task<IClientConnection> GetNextClientConnectionAsync()
-    {
-        Func<Task<IClientConnection>>? func = null;
-        lock (_guard)
+        public void BeginListening()
         {
-            if (_waitingTasks.Count == 0)
+            IsListening = true;
+            _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
+        }
+
+        public void EndListening()
+        {
+            IsListening = false;
+
+            lock (_guard)
             {
-                if (_finalTaskCompletionSource is null)
+                _waitingTasks.Clear();
+                _finalTaskCompletionSource?.SetCanceled();
+                _finalTaskCompletionSource = null;
+            }
+        }
+
+        public Task<IClientConnection> GetNextClientConnectionAsync()
+        {
+            Func<Task<IClientConnection>>? func = null;
+            lock (_guard)
+            {
+                if (_waitingTasks.Count == 0)
                 {
-                    _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
+                    if (_finalTaskCompletionSource is null)
+                    {
+                        _finalTaskCompletionSource = new TaskCompletionSource<IClientConnection>();
+                    }
+
+                    return _finalTaskCompletionSource.Task;
                 }
 
-                return _finalTaskCompletionSource.Task;
+                func = _waitingTasks.Dequeue();
             }
 
-            func = _waitingTasks.Dequeue();
+            return func();
         }
 
-        return func();
-    }
-
-    public void Add(Func<Task<IClientConnection>> func)
-    {
-        lock (_guard)
+        public void Add(Func<Task<IClientConnection>> func)
         {
-            if (_finalTaskCompletionSource is object)
+            lock (_guard)
             {
-                throw new InvalidOperationException("All Adds must be called before they are exhausted");
-            }
+                if (_finalTaskCompletionSource is object)
+                {
+                    throw new InvalidOperationException("All Adds must be called before they are exhausted");
+                }
 
-            _waitingTasks.Enqueue(func);
+                _waitingTasks.Enqueue(func);
+            }
         }
     }
 }

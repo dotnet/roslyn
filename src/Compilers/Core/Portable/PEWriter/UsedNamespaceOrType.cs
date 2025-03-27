@@ -6,156 +6,157 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci;
-
-/// <summary>
-/// Represents a single using directive (Imports clause).
-/// </summary>
-internal readonly struct UsedNamespaceOrType : IEquatable<UsedNamespaceOrType>
+namespace Microsoft.Cci
 {
-    public readonly string? AliasOpt;
-    public readonly IAssemblyReference? TargetAssemblyOpt;
-    public readonly INamespace? TargetNamespaceOpt;
-    public readonly ITypeReference? TargetTypeOpt;
-    public readonly string? TargetXmlNamespaceOpt;
-
-    private UsedNamespaceOrType(
-        string? alias = null,
-        IAssemblyReference? targetAssembly = null,
-        INamespace? targetNamespace = null,
-        ITypeReference? targetType = null,
-        string? targetXmlNamespace = null)
+    /// <summary>
+    /// Represents a single using directive (Imports clause).
+    /// </summary>
+    internal readonly struct UsedNamespaceOrType : IEquatable<UsedNamespaceOrType>
     {
-        AliasOpt = alias;
-        TargetAssemblyOpt = targetAssembly;
-        TargetNamespaceOpt = targetNamespace;
-        TargetTypeOpt = targetType;
-        TargetXmlNamespaceOpt = targetXmlNamespace;
-    }
+        public readonly string? AliasOpt;
+        public readonly IAssemblyReference? TargetAssemblyOpt;
+        public readonly INamespace? TargetNamespaceOpt;
+        public readonly ITypeReference? TargetTypeOpt;
+        public readonly string? TargetXmlNamespaceOpt;
 
-    internal static UsedNamespaceOrType CreateType(ITypeReference type, string? aliasOpt = null)
-    {
-        RoslynDebug.Assert(type != null);
-        return new UsedNamespaceOrType(alias: aliasOpt, targetType: type);
-    }
-
-    internal static UsedNamespaceOrType CreateNamespace(INamespace @namespace, IAssemblyReference? assemblyOpt = null, string? aliasOpt = null)
-    {
-        RoslynDebug.Assert(@namespace != null);
-        return new UsedNamespaceOrType(alias: aliasOpt, targetAssembly: assemblyOpt, targetNamespace: @namespace);
-    }
-
-    internal static UsedNamespaceOrType CreateExternAlias(string alias)
-    {
-        RoslynDebug.Assert(alias != null);
-        return new UsedNamespaceOrType(alias: alias);
-    }
-
-    internal static UsedNamespaceOrType CreateXmlNamespace(string prefix, string xmlNamespace)
-    {
-        RoslynDebug.Assert(xmlNamespace != null);
-        RoslynDebug.Assert(prefix != null);
-        return new UsedNamespaceOrType(alias: prefix, targetXmlNamespace: xmlNamespace);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is UsedNamespaceOrType other && Equals(other);
-    }
-
-    public bool Equals(UsedNamespaceOrType other)
-    {
-        return AliasOpt == other.AliasOpt
-            && object.Equals(TargetAssemblyOpt, other.TargetAssemblyOpt)
-            && Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
-            && Equals(TargetTypeOpt, other.TargetTypeOpt)
-            && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
-    }
-
-    public override int GetHashCode()
-    {
-        return Hash.Combine(AliasOpt,
-               Hash.Combine((object?)TargetAssemblyOpt,
-               Hash.Combine(GetHashCode(TargetNamespaceOpt),
-               Hash.Combine(GetHashCode(TargetTypeOpt),
-               Hash.Combine(TargetXmlNamespaceOpt, 0)))));
-    }
-
-    private static bool Equals(ITypeReference? x, ITypeReference? y)
-    {
-        if (x == y)
+        private UsedNamespaceOrType(
+            string? alias = null,
+            IAssemblyReference? targetAssembly = null,
+            INamespace? targetNamespace = null,
+            ITypeReference? targetType = null,
+            string? targetXmlNamespace = null)
         {
-            return true;
+            AliasOpt = alias;
+            TargetAssemblyOpt = targetAssembly;
+            TargetNamespaceOpt = targetNamespace;
+            TargetTypeOpt = targetType;
+            TargetXmlNamespaceOpt = targetXmlNamespace;
         }
 
-        if (x is null || y is null)
+        internal static UsedNamespaceOrType CreateType(ITypeReference type, string? aliasOpt = null)
         {
-            return false;
+            RoslynDebug.Assert(type != null);
+            return new UsedNamespaceOrType(alias: aliasOpt, targetType: type);
         }
 
-        var xSymbol = x.GetInternalSymbol();
-        var ySymbol = y.GetInternalSymbol();
-
-        if (xSymbol is object && ySymbol is object)
+        internal static UsedNamespaceOrType CreateNamespace(INamespace @namespace, IAssemblyReference? assemblyOpt = null, string? aliasOpt = null)
         {
-            return xSymbol.Equals(ySymbol);
-        }
-        else if (xSymbol is object || ySymbol is object)
-        {
-            return false;
+            RoslynDebug.Assert(@namespace != null);
+            return new UsedNamespaceOrType(alias: aliasOpt, targetAssembly: assemblyOpt, targetNamespace: @namespace);
         }
 
-        return x.Equals(y);
-    }
-
-    private static int GetHashCode(ITypeReference? obj)
-    {
-        var objSymbol = obj?.GetInternalSymbol();
-
-        if (objSymbol is object)
+        internal static UsedNamespaceOrType CreateExternAlias(string alias)
         {
-            return objSymbol.GetHashCode();
+            RoslynDebug.Assert(alias != null);
+            return new UsedNamespaceOrType(alias: alias);
         }
 
-        return obj?.GetHashCode() ?? 0;
-    }
-
-    private static bool Equals(INamespace? x, INamespace? y)
-    {
-        if (x == y)
+        internal static UsedNamespaceOrType CreateXmlNamespace(string prefix, string xmlNamespace)
         {
-            return true;
+            RoslynDebug.Assert(xmlNamespace != null);
+            RoslynDebug.Assert(prefix != null);
+            return new UsedNamespaceOrType(alias: prefix, targetXmlNamespace: xmlNamespace);
         }
 
-        if (x is null || y is null)
+        public override bool Equals(object? obj)
         {
-            return false;
+            return obj is UsedNamespaceOrType other && Equals(other);
         }
 
-        var xSymbol = x.GetInternalSymbol();
-        var ySymbol = y.GetInternalSymbol();
-
-        if (xSymbol is object && ySymbol is object)
+        public bool Equals(UsedNamespaceOrType other)
         {
-            return xSymbol.Equals(ySymbol);
-        }
-        else if (xSymbol is object || ySymbol is object)
-        {
-            return false;
+            return AliasOpt == other.AliasOpt
+                && object.Equals(TargetAssemblyOpt, other.TargetAssemblyOpt)
+                && Equals(TargetNamespaceOpt, other.TargetNamespaceOpt)
+                && Equals(TargetTypeOpt, other.TargetTypeOpt)
+                && TargetXmlNamespaceOpt == other.TargetXmlNamespaceOpt;
         }
 
-        return x.Equals(y);
-    }
-
-    private static int GetHashCode(INamespace? obj)
-    {
-        var objSymbol = obj?.GetInternalSymbol();
-
-        if (objSymbol is object)
+        public override int GetHashCode()
         {
-            return objSymbol.GetHashCode();
+            return Hash.Combine(AliasOpt,
+                   Hash.Combine((object?)TargetAssemblyOpt,
+                   Hash.Combine(GetHashCode(TargetNamespaceOpt),
+                   Hash.Combine(GetHashCode(TargetTypeOpt),
+                   Hash.Combine(TargetXmlNamespaceOpt, 0)))));
         }
 
-        return obj?.GetHashCode() ?? 0;
+        private static bool Equals(ITypeReference? x, ITypeReference? y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
+
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+            else if (xSymbol is object || ySymbol is object)
+            {
+                return false;
+            }
+
+            return x.Equals(y);
+        }
+
+        private static int GetHashCode(ITypeReference? obj)
+        {
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return obj?.GetHashCode() ?? 0;
+        }
+
+        private static bool Equals(INamespace? x, INamespace? y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
+
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+            else if (xSymbol is object || ySymbol is object)
+            {
+                return false;
+            }
+
+            return x.Equals(y);
+        }
+
+        private static int GetHashCode(INamespace? obj)
+        {
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return obj?.GetHashCode() ?? 0;
+        }
     }
 }

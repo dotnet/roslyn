@@ -11,38 +11,39 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-
-internal sealed class CSharpInteractiveCompiler : CSharpCompiler
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
-
-    internal CSharpInteractiveCompiler(
-        string? responseFile,
-        BuildPaths buildPaths,
-        string[] args,
-        IAnalyzerAssemblyLoader analyzerLoader,
-        Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
-        // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-        : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
+    internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        _createFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
-    }
+        private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
 
-    internal override Type Type => typeof(CSharpInteractiveCompiler);
+        internal CSharpInteractiveCompiler(
+            string? responseFile,
+            BuildPaths buildPaths,
+            string[] args,
+            IAnalyzerAssemblyLoader analyzerLoader,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
+            // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
+            : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
+        {
+            _createFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
+        }
 
-    internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt) =>
-       CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt, _createFromFileFunc);
+        internal override Type Type => typeof(CSharpInteractiveCompiler);
 
-    public override void PrintLogo(TextWriter consoleOutput)
-    {
-        consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetCompilerVersion());
-        consoleOutput.WriteLine(CSharpScriptingResources.LogoLine2);
-        consoleOutput.WriteLine();
-    }
+        internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt) =>
+           CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt, _createFromFileFunc);
 
-    public override void PrintHelp(TextWriter consoleOutput)
-    {
-        consoleOutput.Write(CSharpScriptingResources.InteractiveHelp);
+        public override void PrintLogo(TextWriter consoleOutput)
+        {
+            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine1, GetCompilerVersion());
+            consoleOutput.WriteLine(CSharpScriptingResources.LogoLine2);
+            consoleOutput.WriteLine();
+        }
+
+        public override void PrintHelp(TextWriter consoleOutput)
+        {
+            consoleOutput.Write(CSharpScriptingResources.InteractiveHelp);
+        }
     }
 }

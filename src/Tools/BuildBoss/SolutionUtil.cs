@@ -11,68 +11,69 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss;
-
-internal static class SolutionUtil
+namespace BuildBoss
 {
-    internal static List<ProjectEntry> ParseProjects(string solutionPath)
+    internal static class SolutionUtil
     {
-        using (var reader = new StreamReader(solutionPath))
+        internal static List<ProjectEntry> ParseProjects(string solutionPath)
         {
-            var list = new List<ProjectEntry>();
-            while (true)
+            using (var reader = new StreamReader(solutionPath))
             {
-                var line = reader.ReadLine();
-                if (line == null)
+                var list = new List<ProjectEntry>();
+                while (true)
                 {
-                    break;
+                    var line = reader.ReadLine();
+                    if (line == null)
+                    {
+                        break;
+                    }
+
+                    if (!line.StartsWith("Project"))
+                    {
+                        continue;
+
+                    }
+
+                    list.Add(ParseProjectLine(line));
                 }
-
-                if (!line.StartsWith("Project"))
-                {
-                    continue;
-
-                }
-
-                list.Add(ParseProjectLine(line));
+                return list;
             }
-            return list;
         }
-    }
 
-    private static ProjectEntry ParseProjectLine(string line)
-    {
-        var index = 0;
-        var typeGuid = ParseStringLiteral(line, ref index);
-        var name = ParseStringLiteral(line, ref index);
-        var filePath = ParseStringLiteral(line, ref index);
-        var guid = ParseStringLiteral(line, ref index);
-        return new ProjectEntry(
-            relativeFilePath: filePath,
-            name: name,
-            projectGuid: Guid.Parse(guid),
-            typeGuid: Guid.Parse(typeGuid));
-    }
-
-    private static string ParseStringLiteral(string line, ref int index)
-    {
-        var start = line.IndexOf('"', index);
-        if (start < 0)
+        private static ProjectEntry ParseProjectLine(string line)
         {
-            goto error;
+            var index = 0;
+            var typeGuid = ParseStringLiteral(line, ref index);
+            var name = ParseStringLiteral(line, ref index);
+            var filePath = ParseStringLiteral(line, ref index);
+            var guid = ParseStringLiteral(line, ref index);
+            return new ProjectEntry(
+                relativeFilePath: filePath,
+                name: name,
+                projectGuid: Guid.Parse(guid),
+                typeGuid: Guid.Parse(typeGuid));
         }
 
-        start++;
-        var end = line.IndexOf('"', start);
-        if (end < 0)
+        private static string ParseStringLiteral(string line, ref int index)
         {
-            goto error;
-        }
+            var start = line.IndexOf('"', index);
+            if (start < 0)
+            {
+                goto error;
+            }
 
-        index = end + 1;
-        return line.Substring(start, end - start);
+            start++;
+            var end = line.IndexOf('"', start);
+            if (end < 0)
+            {
+                goto error;
+            }
+
+            index = end + 1;
+            return line.Substring(start, end - start);
 
 error:
-        throw new Exception($"Invalid project line {line}");
+            throw new Exception($"Invalid project line {line}");
+        }
     }
 }

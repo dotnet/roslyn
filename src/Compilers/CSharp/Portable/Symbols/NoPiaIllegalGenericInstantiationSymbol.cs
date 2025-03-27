@@ -10,73 +10,74 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A NoPiaIllegalGenericInstantiationSymbol is a special kind of ErrorSymbol that represents a
-/// generic type instantiation that cannot cross assembly boundaries according to NoPia rules.
-/// </summary>
-internal class NoPiaIllegalGenericInstantiationSymbol : ErrorTypeSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly ModuleSymbol _exposingModule;
-    private readonly NamedTypeSymbol _underlyingSymbol;
-
-    public NoPiaIllegalGenericInstantiationSymbol(ModuleSymbol exposingModule, NamedTypeSymbol underlyingSymbol)
+    /// <summary>
+    /// A NoPiaIllegalGenericInstantiationSymbol is a special kind of ErrorSymbol that represents a
+    /// generic type instantiation that cannot cross assembly boundaries according to NoPia rules.
+    /// </summary>
+    internal class NoPiaIllegalGenericInstantiationSymbol : ErrorTypeSymbol
     {
-        _exposingModule = exposingModule;
-        _underlyingSymbol = underlyingSymbol;
-    }
+        private readonly ModuleSymbol _exposingModule;
+        private readonly NamedTypeSymbol _underlyingSymbol;
 
-    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-    {
-        return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
-    }
-
-    internal override bool MangleName
-    {
-        get
+        public NoPiaIllegalGenericInstantiationSymbol(ModuleSymbol exposingModule, NamedTypeSymbol underlyingSymbol)
         {
-            Debug.Assert(Arity == 0);
-            return false;
+            _exposingModule = exposingModule;
+            _underlyingSymbol = underlyingSymbol;
         }
-    }
 
-    internal sealed override bool IsFileLocal => false;
-    internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
-
-    public NamedTypeSymbol UnderlyingSymbol
-    {
-        get
+        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
         {
-            return _underlyingSymbol;
+            return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
         }
-    }
 
-    internal override DiagnosticInfo ErrorInfo
-    {
-        get
+        internal override bool MangleName
         {
-            if (_underlyingSymbol.IsErrorType())
+            get
             {
-                DiagnosticInfo? underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
-
-                if ((object?)underlyingInfo != null)
-                {
-                    return underlyingInfo;
-                }
+                Debug.Assert(Arity == 0);
+                return false;
             }
-
-            return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, _underlyingSymbol, _exposingModule.ContainingAssembly);
         }
-    }
 
-    public override int GetHashCode()
-    {
-        return RuntimeHelpers.GetHashCode(this);
-    }
+        internal sealed override bool IsFileLocal => false;
+        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
-    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
-    {
-        return ReferenceEquals(this, t2);
+        public NamedTypeSymbol UnderlyingSymbol
+        {
+            get
+            {
+                return _underlyingSymbol;
+            }
+        }
+
+        internal override DiagnosticInfo ErrorInfo
+        {
+            get
+            {
+                if (_underlyingSymbol.IsErrorType())
+                {
+                    DiagnosticInfo? underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
+
+                    if ((object?)underlyingInfo != null)
+                    {
+                        return underlyingInfo;
+                    }
+                }
+
+                return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, _underlyingSymbol, _exposingModule.ContainingAssembly);
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return RuntimeHelpers.GetHashCode(this);
+        }
+
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        {
+            return ReferenceEquals(this, t2);
+        }
     }
 }

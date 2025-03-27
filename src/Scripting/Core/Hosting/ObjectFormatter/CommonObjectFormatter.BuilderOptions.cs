@@ -6,42 +6,43 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-/// <summary>
-/// Object pretty printer.
-/// </summary>
-internal abstract partial class CommonObjectFormatter
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    /// <remarks>
-    /// Internal for testing.
-    /// </remarks>
-    internal readonly struct BuilderOptions
+    /// <summary>
+    /// Object pretty printer.
+    /// </summary>
+    internal abstract partial class CommonObjectFormatter
     {
-        public readonly string Indentation;
-        public readonly string NewLine;
-        public readonly string Ellipsis;
-
-        public readonly int MaximumLineLength;
-        public readonly int MaximumOutputLength;
-
-        public BuilderOptions(string indentation, string newLine, string ellipsis, int maximumLineLength, int maximumOutputLength)
+        /// <remarks>
+        /// Internal for testing.
+        /// </remarks>
+        internal readonly struct BuilderOptions
         {
-            Indentation = indentation;
-            NewLine = newLine;
-            Ellipsis = ellipsis;
-            MaximumLineLength = maximumLineLength;
-            MaximumOutputLength = maximumOutputLength;
-        }
+            public readonly string Indentation;
+            public readonly string NewLine;
+            public readonly string Ellipsis;
 
-        public BuilderOptions WithMaximumOutputLength(int maximumOutputLength)
-        {
-            return new BuilderOptions(
-                Indentation,
-                NewLine,
-                Ellipsis,
-                MaximumLineLength,
-                maximumOutputLength);
+            public readonly int MaximumLineLength;
+            public readonly int MaximumOutputLength;
+
+            public BuilderOptions(string indentation, string newLine, string ellipsis, int maximumLineLength, int maximumOutputLength)
+            {
+                Indentation = indentation;
+                NewLine = newLine;
+                Ellipsis = ellipsis;
+                MaximumLineLength = maximumLineLength;
+                MaximumOutputLength = maximumOutputLength;
+            }
+
+            public BuilderOptions WithMaximumOutputLength(int maximumOutputLength)
+            {
+                return new BuilderOptions(
+                    Indentation,
+                    NewLine,
+                    Ellipsis,
+                    MaximumLineLength,
+                    maximumOutputLength);
+            }
         }
     }
 }

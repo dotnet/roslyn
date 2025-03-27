@@ -7,71 +7,72 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Threading;
-
-/// <summary>
-/// A custom awaiter that supports <see cref="YieldAwaitableExtensions.ConfigureAwait"/> for
-/// <see cref="Task.Yield"/>.
-/// </summary>
-internal readonly struct ConfiguredYieldAwaitable
+namespace Microsoft.CodeAnalysis.Threading
 {
-    private readonly YieldAwaitable _awaitable;
-    private readonly bool _continueOnCapturedContext;
-
-    public ConfiguredYieldAwaitable(YieldAwaitable awaitable, bool continueOnCapturedContext)
+    /// <summary>
+    /// A custom awaiter that supports <see cref="YieldAwaitableExtensions.ConfigureAwait"/> for
+    /// <see cref="Task.Yield"/>.
+    /// </summary>
+    internal readonly struct ConfiguredYieldAwaitable
     {
-        _awaitable = awaitable;
-        _continueOnCapturedContext = continueOnCapturedContext;
-    }
-
-    public ConfiguredYieldAwaiter GetAwaiter()
-        => new ConfiguredYieldAwaiter(_awaitable.GetAwaiter(), _continueOnCapturedContext);
-
-    public readonly struct ConfiguredYieldAwaiter
-        : INotifyCompletion, ICriticalNotifyCompletion
-    {
-        private static readonly WaitCallback s_runContinuation =
-            static continuation => ((Action)continuation!)();
-
-        private readonly YieldAwaitable.YieldAwaiter _awaiter;
+        private readonly YieldAwaitable _awaitable;
         private readonly bool _continueOnCapturedContext;
 
-        public ConfiguredYieldAwaiter(YieldAwaitable.YieldAwaiter awaiter, bool continueOnCapturedContext)
+        public ConfiguredYieldAwaitable(YieldAwaitable awaitable, bool continueOnCapturedContext)
         {
-            _awaiter = awaiter;
+            _awaitable = awaitable;
             _continueOnCapturedContext = continueOnCapturedContext;
         }
 
-        public bool IsCompleted => _awaiter.IsCompleted;
+        public ConfiguredYieldAwaiter GetAwaiter()
+            => new ConfiguredYieldAwaiter(_awaitable.GetAwaiter(), _continueOnCapturedContext);
 
-        public void GetResult()
-            => _awaiter.GetResult();
-
-        public void OnCompleted(Action continuation)
+        public readonly struct ConfiguredYieldAwaiter
+            : INotifyCompletion, ICriticalNotifyCompletion
         {
-            if (_continueOnCapturedContext)
-            {
-                // Pass through to the YieldAwaiter, which always continues on the captured context
-                _awaiter.OnCompleted(continuation);
-            }
-            else
-            {
-                // Schedule the continuation directly on the thread pool
-                ThreadPool.QueueUserWorkItem(s_runContinuation, continuation);
-            }
-        }
+            private static readonly WaitCallback s_runContinuation =
+                static continuation => ((Action)continuation!)();
 
-        public void UnsafeOnCompleted(Action continuation)
-        {
-            if (_continueOnCapturedContext)
+            private readonly YieldAwaitable.YieldAwaiter _awaiter;
+            private readonly bool _continueOnCapturedContext;
+
+            public ConfiguredYieldAwaiter(YieldAwaitable.YieldAwaiter awaiter, bool continueOnCapturedContext)
             {
-                // Pass through to the YieldAwaiter, which always continues on the captured context
-                _awaiter.UnsafeOnCompleted(continuation);
+                _awaiter = awaiter;
+                _continueOnCapturedContext = continueOnCapturedContext;
             }
-            else
+
+            public bool IsCompleted => _awaiter.IsCompleted;
+
+            public void GetResult()
+                => _awaiter.GetResult();
+
+            public void OnCompleted(Action continuation)
             {
-                // Schedule the continuation directly on the thread pool
-                ThreadPool.UnsafeQueueUserWorkItem(s_runContinuation, continuation);
+                if (_continueOnCapturedContext)
+                {
+                    // Pass through to the YieldAwaiter, which always continues on the captured context
+                    _awaiter.OnCompleted(continuation);
+                }
+                else
+                {
+                    // Schedule the continuation directly on the thread pool
+                    ThreadPool.QueueUserWorkItem(s_runContinuation, continuation);
+                }
+            }
+
+            public void UnsafeOnCompleted(Action continuation)
+            {
+                if (_continueOnCapturedContext)
+                {
+                    // Pass through to the YieldAwaiter, which always continues on the captured context
+                    _awaiter.UnsafeOnCompleted(continuation);
+                }
+                else
+                {
+                    // Schedule the continuation directly on the thread pool
+                    ThreadPool.UnsafeQueueUserWorkItem(s_runContinuation, continuation);
+                }
             }
         }
     }

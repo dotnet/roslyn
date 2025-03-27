@@ -13,64 +13,65 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections;
-
-/// <summary>
-/// Contains tests that ensure the correctness of the List class.
-/// </summary>
-public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
-    where T : notnull
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    #region IList<T> Helper Methods
-    protected override bool Enumerator_Empty_UsesSingletonInstance => true;
-    protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => false;
-    protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
-
-    protected override IList<T> GenericIListFactory()
+    /// <summary>
+    /// Contains tests that ensure the correctness of the List class.
+    /// </summary>
+    public abstract partial class SegmentedList_Generic_Tests<T> : IList_Generic_Tests<T>
+        where T : notnull
     {
-        return GenericListFactory();
-    }
+        #region IList<T> Helper Methods
+        protected override bool Enumerator_Empty_UsesSingletonInstance => true;
+        protected override bool Enumerator_Empty_Current_UndefinedOperation_Throws => false;
+        protected override bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => false;
 
-    protected override IList<T> GenericIListFactory(int count)
-    {
-        return GenericListFactory(count);
-    }
-
-    #endregion
-
-    #region List<T> Helper Methods
-
-    private protected virtual SegmentedList<T> GenericListFactory()
-    {
-        return new SegmentedList<T>();
-    }
-
-    private protected virtual SegmentedList<T> GenericListFactory(int count)
-    {
-        IEnumerable<T> toCreateFrom = CreateEnumerable(EnumerableType.List, null, count, 0, 0);
-        return new SegmentedList<T>(toCreateFrom);
-    }
-
-    private protected void VerifyList(SegmentedList<T> list, SegmentedList<T> expectedItems)
-    {
-        Assert.Equal(expectedItems.Count, list.Count);
-
-        //Only verify the indexer. List should be in a good enough state that we
-        //do not have to verify consistency with any other method.
-        for (int i = 0; i < list.Count; ++i)
+        protected override IList<T> GenericIListFactory()
         {
-            Assert.True(list[i] == null ? expectedItems[i] == null : list[i].Equals(expectedItems[i]));
+            return GenericListFactory();
         }
-    }
 
-    #endregion
+        protected override IList<T> GenericIListFactory(int count)
+        {
+            return GenericListFactory(count);
+        }
 
-    [Theory]
-    [MemberData(nameof(ValidCollectionSizes))]
-    public void CopyTo_ArgumentValidity(int count)
-    {
-        SegmentedList<T> list = GenericListFactory(count);
-        Assert.Throws<ArgumentException>(null, () => list.CopyTo(0, new T[0], 0, count + 1));
-        Assert.Throws<ArgumentException>(null, () => list.CopyTo(count, new T[0], 0, 1));
+        #endregion
+
+        #region List<T> Helper Methods
+
+        private protected virtual SegmentedList<T> GenericListFactory()
+        {
+            return new SegmentedList<T>();
+        }
+
+        private protected virtual SegmentedList<T> GenericListFactory(int count)
+        {
+            IEnumerable<T> toCreateFrom = CreateEnumerable(EnumerableType.List, null, count, 0, 0);
+            return new SegmentedList<T>(toCreateFrom);
+        }
+
+        private protected void VerifyList(SegmentedList<T> list, SegmentedList<T> expectedItems)
+        {
+            Assert.Equal(expectedItems.Count, list.Count);
+
+            //Only verify the indexer. List should be in a good enough state that we
+            //do not have to verify consistency with any other method.
+            for (int i = 0; i < list.Count; ++i)
+            {
+                Assert.True(list[i] == null ? expectedItems[i] == null : list[i].Equals(expectedItems[i]));
+            }
+        }
+
+        #endregion
+
+        [Theory]
+        [MemberData(nameof(ValidCollectionSizes))]
+        public void CopyTo_ArgumentValidity(int count)
+        {
+            SegmentedList<T> list = GenericListFactory(count);
+            Assert.Throws<ArgumentException>(null, () => list.CopyTo(0, new T[0], 0, count + 1));
+            Assert.Throws<ArgumentException>(null, () => list.CopyTo(count, new T[0], 0, 1));
+        }
     }
 }

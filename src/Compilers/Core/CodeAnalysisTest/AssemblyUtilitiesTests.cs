@@ -16,127 +16,128 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
-[Collection(AssemblyLoadTestFixtureCollection.Name)]
-public class AssemblyUtilitiesTests : TestBase
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    private readonly AssemblyLoadTestFixture _testFixture;
-
-    public AssemblyUtilitiesTests(AssemblyLoadTestFixture testFixture)
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
+    public class AssemblyUtilitiesTests : TestBase
     {
-        _testFixture = testFixture;
-    }
+        private readonly AssemblyLoadTestFixture _testFixture;
 
-    [Fact]
-    public void ReadMVid()
-    {
-        var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha));
+        public AssemblyUtilitiesTests(AssemblyLoadTestFixture testFixture)
+        {
+            _testFixture = testFixture;
+        }
 
-        var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha);
+        [Fact]
+        public void ReadMVid()
+        {
+            var assembly = Assembly.Load(File.ReadAllBytes(_testFixture.Alpha));
 
-        Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
-    }
+            var result = AssemblyUtilities.ReadMvid(_testFixture.Alpha);
 
-    [Fact]
-    public void FindSatelliteAssemblies_None()
-    {
-        var directory = Temp.CreateDirectory();
+            Assert.Equal(expected: assembly.ManifestModule.ModuleVersionId, actual: result);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_None()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
 
-        Assert.Empty(results);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void FindSatelliteAssemblies_DoesNotIncludeFileInSameDirectory()
-    {
-        var directory = Temp.CreateDirectory();
+            Assert.Empty(results);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
-        var satelliteFile = directory.CreateFile("FakeAssembly.resources.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_DoesNotIncludeFileInSameDirectory()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateFile("FakeAssembly.resources.dll").Path;
 
-        Assert.Empty(results);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void FindSatelliteAssemblies_OneLevelDown()
-    {
-        var directory = Temp.CreateDirectory();
+            Assert.Empty(results);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
-        var satelliteFile = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_OneLevelDown()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
 
-        AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void FindSatelliteAssemblies_TwoLevelsDown()
-    {
-        var directory = Temp.CreateDirectory();
+            AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
-        var satelliteFile = directory.CreateDirectory("de").CreateDirectory("FakeAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_TwoLevelsDown()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("FakeAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
 
-        AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void FindSatelliteAssemblies_MultipleAssemblies()
-    {
-        var directory = Temp.CreateDirectory();
+            AssertEx.SetEqual(new[] { satelliteFile }, results, StringComparer.OrdinalIgnoreCase);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
-        var satelliteFileDE = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
-        var satelliteFileFR = directory.CreateDirectory("fr").CreateFile("FakeAssembly.resources.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_MultipleAssemblies()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFileDE = directory.CreateDirectory("de").CreateFile("FakeAssembly.resources.dll").Path;
+            var satelliteFileFR = directory.CreateDirectory("fr").CreateFile("FakeAssembly.resources.dll").Path;
 
-        AssertEx.SetEqual(new[] { satelliteFileDE, satelliteFileFR }, results, StringComparer.OrdinalIgnoreCase);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void FindSatelliteAssemblies_WrongIntermediateDirectoryName()
-    {
-        var directory = Temp.CreateDirectory();
+            AssertEx.SetEqual(new[] { satelliteFileDE, satelliteFileFR }, results, StringComparer.OrdinalIgnoreCase);
+        }
 
-        var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
-        var satelliteFile = directory.CreateDirectory("de").CreateDirectory("OtherAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
+        [Fact]
+        public void FindSatelliteAssemblies_WrongIntermediateDirectoryName()
+        {
+            var directory = Temp.CreateDirectory();
 
-        var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
+            var assemblyFile = directory.CreateFile("FakeAssembly.dll").Path;
+            var satelliteFile = directory.CreateDirectory("de").CreateDirectory("OtherAssembly.resources").CreateFile("FakeAssembly.resources.dll").Path;
 
-        Assert.Equal(expected: 0, actual: results.Length);
-    }
+            var results = AssemblyUtilities.FindSatelliteAssemblies(assemblyFile);
 
-    [Fact]
-    public void IdentifyMissingDependencies_OnlyNetstandardMissing()
-    {
-        var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha, _testFixture.Gamma, _testFixture.Delta1 });
+            Assert.Equal(expected: 0, actual: results.Length);
+        }
 
-        Assert.Equal(expected: 1, actual: results.Length);
-        Assert.Equal(expected: "netstandard", actual: results[0].Name);
-    }
+        [Fact]
+        public void IdentifyMissingDependencies_OnlyNetstandardMissing()
+        {
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha, _testFixture.Gamma, _testFixture.Delta1 });
 
-    [Fact]
-    public void IdentifyMissingDependencies_MultipleMissing()
-    {
-        var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha }).Select(identity => identity.Name);
+            Assert.Equal(expected: 1, actual: results.Length);
+            Assert.Equal(expected: "netstandard", actual: results[0].Name);
+        }
 
-        AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
-    }
+        [Fact]
+        public void IdentifyMissingDependencies_MultipleMissing()
+        {
+            var results = AssemblyUtilities.IdentifyMissingDependencies(_testFixture.Alpha, new[] { _testFixture.Alpha }).Select(identity => identity.Name);
 
-    [Fact]
-    public void GetAssemblyIdentity()
-    {
-        var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha);
-        Assert.Equal(expected: "Alpha", actual: result.Name);
+            AssertEx.SetEqual(new[] { "netstandard", "Gamma" }, results);
+        }
+
+        [Fact]
+        public void GetAssemblyIdentity()
+        {
+            var result = AssemblyUtilities.GetAssemblyIdentity(_testFixture.Alpha);
+            Assert.Equal(expected: "Alpha", actual: result.Name);
+        }
     }
 }

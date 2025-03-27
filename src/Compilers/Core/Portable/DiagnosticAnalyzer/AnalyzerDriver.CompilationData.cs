@@ -4,19 +4,20 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal abstract partial class AnalyzerDriver : IDisposable
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal sealed class CompilationData
+    internal abstract partial class AnalyzerDriver : IDisposable
     {
-        public CompilationData(Compilation compilation)
+        internal sealed class CompilationData
         {
-            SemanticModelProvider = (CachingSemanticModelProvider)compilation.SemanticModelProvider!;
-            SuppressMessageAttributeState = new SuppressMessageAttributeState(compilation);
-        }
+            public CompilationData(Compilation compilation)
+            {
+                SemanticModelProvider = (CachingSemanticModelProvider)compilation.SemanticModelProvider!;
+                SuppressMessageAttributeState = new SuppressMessageAttributeState(compilation);
+            }
 
-        public CachingSemanticModelProvider SemanticModelProvider { get; }
-        public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
+            public CachingSemanticModelProvider SemanticModelProvider { get; }
+            public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
+        }
     }
 }

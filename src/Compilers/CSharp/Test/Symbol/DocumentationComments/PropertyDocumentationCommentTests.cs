@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class PropertyDocumentationCommentTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    private readonly CSharpCompilation _compilation;
-    private readonly NamespaceSymbol _acmeNamespace;
-    private readonly NamedTypeSymbol _widgetClass;
-
-    public PropertyDocumentationCommentTests()
+    public class PropertyDocumentationCommentTests : CSharpTestBase
     {
-        _compilation = CreateCompilation(@"namespace Acme
+        private readonly CSharpCompilation _compilation;
+        private readonly NamespaceSymbol _acmeNamespace;
+        private readonly NamedTypeSymbol _widgetClass;
+
+        public PropertyDocumentationCommentTests()
+        {
+            _compilation = CreateCompilation(@"namespace Acme
 {
     class Widget: IProcess
     {
@@ -32,31 +32,32 @@ public class PropertyDocumentationCommentTests : CSharpTestBase
 }
 ");
 
-        _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
-        _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
-    }
+            _acmeNamespace = (NamespaceSymbol)_compilation.GlobalNamespace.GetMembers("Acme").Single();
+            _widgetClass = _acmeNamespace.GetTypeMembers("Widget").Single();
+        }
 
-    [Fact]
-    public void TestProperty()
-    {
-        Assert.Equal("P:Acme.Widget.Width",
-            _acmeNamespace.GetTypeMembers("Widget").Single()
-                .GetMembers("Width").Single().GetDocumentationCommentId());
-    }
+        [Fact]
+        public void TestProperty()
+        {
+            Assert.Equal("P:Acme.Widget.Width",
+                _acmeNamespace.GetTypeMembers("Widget").Single()
+                    .GetMembers("Width").Single().GetDocumentationCommentId());
+        }
 
-    [Fact]
-    public void TestIndexer1()
-    {
-        Assert.Equal("P:Acme.Widget.Item(System.Int32)",
-            _acmeNamespace.GetTypeMembers("Widget").Single()
-                .GetMembers("this[]")[0].GetDocumentationCommentId());
-    }
+        [Fact]
+        public void TestIndexer1()
+        {
+            Assert.Equal("P:Acme.Widget.Item(System.Int32)",
+                _acmeNamespace.GetTypeMembers("Widget").Single()
+                    .GetMembers("this[]")[0].GetDocumentationCommentId());
+        }
 
-    [Fact]
-    public void TestIndexer2()
-    {
-        Assert.Equal("P:Acme.Widget.Item(System.String,System.Int32)",
-            _acmeNamespace.GetTypeMembers("Widget").Single()
-                .GetMembers("this[]")[1].GetDocumentationCommentId());
+        [Fact]
+        public void TestIndexer2()
+        {
+            Assert.Equal("P:Acme.Widget.Item(System.String,System.Int32)",
+                _acmeNamespace.GetTypeMembers("Widget").Single()
+                    .GetMembers("this[]")[1].GetDocumentationCommentId());
+        }
     }
 }

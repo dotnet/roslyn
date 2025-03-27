@@ -5,70 +5,71 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// This portion of the binder converts a <see cref="WithExpressionSyntax"/> into a <see cref="BoundExpression"/>.
-/// </summary>
-internal partial class Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private BoundExpression BindWithExpression(WithExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
+    /// <summary>
+    /// This portion of the binder converts a <see cref="WithExpressionSyntax"/> into a <see cref="BoundExpression"/>.
+    /// </summary>
+    internal partial class Binder
     {
-        MessageID.IDS_FeatureRecords.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
-
-        var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
-        var receiverType = receiver.Type;
-        bool hasErrors = false;
-
-        if (receiverType is null || receiverType.IsVoidType())
+        private BoundExpression BindWithExpression(WithExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
-            diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Expression.Location);
-            receiverType = CreateErrorType();
-        }
+            MessageID.IDS_FeatureRecords.CheckFeatureAvailability(diagnostics, syntax.WithKeyword);
 
-        MethodSymbol? cloneMethod = null;
-        if (receiverType.IsValueType && !receiverType.IsPointerOrFunctionPointer())
-        {
-            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
-        }
-        else if (receiverType.IsAnonymousType && !receiverType.IsDelegateType())
-        {
-            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnAnonymousTypes, diagnostics);
-        }
-        else if (!receiverType.IsErrorType())
-        {
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
+            var receiverType = receiver.Type;
+            bool hasErrors = false;
 
-            cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType is TypeParameterSymbol typeParameter ? typeParameter.EffectiveBaseClass(ref useSiteInfo) : receiverType, ref useSiteInfo);
-            if (cloneMethod is null)
+            if (receiverType is null || receiverType.IsVoidType())
             {
-                hasErrors = true;
-                diagnostics.Add(ErrorCode.ERR_CannotClone, syntax.Expression.Location, receiverType);
-            }
-            else
-            {
-                cloneMethod.AddUseSiteInfo(ref useSiteInfo);
+                diagnostics.Add(ErrorCode.ERR_InvalidWithReceiverType, syntax.Expression.Location);
+                receiverType = CreateErrorType();
             }
 
-            diagnostics.Add(syntax.Expression, useSiteInfo);
+            MethodSymbol? cloneMethod = null;
+            if (receiverType.IsValueType && !receiverType.IsPointerOrFunctionPointer())
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
+            }
+            else if (receiverType.IsAnonymousType && !receiverType.IsDelegateType())
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnAnonymousTypes, diagnostics);
+            }
+            else if (!receiverType.IsErrorType())
+            {
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+
+                cloneMethod = SynthesizedRecordClone.FindValidCloneMethod(receiverType is TypeParameterSymbol typeParameter ? typeParameter.EffectiveBaseClass(ref useSiteInfo) : receiverType, ref useSiteInfo);
+                if (cloneMethod is null)
+                {
+                    hasErrors = true;
+                    diagnostics.Add(ErrorCode.ERR_CannotClone, syntax.Expression.Location, receiverType);
+                }
+                else
+                {
+                    cloneMethod.AddUseSiteInfo(ref useSiteInfo);
+                }
+
+                diagnostics.Add(syntax.Expression, useSiteInfo);
+            }
+
+            var initializer = BindInitializerExpression(
+                syntax.Initializer,
+                receiverType,
+                syntax.Expression,
+                isForNewInstance: true,
+                diagnostics);
+
+            // N.B. Since we don't parse nested initializers in syntax there should be no extra
+            // errors we need to check for here.
+
+            return new BoundWithExpression(
+                syntax,
+                receiver,
+                cloneMethod,
+                initializer,
+                receiverType,
+                hasErrors: hasErrors);
         }
-
-        var initializer = BindInitializerExpression(
-            syntax.Initializer,
-            receiverType,
-            syntax.Expression,
-            isForNewInstance: true,
-            diagnostics);
-
-        // N.B. Since we don't parse nested initializers in syntax there should be no extra
-        // errors we need to check for here.
-
-        return new BoundWithExpression(
-            syntax,
-            receiver,
-            cloneMethod,
-            initializer,
-            receiverType,
-            hasErrors: hasErrors);
     }
 }

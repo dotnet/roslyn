@@ -9,88 +9,89 @@ using System.Diagnostics;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A base class for synthesized methods that want a this parameter.
-/// </summary>
-internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private ParameterSymbol _lazyThisParameter;
-
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    /// <summary>
+    /// A base class for synthesized methods that want a this parameter.
+    /// </summary>
+    internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
     {
-        get
+        private ParameterSymbol _lazyThisParameter;
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            return ImmutableArray<SyntaxReference>.Empty;
+            get
+            {
+                return ImmutableArray<SyntaxReference>.Empty;
+            }
         }
-    }
 
-    public sealed override bool IsImplicitlyDeclared
-    {
-        get
+        public sealed override bool IsImplicitlyDeclared
         {
+            get
+            {
+                return true;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                return ContainingType.AreLocalsZeroed;
+            }
+        }
+
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        {
+            Debug.Assert(!IsStatic);
+
+            if ((object)_lazyThisParameter == null)
+            {
+                Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
+            }
+
+            thisParameter = _lazyThisParameter;
             return true;
         }
-    }
 
-    public sealed override bool AreLocalsZeroed
-    {
-        get
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
-            return ContainingType.AreLocalsZeroed;
-        }
-    }
-
-    internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
-    {
-        Debug.Assert(!IsStatic);
-
-        if ((object)_lazyThisParameter == null)
-        {
-            Interlocked.CompareExchange(ref _lazyThisParameter, new ThisParameterSymbol(this), null);
+            get { return null; }
         }
 
-        thisParameter = _lazyThisParameter;
-        return true;
-    }
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
-    /// <summary>
-    /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-    /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-    /// </summary>
-    internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-    {
-        get { return null; }
-    }
+        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
+        internal override bool IsDeclaredReadOnly => false;
 
-    internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override bool IsInitOnly => false;
 
-    internal override bool IsDeclaredReadOnly => false;
+        public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
-    internal override bool IsInitOnly => false;
+        internal override bool IsNullableAnalysisEnabled() => false;
 
-    public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+        internal sealed override bool HasUnscopedRefAttribute => false;
 
-    internal override bool IsNullableAnalysisEnabled() => false;
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
-    internal sealed override bool HasUnscopedRefAttribute => false;
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
 
-    internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
-
-    internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
-    {
-        builderArgument = null;
-        return false;
-    }
-
-    internal sealed override int TryGetOverloadResolutionPriority()
-    {
-        return 0;
+        internal sealed override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
+        }
     }
 }

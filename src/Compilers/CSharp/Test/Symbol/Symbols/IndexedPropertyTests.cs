@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
-
-public class IndexedPropertyTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
-    [ClrOnlyFact]
-    public void IndexedProperties()
+    public class IndexedPropertyTests : CSharpTestBase
     {
-        var source1 =
+        [ClrOnlyFact]
+        public void IndexedProperties()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -44,8 +44,8 @@ Public Class A
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -55,11 +55,11 @@ End Class";
         a.P[2] = o;
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 2
 ");
-        compilation2.VerifyIL("B.Main()",
+            compilation2.VerifyIL("B.Main()",
 @"{
   // Code size       21 (0x15)
   .maxstack  3
@@ -74,12 +74,12 @@ P[2] = 2
   IL_000f:  callvirt   ""void IA.P[int].set""
   IL_0014:  ret
 }");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void OptionalParameters()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void OptionalParameters()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -106,8 +106,8 @@ Public Class A
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -121,7 +121,7 @@ End Class";
         a.P = o;
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[3, 4].get
 P[5, 6].set
 P[3, 2].get
@@ -129,7 +129,7 @@ P[5, 2].set
 P[1, 2].get
 P[1, 2].set
 ");
-        compilation2.VerifyIL("B.Main()",
+            compilation2.VerifyIL("B.Main()",
 @"{
   // Code size       59 (0x3b)
   .maxstack  5
@@ -166,12 +166,12 @@ P[1, 2].set
   IL_0035:  callvirt   ""void IA.P[int, int].set""
   IL_003a:  ret
 }");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void ParamsArrayParameters()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void ParamsArrayParameters()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -204,8 +204,8 @@ Public Class A
         End If
     End Sub
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -221,7 +221,7 @@ End Class";
         a.P = o;
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"0: 0
 0: 1
 1: 2
@@ -234,12 +234,12 @@ End Class";
 1: 9
 -
 ");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void RefParameters()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void RefParameters()
+        {
+            var source1 =
 @".class interface public abstract import IA
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.CoClassAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 01 41 00 00 )
@@ -287,8 +287,8 @@ End Class";
     .set instance void A::set_P(int32&, int32)
   }
 }";
-        var reference1 = CompileIL(source1);
-        var source2 =
+            var reference1 = CompileIL(source1);
+            var source2 =
 @"using System;
 class B
 {
@@ -346,9 +346,9 @@ class B
         i = new[] { 0 };
     }
 }";
-        // Note that Dev11 (incorrectly) calls F() twice in a.P[ref F()[0]]
-        // for compound assignment and increment.
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            // Note that Dev11 (incorrectly) calls F() twice in a.P[ref F()[0]]
+            // for compound assignment and increment.
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"F()
 F()
 0
@@ -364,7 +364,7 @@ F()
 F()
 3
 ");
-        compilation2.VerifyIL("B.GetAndSet(IA)",
+            compilation2.VerifyIL("B.GetAndSet(IA)",
 @"{
   // Code size       35 (0x23)
   .maxstack  3
@@ -388,7 +388,7 @@ F()
   IL_001d:  callvirt   ""void IA.P[ref int].set""
   IL_0022:  ret
 }");
-        compilation2.VerifyIL("B.GetAndSetByRef(IA)",
+            compilation2.VerifyIL("B.GetAndSetByRef(IA)",
 @"{
   // Code size       37 (0x25)
   .maxstack  3
@@ -407,7 +407,7 @@ F()
   IL_001f:  callvirt   ""void IA.P[ref int].set""
   IL_0024:  ret
 }");
-        compilation2.VerifyIL("B.CompoundAssignment(IA)",
+            compilation2.VerifyIL("B.CompoundAssignment(IA)",
 @"{
   // Code size       33 (0x21)
   .maxstack  4
@@ -434,7 +434,7 @@ F()
   IL_001b:  callvirt   ""void IA.P[ref int].set""
   IL_0020:  ret
 }");
-        compilation2.VerifyIL("B.CompoundAssignmentByRef(IA)",
+            compilation2.VerifyIL("B.CompoundAssignmentByRef(IA)",
 @"{
   // Code size       31 (0x1f)
   .maxstack  4
@@ -456,7 +456,7 @@ F()
   IL_0019:  callvirt   ""void IA.P[ref int].set""
   IL_001e:  ret
 }");
-        compilation2.VerifyIL("B.Increment(IA)",
+            compilation2.VerifyIL("B.Increment(IA)",
 @"{
   // Code size       33 (0x21)
   .maxstack  4
@@ -483,7 +483,7 @@ F()
   IL_001b:  callvirt   ""void IA.P[ref int].set""
   IL_0020:  ret
 }");
-        compilation2.VerifyIL("B.IncrementByRef(IA)",
+            compilation2.VerifyIL("B.IncrementByRef(IA)",
 @"{
   // Code size       31 (0x1f)
   .maxstack  4
@@ -505,12 +505,12 @@ F()
   IL_0019:  callvirt   ""void IA.P[ref int].set""
   IL_001e:  ret
 }");
-    }
+        }
 
-    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-    public void RefParametersIndexers()
-    {
-        var source1 =
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void RefParametersIndexers()
+        {
+            var source1 =
 @"// ComImport
 .class interface public abstract import IA
 {
@@ -572,8 +572,8 @@ F()
     .set instance void A::set_P(int32&, int32)
   }
 }";
-        var reference1 = CompileIL(source1);
-        var source2 =
+            var reference1 = CompileIL(source1);
+            var source2 =
 @"class C
 {
     static void M(IB b)
@@ -585,17 +585,17 @@ F()
         b.set_P(ref y, b.get_P(ref x));
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (7,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 9),
-            // (7,16): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[x]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 16),
-            // (8,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[ref y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(8, 9),
-            // (8,20): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[ref x]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(8, 20));
-        var source3 =
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (7,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 9),
+                // (7,16): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[x]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(7, 16),
+                // (8,9): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[ref y]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(8, 9),
+                // (8,20): error CS1545: Property, indexer, or event 'IB.this[ref int]' is not supported by the language; try directly calling accessor methods 'IB.get_P(ref int)' or 'IB.set_P(ref int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "b[ref x]").WithArguments("IB.this[ref int]", "IB.get_P(ref int)", "IB.set_P(ref int, int)").WithLocation(8, 20));
+            var source3 =
 @"class C
 {
     static void Main()
@@ -615,17 +615,17 @@ F()
         System.Console.WriteLine(""{0}, {1}"", x, y);
     }
 }";
-        var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, expectedOutput:
 @"0, 0
 1, 2
 2, 4
 ");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void OptionalRefParameters()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void OptionalRefParameters()
+        {
+            var source1 =
 @".class interface public abstract import IA
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.CoClassAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 01 41 00 00 )
@@ -689,8 +689,8 @@ F()
     .set instance void A::set_P(int32&, int32&, int32)
   }
 }";
-        var reference1 = CompileIL(source1);
-        var source2 =
+            var reference1 = CompileIL(source1);
+            var source2 =
 @"class C
 {
     static void MissingArg(IA a)
@@ -724,11 +724,11 @@ F()
         y = 0;
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"0, 0
 0, 0
 0, 3");
-        compilation2.VerifyIL("C.MissingArg(IA)",
+            compilation2.VerifyIL("C.MissingArg(IA)",
 @"{
   // Code size       39 (0x27)
   .maxstack  5
@@ -760,7 +760,7 @@ F()
   IL_0021:  callvirt   ""void IA.P[ref int, ref int].set""
   IL_0026:  ret
 }");
-        compilation2.VerifyIL("C.ValueArgs(IA)",
+            compilation2.VerifyIL("C.ValueArgs(IA)",
 @"{
   // Code size       47 (0x2f)
   .maxstack  5
@@ -795,7 +795,7 @@ F()
   IL_0029:  callvirt   ""void IA.P[ref int, ref int].set""
   IL_002e:  ret
 }");
-        compilation2.VerifyIL("C.RefArgs(IA)",
+            compilation2.VerifyIL("C.RefArgs(IA)",
 @"{
   // Code size       33 (0x21)
   .maxstack  5
@@ -820,12 +820,12 @@ F()
   IL_001b:  callvirt   ""void IA.P[ref int, ref int].set""
   IL_0020:  ret
 }");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void DefaultProperty()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void DefaultProperty()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
 <ComImport()>
@@ -845,8 +845,8 @@ Public Class A
         End Set
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class C
 {
     static void M()
@@ -858,21 +858,21 @@ End Class";
         a.set_P(10, a.get_P(9));
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (6,11): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 11),
-            // (6,20): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 20),
-            // (8,9): error CS1501: No overload for method 'this' takes 2 arguments
-            Diagnostic(ErrorCode.ERR_BadArgCount, "a[7, 8]").WithArguments("this", "2").WithLocation(8, 9),
-            // (8,19): error CS1501: No overload for method 'this' takes 2 arguments
-            Diagnostic(ErrorCode.ERR_BadArgCount, "a[5, 6]").WithArguments("this", "2").WithLocation(8, 19),
-            // (9,11): error CS0571: 'A.this[int].set': cannot explicitly call operator or accessor
-            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("A.this[int].set").WithLocation(9, 11),
-            // (9,23): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
-            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("A.this[int].get").WithLocation(9, 23));
-        var source3 =
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (6,11): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 11),
+                // (6,20): error CS1061: 'A' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A", "P").WithLocation(6, 20),
+                // (8,9): error CS1501: No overload for method 'this' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "a[7, 8]").WithArguments("this", "2").WithLocation(8, 9),
+                // (8,19): error CS1501: No overload for method 'this' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "a[5, 6]").WithArguments("this", "2").WithLocation(8, 19),
+                // (9,11): error CS0571: 'A.this[int].set': cannot explicitly call operator or accessor
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("A.this[int].set").WithLocation(9, 11),
+                // (9,23): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_P").WithArguments("A.this[int].get").WithLocation(9, 23));
+            var source3 =
 @"class C
 {
     static void M()
@@ -881,8 +881,8 @@ End Class";
         a[2] = a[1];
     }
 }";
-        var compilation3 = CompileAndVerify(source3, references: new[] { reference1 });
-        compilation3.VerifyIL("C.M()",
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 });
+            compilation3.VerifyIL("C.M()",
 @"{
   // Code size       21 (0x15)
   .maxstack  4
@@ -897,16 +897,16 @@ End Class";
   IL_000f:  callvirt   ""void A.this[int].set""
   IL_0014:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// Allow calling indexed property accessors
-    /// directly, for legacy code.
-    /// </summary>
-    [ClrOnlyFact]
-    public void CanBeReferencedByName()
-    {
-        var source1 =
+        /// <summary>
+        /// Allow calling indexed property accessors
+        /// directly, for legacy code.
+        /// </summary>
+        [ClrOnlyFact]
+        public void CanBeReferencedByName()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -956,8 +956,8 @@ Public Class B
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"using System;
 class C
 {
@@ -974,7 +974,7 @@ class C
         s(6, o);
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 1
 Q[3]
@@ -983,33 +983,33 @@ P[5]
 Q[6] = 5
 ");
 
-        var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
-        // Property with parameters from type with [ComImport].
-        var property = @namespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P");
-        Assert.False(property.MustCallMethodsDirectly);
-        Assert.True(property.CanCallMethodsDirectly());
-        Assert.True(property.GetMethod.CanBeReferencedByName);
-        Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        Assert.True(property.SetMethod.CanBeReferencedByName);
-        Assert.True(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        // Property with parameters from type without [ComImport].
-        property = @namespace.GetMember<NamedTypeSymbol>("IB").GetMember<PropertySymbol>("Q");
-        Assert.True(property.MustCallMethodsDirectly);
-        Assert.True(property.CanCallMethodsDirectly());
-        Assert.True(property.GetMethod.CanBeReferencedByName);
-        Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        Assert.True(property.SetMethod.CanBeReferencedByName);
-        Assert.True(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        // Property without parameters.
-        property = @namespace.GetMember<NamedTypeSymbol>("IB").GetMember<PropertySymbol>("R");
-        Assert.False(property.MustCallMethodsDirectly);
-        Assert.False(property.CanCallMethodsDirectly());
-        Assert.False(property.GetMethod.CanBeReferencedByName);
-        Assert.False(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        Assert.False(property.SetMethod.CanBeReferencedByName);
-        Assert.False(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
+            // Property with parameters from type with [ComImport].
+            var property = @namespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P");
+            Assert.False(property.MustCallMethodsDirectly);
+            Assert.True(property.CanCallMethodsDirectly());
+            Assert.True(property.GetMethod.CanBeReferencedByName);
+            Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            Assert.True(property.SetMethod.CanBeReferencedByName);
+            Assert.True(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            // Property with parameters from type without [ComImport].
+            property = @namespace.GetMember<NamedTypeSymbol>("IB").GetMember<PropertySymbol>("Q");
+            Assert.True(property.MustCallMethodsDirectly);
+            Assert.True(property.CanCallMethodsDirectly());
+            Assert.True(property.GetMethod.CanBeReferencedByName);
+            Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            Assert.True(property.SetMethod.CanBeReferencedByName);
+            Assert.True(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            // Property without parameters.
+            property = @namespace.GetMember<NamedTypeSymbol>("IB").GetMember<PropertySymbol>("R");
+            Assert.False(property.MustCallMethodsDirectly);
+            Assert.False(property.CanCallMethodsDirectly());
+            Assert.False(property.GetMethod.CanBeReferencedByName);
+            Assert.False(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            Assert.False(property.SetMethod.CanBeReferencedByName);
+            Assert.False(property.SetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
 
-        compilation2.VerifyIL("C.Main()",
+            compilation2.VerifyIL("C.Main()",
 @"{
   // Code size       77 (0x4d)
   .maxstack  4
@@ -1046,17 +1046,17 @@ Q[6] = 5
   IL_0047:  callvirt   ""void System.Action<int, object>.Invoke(int, object)""
   IL_004c:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// CanBeReferencedByName should return false if
-    /// the accessor name is not a valid identifier.
-    /// </summary>
-    [ClrOnlyFact]
-    public void CanBeReferencedByName_InvalidName()
-    {
-        // Note: Dev11 treats I.Q as invalid so Q is not recognized from source.
-        var source1 =
+        /// <summary>
+        /// CanBeReferencedByName should return false if
+        /// the accessor name is not a valid identifier.
+        /// </summary>
+        [ClrOnlyFact]
+        public void CanBeReferencedByName_InvalidName()
+        {
+            // Note: Dev11 treats I.Q as invalid so Q is not recognized from source.
+            var source1 =
 @".class interface public abstract import I
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 31 36 35 46 37 35 32 44 2D 45 39 43 34 2D 34 46 37 45 2D 42 30 44 30 2D 43 44 46 44 37 41 33 36 45 32 31 31 00 00 )
@@ -1071,8 +1071,8 @@ Q[6] = 5
     .get instance object I::invalid.name(object)
   }
 }";
-        var reference1 = CompileIL(source1);
-        var source2 =
+            var reference1 = CompileIL(source1);
+            var source2 =
 @"class C
 {
     static void M(I i)
@@ -1082,24 +1082,24 @@ Q[6] = 5
         o = i.valid_name(1);
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, verify: Verification.Passes);
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, verify: Verification.Passes);
 
-        var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
-        // Indexed property with valid name.
-        var type = @namespace.GetMember<NamedTypeSymbol>("I");
-        var property = type.GetMember<PropertySymbol>("P");
-        Assert.False(property.MustCallMethodsDirectly);
-        Assert.True(property.CanCallMethodsDirectly());
-        Assert.True(property.GetMethod.CanBeReferencedByName);
-        Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
-        // Indexed property with invalid name.
-        property = type.GetMember<PropertySymbol>("Q");
-        Assert.False(property.MustCallMethodsDirectly);
-        Assert.True(property.CanCallMethodsDirectly());
-        Assert.False(property.GetMethod.CanBeReferencedByName);
-        Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            var @namespace = (NamespaceSymbol)((CSharpCompilation)compilation2.Compilation).GlobalNamespace;
+            // Indexed property with valid name.
+            var type = @namespace.GetMember<NamedTypeSymbol>("I");
+            var property = type.GetMember<PropertySymbol>("P");
+            Assert.False(property.MustCallMethodsDirectly);
+            Assert.True(property.CanCallMethodsDirectly());
+            Assert.True(property.GetMethod.CanBeReferencedByName);
+            Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
+            // Indexed property with invalid name.
+            property = type.GetMember<PropertySymbol>("Q");
+            Assert.False(property.MustCallMethodsDirectly);
+            Assert.True(property.CanCallMethodsDirectly());
+            Assert.False(property.GetMethod.CanBeReferencedByName);
+            Assert.True(property.GetMethod.CanBeReferencedByNameIgnoringIllegalCharacters);
 
-        compilation2.VerifyIL("C.M(I)",
+            compilation2.VerifyIL("C.M(I)",
 @"{
   // Code size       40 (0x28)
   .maxstack  2
@@ -1120,12 +1120,12 @@ Q[6] = 5
   IL_0026:  pop
   IL_0027:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void NotIndexedProperties()
-    {
-        var source =
+        [Fact]
+        public void NotIndexedProperties()
+        {
+            var source =
 @"using System.ComponentModel;
 [DefaultProperty(""R"")]
 class A
@@ -1144,17 +1144,17 @@ class B
         o = a.R[3];
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
-            // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "R").WithArguments("A", "R").WithLocation(16, 15));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,13): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "a.P[1]").WithArguments("object").WithLocation(14, 13),
+                // (16,15): error CS1061: 'A' does not contain a definition for 'R' and no extension method 'R' accepting a first argument of type 'A' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "R").WithArguments("A", "R").WithLocation(16, 15));
+        }
 
-    [ClrOnlyFact]
-    public void BaseProperties()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void BaseProperties()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -1170,8 +1170,8 @@ Public Class A
         End Set
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"class B : A
 {
     void M()
@@ -1183,14 +1183,14 @@ End Class";
         base.P[4] = o;
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics();
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+        }
 
-    [ClrOnlyFact]
-    public void StaticProperties()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void StaticProperties()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -1206,8 +1206,8 @@ Public Class A
         End Set
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"class B : A
 {
     void M()
@@ -1219,25 +1219,25 @@ End Class";
         A.P[3] = o;
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (6,13): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(6, 13),
-            // (7,9): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(7, 9),
-            // (8,18): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(8, 18),
-            // (9,11): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(9, 11));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(6, 13),
+                // (7,9): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(7, 9),
+                // (8,18): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(8, 18),
+                // (9,11): error CS1545: Property, indexer, or event 'A.P[int]' is not supported by the language; try directly calling accessor methods 'A.get_P(int)' or 'A.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A.P[int]", "A.get_P(int)", "A.set_P(int, object)").WithLocation(9, 11));
+        }
 
-    /// <summary>
-    /// Indexed properties are only supported from [ComImport] types.
-    /// </summary>
-    [ClrOnlyFact]
-    public void ComImport()
-    {
-        var source1 =
+        /// <summary>
+        /// Indexed properties are only supported from [ComImport] types.
+        /// </summary>
+        [ClrOnlyFact]
+        public void ComImport()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
@@ -1252,8 +1252,8 @@ Public Interface IB
     Property P(index As Object) As Object
     Property Q(index As Object) As Object
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class C
 {
     static void M(IA a, IB b)
@@ -1262,18 +1262,18 @@ End Interface";
         b.P[null] = b.Q[null];
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (5,11): error CS1545: Property, indexer, or event 'IA.P[object]' is not supported by the language; try directly calling accessor methods 'IA.get_P(object)' or 'IA.set_P(object, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("IA.P[object]", "IA.get_P(object)", "IA.set_P(object, object)").WithLocation(5, 11),
-            // (5,23): error CS1545: Property, indexer, or event 'IA.Q[object]' is not supported by the language; try directly calling accessor methods 'IA.get_Q(object)' or 'IA.set_Q(object, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Q").WithArguments("IA.Q[object]", "IA.get_Q(object)", "IA.set_Q(object, object)").WithLocation(5, 23));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (5,11): error CS1545: Property, indexer, or event 'IA.P[object]' is not supported by the language; try directly calling accessor methods 'IA.get_P(object)' or 'IA.set_P(object, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("IA.P[object]", "IA.get_P(object)", "IA.set_P(object, object)").WithLocation(5, 11),
+                // (5,23): error CS1545: Property, indexer, or event 'IA.Q[object]' is not supported by the language; try directly calling accessor methods 'IA.get_Q(object)' or 'IA.set_Q(object, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Q").WithArguments("IA.Q[object]", "IA.get_Q(object)", "IA.set_Q(object, object)").WithLocation(5, 23));
+        }
 
-    [ClrOnlyFact]
-    public void PropertyAccesses()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void PropertyAccesses()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
@@ -1301,8 +1301,8 @@ Public Interface IC
     Property C(Optional x As Integer = 0) As IC
     Property D(Optional x As Integer = 0) As Integer()
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class C
 {
     static void M(IA a, IB b, IC c)
@@ -1326,22 +1326,22 @@ End Interface";
         c = c.C.C[0];
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (17,13): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.D[0]").WithArguments("int[]", "int").WithLocation(17, 13),
-            // (19,13): error CS1501: No overload for method 'A' takes 2 arguments
-            Diagnostic(ErrorCode.ERR_BadArgCount, "c.A[0, 1]").WithArguments("A", "2").WithLocation(19, 13));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (17,13): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.D[0]").WithArguments("int[]", "int").WithLocation(17, 13),
+                // (19,13): error CS1501: No overload for method 'A' takes 2 arguments
+                Diagnostic(ErrorCode.ERR_BadArgCount, "c.A[0, 1]").WithArguments("A", "2").WithLocation(19, 13));
+        }
 
-    /// <summary>
-    /// Cases where a PropertyGroup must be converted to a PropertyAccess.
-    /// (resulting from an indexed property expression with no args).
-    /// </summary>
-    [ClrOnlyFact]
-    public void PropertyGroup()
-    {
-        var source1 =
+        /// <summary>
+        /// Cases where a PropertyGroup must be converted to a PropertyAccess.
+        /// (resulting from an indexed property expression with no args).
+        /// </summary>
+        [ClrOnlyFact]
+        public void PropertyGroup()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
@@ -1350,8 +1350,8 @@ End Interface";
 Public Interface I
     Property P(Optional x As Integer = 0) As Object
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class C
 {
     static void M(I i)
@@ -1360,18 +1360,18 @@ End Interface";
         i.P = o;
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics();
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+        }
 
-    /// <summary>
-    /// Overload resolution should be supported for indexed properties,
-    /// even though COM does not support overloads.
-    /// </summary>
-    [ClrOnlyFact]
-    public void OverloadResolution()
-    {
-        var source1 =
+        /// <summary>
+        /// Overload resolution should be supported for indexed properties,
+        /// even though COM does not support overloads.
+        /// </summary>
+        [ClrOnlyFact]
+        public void OverloadResolution()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
@@ -1392,8 +1392,8 @@ End Interface
 Public Interface IC
     Inherits IA, IB
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class C
 {
     static void M(IC c)
@@ -1402,15 +1402,15 @@ End Interface";
         c.Q[1, 2] = o; // Dev11: CS1501: No overload for method 'Q' takes 2 arguments
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics();
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+        }
 
-    [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/39934")]
-    [WorkItem(39934, "https://github.com/dotnet/roslyn/issues/39934")]
-    public void OverloadResolutionWithSimpleProperty()
-    {
-        var source1 =
+        [ClrOnlyFact(Skip = "https://github.com/dotnet/roslyn/issues/39934")]
+        [WorkItem(39934, "https://github.com/dotnet/roslyn/issues/39934")]
+        public void OverloadResolutionWithSimpleProperty()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -1476,8 +1476,8 @@ Public Class C
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class D
 {
     static void M(IC c)
@@ -1489,15 +1489,15 @@ End Class";
         c.Q[2] = o;
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics();
-        CompileAndVerify(compilation2);
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2);
+        }
 
-    [ClrOnlyFact]
-    public void OverridesHidesImplements()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void OverridesHidesImplements()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -1538,8 +1538,8 @@ Public Class B
         End Get
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
+            var source2 =
 @"class C
 {
     static void M(B b)
@@ -1547,12 +1547,12 @@ End Class";
         var o = b.Q[0];
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'B.Q[object, object]'
-            //         var o = b.Q[0];
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "b.Q[0]").WithArguments("y", "B.Q[object, object]").WithLocation(5, 17));
-        var source3 =
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'B.Q[object, object]'
+                //         var o = b.Q[0];
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "b.Q[0]").WithArguments("y", "B.Q[object, object]").WithLocation(5, 17));
+            var source3 =
 @"class C
 {
     static void M(B b)
@@ -1561,8 +1561,8 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-        var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, verify: Verification.Skipped);
-        compilation3.VerifyIL("C.M(B)",
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1 }, verify: Verification.Skipped);
+            compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
   .maxstack  3
@@ -1580,17 +1580,17 @@ End Class";
   IL_001f:  pop
   IL_0020:  ret
 }");
-    }
+        }
 
-    /// <summary>
-    /// Should support implementing and overriding indexed properties
-    /// from C# if the accessors are implemented/overridden directly.
-    /// </summary>
-    [WorkItem(545516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545516")]
-    [ClrOnlyFact]
-    public void InterfaceImplementation()
-    {
-        var source1 =
+        /// <summary>
+        /// Should support implementing and overriding indexed properties
+        /// from C# if the accessors are implemented/overridden directly.
+        /// </summary>
+        [WorkItem(545516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545516")]
+        [ClrOnlyFact]
+        public void InterfaceImplementation()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")> 
@@ -1617,8 +1617,8 @@ Public Class M
         o.P(index) = value
     End Sub
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"using System;
 // Implicit implementation.
 public class A2 : I
@@ -1687,11 +1687,11 @@ public class B2 : A2
         Console.WriteLine(""B2.set_P({0}, ...)"", index);
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 });
-        var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
-        // Can invoke C# implementations by invoking the accessors directly
-        // or by casting to the COM interface and invoking the indexed property.
-        var source3 =
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 });
+            var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
+            // Can invoke C# implementations by invoking the accessors directly
+            // or by casting to the COM interface and invoking the indexed property.
+            var source3 =
 @"class C
 {
     static void Main()
@@ -1715,7 +1715,7 @@ public class B2 : A2
         i.P[6] = i.P[5];
     }
 }";
-        var compilation3 = CompileAndVerify(source3, references: new[] { reference1, reference2 }, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, references: new[] { reference1, reference2 }, expectedOutput:
 @"A2.get_P(1)
 A2.set_P(2, ...)
 A2.get_P(3)
@@ -1741,8 +1741,8 @@ B2.set_P(4, ...)
 B2.get_P(5)
 B2.set_P(6, ...)
 ");
-        // Cannot invoke C# implementations by invoking the indexed property directly.
-        var source4 =
+            // Cannot invoke C# implementations by invoking the indexed property directly.
+            var source4 =
 @"class C
 {
     static void Main()
@@ -1753,26 +1753,26 @@ B2.set_P(6, ...)
         b.P[4] = b.P[3];
     }
 }";
-        var compilation4 = CreateCompilation(source4, new[] { reference1, reference2 });
-        compilation4.VerifyDiagnostics(
-            // (6,11): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 11),
-            // (6,20): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 20),
-            // (8,11): error CS1061: 'B2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'B2' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("B2", "P").WithLocation(8, 11),
-            // (8,20): error CS1061: 'B2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'B2' could be found (are you missing a using directive or an assembly reference?)
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("B2", "P").WithLocation(8, 20));
-    }
+            var compilation4 = CreateCompilation(source4, new[] { reference1, reference2 });
+            compilation4.VerifyDiagnostics(
+                // (6,11): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 11),
+                // (6,20): error CS1061: 'A2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'A2' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("A2", "P").WithLocation(6, 20),
+                // (8,11): error CS1061: 'B2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'B2' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("B2", "P").WithLocation(8, 11),
+                // (8,20): error CS1061: 'B2' does not contain a definition for 'P' and no extension method 'P' accepting a first argument of type 'B2' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("B2", "P").WithLocation(8, 20));
+        }
 
-    /// <summary>
-    /// "new" required to hide indexed property accessors, although
-    /// property from base class can still be invoked using property syntax.
-    /// </summary>
-    [ClrOnlyFact]
-    public void Hiding()
-    {
-        var source1 =
+        /// <summary>
+        /// "new" required to hide indexed property accessors, although
+        /// property from base class can still be invoked using property syntax.
+        /// </summary>
+        [ClrOnlyFact]
+        public void Hiding()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -1808,8 +1808,8 @@ Public MustInherit Class A1
         End Set
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"using System;
 class B1 : A1
 {
@@ -1836,13 +1836,13 @@ class C
         b2.set_P(1, b2.get_P(0));
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"B1.get_P(0)
 A1.set_P(1, ...)
 A1.get_P(0)
 B2.set_P(1, ...)
 ");
-        var source3 =
+            var source3 =
 @"class B0 : A0
 {
     internal new object get_P(int index) { return null; }
@@ -1870,22 +1870,22 @@ class C
         b1.P[1] = b1.P[0];
     }
 }";
-        var compilation3 = CreateCompilation(source3, new[] { reference1 });
-        compilation3.VerifyDiagnostics(
-            // (13,21): warning CS0108: 'B2.get_P(int)' hides inherited member 'A1.get_P(int)'. Use the new keyword if hiding was intended.
-            Diagnostic(ErrorCode.WRN_NewRequired, "get_P").WithArguments("B2.get_P(int)", "A1.get_P(int)").WithLocation(13, 21),
-            // (14,19): warning CS0108: 'B2.set_P(int, object)' hides inherited member 'A1.set_P(int, object)'. Use the new keyword if hiding was intended.
-            Diagnostic(ErrorCode.WRN_NewRequired, "set_P").WithArguments("B2.set_P(int, object)", "A1.set_P(int, object)").WithLocation(14, 19),
-            // (25,12): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 12),
-            // (25,22): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
-    }
+            var compilation3 = CreateCompilation(source3, new[] { reference1 });
+            compilation3.VerifyDiagnostics(
+                // (13,21): warning CS0108: 'B2.get_P(int)' hides inherited member 'A1.get_P(int)'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "get_P").WithArguments("B2.get_P(int)", "A1.get_P(int)").WithLocation(13, 21),
+                // (14,19): warning CS0108: 'B2.set_P(int, object)' hides inherited member 'A1.set_P(int, object)'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "set_P").WithArguments("B2.set_P(int, object)", "A1.set_P(int, object)").WithLocation(14, 19),
+                // (25,12): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 12),
+                // (25,22): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, object)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
+        }
 
-    [ClrOnlyFact]
-    public void ReadOnlyWriteOnly()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void ReadOnlyWriteOnly()
+        {
+            var source1 =
 @"Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
 <Assembly: Guid(""165F752D-E9C4-4F7E-B0D0-CDFD7A36E210"")>
@@ -1895,8 +1895,8 @@ Public Interface IA
     ReadOnly Property P(index As Object) As Object
     WriteOnly Property Q(index As Object) As Object
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void M(IA a)
@@ -1905,18 +1905,18 @@ End Interface";
         a.Q[null] = a.Q[null];
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (5,9): error CS0200: Property or indexer 'IA.P[object]' cannot be assigned to -- it is read only
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "a.P[null]").WithArguments("IA.P[object]").WithLocation(5, 9),
-            // (6,21): error CS0154: The property or indexer 'IA.Q[object]' cannot be used in this context because it lacks the get accessor
-            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "a.Q[null]").WithArguments("IA.Q[object]").WithLocation(6, 21));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (5,9): error CS0200: Property or indexer 'IA.P[object]' cannot be assigned to -- it is read only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "a.P[null]").WithArguments("IA.P[object]").WithLocation(5, 9),
+                // (6,21): error CS0154: The property or indexer 'IA.Q[object]' cannot be used in this context because it lacks the get accessor
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "a.Q[null]").WithArguments("IA.Q[object]").WithLocation(6, 21));
+        }
 
-    [ClrOnlyFact]
-    public void ObjectInitializer()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void ObjectInitializer()
+        {
+            var source1 =
 @"Imports System
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -1954,8 +1954,8 @@ Public Class A
         End Get
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -1966,15 +1966,15 @@ End Class";
         a = new IA() { P3 = { 6, 7 } };
     }
 }";
-        var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
 P3(3).get
 P3(3).get
 ");
-        compilation2.VerifyDiagnostics();
-        compilation2.VerifyIL("B.Main",
+            compilation2.VerifyDiagnostics();
+            compilation2.VerifyIL("B.Main",
 @"{
   // Code size       87 (0x57)
   .maxstack  4
@@ -2010,12 +2010,12 @@ P3(3).get
   IL_0055:  pop
   IL_0056:  ret
 }");
-    }
+        }
 
-    [ClrOnlyFact]
-    public void ObjectInitializer_Errors()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void ObjectInitializer_Errors()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -2042,8 +2042,8 @@ Public Class A
         End Get
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -2054,20 +2054,20 @@ End Class";
         a = new A() { P3 = 5 };
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (6,23): error CS0200: Property or indexer 'A.P1[int, int]' cannot be assigned to -- it is read only
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("A.P1[int, int]").WithLocation(6, 23),
-            // (7,23): error CS1918: Members of property 'A.P2[int]' of type 'S' cannot be assigned with an object initializer because it is of a value type
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P2").WithArguments("A.P2[int]", "S").WithLocation(7, 23),
-            // (8,23): error CS0122: 'A.P3[int]' is inaccessible due to its protection level
-            Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[int]").WithLocation(8, 23));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (6,23): error CS0200: Property or indexer 'A.P1[int, int]' cannot be assigned to -- it is read only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("A.P1[int, int]").WithLocation(6, 23),
+                // (7,23): error CS1918: Members of property 'A.P2[int]' of type 'S' cannot be assigned with an object initializer because it is of a value type
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P2").WithArguments("A.P2[int]", "S").WithLocation(7, 23),
+                // (8,23): error CS0122: 'A.P3[int]' is inaccessible due to its protection level
+                Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[int]").WithLocation(8, 23));
+        }
 
-    [ClrOnlyFact]
-    public void Attributes()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void Attributes()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -2101,28 +2101,28 @@ Public Class A2
         End Set
     End Property
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Skipped);
+            var source2 =
 @"[A1(P = 1)] // Not ComImport
 class B
 {
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (1,5): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
-            Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
-        var source3 =
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (1,5): error CS1545: Property, indexer, or event 'A1.P[int]' is not supported by the language; try directly calling accessor methods 'A1.get_P(int)' or 'A1.set_P(int, int)'
+                Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, int)").WithLocation(1, 5));
+            var source3 =
 @"[A2(P = 1)] // ComImport
 class B
 {
 }";
-        var compilation3 = CompileAndVerify(source3, new[] { reference1 });
-    }
+            var compilation3 = CompileAndVerify(source3, new[] { reference1 });
+        }
 
-    [ClrOnlyFact]
-    public void LinqMember()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void LinqMember()
+        {
+            var source1 =
 @"Imports System
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -2136,8 +2136,8 @@ End Interface
 Public Interface IA
     ReadOnly Property P As Object
 End Interface";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"using System.Collections.Generic;
 class C
 {
@@ -2146,22 +2146,22 @@ class C
         return from o in arg select o.P;
     }
 }";
-        var compilation2 = CreateCompilation(source2, new[] { reference1 });
-        compilation2.VerifyDiagnostics(
-            // (6,30): error CS1955: Non-invocable member 'IEnumerableOfA.Select[System.Func<IA, object>]' cannot be used like a method.
-            Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
-    }
+            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            compilation2.VerifyDiagnostics(
+                // (6,30): error CS1955: Non-invocable member 'IEnumerableOfA.Select[System.Func<IA, object>]' cannot be used like a method.
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
+        }
 
-    [ClrOnlyFact]
-    public void AmbiguityPropertyAndNonProperty()
-    {
-        var source1 =
+        [ClrOnlyFact]
+        public void AmbiguityPropertyAndNonProperty()
+        {
+            var source1 =
 @".class interface public abstract IA
 {
   .class interface nested public abstract P { }
 }";
-        var reference1 = CompileIL(source1);
-        var source2 =
+            var reference1 = CompileIL(source1);
+            var source2 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)> 
@@ -2176,8 +2176,8 @@ End Interface
 Public Interface IC
     Inherits IA, IB
 End Interface";
-        var reference2 = BasicCompilationUtils.CompileToMetadata(source2, references: new[] { MscorlibRef, reference1 });
-        var source3 =
+            var reference2 = BasicCompilationUtils.CompileToMetadata(source2, references: new[] { MscorlibRef, reference1 });
+            var source3 =
 @"class C
 {
     static object F(IC c)
@@ -2185,16 +2185,16 @@ End Interface";
         return c.P[null];
     }
 }";
-        var compilation3 = CreateCompilation(source3, new[] { reference1, reference2 });
-        compilation3.VerifyDiagnostics(
-            // (5,18): error CS0229: Ambiguity between 'IA.P' and 'IB.P[object]'
-            Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
-    }
+            var compilation3 = CreateCompilation(source3, new[] { reference1, reference2 });
+            compilation3.VerifyDiagnostics(
+                // (5,18): error CS0229: Ambiguity between 'IA.P' and 'IB.P[object]'
+                Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
+        }
 
-    [ClrOnlyFact]
-    public void LambdaWithIndexedProperty()
-    {
-        var source1 = @"
+        [ClrOnlyFact]
+        public void LambdaWithIndexedProperty()
+        {
+            var source1 = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -2234,8 +2234,8 @@ Public Class A
 End Class
 ";
 
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"
 using System;
 class B
@@ -2258,7 +2258,7 @@ class B
     }
 }
 ";
-        var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2269,18 +2269,18 @@ P1(5).get
 10
 ");
 
-        compilation2.VerifyDiagnostics();
+            compilation2.VerifyDiagnostics();
 
-        /*
-         * Intentionally not validating IL as it is just going to show the same generated code as 
-         * many of the other tests.  the run results are far more  interesting
-         */
-    }
+            /*
+             * Intentionally not validating IL as it is just going to show the same generated code as 
+             * many of the other tests.  the run results are far more  interesting
+             */
+        }
 
-    [ClrOnlyFact]
-    public void QueryStatementIndexedProperty()
-    {
-        var source1 = @"
+        [ClrOnlyFact]
+        public void QueryStatementIndexedProperty()
+        {
+            var source1 = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -2306,8 +2306,8 @@ Public Class A
 End Class
 ";
 
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"
 using System;
 using System.Linq;
@@ -2328,7 +2328,7 @@ class B
 }
 ";
 
-        var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2346,18 +2346,18 @@ P1(2).get
 9
 ");
 
-        compilation2.VerifyDiagnostics();
+            compilation2.VerifyDiagnostics();
 
-        /*
-         * Intentionally not validating IL as it is just going to show the same generated code as 
-         * many of the other tests.  the run results are far more  interesting
-         */
-    }
+            /*
+             * Intentionally not validating IL as it is just going to show the same generated code as 
+             * many of the other tests.  the run results are far more  interesting
+             */
+        }
 
-    [ClrOnlyFact]
-    public void IncrementersAndIndexedProperties()
-    {
-        var source1 = @"
+        [ClrOnlyFact]
+        public void IncrementersAndIndexedProperties()
+        {
+            var source1 = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
@@ -2383,8 +2383,8 @@ Public Class A
 End Class
 ";
 
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            var source2 =
 @"
 using System;
 class B
@@ -2403,7 +2403,7 @@ class B
     }
 }
 ";
-        var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: Verification.Passes, expectedOutput:
 @"P1(3).get
 P1(3).set
 6
@@ -2412,8 +2412,8 @@ P1(4).set
 9
 ");
 
-        compilation2.VerifyDiagnostics();
-        compilation2.VerifyIL("B.Main",
+            compilation2.VerifyDiagnostics();
+            compilation2.VerifyIL("B.Main",
 @"{
   // Code size       57 (0x39)
   .maxstack  4
@@ -2444,14 +2444,14 @@ P1(4).set
   IL_0033:  call       ""void System.Console.WriteLine(int)""
   IL_0038:  ret
 }");
-    }
+        }
 
-    [WorkItem(546441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546441")]
-    [Fact]
-    public void UnimplementedIndexedProperty()
-    {
-        // From Microsoft.Vbe.Interop, Version=14.0.0.0.
-        var il = @"
+        [WorkItem(546441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546441")]
+        [Fact]
+        public void UnimplementedIndexedProperty()
+        {
+            // From Microsoft.Vbe.Interop, Version=14.0.0.0.
+            var il = @"
 .class public auto ansi sealed Microsoft.Vbe.Interop.vbext_ProcKind
        extends [mscorlib]System.Enum
 {
@@ -2490,7 +2490,7 @@ P1(4).set
 } // end of class Microsoft.Vbe.Interop.CodeModule
 ";
 
-        var source = @"
+            var source = @"
 using Microsoft.Vbe.Interop;
 
 class C : CodeModule
@@ -2502,34 +2502,34 @@ class D : CodeModule
     public string get_ProcOfLine(int line, out Microsoft.Vbe.Interop.vbext_ProcKind procKind) { throw null; }
 }
 ";
-        var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
-        comp.VerifyDiagnostics(
-            // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
-            // class C : CodeModule
-            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CodeModule").WithArguments("C", "Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get"));
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0535: 'C' does not implement interface member 'Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get'
+                // class C : CodeModule
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "CodeModule").WithArguments("C", "Microsoft.Vbe.Interop._CodeModule.ProcOfLine[int, out Microsoft.Vbe.Interop.vbext_ProcKind].get"));
 
-        var interfaceProperty = comp.GlobalNamespace
-            .GetMember<NamespaceSymbol>("Microsoft")
-            .GetMember<NamespaceSymbol>("Vbe")
-            .GetMember<NamespaceSymbol>("Interop")
-            .GetMember<NamedTypeSymbol>("_CodeModule")
-            .GetMember<PropertySymbol>("ProcOfLine");
-        Assert.True(interfaceProperty.IsIndexedProperty);
+            var interfaceProperty = comp.GlobalNamespace
+                .GetMember<NamespaceSymbol>("Microsoft")
+                .GetMember<NamespaceSymbol>("Vbe")
+                .GetMember<NamespaceSymbol>("Interop")
+                .GetMember<NamedTypeSymbol>("_CodeModule")
+                .GetMember<PropertySymbol>("ProcOfLine");
+            Assert.True(interfaceProperty.IsIndexedProperty);
 
-        var sourceType1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-        Assert.Null(sourceType1.FindImplementationForInterfaceMember(interfaceProperty));
-        Assert.Null(sourceType1.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
+            var sourceType1 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.Null(sourceType1.FindImplementationForInterfaceMember(interfaceProperty));
+            Assert.Null(sourceType1.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
 
-        var sourceType2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
-        Assert.Null(sourceType2.FindImplementationForInterfaceMember(interfaceProperty));
-        Assert.NotNull(sourceType2.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
-    }
+            var sourceType2 = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
+            Assert.Null(sourceType2.FindImplementationForInterfaceMember(interfaceProperty));
+            Assert.NotNull(sourceType2.FindImplementationForInterfaceMember(interfaceProperty.GetMethod));
+        }
 
-    [WorkItem(530571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530571")]
-    [Fact(Skip = "530571")]
-    public void GetAccessorMethodBug16439()
-    {
-        var il = @"
+        [WorkItem(530571, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530571")]
+        [Fact(Skip = "530571")]
+        public void GetAccessorMethodBug16439()
+        {
+            var il = @"
 .class interface public abstract import InterfaceA
 {
   .custom instance void [mscorlib]System.Runtime.InteropServices.CoClassAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 01 41 00 00 )
@@ -2570,7 +2570,7 @@ class D : CodeModule
 }
 ";
 
-        var source = @"
+            var source = @"
 class Test
 {
    public static void Main()
@@ -2580,17 +2580,17 @@ class Test
    }
 }
 ";
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 0";
-        var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
-        CompileAndVerify(compilation, expectedOutput: expectedOutput);
-    }
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
 
-    [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
-    [ClrOnlyFact]
-    public void IndexedPropertyColorColor()
-    {
-        var source1 =
+        [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
+        [ClrOnlyFact]
+        public void IndexedPropertyColorColor()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -2617,8 +2617,8 @@ Public Class A
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -2628,11 +2628,11 @@ End Class";
         IA.P[2] = o;
     }
 }";
-        var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"P[1]
 P[2] = 2
 ");
-        compilation2.VerifyIL("B.Main()",
+            compilation2.VerifyIL("B.Main()",
 @"{
   // Code size       21 (0x15)
   .maxstack  3
@@ -2647,13 +2647,13 @@ P[2] = 2
   IL_000f:  callvirt   ""void IA.P[int].set""
   IL_0014:  ret
 }");
-    }
+        }
 
-    [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-    [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-    public void IndexedPropertyDynamicInvocation()
-    {
-        var source1 =
+        [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        public void IndexedPropertyDynamicInvocation()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -2690,8 +2690,8 @@ Public Class A
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -2703,16 +2703,16 @@ End Class";
     }
 }";
 
-        var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
-        CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
-    }
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
+        }
 
-    [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
-    [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
-    [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
-    public void IndexedPropertyDynamicColorColorInvocation()
-    {
-        var source1 =
+        [WorkItem(846234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846234")]
+        [WorkItem(853401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853401")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        public void IndexedPropertyDynamicColorColorInvocation()
+        {
+            var source1 =
 @"Imports System
 Imports System.Runtime.InteropServices
 <Assembly: PrimaryInteropAssembly(0, 0)>
@@ -2749,8 +2749,8 @@ Public Class A
         End Property
     End Class
 End Class";
-        var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
-        var source2 =
+            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            var source2 =
 @"class B
 {
     static void Main()
@@ -2762,9 +2762,10 @@ End Class";
     }
 }";
 
-        var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
-        compilation2.VerifyEmitDiagnostics(); // Used to assert.
+            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1, CSharpRef }, TestOptions.ReleaseExe);
+            compilation2.VerifyEmitDiagnostics(); // Used to assert.
 
-        CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
+            CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(compilation2); // As in dev11.
+        }
     }
 }

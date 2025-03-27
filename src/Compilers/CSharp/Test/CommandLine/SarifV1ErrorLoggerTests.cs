@@ -11,35 +11,35 @@ using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Microsoft.CodeAnalysis.DiagnosticExtensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
-
-[Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
-public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
+namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    protected override string ErrorLogQualifier => string.Empty;
-
-    internal override string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd)
+    [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
+    public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
     {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = @"
+        protected override string ErrorLogQualifier => string.Empty;
+
+        internal override string GetExpectedOutputForNoDiagnostics(MockCSharpCompiler cmd)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = @"
       ""results"": [
       ]
     }
   ]
 }";
-        return expectedHeader + expectedIssues;
-    }
+            return expectedHeader + expectedIssues;
+        }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-    public void NoDiagnostics()
-    {
-        NoDiagnosticsImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void NoDiagnostics()
+        {
+            NoDiagnosticsImpl();
+        }
 
-    internal override string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile)
-    {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = string.Format(@"
+        internal override string GetExpectedOutputForSimpleCompilerDiagnostics(MockCSharpCompiler cmd, string sourceFile)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = string.Format(@"
       ""results"": [
         {{
           ""ruleId"": ""CS5001"",
@@ -102,19 +102,19 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
-        return expectedHeader + expectedIssues;
-    }
+            return expectedHeader + expectedIssues;
+        }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-    public void SimpleCompilerDiagnostics()
-    {
-        SimpleCompilerDiagnosticsImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnostics()
+        {
+            SimpleCompilerDiagnosticsImpl();
+        }
 
-    internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds)
-    {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = string.Format(@"
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(MockCSharpCompiler cmd, string sourceFile, params string[] suppressionKinds)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = string.Format(@"
       ""results"": [
         {{
           ""ruleId"": ""CS5001"",
@@ -180,69 +180,70 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
-        return expectedHeader + expectedIssues;
-    }
+            return expectedHeader + expectedIssues;
+        }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-    public void SimpleCompilerDiagnosticsSuppressed()
-    {
-        SimpleCompilerDiagnosticsSuppressedImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void SimpleCompilerDiagnosticsSuppressed()
+        {
+            SimpleCompilerDiagnosticsSuppressedImpl();
+        }
 
-    internal override string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd)
-    {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
-        return expectedHeader + expectedIssues;
-    }
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation);
+            return expectedHeader + expectedIssues;
+        }
 
-    internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
-    {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogWithSuppressionResultsAndRulesText(cmd.Compilation);
-        return expectedHeader + expectedIssues;
-    }
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogWithSuppressionResultsAndRulesText(cmd.Compilation);
+            return expectedHeader + expectedIssues;
+        }
 
-    internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
-    {
-        var expectedHeader = GetExpectedErrorLogHeader(cmd);
-        var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation, warnAsError: true);
-        return expectedHeader + expectedIssues;
-    }
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithWarnAsError(MockCSharpCompiler cmd)
+        {
+            var expectedHeader = GetExpectedErrorLogHeader(cmd);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedV1ErrorLogResultsAndRulesText(cmd.Compilation, warnAsError: true);
+            return expectedHeader + expectedIssues;
+        }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-    public void AnalyzerDiagnosticsWithAndWithoutLocation()
-    {
-        AnalyzerDiagnosticsWithAndWithoutLocationImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
+        public void AnalyzerDiagnosticsWithAndWithoutLocation()
+        {
+            AnalyzerDiagnosticsWithAndWithoutLocationImpl();
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void AnalyzerDiagnosticsSuppressedWithJustification()
-    {
-        AnalyzerDiagnosticsSuppressedWithJustificationImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithJustificationImpl();
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
-    {
-        AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithMissingJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithMissingJustificationImpl();
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
-    {
-        AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithEmptyJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithEmptyJustificationImpl();
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void AnalyzerDiagnosticsSuppressedWithNullJustification()
-    {
-        AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
-    }
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsSuppressedWithNullJustification()
+        {
+            AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void AnalyzerDiagnosticsWithWarnAsError()
-    {
-        AnalyzerDiagnosticsWithWarnAsErrorImpl();
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void AnalyzerDiagnosticsWithWarnAsError()
+        {
+            AnalyzerDiagnosticsWithWarnAsErrorImpl();
+        }
     }
 }

@@ -9,88 +9,89 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitIsOperator(BoundIsOperator node)
+    internal sealed partial class LocalRewriter
     {
-        BoundExpression rewrittenOperand = VisitExpression(node.Operand);
-        var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
-        TypeSymbol rewrittenType = VisitType(node.Type);
-
-        return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.ConversionKind, rewrittenType);
-    }
-
-    private BoundExpression MakeIsOperator(
-        BoundIsOperator oldNode,
-        SyntaxNode syntax,
-        BoundExpression rewrittenOperand,
-        BoundTypeExpression rewrittenTargetType,
-        ConversionKind conversionKind,
-        TypeSymbol rewrittenType)
-    {
-        if (rewrittenOperand.Kind == BoundKind.MethodGroup)
+        public override BoundNode VisitIsOperator(BoundIsOperator node)
         {
-            var methodGroup = (BoundMethodGroup)rewrittenOperand;
-            BoundExpression? receiver = methodGroup.ReceiverOpt;
-            if (receiver != null && receiver.Kind != BoundKind.ThisReference)
-            {
-                // possible side-effect
-                return RewriteConstantIsOperator(receiver.Syntax, receiver, ConstantValue.False, rewrittenType);
-            }
-            else
-            {
-                return MakeLiteral(syntax, ConstantValue.False, rewrittenType);
-            }
+            BoundExpression rewrittenOperand = VisitExpression(node.Operand);
+            var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
+            TypeSymbol rewrittenType = VisitType(node.Type);
+
+            return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.ConversionKind, rewrittenType);
         }
 
-        var operandType = rewrittenOperand.Type;
-        var targetType = rewrittenTargetType.Type;
-
-        Debug.Assert(operandType is { } || rewrittenOperand.ConstantValueOpt!.IsNull);
-        Debug.Assert(targetType is { });
-
-        // TODO: Handle dynamic operand type and target type
-
-        if (!_inExpressionLambda)
+        private BoundExpression MakeIsOperator(
+            BoundIsOperator oldNode,
+            SyntaxNode syntax,
+            BoundExpression rewrittenOperand,
+            BoundTypeExpression rewrittenTargetType,
+            ConversionKind conversionKind,
+            TypeSymbol rewrittenType)
         {
-            ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt);
-
-            if (constantValue != null)
+            if (rewrittenOperand.Kind == BoundKind.MethodGroup)
             {
-                if (constantValue.IsBad)
+                var methodGroup = (BoundMethodGroup)rewrittenOperand;
+                BoundExpression? receiver = methodGroup.ReceiverOpt;
+                if (receiver != null && receiver.Kind != BoundKind.ThisReference)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(constantValue);
+                    // possible side-effect
+                    return RewriteConstantIsOperator(receiver.Syntax, receiver, ConstantValue.False, rewrittenType);
                 }
+                else
+                {
+                    return MakeLiteral(syntax, ConstantValue.False, rewrittenType);
+                }
+            }
 
-                return RewriteConstantIsOperator(syntax, rewrittenOperand, constantValue, rewrittenType);
-            }
-            else if (conversionKind.IsImplicitConversion())
+            var operandType = rewrittenOperand.Type;
+            var targetType = rewrittenTargetType.Type;
+
+            Debug.Assert(operandType is { } || rewrittenOperand.ConstantValueOpt!.IsNull);
+            Debug.Assert(targetType is { });
+
+            // TODO: Handle dynamic operand type and target type
+
+            if (!_inExpressionLambda)
             {
-                // operand is a reference type with bound identity or implicit conversion
-                // We can replace the "is" instruction with a null check
-                return _factory.MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt);
+
+                if (constantValue != null)
+                {
+                    if (constantValue.IsBad)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(constantValue);
+                    }
+
+                    return RewriteConstantIsOperator(syntax, rewrittenOperand, constantValue, rewrittenType);
+                }
+                else if (conversionKind.IsImplicitConversion())
+                {
+                    // operand is a reference type with bound identity or implicit conversion
+                    // We can replace the "is" instruction with a null check
+                    return _factory.MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
+                }
             }
+
+            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversionKind, rewrittenType);
         }
 
-        return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversionKind, rewrittenType);
-    }
+        private BoundExpression RewriteConstantIsOperator(
+            SyntaxNode syntax,
+            BoundExpression loweredOperand,
+            ConstantValue constantValue,
+            TypeSymbol type)
+        {
+            Debug.Assert(constantValue == ConstantValue.True || constantValue == ConstantValue.False);
+            Debug.Assert((object)type != null);
 
-    private BoundExpression RewriteConstantIsOperator(
-        SyntaxNode syntax,
-        BoundExpression loweredOperand,
-        ConstantValue constantValue,
-        TypeSymbol type)
-    {
-        Debug.Assert(constantValue == ConstantValue.True || constantValue == ConstantValue.False);
-        Debug.Assert((object)type != null);
-
-        return new BoundSequence(
-            syntax: syntax,
-            locals: ImmutableArray<LocalSymbol>.Empty,
-            sideEffects: ImmutableArray.Create<BoundExpression>(loweredOperand),
-            value: MakeLiteral(syntax, constantValue, type),
-            type: type);
+            return new BoundSequence(
+                syntax: syntax,
+                locals: ImmutableArray<LocalSymbol>.Empty,
+                sideEffects: ImmutableArray.Create<BoundExpression>(loweredOperand),
+                value: MakeLiteral(syntax, constantValue, type),
+                type: type);
+        }
     }
 }

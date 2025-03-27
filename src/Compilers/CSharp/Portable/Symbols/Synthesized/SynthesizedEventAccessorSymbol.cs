@@ -11,157 +11,158 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Event accessor that has been synthesized for a field-like event declared in source,
-/// or for an event re-abstraction in an interface.
-/// </summary>
-/// <remarks>
-/// Associated with <see cref="SourceFieldLikeEventSymbol"/> and <see cref="SourceCustomEventSymbol"/>.
-/// </remarks>
-internal sealed class SynthesizedEventAccessorSymbol : SourceEventAccessorSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // Since we don't have a syntax reference, we'll have to use another object for locking.
-    private readonly object _methodChecksLockObject = new object();
-
-    internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, bool isExpressionBodied, EventSymbol explicitlyImplementedEventOpt = null, string aliasQualifierOpt = null)
-        : base(@event, null, @event.Location, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder, isIterator: false, isNullableAnalysisEnabled: false, isExpressionBodied: isExpressionBodied)
+    /// <summary>
+    /// Event accessor that has been synthesized for a field-like event declared in source,
+    /// or for an event re-abstraction in an interface.
+    /// </summary>
+    /// <remarks>
+    /// Associated with <see cref="SourceFieldLikeEventSymbol"/> and <see cref="SourceCustomEventSymbol"/>.
+    /// </remarks>
+    internal sealed class SynthesizedEventAccessorSymbol : SourceEventAccessorSymbol
     {
-        Debug.Assert(IsAbstract || IsExtern || IsFieldLikeEventAccessor());
-    }
+        // Since we don't have a syntax reference, we'll have to use another object for locking.
+        private readonly object _methodChecksLockObject = new object();
 
-    private bool IsFieldLikeEventAccessor()
-    {
-        return AssociatedEvent.HasAssociatedField;
-    }
-
-    public override bool IsImplicitlyDeclared
-    {
-        get { return true; }
-    }
-
-    internal override bool GenerateDebugInfo
-    {
-        get { return false; }
-    }
-
-    protected override SourceMemberMethodSymbol BoundAttributesSource
-    {
-        get
+        internal SynthesizedEventAccessorSymbol(SourceEventSymbol @event, bool isAdder, bool isExpressionBodied, EventSymbol explicitlyImplementedEventOpt = null, string aliasQualifierOpt = null)
+            : base(@event, null, @event.Location, explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder, isIterator: false, isNullableAnalysisEnabled: false, isExpressionBodied: isExpressionBodied)
         {
-            Debug.Assert(PartialImplementationPart is null);
+            Debug.Assert(IsAbstract || IsExtern || IsFieldLikeEventAccessor());
+        }
 
+        private bool IsFieldLikeEventAccessor()
+        {
+            return AssociatedEvent.HasAssociatedField;
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get { return true; }
+        }
+
+        internal override bool GenerateDebugInfo
+        {
+            get { return false; }
+        }
+
+        protected override SourceMemberMethodSymbol BoundAttributesSource
+        {
+            get
+            {
+                Debug.Assert(PartialImplementationPart is null);
+
+                if (PartialDefinitionPart is { } definitionPart)
+                {
+                    return (SourceMemberMethodSymbol)definitionPart;
+                }
+
+                return this.MethodKind == MethodKind.EventAdd
+                    ? (SourceMemberMethodSymbol)this.AssociatedEvent.RemoveMethod
+                    : null;
+            }
+        }
+
+        protected override IAttributeTargetSymbol AttributeOwner
+        {
+            get
+            {
+                // attributes for this accessor are specified on the associated event:
+                return AssociatedEvent;
+            }
+        }
+
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // If we are asking this question on a partial implementation symbol,
+            // it must be from a context which prefers to order implementation attributes before definition attributes.
+            // For example, the 'value' parameter of an add or remove accessor.
             if (PartialDefinitionPart is { } definitionPart)
             {
-                return (SourceMemberMethodSymbol)definitionPart;
+                return OneOrMany.Create(
+                    this.AssociatedEvent.AttributeDeclarationSyntaxList,
+                    ((SourceEventAccessorSymbol)definitionPart).AssociatedEvent.AttributeDeclarationSyntaxList);
             }
 
-            return this.MethodKind == MethodKind.EventAdd
-                ? (SourceMemberMethodSymbol)this.AssociatedEvent.RemoveMethod
-                : null;
-        }
-    }
-
-    protected override IAttributeTargetSymbol AttributeOwner
-    {
-        get
-        {
-            // attributes for this accessor are specified on the associated event:
-            return AssociatedEvent;
-        }
-    }
-
-    internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-    {
-        // If we are asking this question on a partial implementation symbol,
-        // it must be from a context which prefers to order implementation attributes before definition attributes.
-        // For example, the 'value' parameter of an add or remove accessor.
-        if (PartialDefinitionPart is { } definitionPart)
-        {
-            return OneOrMany.Create(
-                this.AssociatedEvent.AttributeDeclarationSyntaxList,
-                ((SourceEventAccessorSymbol)definitionPart).AssociatedEvent.AttributeDeclarationSyntaxList);
-        }
-
-        if (PartialImplementationPart is { } implementationPart)
-        {
-            return OneOrMany.Create(
-                this.AssociatedEvent.AttributeDeclarationSyntaxList,
-                ((SourceEventAccessorSymbol)implementationPart).AssociatedEvent.AttributeDeclarationSyntaxList);
-        }
-
-        return OneOrMany.Create(this.AssociatedEvent.AttributeDeclarationSyntaxList);
-    }
-
-    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-    {
-        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-        var compilation = this.DeclaringCompilation;
-        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-    }
-
-    protected override object MethodChecksLockObject
-    {
-        get { return _methodChecksLockObject; }
-    }
-
-    internal override MethodImplAttributes ImplementationAttributes
-    {
-        get
-        {
-            MethodImplAttributes result = base.ImplementationAttributes;
-
-            if (!IsAbstract && !AssociatedEvent.IsWindowsRuntimeEvent && !ContainingType.IsStructType() &&
-                (object)DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) == null)
+            if (PartialImplementationPart is { } implementationPart)
             {
-                // Under these conditions, this method needs to be synchronized.
-                result |= MethodImplAttributes.Synchronized;
+                return OneOrMany.Create(
+                    this.AssociatedEvent.AttributeDeclarationSyntaxList,
+                    ((SourceEventAccessorSymbol)implementationPart).AssociatedEvent.AttributeDeclarationSyntaxList);
             }
 
-            return result;
+            return OneOrMany.Create(this.AssociatedEvent.AttributeDeclarationSyntaxList);
         }
-    }
 
-    internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
-    {
-        return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
-    }
-
-    internal override bool SynthesizesLoweredBoundBody
-    {
-        get
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            Debug.Assert(TryGetBodyBinder() is null);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        }
+
+        protected override object MethodChecksLockObject
+        {
+            get { return _methodChecksLockObject; }
+        }
+
+        internal override MethodImplAttributes ImplementationAttributes
+        {
+            get
+            {
+                MethodImplAttributes result = base.ImplementationAttributes;
+
+                if (!IsAbstract && !AssociatedEvent.IsWindowsRuntimeEvent && !ContainingType.IsStructType() &&
+                    (object)DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T) == null)
+                {
+                    // Under these conditions, this method needs to be synchronized.
+                    result |= MethodImplAttributes.Synchronized;
+                }
+
+                return result;
+            }
+        }
+
+        internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
+        }
+
+        internal override bool SynthesizesLoweredBoundBody
+        {
+            get
+            {
+                Debug.Assert(TryGetBodyBinder() is null);
+
+                if (IsFieldLikeEventAccessor())
+                {
+                    return true;
+                }
+
+                return base.SynthesizesLoweredBoundBody;
+            }
+        }
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        {
             if (IsFieldLikeEventAccessor())
             {
-                return true;
-            }
-
-            return base.SynthesizesLoweredBoundBody;
-        }
-    }
-
-    internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-    {
-        if (IsFieldLikeEventAccessor())
-        {
-            SourceEventSymbol fieldLikeEvent = AssociatedEvent;
-            if (fieldLikeEvent.Type.IsDelegateType())
-            {
-                BoundBlock body = CSharp.MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(fieldLikeEvent, isAddMethod: MethodKind == MethodKind.EventAdd, compilationState.Compilation, diagnostics);
-
-                if (body != null)
+                SourceEventSymbol fieldLikeEvent = AssociatedEvent;
+                if (fieldLikeEvent.Type.IsDelegateType())
                 {
-                    compilationState.AddSynthesizedMethod(this, body);
+                    BoundBlock body = CSharp.MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(fieldLikeEvent, isAddMethod: MethodKind == MethodKind.EventAdd, compilationState.Compilation, diagnostics);
+
+                    if (body != null)
+                    {
+                        compilationState.AddSynthesizedMethod(this, body);
+                    }
                 }
+
+                return;
             }
 
-            return;
+            base.GenerateMethodBody(compilationState, diagnostics);
         }
-
-        base.GenerateMethodBody(compilationState, diagnostics);
     }
 }

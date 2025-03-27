@@ -7,53 +7,54 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class GeneratedLabelSymbol : LabelSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly string _name;
-
-    public GeneratedLabelSymbol(string name)
+    internal sealed class GeneratedLabelSymbol : LabelSymbol
     {
-        _name = LabelName(name);
-#if DEBUG
-        NameNoSequence = $"<{name}>";
-#endif
-    }
+        private readonly string _name;
 
-    public override string Name
-    {
-        get
+        public GeneratedLabelSymbol(string name)
         {
-            return _name;
-        }
-    }
-
+            _name = LabelName(name);
 #if DEBUG
-    internal string NameNoSequence { get; }
-
-    private static int s_sequence = 1;
+            NameNoSequence = $"<{name}>";
 #endif
-    private static string LabelName(string name)
-    {
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
+
 #if DEBUG
-        int seq = System.Threading.Interlocked.Add(ref s_sequence, 1);
-        return "<" + name + "-" + (seq & 0xffff) + ">";
+        internal string NameNoSequence { get; }
+
+        private static int s_sequence = 1;
+#endif
+        private static string LabelName(string name)
+        {
+#if DEBUG
+            int seq = System.Threading.Interlocked.Add(ref s_sequence, 1);
+            return "<" + name + "-" + (seq & 0xffff) + ">";
 #else
-        return name;
+            return name;
 #endif
-    }
-
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get
-        {
-            return ImmutableArray<SyntaxReference>.Empty;
         }
-    }
 
-    public override bool IsImplicitlyDeclared
-    {
-        get { return true; }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return ImmutableArray<SyntaxReference>.Empty;
+            }
+        }
+
+        public override bool IsImplicitlyDeclared
+        {
+            get { return true; }
+        }
     }
 }

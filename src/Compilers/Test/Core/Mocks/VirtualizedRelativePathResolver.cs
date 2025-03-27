@@ -10,21 +10,22 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities;
-
-internal sealed class VirtualizedRelativePathResolver : RelativePathResolver
+namespace Roslyn.Test.Utilities
 {
-    private readonly HashSet<string> _existingFullPaths;
-
-    public VirtualizedRelativePathResolver(IEnumerable<string> existingFullPaths, string baseDirectory = null, ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
-        : base(searchPaths.NullToEmpty(), baseDirectory)
+    internal sealed class VirtualizedRelativePathResolver : RelativePathResolver
     {
-        _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.Ordinal);
-    }
+        private readonly HashSet<string> _existingFullPaths;
 
-    protected override bool FileExists(string fullPath)
-    {
-        // normalize path to remove '..' and '.'
-        return _existingFullPaths.Contains(Path.GetFullPath(fullPath));
+        public VirtualizedRelativePathResolver(IEnumerable<string> existingFullPaths, string baseDirectory = null, ImmutableArray<string> searchPaths = default(ImmutableArray<string>))
+            : base(searchPaths.NullToEmpty(), baseDirectory)
+        {
+            _existingFullPaths = new HashSet<string>(existingFullPaths, StringComparer.Ordinal);
+        }
+
+        protected override bool FileExists(string fullPath)
+        {
+            // normalize path to remove '..' and '.'
+            return _existingFullPaths.Contains(Path.GetFullPath(fullPath));
+        }
     }
 }

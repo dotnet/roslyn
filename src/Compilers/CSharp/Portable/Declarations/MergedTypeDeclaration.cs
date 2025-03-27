@@ -13,246 +13,247 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-// An invariant of a merged type declaration is that all of its children are also merged
-// declarations.
-[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
-    private ImmutableArray<MergedTypeDeclaration> _lazyChildren;
-    private ICollection<string> _lazyMemberNames;
-
-    internal MergedTypeDeclaration(ImmutableArray<SingleTypeDeclaration> declarations)
-        : base(declarations[0].Name)
+    // An invariant of a merged type declaration is that all of its children are also merged
+    // declarations.
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
     {
-        _declarations = declarations;
-    }
+        private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
+        private ImmutableArray<MergedTypeDeclaration> _lazyChildren;
+        private ICollection<string> _lazyMemberNames;
 
-    public ImmutableArray<SingleTypeDeclaration> Declarations
-    {
-        get
+        internal MergedTypeDeclaration(ImmutableArray<SingleTypeDeclaration> declarations)
+            : base(declarations[0].Name)
         {
-            return _declarations;
+            _declarations = declarations;
         }
-    }
 
-    public ImmutableArray<SyntaxReference> SyntaxReferences
-    {
-        get
+        public ImmutableArray<SingleTypeDeclaration> Declarations
         {
-            return _declarations.SelectAsArray(r => r.SyntaxReference);
-        }
-    }
-
-    /// <summary>
-    /// Returns the original syntax nodes for this type declaration across all its parts.  If
-    /// <paramref name="quickAttributes"/> is provided, attributes will not be returned if it
-    /// is certain there are none that could match the request.  This prevents going back to 
-    /// source unnecessarily.
-    /// </summary>
-    public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
-    {
-        var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
-
-        foreach (var decl in _declarations)
-        {
-            if (!decl.HasAnyAttributes)
+            get
             {
-                continue;
+                return _declarations;
             }
+        }
 
-            if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
+        public ImmutableArray<SyntaxReference> SyntaxReferences
+        {
+            get
             {
-                continue;
+                return _declarations.SelectAsArray(r => r.SyntaxReference);
             }
+        }
 
-            var syntaxRef = decl.SyntaxReference;
-            var typeDecl = syntaxRef.GetSyntax();
-            SyntaxList<AttributeListSyntax> attributesSyntaxList;
-            switch (typeDecl.Kind())
+        /// <summary>
+        /// Returns the original syntax nodes for this type declaration across all its parts.  If
+        /// <paramref name="quickAttributes"/> is provided, attributes will not be returned if it
+        /// is certain there are none that could match the request.  This prevents going back to 
+        /// source unnecessarily.
+        /// </summary>
+        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
+        {
+            var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
+
+            foreach (var decl in _declarations)
             {
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.RecordDeclaration:
-                case SyntaxKind.RecordStructDeclaration:
-                    attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
-                    break;
-
-                case SyntaxKind.DelegateDeclaration:
-                    attributesSyntaxList = ((DelegateDeclarationSyntax)typeDecl).AttributeLists;
-                    break;
-
-                case SyntaxKind.EnumDeclaration:
-                    attributesSyntaxList = ((EnumDeclarationSyntax)typeDecl).AttributeLists;
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
-            }
-
-            attributeSyntaxListBuilder.Add(attributesSyntaxList);
-        }
-
-        return attributeSyntaxListBuilder.ToImmutableAndFree();
-    }
-
-    public override DeclarationKind Kind
-    {
-        get
-        {
-            return this.Declarations[0].Kind;
-        }
-    }
-
-    public int Arity
-    {
-        get
-        {
-            return this.Declarations[0].Arity;
-        }
-    }
-
-    public bool ContainsExtensionMethods
-    {
-        get
-        {
-            foreach (var decl in this.Declarations)
-            {
-                if (decl.AnyMemberHasExtensionMethodSyntax)
-                    return true;
-            }
-
-            return false;
-        }
-    }
-
-    public bool HasPrimaryConstructor
-    {
-        get
-        {
-            foreach (var decl in this.Declarations)
-            {
-                if (decl.HasPrimaryConstructor)
-                    return true;
-            }
-
-            return false;
-        }
-    }
-
-    public bool AnyMemberHasAttributes
-    {
-        get
-        {
-            foreach (var decl in this.Declarations)
-            {
-                if (decl.AnyMemberHasAttributes)
-                    return true;
-            }
-
-            return false;
-        }
-    }
-
-    public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
-    {
-        LexicalSortKey sortKey = new LexicalSortKey(Declarations[0].NameLocation, compilation);
-        for (var i = 1; i < Declarations.Length; i++)
-        {
-            sortKey = LexicalSortKey.First(sortKey, new LexicalSortKey(Declarations[i].NameLocation, compilation));
-        }
-
-        return sortKey;
-    }
-
-    public OneOrMany<SourceLocation> NameLocations
-    {
-        get
-        {
-            if (Declarations.Length == 1)
-                return OneOrMany.Create(Declarations[0].NameLocation);
-
-            var builder = ArrayBuilder<SourceLocation>.GetInstance(Declarations.Length);
-            foreach (var decl in Declarations)
-                builder.AddIfNotNull(decl.NameLocation);
-
-            return builder.ToOneOrManyAndFree();
-        }
-    }
-
-    private ImmutableArray<MergedTypeDeclaration> MakeChildren()
-    {
-        ArrayBuilder<SingleTypeDeclaration> nestedTypes = null;
-
-        foreach (var decl in this.Declarations)
-        {
-            foreach (var child in decl.Children)
-            {
-                var asType = child as SingleTypeDeclaration;
-                if (asType != null)
+                if (!decl.HasAnyAttributes)
                 {
-                    if (nestedTypes == null)
+                    continue;
+                }
+
+                if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
+                {
+                    continue;
+                }
+
+                var syntaxRef = decl.SyntaxReference;
+                var typeDecl = syntaxRef.GetSyntax();
+                SyntaxList<AttributeListSyntax> attributesSyntaxList;
+                switch (typeDecl.Kind())
+                {
+                    case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.InterfaceDeclaration:
+                    case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
+                        attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
+                        break;
+
+                    case SyntaxKind.DelegateDeclaration:
+                        attributesSyntaxList = ((DelegateDeclarationSyntax)typeDecl).AttributeLists;
+                        break;
+
+                    case SyntaxKind.EnumDeclaration:
+                        attributesSyntaxList = ((EnumDeclarationSyntax)typeDecl).AttributeLists;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
+                }
+
+                attributeSyntaxListBuilder.Add(attributesSyntaxList);
+            }
+
+            return attributeSyntaxListBuilder.ToImmutableAndFree();
+        }
+
+        public override DeclarationKind Kind
+        {
+            get
+            {
+                return this.Declarations[0].Kind;
+            }
+        }
+
+        public int Arity
+        {
+            get
+            {
+                return this.Declarations[0].Arity;
+            }
+        }
+
+        public bool ContainsExtensionMethods
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.AnyMemberHasExtensionMethodSyntax)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasPrimaryConstructor
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.HasPrimaryConstructor)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public bool AnyMemberHasAttributes
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.AnyMemberHasAttributes)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
+        public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
+        {
+            LexicalSortKey sortKey = new LexicalSortKey(Declarations[0].NameLocation, compilation);
+            for (var i = 1; i < Declarations.Length; i++)
+            {
+                sortKey = LexicalSortKey.First(sortKey, new LexicalSortKey(Declarations[i].NameLocation, compilation));
+            }
+
+            return sortKey;
+        }
+
+        public OneOrMany<SourceLocation> NameLocations
+        {
+            get
+            {
+                if (Declarations.Length == 1)
+                    return OneOrMany.Create(Declarations[0].NameLocation);
+
+                var builder = ArrayBuilder<SourceLocation>.GetInstance(Declarations.Length);
+                foreach (var decl in Declarations)
+                    builder.AddIfNotNull(decl.NameLocation);
+
+                return builder.ToOneOrManyAndFree();
+            }
+        }
+
+        private ImmutableArray<MergedTypeDeclaration> MakeChildren()
+        {
+            ArrayBuilder<SingleTypeDeclaration> nestedTypes = null;
+
+            foreach (var decl in this.Declarations)
+            {
+                foreach (var child in decl.Children)
+                {
+                    var asType = child as SingleTypeDeclaration;
+                    if (asType != null)
                     {
-                        nestedTypes = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
+                        if (nestedTypes == null)
+                        {
+                            nestedTypes = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
+                        }
+                        nestedTypes.Add(asType);
                     }
-                    nestedTypes.Add(asType);
                 }
             }
+
+            var children = ArrayBuilder<MergedTypeDeclaration>.GetInstance();
+
+            if (nestedTypes != null)
+            {
+                var typesGrouped = nestedTypes.ToDictionary(t => t.Identity);
+                nestedTypes.Free();
+
+                foreach (var typeGroup in typesGrouped.Values)
+                {
+                    children.Add(new MergedTypeDeclaration(typeGroup));
+                }
+            }
+
+            return children.ToImmutableAndFree();
         }
 
-        var children = ArrayBuilder<MergedTypeDeclaration>.GetInstance();
-
-        if (nestedTypes != null)
+        public new ImmutableArray<MergedTypeDeclaration> Children
         {
-            var typesGrouped = nestedTypes.ToDictionary(t => t.Identity);
-            nestedTypes.Free();
-
-            foreach (var typeGroup in typesGrouped.Values)
+            get
             {
-                children.Add(new MergedTypeDeclaration(typeGroup));
+                if (_lazyChildren.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyChildren, MakeChildren());
+                }
+
+                return _lazyChildren;
             }
         }
 
-        return children.ToImmutableAndFree();
-    }
-
-    public new ImmutableArray<MergedTypeDeclaration> Children
-    {
-        get
+        protected override ImmutableArray<Declaration> GetDeclarationChildren()
         {
-            if (_lazyChildren.IsDefault)
-            {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyChildren, MakeChildren());
-            }
-
-            return _lazyChildren;
+            return StaticCast<Declaration>.From(this.Children);
         }
-    }
 
-    protected override ImmutableArray<Declaration> GetDeclarationChildren()
-    {
-        return StaticCast<Declaration>.From(this.Children);
-    }
-
-    public ICollection<string> MemberNames
-    {
-        get
+        public ICollection<string> MemberNames
         {
-            if (_lazyMemberNames == null)
+            get
             {
-                var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Value);
-                Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
+                if (_lazyMemberNames == null)
+                {
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Value);
+                    Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
+                }
+
+                return _lazyMemberNames;
             }
-
-            return _lazyMemberNames;
         }
-    }
 
-    internal string GetDebuggerDisplay()
-    {
-        return $"{nameof(MergedTypeDeclaration)} {Name}";
+        internal string GetDebuggerDisplay()
+        {
+            return $"{nameof(MergedTypeDeclaration)} {Name}";
+        }
     }
 }

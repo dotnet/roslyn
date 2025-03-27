@@ -5,36 +5,37 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Collections;
-
-internal partial struct ImmutableSegmentedList<T>
+namespace Microsoft.CodeAnalysis.Collections
 {
-    public struct Enumerator : IEnumerator<T>
+    internal partial struct ImmutableSegmentedList<T>
     {
-        private readonly SegmentedList<T> _list;
-        private SegmentedList<T>.Enumerator _enumerator;
-
-        internal Enumerator(SegmentedList<T> list)
+        public struct Enumerator : IEnumerator<T>
         {
-            _list = list;
-            _enumerator = list.GetEnumerator();
-        }
+            private readonly SegmentedList<T> _list;
+            private SegmentedList<T>.Enumerator _enumerator;
 
-        public readonly T Current => _enumerator.Current;
+            internal Enumerator(SegmentedList<T> list)
+            {
+                _list = list;
+                _enumerator = list.GetEnumerator();
+            }
 
-        readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            public readonly T Current => _enumerator.Current;
 
-        public readonly void Dispose()
-            => _enumerator.Dispose();
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
-        public bool MoveNext()
-            => _enumerator.MoveNext();
+            public readonly void Dispose()
+                => _enumerator.Dispose();
 
-        public void Reset()
-        {
-            // Create a new enumerator, since _enumerator.Reset() will fail for cases where the list was mutated
-            // after enumeration started, and ImmutableSegmentList<T>.Builder allows for this case without error.
-            _enumerator = _list.GetEnumerator();
+            public bool MoveNext()
+                => _enumerator.MoveNext();
+
+            public void Reset()
+            {
+                // Create a new enumerator, since _enumerator.Reset() will fail for cases where the list was mutated
+                // after enumeration started, and ImmutableSegmentList<T>.Builder allows for this case without error.
+                _enumerator = _list.GetEnumerator();
+            }
         }
     }
 }

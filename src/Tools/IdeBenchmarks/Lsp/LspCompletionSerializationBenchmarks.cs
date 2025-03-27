@@ -17,41 +17,41 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace IdeBenchmarks.Lsp;
-
-[MemoryDiagnoser]
-public class LspCompletionSerializationBenchmarks : AbstractLanguageServerProtocolTests
+namespace IdeBenchmarks.Lsp
 {
-    protected override TestComposition Composition => FeaturesLspComposition;
-    private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
-
-    private LSP.CompletionList? _list;
-
-    public LspCompletionSerializationBenchmarks() : base(null)
+    [MemoryDiagnoser]
+    public class LspCompletionSerializationBenchmarks : AbstractLanguageServerProtocolTests
     {
-    }
+        protected override TestComposition Composition => FeaturesLspComposition;
+        private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
 
-    [GlobalSetup]
-    public void GlobalSetup()
-    {
-    }
+        private LSP.CompletionList? _list;
 
-    [IterationSetup]
-    public void IterationSetup()
-    {
-        _useExportProviderAttribute.Before(null);
-        LoadSolutionAsync().Wait();
-    }
+        public LspCompletionSerializationBenchmarks() : base(null)
+        {
+        }
 
-    [IterationCleanup]
-    public void CleanupAsync()
-    {
-        _useExportProviderAttribute.Before(null);
-    }
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+        }
 
-    private async Task LoadSolutionAsync()
-    {
-        var markup =
+        [IterationSetup]
+        public void IterationSetup()
+        {
+            _useExportProviderAttribute.Before(null);
+            LoadSolutionAsync().Wait();
+        }
+
+        [IterationCleanup]
+        public void CleanupAsync()
+        {
+            _useExportProviderAttribute.Before(null);
+        }
+
+        private async Task LoadSolutionAsync()
+        {
+            var markup =
 @"using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -85,90 +85,91 @@ class A
         {|caret:|}
     }
 }";
-        await using var testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
-        {
-            TextDocument = new LSP.TextDocumentClientCapabilities
+            await using var testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
             {
-                Completion = new LSP.CompletionSetting
+                TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    CompletionListSetting = new LSP.CompletionListSetting
+                    Completion = new LSP.CompletionSetting
                     {
-                        ItemDefaults = ["editRange", "commitCharacters", "data"],
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = ["editRange", "commitCharacters", "data"],
+                        }
                     }
                 }
-            }
-        }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
-        var globalOptions = testServer.TestWorkspace.GetService<IGlobalOptionService>();
-        globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, -1);
+            var globalOptions = testServer.TestWorkspace.GetService<IGlobalOptionService>();
+            globalOptions.SetGlobalOption(LspOptionsStorage.MaxCompletionListSize, -1);
 
-        var caret = testServer.GetLocations("caret").Single();
-        var completionParams = new LSP.CompletionParams()
-        {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
-            Position = caret.Range.Start,
-            Context = new LSP.CompletionContext()
+            var caret = testServer.GetLocations("caret").Single();
+            var completionParams = new LSP.CompletionParams()
             {
-                TriggerKind = LSP.CompletionTriggerKind.Invoked,
-            }
-        };
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+                Position = caret.Range.Start,
+                Context = new LSP.CompletionContext()
+                {
+                    TriggerKind = LSP.CompletionTriggerKind.Invoked,
+                }
+            };
 
-        var document = testServer.GetCurrentSolution().Projects.First().Documents.First();
-        var results = await testServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
+            var document = testServer.GetCurrentSolution().Projects.First().Documents.First();
+            var results = await testServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
 
-        var list = (await CompletionTests.RunGetCompletionsAsync(testServer, completionParams));
-        if (list.Items.Length == 0)
-            throw new System.Exception();
-
-        using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var builder);
-        while (builder.Count < 10000)
-        {
-            foreach (var item in list.Items)
-            {
-                builder.Add(item);
-                if (item.CommitCharacters is not null || item.Data is not null)
-                    throw new InvalidDataException();
-
-                if (builder.Count == 10000)
-                    break;
-            }
-        }
-
-        list.Items = builder.ToArray();
-        _list = list;
-    }
-
-    [Benchmark]
-    public async Task Serialization()
-    {
-        var serializer = new JsonSerializer();
-        serializer.Formatting = Formatting.None;
-        serializer.NullValueHandling = NullValueHandling.Ignore;
-        serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
-
-        using var stream = new MemoryStream();
-        var sw = new StreamWriter(stream);
-        var jsonWriter = new JsonTextWriter(sw);
-        {
-            serializer.Serialize(jsonWriter, _list);
-            await jsonWriter.FlushAsync();
-        }
-
-        stream.Seek(0, SeekOrigin.Begin);
-
-        using (var sr = new StreamReader(stream))
-        using (var jsonReader = new JsonTextReader(sr))
-        {
-            var list = serializer.Deserialize<LSP.CompletionList>(jsonReader);
-            if (list!.Items.Length != _list!.Items.Length)
+            var list = (await CompletionTests.RunGetCompletionsAsync(testServer, completionParams));
+            if (list.Items.Length == 0)
                 throw new System.Exception();
-        }
-    }
 
-    [Fact]
-    public async Task Test()
-    {
-        await LoadSolutionAsync();
-        await Serialization();
+            using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var builder);
+            while (builder.Count < 10000)
+            {
+                foreach (var item in list.Items)
+                {
+                    builder.Add(item);
+                    if (item.CommitCharacters is not null || item.Data is not null)
+                        throw new InvalidDataException();
+
+                    if (builder.Count == 10000)
+                        break;
+                }
+            }
+
+            list.Items = builder.ToArray();
+            _list = list;
+        }
+
+        [Benchmark]
+        public async Task Serialization()
+        {
+            var serializer = new JsonSerializer();
+            serializer.Formatting = Formatting.None;
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.DefaultValueHandling = DefaultValueHandling.Ignore;
+
+            using var stream = new MemoryStream();
+            var sw = new StreamWriter(stream);
+            var jsonWriter = new JsonTextWriter(sw);
+            {
+                serializer.Serialize(jsonWriter, _list);
+                await jsonWriter.FlushAsync();
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using (var sr = new StreamReader(stream))
+            using (var jsonReader = new JsonTextReader(sr))
+            {
+                var list = serializer.Deserialize<LSP.CompletionList>(jsonReader);
+                if (list!.Items.Length != _list!.Items.Length)
+                    throw new System.Exception();
+            }
+        }
+
+        [Fact]
+        public async Task Test()
+        {
+            await LoadSolutionAsync();
+            await Serialization();
+        }
     }
 }

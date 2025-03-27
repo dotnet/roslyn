@@ -10,124 +10,125 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A NamespaceExtent represents whether a namespace contains types and sub-namespaces from a
-/// particular module, assembly, or merged across all modules (source and metadata) in a
-/// particular compilation.
-/// </summary>
-internal readonly struct NamespaceExtent : IEquatable<NamespaceExtent>
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly NamespaceKind _kind;
-    private readonly object _symbolOrCompilation;
-
     /// <summary>
-    /// Returns what kind of extent: Module, Assembly, or Compilation.
+    /// A NamespaceExtent represents whether a namespace contains types and sub-namespaces from a
+    /// particular module, assembly, or merged across all modules (source and metadata) in a
+    /// particular compilation.
     /// </summary>
-    public NamespaceKind Kind
+    internal readonly struct NamespaceExtent : IEquatable<NamespaceExtent>
     {
-        get
-        {
-            return _kind;
-        }
-    }
+        private readonly NamespaceKind _kind;
+        private readonly object _symbolOrCompilation;
 
-    /// <summary>
-    /// If the Kind is ExtendKind.Module, returns the module symbol that this namespace
-    /// encompasses. Otherwise throws InvalidOperationException.
-    /// </summary>
-    public ModuleSymbol Module
-    {
-        get
+        /// <summary>
+        /// Returns what kind of extent: Module, Assembly, or Compilation.
+        /// </summary>
+        public NamespaceKind Kind
         {
-            if (_kind == NamespaceKind.Module)
+            get
             {
-                return (ModuleSymbol)_symbolOrCompilation;
+                return _kind;
             }
-
-            throw new InvalidOperationException();
         }
-    }
 
-    /// <summary>
-    /// If the Kind is ExtendKind.Assembly, returns the assembly symbol that this namespace
-    /// encompasses. Otherwise throws InvalidOperationException.
-    /// </summary>
-    public AssemblySymbol Assembly
-    {
-        get
+        /// <summary>
+        /// If the Kind is ExtendKind.Module, returns the module symbol that this namespace
+        /// encompasses. Otherwise throws InvalidOperationException.
+        /// </summary>
+        public ModuleSymbol Module
         {
-            if (_kind == NamespaceKind.Assembly)
+            get
             {
-                return (AssemblySymbol)_symbolOrCompilation;
+                if (_kind == NamespaceKind.Module)
+                {
+                    return (ModuleSymbol)_symbolOrCompilation;
+                }
+
+                throw new InvalidOperationException();
             }
-
-            throw new InvalidOperationException();
         }
-    }
 
-    /// <summary>
-    /// If the Kind is ExtendKind.Compilation, returns the compilation symbol that this
-    /// namespace encompasses. Otherwise throws InvalidOperationException.
-    /// </summary>
-    public CSharpCompilation Compilation
-    {
-        get
+        /// <summary>
+        /// If the Kind is ExtendKind.Assembly, returns the assembly symbol that this namespace
+        /// encompasses. Otherwise throws InvalidOperationException.
+        /// </summary>
+        public AssemblySymbol Assembly
         {
-            if (_kind == NamespaceKind.Compilation)
+            get
             {
-                return (CSharpCompilation)_symbolOrCompilation;
+                if (_kind == NamespaceKind.Assembly)
+                {
+                    return (AssemblySymbol)_symbolOrCompilation;
+                }
+
+                throw new InvalidOperationException();
             }
-
-            throw new InvalidOperationException();
         }
-    }
 
-    public override string ToString()
-    {
-        return $"{_kind}: {_symbolOrCompilation}";
-    }
+        /// <summary>
+        /// If the Kind is ExtendKind.Compilation, returns the compilation symbol that this
+        /// namespace encompasses. Otherwise throws InvalidOperationException.
+        /// </summary>
+        public CSharpCompilation Compilation
+        {
+            get
+            {
+                if (_kind == NamespaceKind.Compilation)
+                {
+                    return (CSharpCompilation)_symbolOrCompilation;
+                }
 
-    /// <summary>
-    /// Create a NamespaceExtent that represents a given ModuleSymbol.
-    /// </summary>
-    internal NamespaceExtent(ModuleSymbol module)
-    {
-        _kind = NamespaceKind.Module;
-        _symbolOrCompilation = module;
-    }
+                throw new InvalidOperationException();
+            }
+        }
 
-    /// <summary>
-    /// Create a NamespaceExtent that represents a given AssemblySymbol.
-    /// </summary>
-    internal NamespaceExtent(AssemblySymbol assembly)
-    {
-        _kind = NamespaceKind.Assembly;
-        _symbolOrCompilation = assembly;
-    }
+        public override string ToString()
+        {
+            return $"{_kind}: {_symbolOrCompilation}";
+        }
 
-    /// <summary>
-    /// Create a NamespaceExtent that represents a given Compilation.
-    /// </summary>
-    internal NamespaceExtent(CSharpCompilation compilation)
-    {
-        _kind = NamespaceKind.Compilation;
-        _symbolOrCompilation = compilation;
-    }
+        /// <summary>
+        /// Create a NamespaceExtent that represents a given ModuleSymbol.
+        /// </summary>
+        internal NamespaceExtent(ModuleSymbol module)
+        {
+            _kind = NamespaceKind.Module;
+            _symbolOrCompilation = module;
+        }
 
-    public override bool Equals(object obj)
-    {
-        return obj is NamespaceExtent && Equals((NamespaceExtent)obj);
-    }
+        /// <summary>
+        /// Create a NamespaceExtent that represents a given AssemblySymbol.
+        /// </summary>
+        internal NamespaceExtent(AssemblySymbol assembly)
+        {
+            _kind = NamespaceKind.Assembly;
+            _symbolOrCompilation = assembly;
+        }
 
-    public bool Equals(NamespaceExtent other)
-    {
-        return object.Equals(_symbolOrCompilation, other._symbolOrCompilation);
-    }
+        /// <summary>
+        /// Create a NamespaceExtent that represents a given Compilation.
+        /// </summary>
+        internal NamespaceExtent(CSharpCompilation compilation)
+        {
+            _kind = NamespaceKind.Compilation;
+            _symbolOrCompilation = compilation;
+        }
 
-    public override int GetHashCode()
-    {
-        return (_symbolOrCompilation == null) ? 0 : _symbolOrCompilation.GetHashCode();
+        public override bool Equals(object obj)
+        {
+            return obj is NamespaceExtent && Equals((NamespaceExtent)obj);
+        }
+
+        public bool Equals(NamespaceExtent other)
+        {
+            return object.Equals(_symbolOrCompilation, other._symbolOrCompilation);
+        }
+
+        public override int GetHashCode()
+        {
+            return (_symbolOrCompilation == null) ? 0 : _symbolOrCompilation.GetHashCode();
+        }
     }
 }

@@ -5,53 +5,54 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private static partial class ReadOnly
+    internal partial class SpecializedCollections
     {
-        internal class Collection<TUnderlying, T> : Enumerable<TUnderlying, T>, ICollection<T>
-            where TUnderlying : ICollection<T>
+        private static partial class ReadOnly
         {
-            public Collection(TUnderlying underlying)
-                : base(underlying)
+            internal class Collection<TUnderlying, T> : Enumerable<TUnderlying, T>, ICollection<T>
+                where TUnderlying : ICollection<T>
             {
-            }
-
-            public void Add(T item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
-
-            public bool Contains(T item)
-            {
-                return this.Underlying.Contains(item);
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                this.Underlying.CopyTo(array, arrayIndex);
-            }
-
-            public int Count
-            {
-                get
+                public Collection(TUnderlying underlying)
+                    : base(underlying)
                 {
-                    return this.Underlying.Count;
                 }
-            }
 
-            public bool IsReadOnly => true;
+                public void Add(T item)
+                {
+                    throw new NotSupportedException();
+                }
 
-            public bool Remove(T item)
-            {
-                throw new NotSupportedException();
+                public void Clear()
+                {
+                    throw new NotSupportedException();
+                }
+
+                public bool Contains(T item)
+                {
+                    return this.Underlying.Contains(item);
+                }
+
+                public void CopyTo(T[] array, int arrayIndex)
+                {
+                    this.Underlying.CopyTo(array, arrayIndex);
+                }
+
+                public int Count
+                {
+                    get
+                    {
+                        return this.Underlying.Count;
+                    }
+                }
+
+                public bool IsReadOnly => true;
+
+                public bool Remove(T item)
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

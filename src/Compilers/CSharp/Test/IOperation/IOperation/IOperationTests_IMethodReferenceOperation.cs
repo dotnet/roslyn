@@ -12,17 +12,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-[CompilerTrait(CompilerFeature.IOperation)]
-public class IOperationTests_IMethodReferenceOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void MethodReference_NoControlFlow()
+    [CompilerTrait(CompilerFeature.IOperation)]
+    public class IOperationTests_IMethodReferenceOperation : SemanticModelTestBase
     {
-        // Verify method references with different kinds of instance references.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MethodReference_NoControlFlow()
+        {
+            // Verify method references with different kinds of instance references.
+            string source = @"
 class C
 {
     public virtual int M1() => 0;
@@ -35,7 +35,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -83,16 +83,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void MethodReference_ControlFlowInReceiver()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MethodReference_ControlFlowInReceiver()
+        {
+            string source = @"
 class C
 {
     public int M1() => 0;
@@ -102,7 +102,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -180,16 +180,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void MethodReference_ControlFlowInReceiver_StaticMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MethodReference_ControlFlowInReceiver_StaticMethod()
+        {
+            string source = @"
 class C
 {
     public static int M1() => 0;
@@ -200,7 +200,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -294,15 +294,16 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(7,14): error CS0176: Member 'C.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         m1 = c1.M1;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.M1").WithArguments("C.M1()").WithLocation(7, 14),
-            // file.cs(8,14): error CS0176: Member 'C.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
-            //         m2 = (c1 ?? c2).M1;
-            Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).M1").WithArguments("C.M1()").WithLocation(8, 14)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,14): error CS0176: Member 'C.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         m1 = c1.M1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.M1").WithArguments("C.M1()").WithLocation(7, 14),
+                // file.cs(8,14): error CS0176: Member 'C.M1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         m2 = (c1 ?? c2).M1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).M1").WithArguments("C.M1()").WithLocation(8, 14)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

@@ -9,53 +9,54 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public static class ParentChecker
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public static void CheckParents(SyntaxNodeOrToken nodeOrToken, SyntaxTree expectedSyntaxTree)
+    public static class ParentChecker
     {
-        Assert.Equal(expectedSyntaxTree, nodeOrToken.SyntaxTree);
-
-        var span = nodeOrToken.Span;
-
-        if (nodeOrToken.IsToken)
+        public static void CheckParents(SyntaxNodeOrToken nodeOrToken, SyntaxTree expectedSyntaxTree)
         {
-            var token = nodeOrToken.AsToken();
-            foreach (var trivia in token.LeadingTrivia)
+            Assert.Equal(expectedSyntaxTree, nodeOrToken.SyntaxTree);
+
+            var span = nodeOrToken.Span;
+
+            if (nodeOrToken.IsToken)
             {
-                var tspan = trivia.Span;
-                var parentToken = trivia.Token;
-                Assert.Equal(parentToken, token);
-                if (trivia.HasStructure)
+                var token = nodeOrToken.AsToken();
+                foreach (var trivia in token.LeadingTrivia)
                 {
-                    var parentTrivia = trivia.GetStructure().Parent;
-                    Assert.Null(parentTrivia);
-                    CheckParents((CSharpSyntaxNode)trivia.GetStructure(), expectedSyntaxTree);
+                    var tspan = trivia.Span;
+                    var parentToken = trivia.Token;
+                    Assert.Equal(parentToken, token);
+                    if (trivia.HasStructure)
+                    {
+                        var parentTrivia = trivia.GetStructure().Parent;
+                        Assert.Null(parentTrivia);
+                        CheckParents((CSharpSyntaxNode)trivia.GetStructure(), expectedSyntaxTree);
+                    }
+                }
+
+                foreach (var trivia in token.TrailingTrivia)
+                {
+                    var tspan = trivia.Span;
+                    var parentToken = trivia.Token;
+                    Assert.Equal(parentToken, token);
+                    if (trivia.HasStructure)
+                    {
+                        var parentTrivia = trivia.GetStructure().Parent;
+                        Assert.Null(parentTrivia);
+                        CheckParents(trivia.GetStructure(), expectedSyntaxTree);
+                    }
                 }
             }
-
-            foreach (var trivia in token.TrailingTrivia)
+            else
             {
-                var tspan = trivia.Span;
-                var parentToken = trivia.Token;
-                Assert.Equal(parentToken, token);
-                if (trivia.HasStructure)
+                var node = nodeOrToken.AsNode();
+                foreach (var child in node.ChildNodesAndTokens())
                 {
-                    var parentTrivia = trivia.GetStructure().Parent;
-                    Assert.Null(parentTrivia);
-                    CheckParents(trivia.GetStructure(), expectedSyntaxTree);
+                    var parent = child.Parent;
+                    Assert.Equal(node, parent);
+                    CheckParents(child, expectedSyntaxTree);
                 }
-            }
-        }
-        else
-        {
-            var node = nodeOrToken.AsNode();
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                var parent = child.Parent;
-                Assert.Equal(node, parent);
-                CheckParents(child, expectedSyntaxTree);
             }
         }
     }

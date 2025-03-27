@@ -8,115 +8,116 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal partial struct MetadataTypeName
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// A digest of MetadataTypeName's fully qualified name which can be used as the key in a dictionary
-    /// </summary>
-    public readonly struct Key : IEquatable<Key>
+    internal partial struct MetadataTypeName
     {
-        // PERF: We can work with either a fully qualified name (a single string) or
-        // a 'split' name (namespace and type). If typeName is null, then a FQN is
-        // stored in namespaceOrFullyQualifiedName
-        private readonly string _namespaceOrFullyQualifiedName;
-        private readonly string _typeName;
-        private readonly byte _useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
-        private readonly short _forcedArity;
-
-        internal Key(in MetadataTypeName mdTypeName)
+        /// <summary>
+        /// A digest of MetadataTypeName's fully qualified name which can be used as the key in a dictionary
+        /// </summary>
+        public readonly struct Key : IEquatable<Key>
         {
-            if (mdTypeName.IsNull)
+            // PERF: We can work with either a fully qualified name (a single string) or
+            // a 'split' name (namespace and type). If typeName is null, then a FQN is
+            // stored in namespaceOrFullyQualifiedName
+            private readonly string _namespaceOrFullyQualifiedName;
+            private readonly string _typeName;
+            private readonly byte _useCLSCompliantNameArityEncoding; // Using byte instead of bool for denser packing and smaller structure size
+            private readonly short _forcedArity;
+
+            internal Key(in MetadataTypeName mdTypeName)
             {
-                _namespaceOrFullyQualifiedName = null;
-                _typeName = null;
-                _useCLSCompliantNameArityEncoding = 0;
-                _forcedArity = 0;
-            }
-            else
-            {
-                if (mdTypeName._fullName != null)
+                if (mdTypeName.IsNull)
                 {
-                    _namespaceOrFullyQualifiedName = mdTypeName._fullName;
+                    _namespaceOrFullyQualifiedName = null;
                     _typeName = null;
+                    _useCLSCompliantNameArityEncoding = 0;
+                    _forcedArity = 0;
                 }
                 else
                 {
-                    Debug.Assert(mdTypeName._namespaceName != null);
-                    Debug.Assert(mdTypeName._typeName != null);
-                    _namespaceOrFullyQualifiedName = mdTypeName._namespaceName;
-                    _typeName = mdTypeName._typeName;
+                    if (mdTypeName._fullName != null)
+                    {
+                        _namespaceOrFullyQualifiedName = mdTypeName._fullName;
+                        _typeName = null;
+                    }
+                    else
+                    {
+                        Debug.Assert(mdTypeName._namespaceName != null);
+                        Debug.Assert(mdTypeName._typeName != null);
+                        _namespaceOrFullyQualifiedName = mdTypeName._namespaceName;
+                        _typeName = mdTypeName._typeName;
+                    }
+
+                    _useCLSCompliantNameArityEncoding = mdTypeName.UseCLSCompliantNameArityEncoding ? (byte)1 : (byte)0;
+                    _forcedArity = mdTypeName._forcedArity;
+                }
+            }
+
+            private bool HasFullyQualifiedName
+            {
+                get
+                {
+                    return _typeName == null;
+                }
+            }
+
+            public bool Equals(Key other)
+            {
+                return _useCLSCompliantNameArityEncoding == other._useCLSCompliantNameArityEncoding &&
+                    _forcedArity == other._forcedArity &&
+                    EqualNames(ref other);
+            }
+
+            private bool EqualNames(ref Key other)
+            {
+                if (_typeName == other._typeName)
+                {
+                    return _namespaceOrFullyQualifiedName == other._namespaceOrFullyQualifiedName;
                 }
 
-                _useCLSCompliantNameArityEncoding = mdTypeName.UseCLSCompliantNameArityEncoding ? (byte)1 : (byte)0;
-                _forcedArity = mdTypeName._forcedArity;
-            }
-        }
+                if (this.HasFullyQualifiedName)
+                {
+                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(other._namespaceOrFullyQualifiedName, other._typeName, _namespaceOrFullyQualifiedName);
+                }
 
-        private bool HasFullyQualifiedName
-        {
-            get
+                if (other.HasFullyQualifiedName)
+                {
+                    return MetadataHelpers.SplitNameEqualsFullyQualifiedName(_namespaceOrFullyQualifiedName, _typeName, other._namespaceOrFullyQualifiedName);
+                }
+
+                return false;
+            }
+
+            public override bool Equals(object obj)
             {
-                return _typeName == null;
+                return obj is Key && this.Equals((Key)obj);
             }
-        }
 
-        public bool Equals(Key other)
-        {
-            return _useCLSCompliantNameArityEncoding == other._useCLSCompliantNameArityEncoding &&
-                _forcedArity == other._forcedArity &&
-                EqualNames(ref other);
-        }
-
-        private bool EqualNames(ref Key other)
-        {
-            if (_typeName == other._typeName)
+            public override int GetHashCode()
             {
-                return _namespaceOrFullyQualifiedName == other._namespaceOrFullyQualifiedName;
+                return Hash.Combine(GetHashCodeName(),
+                       Hash.Combine(_useCLSCompliantNameArityEncoding != 0,
+                       _forcedArity));
             }
 
-            if (this.HasFullyQualifiedName)
+            private int GetHashCodeName()
             {
-                return MetadataHelpers.SplitNameEqualsFullyQualifiedName(other._namespaceOrFullyQualifiedName, other._typeName, _namespaceOrFullyQualifiedName);
+                int hashCode = Hash.GetFNVHashCode(_namespaceOrFullyQualifiedName);
+
+                if (!this.HasFullyQualifiedName)
+                {
+                    hashCode = Hash.CombineFNVHash(hashCode, MetadataHelpers.DotDelimiter);
+                    hashCode = Hash.CombineFNVHash(hashCode, _typeName);
+                }
+
+                return hashCode;
             }
-
-            if (other.HasFullyQualifiedName)
-            {
-                return MetadataHelpers.SplitNameEqualsFullyQualifiedName(_namespaceOrFullyQualifiedName, _typeName, other._namespaceOrFullyQualifiedName);
-            }
-
-            return false;
         }
 
-        public override bool Equals(object obj)
+        public readonly Key ToKey()
         {
-            return obj is Key && this.Equals((Key)obj);
+            return new Key(in this);
         }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(GetHashCodeName(),
-                   Hash.Combine(_useCLSCompliantNameArityEncoding != 0,
-                   _forcedArity));
-        }
-
-        private int GetHashCodeName()
-        {
-            int hashCode = Hash.GetFNVHashCode(_namespaceOrFullyQualifiedName);
-
-            if (!this.HasFullyQualifiedName)
-            {
-                hashCode = Hash.CombineFNVHash(hashCode, MetadataHelpers.DotDelimiter);
-                hashCode = Hash.CombineFNVHash(hashCode, _typeName);
-            }
-
-            return hashCode;
-        }
-    }
-
-    public readonly Key ToKey()
-    {
-        return new Key(in this);
     }
 }

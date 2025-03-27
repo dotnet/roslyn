@@ -19,162 +19,163 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
-namespace Roslyn.Test.Utilities;
-
-public static class TestHelpers
+namespace Roslyn.Test.Utilities
 {
-    /// <summary>
-    /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
-    /// </summary>
-    public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
-
-    public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
-        IEqualityComparer<K> comparer,
-        params (K, V)[] entries)
-        => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePair.ToKeyValuePair));
-
-    public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K, V)[] entries)
-        => ImmutableDictionary.CreateRange(entries.Select(KeyValuePair.ToKeyValuePair));
-
-    public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
+    public static class TestHelpers
     {
-        return assembly.GetTypes().Where(t =>
+        /// <summary>
+        /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
+        /// </summary>
+        public static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(4);
+
+        public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
+            IEqualityComparer<K> comparer,
+            params (K, V)[] entries)
+            => ImmutableDictionary.CreateRange(comparer, entries.Select(KeyValuePair.ToKeyValuePair));
+
+        public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K, V)[] entries)
+            => ImmutableDictionary.CreateRange(entries.Select(KeyValuePair.ToKeyValuePair));
+
+        public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
         {
-            return t.GetFields(BindingFlags.Public | BindingFlags.Static).Any(f => type.IsAssignableFrom(f.FieldType));
-        }).ToList();
-    }
-
-    public static string GetCultureInvariantString(object value)
-    {
-        if (value == null)
-            return null;
-
-        var valueType = value.GetType();
-        if (valueType == typeof(string))
-        {
-            return value as string;
-        }
-
-        if (valueType == typeof(DateTime))
-        {
-            return ((DateTime)value).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(float))
-        {
-            return ((float)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(double))
-        {
-            return ((double)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        if (valueType == typeof(decimal))
-        {
-            return ((decimal)value).ToString(CultureInfo.InvariantCulture);
-        }
-
-        return value.ToString();
-    }
-
-    /// <summary>
-    /// <see cref="System.Xml.Linq.XComment.Value"/> is serialized with "--" replaced by "- -"
-    /// </summary>
-    public static string AsXmlCommentText(string text)
-    {
-        var builder = new StringBuilder();
-        for (int i = 0; i < text.Length; i++)
-        {
-            var c = text[i];
-            if ((c == '-') && (i > 0) && (text[i - 1] == '-'))
+            return assembly.GetTypes().Where(t =>
             {
-                builder.Append(' ');
+                return t.GetFields(BindingFlags.Public | BindingFlags.Static).Any(f => type.IsAssignableFrom(f.FieldType));
+            }).ToList();
+        }
+
+        public static string GetCultureInvariantString(object value)
+        {
+            if (value == null)
+                return null;
+
+            var valueType = value.GetType();
+            if (valueType == typeof(string))
+            {
+                return value as string;
             }
-            builder.Append(c);
-        }
-        var result = builder.ToString();
-        Debug.Assert(!result.Contains("--"));
-        return result;
-    }
 
-    public static DiagnosticDescription Diagnostic(
-        object code,
-        string squiggledText = null,
-        object[] arguments = null,
-        LinePosition? startLocation = null,
-        Func<SyntaxNode, bool> syntaxNodePredicate = null,
-        bool argumentOrderDoesNotMatter = false,
-        bool isSuppressed = false)
-    {
-        Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
-                     code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
-                     code is int ||
-                     code is string);
+            if (valueType == typeof(DateTime))
+            {
+                return ((DateTime)value).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+            }
 
-        return new DiagnosticDescription(
-            code as string ?? (object)(int)code,
-            false,
-            squiggledText,
-            arguments,
-            startLocation,
-            syntaxNodePredicate,
-            argumentOrderDoesNotMatter,
-            code.GetType(),
-            isSuppressed: isSuppressed);
-    }
+            if (valueType == typeof(float))
+            {
+                return ((float)value).ToString(CultureInfo.InvariantCulture);
+            }
 
-    internal static DiagnosticDescription Diagnostic(
-       object code,
-       XCData squiggledText,
-       object[] arguments = null,
-       LinePosition? startLocation = null,
-       Func<SyntaxNode, bool> syntaxNodePredicate = null,
-       bool argumentOrderDoesNotMatter = false,
-       bool isSuppressed = false)
-    {
-        return Diagnostic(
-            code,
-            NormalizeNewLines(squiggledText),
-            arguments,
-            startLocation,
-            syntaxNodePredicate,
-            argumentOrderDoesNotMatter,
-            isSuppressed: isSuppressed);
-    }
+            if (valueType == typeof(double))
+            {
+                return ((double)value).ToString(CultureInfo.InvariantCulture);
+            }
 
-    public static string NormalizeNewLines(XCData data)
-    {
-        if (ExecutionConditionUtil.IsWindows)
-        {
-            return data.Value.Replace("\n", "\r\n");
+            if (valueType == typeof(decimal))
+            {
+                return ((decimal)value).ToString(CultureInfo.InvariantCulture);
+            }
+
+            return value.ToString();
         }
 
-        return data.Value;
-    }
-
-    public static ImmutableArray<byte> HexToByte(ReadOnlySpan<char> input)
-    {
-        if (input.Length % 2 != 0)
+        /// <summary>
+        /// <see cref="System.Xml.Linq.XComment.Value"/> is serialized with "--" replaced by "- -"
+        /// </summary>
+        public static string AsXmlCommentText(string text)
         {
-            throw new ArgumentException("Length of the input string must be even", nameof(input));
+            var builder = new StringBuilder();
+            for (int i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+                if ((c == '-') && (i > 0) && (text[i - 1] == '-'))
+                {
+                    builder.Append(' ');
+                }
+                builder.Append(c);
+            }
+            var result = builder.ToString();
+            Debug.Assert(!result.Contains("--"));
+            return result;
         }
 
-        var bytes = new byte[input.Length >> 1];
-        for (var i = 0; i < bytes.Length; i++)
+        public static DiagnosticDescription Diagnostic(
+            object code,
+            string squiggledText = null,
+            object[] arguments = null,
+            LinePosition? startLocation = null,
+            Func<SyntaxNode, bool> syntaxNodePredicate = null,
+            bool argumentOrderDoesNotMatter = false,
+            bool isSuppressed = false)
         {
-            bytes[i] = parseByte(input.Slice(i << 1, 2), NumberStyles.HexNumber);
+            Debug.Assert(code is Microsoft.CodeAnalysis.CSharp.ErrorCode ||
+                         code is Microsoft.CodeAnalysis.VisualBasic.ERRID ||
+                         code is int ||
+                         code is string);
+
+            return new DiagnosticDescription(
+                code as string ?? (object)(int)code,
+                false,
+                squiggledText,
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter,
+                code.GetType(),
+                isSuppressed: isSuppressed);
         }
 
-        return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
-
-        byte parseByte(ReadOnlySpan<char> input, NumberStyles numberStyle)
+        internal static DiagnosticDescription Diagnostic(
+           object code,
+           XCData squiggledText,
+           object[] arguments = null,
+           LinePosition? startLocation = null,
+           Func<SyntaxNode, bool> syntaxNodePredicate = null,
+           bool argumentOrderDoesNotMatter = false,
+           bool isSuppressed = false)
         {
+            return Diagnostic(
+                code,
+                NormalizeNewLines(squiggledText),
+                arguments,
+                startLocation,
+                syntaxNodePredicate,
+                argumentOrderDoesNotMatter,
+                isSuppressed: isSuppressed);
+        }
+
+        public static string NormalizeNewLines(XCData data)
+        {
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                return data.Value.Replace("\n", "\r\n");
+            }
+
+            return data.Value;
+        }
+
+        public static ImmutableArray<byte> HexToByte(ReadOnlySpan<char> input)
+        {
+            if (input.Length % 2 != 0)
+            {
+                throw new ArgumentException("Length of the input string must be even", nameof(input));
+            }
+
+            var bytes = new byte[input.Length >> 1];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = parseByte(input.Slice(i << 1, 2), NumberStyles.HexNumber);
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
+
+            byte parseByte(ReadOnlySpan<char> input, NumberStyles numberStyle)
+            {
 #if NET
-            return byte.Parse(input, numberStyle);
+                return byte.Parse(input, numberStyle);
 #else
-            return byte.Parse(input.ToString(), numberStyle);
+                return byte.Parse(input.ToString(), numberStyle);
 #endif
+            }
         }
     }
 }

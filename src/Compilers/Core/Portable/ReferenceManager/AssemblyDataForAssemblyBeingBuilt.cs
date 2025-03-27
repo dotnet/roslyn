@@ -9,128 +9,129 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
+namespace Microsoft.CodeAnalysis
 {
-    protected sealed class AssemblyDataForAssemblyBeingBuilt : AssemblyData
+    internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol>
     {
-        private readonly AssemblyIdentity _assemblyIdentity;
-
-        // assemblies referenced directly by the assembly:
-        private readonly ImmutableArray<AssemblyData> _referencedAssemblyData;
-
-        // all referenced assembly names including assemblies referenced by modules:
-        private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
-
-        public AssemblyDataForAssemblyBeingBuilt(
-            AssemblyIdentity identity,
-            ImmutableArray<AssemblyData> referencedAssemblyData,
-            ImmutableArray<PEModule> modules)
+        protected sealed class AssemblyDataForAssemblyBeingBuilt : AssemblyData
         {
-            Debug.Assert(identity != null);
-            Debug.Assert(!referencedAssemblyData.IsDefault);
+            private readonly AssemblyIdentity _assemblyIdentity;
 
-            _assemblyIdentity = identity;
+            // assemblies referenced directly by the assembly:
+            private readonly ImmutableArray<AssemblyData> _referencedAssemblyData;
 
-            _referencedAssemblyData = referencedAssemblyData;
+            // all referenced assembly names including assemblies referenced by modules:
+            private readonly ImmutableArray<AssemblyIdentity> _referencedAssemblies;
 
-            // Pre-calculate size to ensure this code only requires a single array allocation.
-            var builderSize = referencedAssemblyData.Length + modules.Sum(static module => module.ReferencedAssemblies.Length);
-            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
-
-            foreach (AssemblyData data in referencedAssemblyData)
+            public AssemblyDataForAssemblyBeingBuilt(
+                AssemblyIdentity identity,
+                ImmutableArray<AssemblyData> referencedAssemblyData,
+                ImmutableArray<PEModule> modules)
             {
-                refs.Add(data.Identity);
+                Debug.Assert(identity != null);
+                Debug.Assert(!referencedAssemblyData.IsDefault);
+
+                _assemblyIdentity = identity;
+
+                _referencedAssemblyData = referencedAssemblyData;
+
+                // Pre-calculate size to ensure this code only requires a single array allocation.
+                var builderSize = referencedAssemblyData.Length + modules.Sum(static module => module.ReferencedAssemblies.Length);
+                var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(builderSize);
+
+                foreach (AssemblyData data in referencedAssemblyData)
+                {
+                    refs.Add(data.Identity);
+                }
+
+                // add assembly names from modules:
+                for (int i = 0; i < modules.Length; i++)
+                {
+                    refs.AddRange(modules[i].ReferencedAssemblies);
+                }
+
+                _referencedAssemblies = refs.ToImmutableAndFree();
             }
 
-            // add assembly names from modules:
-            for (int i = 0; i < modules.Length; i++)
+            public override AssemblyIdentity Identity
             {
-                refs.AddRange(modules[i].ReferencedAssemblies);
+                get
+                {
+                    return _assemblyIdentity;
+                }
             }
 
-            _referencedAssemblies = refs.ToImmutableAndFree();
-        }
-
-        public override AssemblyIdentity Identity
-        {
-            get
+            public override ImmutableArray<AssemblyIdentity> AssemblyReferences
             {
-                return _assemblyIdentity;
+                get
+                {
+                    return _referencedAssemblies;
+                }
             }
-        }
 
-        public override ImmutableArray<AssemblyIdentity> AssemblyReferences
-        {
-            get
+            public override ImmutableArray<TAssemblySymbol> AvailableSymbols
             {
-                return _referencedAssemblies;
+                get
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
-        }
 
-        public override ImmutableArray<TAssemblySymbol> AvailableSymbols
-        {
-            get
+            public override AssemblyReferenceBinding[] BindAssemblyReferences(
+                MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies,
+                AssemblyIdentityComparer assemblyIdentityComparer)
+            {
+                var boundReferences = new AssemblyReferenceBinding[_referencedAssemblies.Length];
+
+                for (int i = 0; i < _referencedAssemblyData.Length; i++)
+                {
+                    Debug.Assert(assemblies[_referencedAssemblyData[i].Identity.Name].Contains((_referencedAssemblyData[i], i + 1)));
+                    boundReferences[i] = new AssemblyReferenceBinding(_referencedAssemblyData[i].Identity, i + 1);
+                }
+
+                // resolve references coming from linked modules:
+                for (int i = _referencedAssemblyData.Length; i < _referencedAssemblies.Length; i++)
+                {
+                    boundReferences[i] = ResolveReferencedAssembly(
+                        _referencedAssemblies[i],
+                        assemblies,
+                        resolveAgainstAssemblyBeingBuilt: false, // references from added modules shouldn't resolve against the assembly being built (definition #0)
+                        assemblyIdentityComparer);
+                }
+
+                return boundReferences;
+            }
+
+            public override bool IsMatchingAssembly(TAssemblySymbol? assembly)
             {
                 throw ExceptionUtilities.Unreachable();
             }
-        }
 
-        public override AssemblyReferenceBinding[] BindAssemblyReferences(
-            MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies,
-            AssemblyIdentityComparer assemblyIdentityComparer)
-        {
-            var boundReferences = new AssemblyReferenceBinding[_referencedAssemblies.Length];
-
-            for (int i = 0; i < _referencedAssemblyData.Length; i++)
+            public override bool ContainsNoPiaLocalTypes
             {
-                Debug.Assert(assemblies[_referencedAssemblyData[i].Identity.Name].Contains((_referencedAssemblyData[i], i + 1)));
-                boundReferences[i] = new AssemblyReferenceBinding(_referencedAssemblyData[i].Identity, i + 1);
+                get
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
 
-            // resolve references coming from linked modules:
-            for (int i = _referencedAssemblyData.Length; i < _referencedAssemblies.Length; i++)
+            public override bool IsLinked
             {
-                boundReferences[i] = ResolveReferencedAssembly(
-                    _referencedAssemblies[i],
-                    assemblies,
-                    resolveAgainstAssemblyBeingBuilt: false, // references from added modules shouldn't resolve against the assembly being built (definition #0)
-                    assemblyIdentityComparer);
+                get
+                {
+                    return false;
+                }
             }
 
-            return boundReferences;
-        }
-
-        public override bool IsMatchingAssembly(TAssemblySymbol? assembly)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public override bool ContainsNoPiaLocalTypes
-        {
-            get
+            public override bool DeclaresTheObjectClass
             {
-                throw ExceptionUtilities.Unreachable();
+                get
+                {
+                    return false;
+                }
             }
-        }
 
-        public override bool IsLinked
-        {
-            get
-            {
-                return false;
-            }
+            public override Compilation? SourceCompilation => null;
         }
-
-        public override bool DeclaresTheObjectClass
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public override Compilation? SourceCompilation => null;
     }
 }

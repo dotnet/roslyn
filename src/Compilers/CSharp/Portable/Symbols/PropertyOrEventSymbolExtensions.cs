@@ -11,73 +11,74 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Helper methods that exist to share code between properties and events.
-/// </summary>
-internal static class PEPropertyOrEventHelpers
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal static ISet<PropertySymbol> GetPropertiesForExplicitlyImplementedAccessor(MethodSymbol accessor)
+    /// <summary>
+    /// Helper methods that exist to share code between properties and events.
+    /// </summary>
+    internal static class PEPropertyOrEventHelpers
     {
-        return GetSymbolsForExplicitlyImplementedAccessor<PropertySymbol>(accessor);
-    }
-
-    internal static ISet<EventSymbol> GetEventsForExplicitlyImplementedAccessor(MethodSymbol accessor)
-    {
-        return GetSymbolsForExplicitlyImplementedAccessor<EventSymbol>(accessor);
-    }
-
-    // CONSIDER: the 99% case is a very small set.  A list might be more efficient in such cases.
-    private static ISet<T> GetSymbolsForExplicitlyImplementedAccessor<T>(MethodSymbol accessor) where T : Symbol
-    {
-        if ((object)accessor == null)
+        internal static ISet<PropertySymbol> GetPropertiesForExplicitlyImplementedAccessor(MethodSymbol accessor)
         {
-            return SpecializedCollections.EmptySet<T>();
+            return GetSymbolsForExplicitlyImplementedAccessor<PropertySymbol>(accessor);
         }
 
-        ImmutableArray<MethodSymbol> implementedAccessors = accessor.ExplicitInterfaceImplementations;
-        if (implementedAccessors.Length == 0)
+        internal static ISet<EventSymbol> GetEventsForExplicitlyImplementedAccessor(MethodSymbol accessor)
         {
-            return SpecializedCollections.EmptySet<T>();
+            return GetSymbolsForExplicitlyImplementedAccessor<EventSymbol>(accessor);
         }
 
-        var symbolsForExplicitlyImplementedAccessors = new HashSet<T>();
-        foreach (var implementedAccessor in implementedAccessors)
+        // CONSIDER: the 99% case is a very small set.  A list might be more efficient in such cases.
+        private static ISet<T> GetSymbolsForExplicitlyImplementedAccessor<T>(MethodSymbol accessor) where T : Symbol
         {
-            var associatedProperty = implementedAccessor.AssociatedSymbol as T;
-            if ((object)associatedProperty != null)
+            if ((object)accessor == null)
             {
-                symbolsForExplicitlyImplementedAccessors.Add(associatedProperty);
+                return SpecializedCollections.EmptySet<T>();
             }
-        }
-        return symbolsForExplicitlyImplementedAccessors;
-    }
 
-    // Properties and events from metadata do not have explicit accessibility. Instead,
-    // the accessibility reported for the PEPropertySymbol or PEEventSymbol is the most
-    // restrictive level that is no more restrictive than the getter/adder and setter/remover.
-    internal static Accessibility GetDeclaredAccessibilityFromAccessors(MethodSymbol accessor1, MethodSymbol accessor2)
-    {
-        if ((object)accessor1 == null)
+            ImmutableArray<MethodSymbol> implementedAccessors = accessor.ExplicitInterfaceImplementations;
+            if (implementedAccessors.Length == 0)
+            {
+                return SpecializedCollections.EmptySet<T>();
+            }
+
+            var symbolsForExplicitlyImplementedAccessors = new HashSet<T>();
+            foreach (var implementedAccessor in implementedAccessors)
+            {
+                var associatedProperty = implementedAccessor.AssociatedSymbol as T;
+                if ((object)associatedProperty != null)
+                {
+                    symbolsForExplicitlyImplementedAccessors.Add(associatedProperty);
+                }
+            }
+            return symbolsForExplicitlyImplementedAccessors;
+        }
+
+        // Properties and events from metadata do not have explicit accessibility. Instead,
+        // the accessibility reported for the PEPropertySymbol or PEEventSymbol is the most
+        // restrictive level that is no more restrictive than the getter/adder and setter/remover.
+        internal static Accessibility GetDeclaredAccessibilityFromAccessors(MethodSymbol accessor1, MethodSymbol accessor2)
         {
-            return ((object)accessor2 == null) ? Accessibility.NotApplicable : accessor2.DeclaredAccessibility;
+            if ((object)accessor1 == null)
+            {
+                return ((object)accessor2 == null) ? Accessibility.NotApplicable : accessor2.DeclaredAccessibility;
+            }
+            else if ((object)accessor2 == null)
+            {
+                return accessor1.DeclaredAccessibility;
+            }
+
+            return GetDeclaredAccessibilityFromAccessors(accessor1.DeclaredAccessibility, accessor2.DeclaredAccessibility);
         }
-        else if ((object)accessor2 == null)
+
+        internal static Accessibility GetDeclaredAccessibilityFromAccessors(Accessibility accessibility1, Accessibility accessibility2)
         {
-            return accessor1.DeclaredAccessibility;
+            var minAccessibility = (accessibility1 > accessibility2) ? accessibility2 : accessibility1;
+            var maxAccessibility = (accessibility1 > accessibility2) ? accessibility1 : accessibility2;
+
+            return ((minAccessibility == Accessibility.Protected) && (maxAccessibility == Accessibility.Internal))
+                ? Accessibility.ProtectedOrInternal
+                : maxAccessibility;
         }
-
-        return GetDeclaredAccessibilityFromAccessors(accessor1.DeclaredAccessibility, accessor2.DeclaredAccessibility);
-    }
-
-    internal static Accessibility GetDeclaredAccessibilityFromAccessors(Accessibility accessibility1, Accessibility accessibility2)
-    {
-        var minAccessibility = (accessibility1 > accessibility2) ? accessibility2 : accessibility1;
-        var maxAccessibility = (accessibility1 > accessibility2) ? accessibility1 : accessibility2;
-
-        return ((minAccessibility == Accessibility.Protected) && (maxAccessibility == Accessibility.Internal))
-            ? Accessibility.ProtectedOrInternal
-            : maxAccessibility;
     }
 }

@@ -4,61 +4,62 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Common base for ordinary methods overriding methods from object synthesized by compiler for records.
-/// </summary>
-internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly)
-        : base(containingType, name, memberOffset,
-               DeclarationModifiers.Public | DeclarationModifiers.Override | (isReadOnly ? DeclarationModifiers.ReadOnly : 0))
-    {
-    }
-
-    protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
-    {
-        base.MethodChecks(diagnostics);
-        VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
-    }
-
-    protected abstract SpecialMember OverriddenSpecialMember { get; }
-
     /// <summary>
-    /// Returns true if reported an error
+    /// Common base for ordinary methods overriding methods from object synthesized by compiler for records.
     /// </summary>
-    internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, BindingDiagnosticBag diagnostics)
+    internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
-        bool reportAnError = false;
-
-        if (!overriding.IsOverride)
+        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly)
+            : base(containingType, name, memberOffset,
+                   DeclarationModifiers.Public | DeclarationModifiers.Override | (isReadOnly ? DeclarationModifiers.ReadOnly : 0))
         {
-            reportAnError = true;
         }
-        else
-        {
-            var overridden = overriding.OverriddenMethod?.OriginalDefinition;
 
-            if (overridden is object && !(overridden.ContainingType is SourceMemberContainerTypeSymbol { IsRecord: true } && overridden.ContainingModule == overriding.ContainingModule))
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            base.MethodChecks(diagnostics);
+            VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
+        }
+
+        protected abstract SpecialMember OverriddenSpecialMember { get; }
+
+        /// <summary>
+        /// Returns true if reported an error
+        /// </summary>
+        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, BindingDiagnosticBag diagnostics)
+        {
+            bool reportAnError = false;
+
+            if (!overriding.IsOverride)
             {
-                MethodSymbol leastOverridden = overriding.GetLeastOverriddenMethod(accessingTypeOpt: null);
-
-                reportAnError = (object)leastOverridden != overriding.ContainingAssembly.GetSpecialTypeMember(overriddenSpecialMember) &&
-                                leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions);
+                reportAnError = true;
             }
+            else
+            {
+                var overridden = overriding.OverriddenMethod?.OriginalDefinition;
+
+                if (overridden is object && !(overridden.ContainingType is SourceMemberContainerTypeSymbol { IsRecord: true } && overridden.ContainingModule == overriding.ContainingModule))
+                {
+                    MethodSymbol leastOverridden = overriding.GetLeastOverriddenMethod(accessingTypeOpt: null);
+
+                    reportAnError = (object)leastOverridden != overriding.ContainingAssembly.GetSpecialTypeMember(overriddenSpecialMember) &&
+                                    leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions);
+                }
+            }
+
+            if (reportAnError)
+            {
+                diagnostics.Add(ErrorCode.ERR_DoesNotOverrideMethodFromObject, overriding.GetFirstLocation(), overriding);
+            }
+
+            return reportAnError;
         }
 
-        if (reportAnError)
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
-            diagnostics.Add(ErrorCode.ERR_DoesNotOverrideMethodFromObject, overriding.GetFirstLocation(), overriding);
+            return 0;
         }
-
-        return reportAnError;
-    }
-
-    internal sealed override int TryGetOverloadResolutionPriority()
-    {
-        return 0;
     }
 }

@@ -13,55 +13,56 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-
-public interface IDkmClrFullNameProvider
+namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
-    string GetClrTypeName(
-        DkmInspectionContext inspectionContext,
-        DkmClrType clrType,
-        DkmClrCustomTypeInfo customTypeInfo);
+    public interface IDkmClrFullNameProvider
+    {
+        string GetClrTypeName(
+            DkmInspectionContext inspectionContext,
+            DkmClrType clrType,
+            DkmClrCustomTypeInfo customTypeInfo);
 
-    string GetClrArrayIndexExpression(
-        DkmInspectionContext inspectionContext,
-        string[] indices);
+        string GetClrArrayIndexExpression(
+            DkmInspectionContext inspectionContext,
+            string[] indices);
 
-    string GetClrCastExpression(
-        DkmInspectionContext inspectionContext,
-        string argument,
-        DkmClrType clrType,
-        DkmClrCustomTypeInfo customTypeInfo,
-        DkmClrCastExpressionOptions castExpressionOptions);
+        string GetClrCastExpression(
+            DkmInspectionContext inspectionContext,
+            string argument,
+            DkmClrType clrType,
+            DkmClrCustomTypeInfo customTypeInfo,
+            DkmClrCastExpressionOptions castExpressionOptions);
 
-    string GetClrObjectCreationExpression(
-        DkmInspectionContext inspectionContext,
-        DkmClrType clrType,
-        DkmClrCustomTypeInfo customTypeInfo,
-        string[] arguments);
+        string GetClrObjectCreationExpression(
+            DkmInspectionContext inspectionContext,
+            DkmClrType clrType,
+            DkmClrCustomTypeInfo customTypeInfo,
+            string[] arguments);
 
-    string GetClrValidIdentifier(
-        DkmInspectionContext inspectionContext,
-        string identifier);
+        string GetClrValidIdentifier(
+            DkmInspectionContext inspectionContext,
+            string identifier);
 
-    string GetClrMemberName(
-        DkmInspectionContext inspectionContext,
-        string parentFullName,
-        DkmClrType clrType,
-        DkmClrCustomTypeInfo customTypeInfo,
-        string memberName,
-        bool requiresExplicitCast,
-        bool isStatic);
+        string GetClrMemberName(
+            DkmInspectionContext inspectionContext,
+            string parentFullName,
+            DkmClrType clrType,
+            DkmClrCustomTypeInfo customTypeInfo,
+            string memberName,
+            bool requiresExplicitCast,
+            bool isStatic);
 
-    bool ClrExpressionMayRequireParentheses(
-        DkmInspectionContext inspectionContext,
-        string expression);
+        bool ClrExpressionMayRequireParentheses(
+            DkmInspectionContext inspectionContext,
+            string expression);
 
-    string GetClrExpressionAndFormatSpecifiers(
-        DkmInspectionContext inspectionContext,
-        string expression,
-        out ReadOnlyCollection<string> formatSpecifiers);
+        string GetClrExpressionAndFormatSpecifiers(
+            DkmInspectionContext inspectionContext,
+            string expression,
+            out ReadOnlyCollection<string> formatSpecifiers);
 
-    string GetClrExpressionForNull(DkmInspectionContext inspectionContext);
+        string GetClrExpressionForNull(DkmInspectionContext inspectionContext);
 
-    string GetClrExpressionForThis(DkmInspectionContext inspectionContext);
+        string GetClrExpressionForThis(DkmInspectionContext inspectionContext);
+    }
 }

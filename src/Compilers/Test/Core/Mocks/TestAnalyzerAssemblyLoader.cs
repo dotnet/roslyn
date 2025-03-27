@@ -6,28 +6,29 @@ using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities;
-
-public class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+namespace Roslyn.Test.Utilities
 {
-    public static readonly IAnalyzerAssemblyLoader LoadFromFile =
-        new TestAnalyzerAssemblyLoader();
-
-    public static readonly IAnalyzerAssemblyLoader LoadNotImplemented =
-        new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new NotImplementedException());
-
-    private readonly Action<string>? _addDependencyLocation;
-    private readonly Func<string, Assembly>? _loadFromPath;
-
-    public TestAnalyzerAssemblyLoader(Action<string>? addDependencyLocation = null, Func<string, Assembly>? loadFromPath = null)
+    public class TestAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
-        _addDependencyLocation = addDependencyLocation;
-        _loadFromPath = loadFromPath;
+        public static readonly IAnalyzerAssemblyLoader LoadFromFile =
+            new TestAnalyzerAssemblyLoader();
+
+        public static readonly IAnalyzerAssemblyLoader LoadNotImplemented =
+            new TestAnalyzerAssemblyLoader(loadFromPath: _ => throw new NotImplementedException());
+
+        private readonly Action<string>? _addDependencyLocation;
+        private readonly Func<string, Assembly>? _loadFromPath;
+
+        public TestAnalyzerAssemblyLoader(Action<string>? addDependencyLocation = null, Func<string, Assembly>? loadFromPath = null)
+        {
+            _addDependencyLocation = addDependencyLocation;
+            _loadFromPath = loadFromPath;
+        }
+
+        public void AddDependencyLocation(string fullPath)
+            => _addDependencyLocation?.Invoke(fullPath);
+
+        public Assembly LoadFromPath(string fullPath)
+            => (_loadFromPath != null) ? _loadFromPath(fullPath) : Assembly.LoadFrom(fullPath);
     }
-
-    public void AddDependencyLocation(string fullPath)
-        => _addDependencyLocation?.Invoke(fullPath);
-
-    public Assembly LoadFromPath(string fullPath)
-        => (_loadFromPath != null) ? _loadFromPath(fullPath) : Assembly.LoadFrom(fullPath);
 }

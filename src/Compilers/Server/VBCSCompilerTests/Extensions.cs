@@ -12,44 +12,45 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
-
-internal static class Extensions
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public static Task ToTask(this WaitHandle handle, int? timeoutMilliseconds)
+    internal static class Extensions
     {
-        RegisteredWaitHandle registeredHandle = null;
-        var tcs = new TaskCompletionSource<object>();
-        registeredHandle = ThreadPool.RegisterWaitForSingleObject(
-            handle,
-            (_, timeout) =>
-            {
-                tcs.TrySetResult(null);
-                if (registeredHandle is object)
-                {
-                    registeredHandle.Unregister(waitObject: null);
-                }
-            },
-            null,
-            timeoutMilliseconds ?? -1,
-            executeOnlyOnce: true);
-        return tcs.Task;
-    }
-
-    public static async Task WaitOneAsync(this WaitHandle handle, int? timeoutMilliseconds = null) => await handle.ToTask(timeoutMilliseconds);
-
-    public static async ValueTask<T> TakeAsync<T>(this BlockingCollection<T> collection, TimeSpan? pollTimeSpan = null, CancellationToken cancellationToken = default)
-    {
-        var delay = pollTimeSpan ?? TimeSpan.FromSeconds(.25);
-        do
+        public static Task ToTask(this WaitHandle handle, int? timeoutMilliseconds)
         {
-            if (collection.TryTake(out T value))
-            {
-                return value;
-            }
+            RegisteredWaitHandle registeredHandle = null;
+            var tcs = new TaskCompletionSource<object>();
+            registeredHandle = ThreadPool.RegisterWaitForSingleObject(
+                handle,
+                (_, timeout) =>
+                {
+                    tcs.TrySetResult(null);
+                    if (registeredHandle is object)
+                    {
+                        registeredHandle.Unregister(waitObject: null);
+                    }
+                },
+                null,
+                timeoutMilliseconds ?? -1,
+                executeOnlyOnce: true);
+            return tcs.Task;
+        }
 
-            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-        } while (true);
+        public static async Task WaitOneAsync(this WaitHandle handle, int? timeoutMilliseconds = null) => await handle.ToTask(timeoutMilliseconds);
+
+        public static async ValueTask<T> TakeAsync<T>(this BlockingCollection<T> collection, TimeSpan? pollTimeSpan = null, CancellationToken cancellationToken = default)
+        {
+            var delay = pollTimeSpan ?? TimeSpan.FromSeconds(.25);
+            do
+            {
+                if (collection.TryTake(out T value))
+                {
+                    return value;
+                }
+
+                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+            } while (true);
+        }
     }
 }

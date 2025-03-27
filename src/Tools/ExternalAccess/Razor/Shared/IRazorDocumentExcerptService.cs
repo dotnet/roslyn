@@ -6,9 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal interface IRazorDocumentExcerptServiceImplementation
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    Task<RazorExcerptResult?> TryExcerptAsync(Document document, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken);
+    internal interface IRazorDocumentExcerptServiceImplementation
+    {
+        Task<RazorExcerptResult?> TryExcerptAsync(Document document, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken);
+    }
 }

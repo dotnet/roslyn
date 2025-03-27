@@ -4,20 +4,21 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// Extension methods for the <see cref="BinderFlags"/> type.
-/// </summary>
-internal static class BinderFlagsExtensions
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public static bool Includes(this BinderFlags self, BinderFlags other)
+    /// <summary>
+    /// Extension methods for the <see cref="BinderFlags"/> type.
+    /// </summary>
+    internal static class BinderFlagsExtensions
     {
-        return (self & other) == other;
-    }
+        public static bool Includes(this BinderFlags self, BinderFlags other)
+        {
+            return (self & other) == other;
+        }
 
-    public static bool IncludesAny(this BinderFlags self, BinderFlags other)
-    {
-        return (self & other) != 0;
+        public static bool IncludesAny(this BinderFlags self, BinderFlags other)
+        {
+            return (self & other) != 0;
+        }
     }
 }

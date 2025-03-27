@@ -12,167 +12,168 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal static class DiagnosticAnalysisContextHelpers
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static void VerifyArguments<TContext>(Action<TContext> action)
+    internal static class DiagnosticAnalysisContextHelpers
     {
-        VerifyAction(action);
-    }
-
-    internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<SymbolKind> symbolKinds)
-    {
-        VerifyAction(action);
-        VerifySymbolKinds(symbolKinds);
-    }
-
-    internal static void VerifyArguments<TContext, TLanguageKindEnum>(Action<TContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
-        where TLanguageKindEnum : struct
-    {
-        VerifyAction(action);
-        VerifySyntaxKinds(syntaxKinds);
-    }
-
-    internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<OperationKind> operationKinds)
-    {
-        VerifyAction(action);
-        VerifyOperationKinds(operationKinds);
-    }
-
-    internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
-    {
-        if (diagnostic is DiagnosticWithInfo)
+        internal static void VerifyArguments<TContext>(Action<TContext> action)
         {
-            // Compiler diagnostic, skip validations.
-            return;
+            VerifyAction(action);
         }
 
-        if (diagnostic == null)
+        internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
-            throw new ArgumentNullException(nameof(diagnostic));
+            VerifyAction(action);
+            VerifySymbolKinds(symbolKinds);
         }
 
-        if (compilation != null)
+        internal static void VerifyArguments<TContext, TLanguageKindEnum>(Action<TContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
+            where TLanguageKindEnum : struct
         {
-            VerifyDiagnosticLocationsInCompilation(diagnostic, compilation);
+            VerifyAction(action);
+            VerifySyntaxKinds(syntaxKinds);
         }
 
-        if (!isSupportedDiagnostic(diagnostic, cancellationToken))
+        internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
+            VerifyAction(action);
+            VerifyOperationKinds(operationKinds);
         }
 
-        if (!UnicodeCharacterUtilities.IsValidIdentifier(diagnostic.Id))
+        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
-            // Disallow invalid diagnostic IDs.
-            // Note that the parsing logic in Csc/Vbc MSBuild tasks to decode command line compiler output relies on diagnostics having a valid ID.
-            // See https://github.com/dotnet/roslyn/issues/4376 for details.
-            throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
-        }
-    }
-
-    internal static void VerifyDiagnosticLocationsInCompilation(Diagnostic diagnostic, Compilation compilation)
-    {
-        VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
-
-        if (diagnostic.AdditionalLocations != null)
-        {
-            foreach (var location in diagnostic.AdditionalLocations)
+            if (diagnostic is DiagnosticWithInfo)
             {
-                VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
+                // Compiler diagnostic, skip validations.
+                return;
+            }
+
+            if (diagnostic == null)
+            {
+                throw new ArgumentNullException(nameof(diagnostic));
+            }
+
+            if (compilation != null)
+            {
+                VerifyDiagnosticLocationsInCompilation(diagnostic, compilation);
+            }
+
+            if (!isSupportedDiagnostic(diagnostic, cancellationToken))
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.UnsupportedDiagnosticReported, diagnostic.Id), nameof(diagnostic));
+            }
+
+            if (!UnicodeCharacterUtilities.IsValidIdentifier(diagnostic.Id))
+            {
+                // Disallow invalid diagnostic IDs.
+                // Note that the parsing logic in Csc/Vbc MSBuild tasks to decode command line compiler output relies on diagnostics having a valid ID.
+                // See https://github.com/dotnet/roslyn/issues/4376 for details.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticIdReported, diagnostic.Id), nameof(diagnostic));
             }
         }
-    }
 
-    private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
-    {
-        if (!location.IsInSource)
+        internal static void VerifyDiagnosticLocationsInCompilation(Diagnostic diagnostic, Compilation compilation)
         {
-            return;
+            VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
+
+            if (diagnostic.AdditionalLocations != null)
+            {
+                foreach (var location in diagnostic.AdditionalLocations)
+                {
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
+                }
+            }
         }
 
-        Debug.Assert(location.SourceTree != null);
-        if (!compilation.ContainsSyntaxTree(location.SourceTree))
+        private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
-            // Disallow diagnostics with source locations outside this compilation.
-            throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+            if (!location.IsInSource)
+            {
+                return;
+            }
+
+            Debug.Assert(location.SourceTree != null);
+            if (!compilation.ContainsSyntaxTree(location.SourceTree))
+            {
+                // Disallow diagnostics with source locations outside this compilation.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+            }
+
+            if (location.SourceSpan.End > location.SourceTree.Length)
+            {
+                // Disallow diagnostics with source locations outside this compilation.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+            }
         }
 
-        if (location.SourceSpan.End > location.SourceTree.Length)
+        private static void VerifyAction<TContext>(Action<TContext> action)
         {
-            // Disallow diagnostics with source locations outside this compilation.
-            throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
-        }
-    }
-
-    private static void VerifyAction<TContext>(Action<TContext> action)
-    {
-        if (action == null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
-    }
-
-    private static void VerifySymbolKinds(ImmutableArray<SymbolKind> symbolKinds)
-    {
-        if (symbolKinds.IsDefault)
-        {
-            throw new ArgumentNullException(nameof(symbolKinds));
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
         }
 
-        if (symbolKinds.IsEmpty)
+        private static void VerifySymbolKinds(ImmutableArray<SymbolKind> symbolKinds)
         {
-            throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
-        }
-    }
+            if (symbolKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(symbolKinds));
+            }
 
-    private static void VerifySyntaxKinds<TLanguageKindEnum>(ImmutableArray<TLanguageKindEnum> syntaxKinds)
-        where TLanguageKindEnum : struct
-    {
-        if (syntaxKinds.IsDefault)
-        {
-            throw new ArgumentNullException(nameof(syntaxKinds));
-        }
-
-        if (syntaxKinds.IsEmpty)
-        {
-            throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
-        }
-    }
-
-    private static void VerifyOperationKinds(ImmutableArray<OperationKind> operationKinds)
-    {
-        if (operationKinds.IsDefault)
-        {
-            throw new ArgumentNullException(nameof(operationKinds));
+            if (symbolKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
+            }
         }
 
-        if (operationKinds.IsEmpty)
+        private static void VerifySyntaxKinds<TLanguageKindEnum>(ImmutableArray<TLanguageKindEnum> syntaxKinds)
+            where TLanguageKindEnum : struct
         {
-            throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(operationKinds));
-        }
-    }
+            if (syntaxKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(syntaxKinds));
+            }
 
-    internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
-        where TKey : class
-    {
-        if (key == null)
+            if (syntaxKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
+            }
+        }
+
+        private static void VerifyOperationKinds(ImmutableArray<OperationKind> operationKinds)
         {
-            throw new ArgumentNullException(nameof(key));
+            if (operationKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(operationKinds));
+            }
+
+            if (operationKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(operationKinds));
+            }
         }
 
-        if (valueProvider == null)
+        internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
+            where TKey : class
         {
-            throw new ArgumentNullException(nameof(valueProvider));
-        }
-    }
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
 
-    internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph>? getControlFlowGraph, CancellationToken cancellationToken)
-    {
-        IOperation rootOperation = operation.GetRootOperation();
-        return getControlFlowGraph != null ?
-            getControlFlowGraph(rootOperation) :
-            ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
+            if (valueProvider == null)
+            {
+                throw new ArgumentNullException(nameof(valueProvider));
+            }
+        }
+
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph>? getControlFlowGraph, CancellationToken cancellationToken)
+        {
+            IOperation rootOperation = operation.GetRootOperation();
+            return getControlFlowGraph != null ?
+                getControlFlowGraph(rootOperation) :
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
+        }
     }
 }

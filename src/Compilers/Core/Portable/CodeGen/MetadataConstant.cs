@@ -7,30 +7,31 @@ using System.Diagnostics;
 using System.Reflection;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeGen;
-
-internal sealed class MetadataConstant : Cci.IMetadataExpression
+namespace Microsoft.CodeAnalysis.CodeGen
 {
-    public Cci.ITypeReference Type { get; }
-    public object? Value { get; }
-
-    public MetadataConstant(Cci.ITypeReference type, object? value)
+    internal sealed class MetadataConstant : Cci.IMetadataExpression
     {
-        RoslynDebug.Assert(type != null);
-        AssertValidConstant(value);
+        public Cci.ITypeReference Type { get; }
+        public object? Value { get; }
 
-        Type = type;
-        Value = value;
-    }
+        public MetadataConstant(Cci.ITypeReference type, object? value)
+        {
+            RoslynDebug.Assert(type != null);
+            AssertValidConstant(value);
 
-    void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
+            Type = type;
+            Value = value;
+        }
 
-    [Conditional("DEBUG")]
-    internal static void AssertValidConstant(object? value)
-    {
-        Debug.Assert(value == null || value is string || value is DateTime || value is decimal || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is IntPtr) && !(value is UIntPtr)));
+        void Cci.IMetadataExpression.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        [Conditional("DEBUG")]
+        internal static void AssertValidConstant(object? value)
+        {
+            Debug.Assert(value == null || value is string || value is DateTime || value is decimal || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is IntPtr) && !(value is UIntPtr)));
+        }
     }
 }

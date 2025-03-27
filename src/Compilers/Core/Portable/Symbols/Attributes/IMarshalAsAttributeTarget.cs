@@ -6,9 +6,10 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-internal interface IMarshalAsAttributeTarget
+namespace Microsoft.CodeAnalysis
 {
-    MarshalPseudoCustomAttributeData GetOrCreateData();
+    internal interface IMarshalAsAttributeTarget
+    {
+        MarshalPseudoCustomAttributeData GetOrCreateData();
+    }
 }

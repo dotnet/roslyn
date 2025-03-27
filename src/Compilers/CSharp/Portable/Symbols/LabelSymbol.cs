@@ -8,169 +8,170 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents a label in method body
-/// </summary>
-internal abstract class LabelSymbol : Symbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Returns false because label can't be defined externally.
+    /// Represents a label in method body
     /// </summary>
-    public override bool IsExtern
+    internal abstract class LabelSymbol : Symbol
     {
-        get
+        /// <summary>
+        /// Returns false because label can't be defined externally.
+        /// </summary>
+        public override bool IsExtern
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns false because label can't be sealed.
-    /// </summary>
-    public override bool IsSealed
-    {
-        get
+        /// <summary>
+        /// Returns false because label can't be sealed.
+        /// </summary>
+        public override bool IsSealed
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns false because label can't be abstract.
-    /// </summary>
-    public override bool IsAbstract
-    {
-        get
+        /// <summary>
+        /// Returns false because label can't be abstract.
+        /// </summary>
+        public override bool IsAbstract
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns false because label can't be overridden.
-    /// </summary>
-    public override bool IsOverride
-    {
-        get
+        /// <summary>
+        /// Returns false because label can't be overridden.
+        /// </summary>
+        public override bool IsOverride
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns false because label can't be virtual.
-    /// </summary>
-    public override bool IsVirtual
-    {
-        get
+        /// <summary>
+        /// Returns false because label can't be virtual.
+        /// </summary>
+        public override bool IsVirtual
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns false because label can't be static.
-    /// </summary>
-    public override bool IsStatic
-    {
-        get
+        /// <summary>
+        /// Returns false because label can't be static.
+        /// </summary>
+        public override bool IsStatic
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
-    }
 
-    /// <summary>
-    /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
-    /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
-    /// </summary>
-    internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
-    {
-        get { return null; }
-    }
-
-    /// <summary>
-    /// Returns 'NotApplicable' because label can't be used outside the member body.
-    /// </summary>
-    public override Accessibility DeclaredAccessibility
-    {
-        get
+        /// <summary>
+        /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+        /// This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
+        /// </summary>
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
         {
-            return Accessibility.NotApplicable;
+            get { return null; }
         }
-    }
 
-    /// <summary>
-    /// Gets the locations where the symbol was originally defined, either in source or
-    /// metadata. Some symbols (for example, partial classes) may be defined in more than one
-    /// location.
-    /// </summary>
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        /// <summary>
+        /// Returns 'NotApplicable' because label can't be used outside the member body.
+        /// </summary>
+        public override Accessibility DeclaredAccessibility
         {
-            throw new NotSupportedException();
+            get
+            {
+                return Accessibility.NotApplicable;
+            }
         }
-    }
 
-    internal virtual SyntaxNodeOrToken IdentifierNodeOrToken
-    {
-        get { return default(SyntaxNodeOrToken); }
-    }
-
-    internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
-        return visitor.VisitLabel(this, argument);
-    }
-
-    public override void Accept(CSharpSymbolVisitor visitor)
-    {
-        visitor.VisitLabel(this);
-    }
-
-    public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
-    {
-        return visitor.VisitLabel(this);
-    }
-
-    /// <summary>
-    /// Gets the immediately containing symbol of the <see cref="LabelSymbol"/>.
-    /// It should be the <see cref="MethodSymbol"/> containing the label in its body.
-    /// </summary>
-    public virtual MethodSymbol ContainingMethod
-    {
-        get
+        /// <summary>
+        /// Gets the locations where the symbol was originally defined, either in source or
+        /// metadata. Some symbols (for example, partial classes) may be defined in more than one
+        /// location.
+        /// </summary>
+        public override ImmutableArray<Location> Locations
         {
-            throw new NotSupportedException();
+            get
+            {
+                throw new NotSupportedException();
+            }
         }
-    }
 
-    /// <summary>
-    /// Gets the immediately containing symbol of the <see cref="LabelSymbol"/>.
-    /// It should be the <see cref="MethodSymbol"/> containing the label in its body.
-    /// </summary>
-    public override Symbol ContainingSymbol
-    {
-        get
+        internal virtual SyntaxNodeOrToken IdentifierNodeOrToken
         {
-            throw new NotSupportedException();
+            get { return default(SyntaxNodeOrToken); }
         }
-    }
 
-    /// <summary>
-    /// Returns value 'Label' of the <see cref="SymbolKind"/>
-    /// </summary>
-    public override SymbolKind Kind
-    {
-        get
+        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return SymbolKind.Label;
+            return visitor.VisitLabel(this, argument);
         }
-    }
 
-    protected sealed override ISymbol CreateISymbol()
-    {
-        return new PublicModel.LabelSymbol(this);
+        public override void Accept(CSharpSymbolVisitor visitor)
+        {
+            visitor.VisitLabel(this);
+        }
+
+        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitLabel(this);
+        }
+
+        /// <summary>
+        /// Gets the immediately containing symbol of the <see cref="LabelSymbol"/>.
+        /// It should be the <see cref="MethodSymbol"/> containing the label in its body.
+        /// </summary>
+        public virtual MethodSymbol ContainingMethod
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Gets the immediately containing symbol of the <see cref="LabelSymbol"/>.
+        /// It should be the <see cref="MethodSymbol"/> containing the label in its body.
+        /// </summary>
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Returns value 'Label' of the <see cref="SymbolKind"/>
+        /// </summary>
+        public override SymbolKind Kind
+        {
+            get
+            {
+                return SymbolKind.Label;
+            }
+        }
+
+        protected sealed override ISymbol CreateISymbol()
+        {
+            return new PublicModel.LabelSymbol(this);
+        }
     }
 }

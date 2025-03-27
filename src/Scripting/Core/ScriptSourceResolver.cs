@@ -8,48 +8,49 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Scripting;
-
-using static ParameterValidationHelpers;
-
-public sealed class ScriptSourceResolver : SourceFileResolver, IEquatable<ScriptSourceResolver>
+namespace Microsoft.CodeAnalysis.Scripting
 {
-    public static new ScriptSourceResolver Default { get; } = new ScriptSourceResolver(ImmutableArray<string>.Empty, null);
+    using static ParameterValidationHelpers;
 
-    private ScriptSourceResolver(ImmutableArray<string> sourcePaths, string baseDirectory)
-        : base(sourcePaths, baseDirectory)
+    public sealed class ScriptSourceResolver : SourceFileResolver, IEquatable<ScriptSourceResolver>
     {
-    }
+        public static new ScriptSourceResolver Default { get; } = new ScriptSourceResolver(ImmutableArray<string>.Empty, null);
 
-    public ScriptSourceResolver WithSearchPaths(params string[] searchPaths)
-        => WithSearchPaths(searchPaths.AsImmutableOrEmpty());
-
-    public ScriptSourceResolver WithSearchPaths(IEnumerable<string> searchPaths)
-        => WithSearchPaths(searchPaths.AsImmutableOrEmpty());
-
-    public ScriptSourceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
-    {
-        if (SearchPaths == searchPaths)
+        private ScriptSourceResolver(ImmutableArray<string> sourcePaths, string baseDirectory)
+            : base(sourcePaths, baseDirectory)
         {
-            return this;
         }
 
-        return new ScriptSourceResolver(ToImmutableArrayChecked(searchPaths, nameof(searchPaths)), BaseDirectory);
-    }
+        public ScriptSourceResolver WithSearchPaths(params string[] searchPaths)
+            => WithSearchPaths(searchPaths.AsImmutableOrEmpty());
 
-    public ScriptSourceResolver WithBaseDirectory(string baseDirectory)
-    {
-        if (BaseDirectory == baseDirectory)
+        public ScriptSourceResolver WithSearchPaths(IEnumerable<string> searchPaths)
+            => WithSearchPaths(searchPaths.AsImmutableOrEmpty());
+
+        public ScriptSourceResolver WithSearchPaths(ImmutableArray<string> searchPaths)
         {
-            return this;
+            if (SearchPaths == searchPaths)
+            {
+                return this;
+            }
+
+            return new ScriptSourceResolver(ToImmutableArrayChecked(searchPaths, nameof(searchPaths)), BaseDirectory);
         }
 
-        // absolute path check is done in the base class
+        public ScriptSourceResolver WithBaseDirectory(string baseDirectory)
+        {
+            if (BaseDirectory == baseDirectory)
+            {
+                return this;
+            }
 
-        return new ScriptSourceResolver(SearchPaths, baseDirectory);
+            // absolute path check is done in the base class
+
+            return new ScriptSourceResolver(SearchPaths, baseDirectory);
+        }
+
+        public bool Equals(ScriptSourceResolver other) => base.Equals(other);
+        public override int GetHashCode() => base.GetHashCode();
+        public override bool Equals(object obj) => base.Equals(obj);
     }
-
-    public bool Equals(ScriptSourceResolver other) => base.Equals(other);
-    public override int GetHashCode() => base.GetHashCode();
-    public override bool Equals(object obj) => base.Equals(obj);
 }

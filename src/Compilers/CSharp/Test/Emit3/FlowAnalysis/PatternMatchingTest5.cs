@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.FlowAnalysis;
-
-public class PatternMatchingTest5
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.FlowAnalysis
 {
-    public class FlowAnalysisTests : FlowTestBase
+    public class PatternMatchingTest5
     {
-        [Fact]
-        public void RegionInIsPattern01()
+        public class FlowAnalysisTests : FlowTestBase
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+            [Fact]
+            public void RegionInIsPattern01()
+            {
+                var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
 class C
 {
     static void M(object o)
@@ -32,18 +32,19 @@ class C
         };
     }
 }");
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-            Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-            Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-            Assert.Equal("o, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
-            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+                Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+                Assert.Equal("o, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
+            }
         }
     }
 }

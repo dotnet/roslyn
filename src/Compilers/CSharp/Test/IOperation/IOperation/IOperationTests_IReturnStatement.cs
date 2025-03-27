@@ -12,15 +12,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IReturnStatement : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void SimpleReturnFromRegularMethod()
+    public class IOperationTests_IReturnStatement : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void SimpleReturnFromRegularMethod()
+        {
+            string source = @"
 class C
 {
     static void Method()
@@ -29,20 +29,20 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return;')
   ReturnedValue: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ReturnWithValueFromRegularMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ReturnWithValueFromRegularMethod()
+        {
+            string source = @"
 class C
 {
     static bool Method()
@@ -51,21 +51,21 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return true;')
   ReturnedValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void YieldReturnFromRegularMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void YieldReturnFromRegularMethod()
+        {
+            string source = @"
 using System.Collections.Generic;
 class C
 {
@@ -75,21 +75,21 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield return 0;')
   ReturnedValue: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void YieldBreakFromRegularMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void YieldBreakFromRegularMethod()
+        {
+            string source = @"
 using System.Collections.Generic;
 class C
 {
@@ -100,21 +100,21 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnOperation (OperationKind.YieldBreak, Type: null) (Syntax: 'yield break;')
   ReturnedValue: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
-    public void Return_ConstantConversions_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void Return_ConstantConversions_01()
+        {
+            string source = @"
 class C
 {
     static float Method()
@@ -123,7 +123,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return 0.0;')
   ReturnedValue: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
@@ -131,20 +131,20 @@ IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return 
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // (6,26): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
-            //         /*<bind>*/return 0.0;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(6, 26)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (6,26): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //         /*<bind>*/return 0.0;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(6, 26)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_01()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_01()
+        {
+            var source = @"
 class C
 {
     void F()
@@ -153,11 +153,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -165,14 +165,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_02()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_02()
+        {
+            var source = @"
 class C
 {
     int F()
@@ -181,11 +181,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -198,14 +198,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_03()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_03()
+        {
+            var source = @"
 class C
 {
     void F(bool a)
@@ -215,15 +215,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         a = true;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         a = true;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
@@ -243,14 +243,14 @@ Block[B2] - Exit
     Predecessors: [B0] [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_04()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_04()
+        {
+            var source = @"
 class C
 {
     int F(bool a)
@@ -260,15 +260,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         a = true;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         a = true;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -293,14 +293,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_05()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_05()
+        {
+            var source = @"
 class C
 {
     object F(object a, object b)
@@ -309,11 +309,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -370,14 +370,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_06()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_06()
+        {
+            var source = @"
 class C
 {
     int F(bool a)
@@ -393,11 +393,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -422,14 +422,14 @@ Block[B4] - Exit
     Predecessors: [B2] [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_07()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_07()
+        {
+            var source = @"
 class C
 {
     void F(bool a)
@@ -445,11 +445,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -476,14 +476,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_08()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_08()
+        {
+            var source = @"
 class C
 {
     void F(bool a)
@@ -501,11 +501,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -540,14 +540,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_09()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_09()
+        {
+            var source = @"
 class C
 {
     int F(bool a, bool b)
@@ -565,11 +565,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -613,14 +613,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_10()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_10()
+        {
+            var source = @"
 class C
 {
     int F()
@@ -630,15 +630,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         return 2;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         return 2;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -656,14 +656,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_11()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_11()
+        {
+            var source = @"
 class C
 {
     void F()
@@ -673,15 +673,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         return;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -689,14 +689,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_12()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_12()
+        {
+            var source = @"
 class C
 {
     int F(int a)
@@ -711,11 +711,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -754,14 +754,14 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_13()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_13()
+        {
+            var source = @"
 class C
 {
     int F(int a)
@@ -779,11 +779,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -831,14 +831,14 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_14()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_14()
+        {
+            var source = @"
 class C
 {
     int F(int a)
@@ -855,11 +855,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -899,14 +899,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_15()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_15()
+        {
+            var source = @"
 class C
 {
     int F(int a)
@@ -924,11 +924,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -976,14 +976,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_16()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_16()
+        {
+            var source = @"
 class C
 {
     int F(bool a)
@@ -997,11 +997,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1021,14 +1021,14 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_17()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_17()
+        {
+            var source = @"
 class C
 {
     int F(bool a)
@@ -1043,11 +1043,11 @@ label2:
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1072,14 +1072,14 @@ Block[B4] - Exit
     Predecessors: [B2] [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ReturnFlow_18()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_18()
+        {
+            var source = @"
 class C
 {
     int F(bool a)
@@ -1094,11 +1094,11 @@ label1:
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1131,14 +1131,14 @@ Block[B4] - Exit
     Predecessors: [B2] [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_01()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_01()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F()
@@ -1147,11 +1147,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1159,14 +1159,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_02()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_02()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F()
@@ -1175,11 +1175,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1195,14 +1195,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_03()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_03()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F(bool a)
@@ -1212,15 +1212,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         a = true;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         a = true;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "a").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
@@ -1240,14 +1240,14 @@ Block[B2] - Exit
     Predecessors: [B0] [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_04()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_04()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F(bool a)
@@ -1257,11 +1257,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1285,14 +1285,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_05()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_05()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<object> F(object a, object b)
@@ -1301,11 +1301,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1365,14 +1365,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_06()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_06()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F(bool a)
@@ -1388,11 +1388,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1423,14 +1423,14 @@ Block[B4] - Exit
     Predecessors: [B2] [B3]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_07()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_07()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F(bool a)
@@ -1446,11 +1446,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1477,14 +1477,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_08()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_08()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F(bool a)
@@ -1502,11 +1502,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1541,14 +1541,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_09()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_09()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F()
@@ -1558,11 +1558,11 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1582,14 +1582,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-    }
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void YieldFlow_10()
-    {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void YieldFlow_10()
+        {
+            var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> F()
@@ -1599,15 +1599,15 @@ class C
     }/*</bind>*/
 }";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (7,9): warning CS0162: Unreachable code detected
-            //         yield break;
-            Diagnostic(ErrorCode.WRN_UnreachableCode, "yield").WithLocation(7, 9)
-            );
+            compilation.VerifyDiagnostics(
+                // (7,9): warning CS0162: Unreachable code detected
+                //         yield break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "yield").WithLocation(7, 9)
+                );
 
-        string expectedGraph = @"
+            string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1615,6 +1615,7 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
     }
 }

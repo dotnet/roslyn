@@ -13,91 +13,92 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-internal enum MethodId
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    GetValueString,
-    HasUnderlyingString,
-    GetUnderlyingString,
-    GetResult,
-    GetChildren,
-    GetItems,
-    GetTypeName,
-    GetClrValue,
-}
-
-public class DkmInspectionSession
-{
-    private readonly Dispatcher<IDkmClrFormatter> _formatters;
-    private readonly Dispatcher<IDkmClrResultProvider> _resultProviders;
-
-    internal DkmInspectionSession(ImmutableArray<IDkmClrFormatter> formatters, ImmutableArray<IDkmClrResultProvider> resultProviders)
+    internal enum MethodId
     {
-        _formatters = new Dispatcher<IDkmClrFormatter>(formatters);
-        _resultProviders = new Dispatcher<IDkmClrResultProvider>(resultProviders);
+        GetValueString,
+        HasUnderlyingString,
+        GetUnderlyingString,
+        GetResult,
+        GetChildren,
+        GetItems,
+        GetTypeName,
+        GetClrValue,
     }
 
-    internal T InvokeFormatter<T>(object instance, MethodId method, Func<IDkmClrFormatter, T> f)
+    public class DkmInspectionSession
     {
-        return _formatters.Invoke(instance, method, f);
-    }
+        private readonly Dispatcher<IDkmClrFormatter> _formatters;
+        private readonly Dispatcher<IDkmClrResultProvider> _resultProviders;
 
-    internal T InvokeResultProvider<T>(object instance, MethodId method, Func<IDkmClrResultProvider, T> f)
-    {
-        return _resultProviders.Invoke(instance, method, f);
-    }
-
-    private sealed class Dispatcher<TInterface>
-    {
-        private readonly struct InstanceAndMethod
+        internal DkmInspectionSession(ImmutableArray<IDkmClrFormatter> formatters, ImmutableArray<IDkmClrResultProvider> resultProviders)
         {
-            internal InstanceAndMethod(object instance, MethodId method)
-            {
-                Instance = instance;
-                Method = method;
-            }
-            internal readonly object Instance;
-            internal readonly MethodId Method;
-            internal bool Equals(InstanceAndMethod other)
-            {
-                return Instance == other.Instance && Method == other.Method;
-            }
+            _formatters = new Dispatcher<IDkmClrFormatter>(formatters);
+            _resultProviders = new Dispatcher<IDkmClrResultProvider>(resultProviders);
         }
 
-        private readonly ImmutableArray<TInterface> _implementations;
-        private readonly ArrayBuilder<InstanceAndMethod> _calls;
-
-        internal Dispatcher(ImmutableArray<TInterface> items)
+        internal T InvokeFormatter<T>(object instance, MethodId method, Func<IDkmClrFormatter, T> f)
         {
-            _implementations = items;
-            _calls = ArrayBuilder<InstanceAndMethod>.GetInstance();
+            return _formatters.Invoke(instance, method, f);
         }
 
-        internal TResult Invoke<TResult>(object instance, MethodId method, Func<TInterface, TResult> f)
+        internal T InvokeResultProvider<T>(object instance, MethodId method, Func<IDkmClrResultProvider, T> f)
         {
-            // If the last n - 1 calls are to the same method,
-            // call the n-th implementation.
-            var instanceAndMethod = new InstanceAndMethod(instance, method);
-            int n = _calls.Count;
-            int index = 0;
-            while ((n - index > 0) && _calls[n - index - 1].Equals(instanceAndMethod))
+            return _resultProviders.Invoke(instance, method, f);
+        }
+
+        private sealed class Dispatcher<TInterface>
+        {
+            private readonly struct InstanceAndMethod
             {
-                index++;
+                internal InstanceAndMethod(object instance, MethodId method)
+                {
+                    Instance = instance;
+                    Method = method;
+                }
+                internal readonly object Instance;
+                internal readonly MethodId Method;
+                internal bool Equals(InstanceAndMethod other)
+                {
+                    return Instance == other.Instance && Method == other.Method;
+                }
             }
-            if (index == _implementations.Length)
+
+            private readonly ImmutableArray<TInterface> _implementations;
+            private readonly ArrayBuilder<InstanceAndMethod> _calls;
+
+            internal Dispatcher(ImmutableArray<TInterface> items)
             {
-                throw new InvalidOperationException();
+                _implementations = items;
+                _calls = ArrayBuilder<InstanceAndMethod>.GetInstance();
             }
-            var item = _implementations[index];
-            _calls.Push(instanceAndMethod);
-            try
+
+            internal TResult Invoke<TResult>(object instance, MethodId method, Func<TInterface, TResult> f)
             {
-                return f(item);
-            }
-            finally
-            {
-                _calls.Pop();
+                // If the last n - 1 calls are to the same method,
+                // call the n-th implementation.
+                var instanceAndMethod = new InstanceAndMethod(instance, method);
+                int n = _calls.Count;
+                int index = 0;
+                while ((n - index > 0) && _calls[n - index - 1].Equals(instanceAndMethod))
+                {
+                    index++;
+                }
+                if (index == _implementations.Length)
+                {
+                    throw new InvalidOperationException();
+                }
+                var item = _implementations[index];
+                _calls.Push(instanceAndMethod);
+                try
+                {
+                    return f(item);
+                }
+                finally
+                {
+                    _calls.Pop();
+                }
             }
         }
     }

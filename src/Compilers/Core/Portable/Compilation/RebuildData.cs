@@ -7,23 +7,24 @@ using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class RebuildData
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// This represents the set of document names for the #line / #ExternalSource directives
-    /// that we need to emit into the PDB (in the order specified in the array).
-    /// </summary>
-    internal ImmutableArray<string> NonSourceFileDocumentNames { get; }
-
-    internal BlobReader OptionsBlobReader { get; }
-
-    internal RebuildData(
-        BlobReader optionsBlobReader,
-        ImmutableArray<string> nonSourceFileDocumentNames)
+    internal sealed class RebuildData
     {
-        OptionsBlobReader = optionsBlobReader;
-        NonSourceFileDocumentNames = nonSourceFileDocumentNames;
+        /// <summary>
+        /// This represents the set of document names for the #line / #ExternalSource directives
+        /// that we need to emit into the PDB (in the order specified in the array).
+        /// </summary>
+        internal ImmutableArray<string> NonSourceFileDocumentNames { get; }
+
+        internal BlobReader OptionsBlobReader { get; }
+
+        internal RebuildData(
+            BlobReader optionsBlobReader,
+            ImmutableArray<string> nonSourceFileDocumentNames)
+        {
+            OptionsBlobReader = optionsBlobReader;
+            NonSourceFileDocumentNames = nonSourceFileDocumentNames;
+        }
     }
 }

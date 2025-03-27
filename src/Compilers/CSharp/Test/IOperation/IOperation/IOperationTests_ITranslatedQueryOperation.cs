@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_ITranslatedQueryOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void TranslatedQueryFlow_01()
+    public class IOperationTests_ITranslatedQueryOperation : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TranslatedQueryFlow_01()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +35,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -91,16 +91,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void TranslatedQueryFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TranslatedQueryFlow_02()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -115,7 +115,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -225,8 +225,9 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

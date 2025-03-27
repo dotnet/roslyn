@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class ArrayRankSpecifierSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public int Rank
+    public partial class ArrayRankSpecifierSyntax
     {
-        get
+        public int Rank
         {
-            return this.Sizes.Count;
+            get
+            {
+                return this.Sizes.Count;
+            }
         }
     }
 }

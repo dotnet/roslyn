@@ -7,12 +7,13 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 
-namespace IdeBenchmarks;
-
-public class MemoryDiagnoserConfig : ManualConfig
+namespace IdeBenchmarks
 {
-    public MemoryDiagnoserConfig()
+    public class MemoryDiagnoserConfig : ManualConfig
     {
-        AddDiagnoser(MemoryDiagnoser.Default);
+        public MemoryDiagnoserConfig()
+        {
+            AddDiagnoser(MemoryDiagnoser.Default);
+        }
     }
 }

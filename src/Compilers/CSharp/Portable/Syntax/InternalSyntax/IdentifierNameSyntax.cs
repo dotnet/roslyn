@@ -8,12 +8,13 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal partial class IdentifierNameSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    public override string ToString()
+    internal partial class IdentifierNameSyntax
     {
-        return this.Identifier.Text;
+        public override string ToString()
+        {
+            return this.Identifier.Text;
+        }
     }
 }

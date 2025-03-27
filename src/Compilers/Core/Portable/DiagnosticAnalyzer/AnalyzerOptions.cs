@@ -7,77 +7,78 @@ using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <summary>
-/// Options passed to <see cref="DiagnosticAnalyzer"/>.
-/// </summary>
-public class AnalyzerOptions
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static readonly AnalyzerOptions Empty = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
-
     /// <summary>
-    /// A set of additional non-code text files that can be used by analyzers.
+    /// Options passed to <see cref="DiagnosticAnalyzer"/>.
     /// </summary>
-    public ImmutableArray<AdditionalText> AdditionalFiles { get; }
-
-    /// <summary>
-    /// A set of options keyed to <see cref="SyntaxTree"/> or <see cref="AdditionalText"/>.
-    /// </summary>
-    public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
-
-    /// <summary>
-    /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
-    /// </summary>
-    /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
-    /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
-    public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
+    public class AnalyzerOptions
     {
-        if (optionsProvider is null)
+        internal static readonly AnalyzerOptions Empty = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
+
+        /// <summary>
+        /// A set of additional non-code text files that can be used by analyzers.
+        /// </summary>
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; }
+
+        /// <summary>
+        /// A set of options keyed to <see cref="SyntaxTree"/> or <see cref="AdditionalText"/>.
+        /// </summary>
+        public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
+
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
         {
-            throw new ArgumentNullException(nameof(optionsProvider));
+            if (optionsProvider is null)
+            {
+                throw new ArgumentNullException(nameof(optionsProvider));
+            }
+
+            AdditionalFiles = additionalFiles.NullToEmpty();
+            AnalyzerConfigOptionsProvider = optionsProvider;
         }
 
-        AdditionalFiles = additionalFiles.NullToEmpty();
-        AnalyzerConfigOptionsProvider = optionsProvider;
-    }
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
+            : this(additionalFiles, CompilerAnalyzerConfigOptionsProvider.Empty)
+        { }
 
-    /// <summary>
-    /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
-    /// </summary>
-    /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
-    public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
-        : this(additionalFiles, CompilerAnalyzerConfigOptionsProvider.Empty)
-    { }
-
-    /// <summary>
-    /// Returns analyzer options with the given <paramref name="additionalFiles"/>.
-    /// </summary>
-    public AnalyzerOptions WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
-    {
-        if (this.AdditionalFiles == additionalFiles)
+        /// <summary>
+        /// Returns analyzer options with the given <paramref name="additionalFiles"/>.
+        /// </summary>
+        public AnalyzerOptions WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
         {
-            return this;
+            if (this.AdditionalFiles == additionalFiles)
+            {
+                return this;
+            }
+
+            return new AnalyzerOptions(additionalFiles);
         }
 
-        return new AnalyzerOptions(additionalFiles);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
+        public override bool Equals(object? obj)
         {
-            return true;
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            var other = obj as AnalyzerOptions;
+            return other != null &&
+                (this.AdditionalFiles == other.AdditionalFiles ||
+                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals));
         }
 
-        var other = obj as AnalyzerOptions;
-        return other != null &&
-            (this.AdditionalFiles == other.AdditionalFiles ||
-            this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals));
-    }
-
-    public override int GetHashCode()
-    {
-        return Hash.CombineValues(this.AdditionalFiles);
+        public override int GetHashCode()
+        {
+            return Hash.CombineValues(this.AdditionalFiles);
+        }
     }
 }

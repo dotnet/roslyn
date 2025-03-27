@@ -8,36 +8,37 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
-internal static class AssemblyIdentityExtensions
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    // CultureInfo is not portable.
-
-    /// <summary>
-    /// Converts this identity to <see cref="AssemblyName"/>.
-    /// </summary>
-    /// <returns>A new instance of <see cref="AssemblyName"/>.</returns>
-    /// <exception cref="System.Globalization.CultureNotFoundException">The culture specified in <see cref="AssemblyIdentity.CultureName"/> is not available on the current platform.</exception>
-    public static AssemblyName ToAssemblyName(this AssemblyIdentity identity)
+    internal static class AssemblyIdentityExtensions
     {
-        var result = new AssemblyName();
-        result.Name = identity.Name;
-        result.Version = identity.Version;
-        result.Flags = identity.Flags;
-        result.ContentType = identity.ContentType;
-        result.CultureInfo = CultureInfo.GetCultureInfo(identity.CultureName);
+        // CultureInfo is not portable.
 
-        if (identity.PublicKey.Length > 0)
+        /// <summary>
+        /// Converts this identity to <see cref="AssemblyName"/>.
+        /// </summary>
+        /// <returns>A new instance of <see cref="AssemblyName"/>.</returns>
+        /// <exception cref="System.Globalization.CultureNotFoundException">The culture specified in <see cref="AssemblyIdentity.CultureName"/> is not available on the current platform.</exception>
+        public static AssemblyName ToAssemblyName(this AssemblyIdentity identity)
         {
-            result.SetPublicKey(identity.PublicKey.ToArray());
-        }
+            var result = new AssemblyName();
+            result.Name = identity.Name;
+            result.Version = identity.Version;
+            result.Flags = identity.Flags;
+            result.ContentType = identity.ContentType;
+            result.CultureInfo = CultureInfo.GetCultureInfo(identity.CultureName);
 
-        if (!identity.PublicKeyToken.IsDefault)
-        {
-            result.SetPublicKeyToken(identity.PublicKeyToken.ToArray());
-        }
+            if (identity.PublicKey.Length > 0)
+            {
+                result.SetPublicKey(identity.PublicKey.ToArray());
+            }
 
-        return result;
+            if (!identity.PublicKeyToken.IsDefault)
+            {
+                result.SetPublicKeyToken(identity.PublicKeyToken.ToArray());
+            }
+
+            return result;
+        }
     }
 }

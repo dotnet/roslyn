@@ -7,22 +7,23 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class AsyncConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal AsyncConstructor(AsyncStateMachine stateMachineType)
-        : base(stateMachineType)
+    internal sealed class AsyncConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-    }
+        internal AsyncConstructor(AsyncStateMachine stateMachineType)
+            : base(stateMachineType)
+        {
+        }
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-    {
-        get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
-    }
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
+        }
 
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-    {
-        get { return false; }
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get { return false; }
+        }
     }
 }

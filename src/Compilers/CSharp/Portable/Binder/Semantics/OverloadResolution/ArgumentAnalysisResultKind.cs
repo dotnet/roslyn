@@ -4,17 +4,18 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal enum ArgumentAnalysisResultKind : byte
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    Normal,
-    Expanded,
-    NoCorrespondingParameter,
-    FirstInvalid = NoCorrespondingParameter,
-    NoCorrespondingNamedParameter,
-    DuplicateNamedArgument,
-    RequiredParameterMissing,
-    NameUsedForPositional,
-    BadNonTrailingNamedArgument // if a named argument refers to a different position, all following arguments must be named
+    internal enum ArgumentAnalysisResultKind : byte
+    {
+        Normal,
+        Expanded,
+        NoCorrespondingParameter,
+        FirstInvalid = NoCorrespondingParameter,
+        NoCorrespondingNamedParameter,
+        DuplicateNamedArgument,
+        RequiredParameterMissing,
+        NameUsedForPositional,
+        BadNonTrailingNamedArgument // if a named argument refers to a different position, all following arguments must be named
+    }
 }

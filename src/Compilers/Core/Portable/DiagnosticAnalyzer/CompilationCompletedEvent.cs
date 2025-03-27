@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <summary>
-/// The last event placed into a compilation's event queue.
-/// </summary>
-internal sealed class CompilationCompletedEvent : CompilationEvent
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public CompilationCompletedEvent(Compilation compilation) : base(compilation) { }
-    public override string ToString()
+    /// <summary>
+    /// The last event placed into a compilation's event queue.
+    /// </summary>
+    internal sealed class CompilationCompletedEvent : CompilationEvent
     {
-        return "CompilationCompletedEvent";
+        public CompilationCompletedEvent(Compilation compilation) : base(compilation) { }
+        public override string ToString()
+        {
+            return "CompilationCompletedEvent";
+        }
     }
 }

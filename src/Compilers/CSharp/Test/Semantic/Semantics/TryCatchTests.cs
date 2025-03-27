@@ -12,17 +12,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-/// <summary>
-/// Tests related to binding (but not lowering) try/catch statements.
-/// </summary>
-public class TryCatchTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void SemanticModel()
+    /// <summary>
+    /// Tests related to binding (but not lowering) try/catch statements.
+    /// </summary>
+    public class TryCatchTests : CompilingTestBase
     {
-        var source = @"
+        [Fact]
+        public void SemanticModel()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -36,25 +36,25 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
-        compilation.VerifyDiagnostics();
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
-        var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
-        Assert.Equal("e", localSymbol.Name);
-        Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
+            var catchClause = tree.GetCompilationUnitRoot().DescendantNodes().OfType<CatchClauseSyntax>().Single();
+            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(catchClause.Declaration);
+            Assert.Equal("e", localSymbol.Name);
+            Assert.Equal("System.IO.IOException", localSymbol.Type.ToDisplayString());
 
-        var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
-        Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());
-    }
+            var filterExprInfo = model.GetSymbolInfo(catchClause.Filter.FilterExpression);
+            Assert.Equal("string.operator !=(string, string)", filterExprInfo.Symbol.ToDisplayString());
+        }
 
-    [Fact]
-    public void CatchClauseValueType()
-    {
-        var source = @"
+        [Fact]
+        public void CatchClauseValueType()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -68,20 +68,20 @@ class C
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (9,16): error CS0155: The type caught or thrown must be derived from System.Exception
-            //         catch (int e)
-            Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(9, 16),
-            // (9,20): warning CS0168: The variable 'e' is declared but never used
-            //         catch (int e)
-            Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(9, 20));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,16): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         catch (int e)
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "int").WithLocation(9, 16),
+                // (9,20): warning CS0168: The variable 'e' is declared but never used
+                //         catch (int e)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(9, 20));
+        }
 
-    [Fact]
-    [WorkItem(7030, "https://github.com/dotnet/roslyn/issues/7030")]
-    public void Issue7030()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(7030, "https://github.com/dotnet/roslyn/issues/7030")]
+        public void Issue7030()
+        {
+            var source = @"
 using System;
 
 class C
@@ -108,56 +108,57 @@ class C
     }
 }";
 
-        CompileAndVerify(source, expectedOutput: "hhhe");
-    }
+            CompileAndVerify(source, expectedOutput: "hhhe");
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70948")]
-    public void NestedAsyncThrow()
-    {
-        var source = """
-            using System;
-            using System.Threading.Tasks;
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70948")]
+        public void NestedAsyncThrow()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
 
-            class C
-            {
-                private async Task<object> M(object o)
+                class C
                 {
-                    try
+                    private async Task<object> M(object o)
                     {
-                    }
-                    catch (Exception)
-                    {
-                        Func<Task> f = async () =>
+                        try
                         {
-                            try
+                        }
+                        catch (Exception)
+                        {
+                            Func<Task> f = async () =>
                             {
-                            }
-                            catch (Exception)
-                            {
-                                throw;
-                            }
-                            finally
-                            {
-                            }
-                        };
+                                try
+                                {
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                                finally
+                                {
+                                }
+                            };
 
-                        await Task.CompletedTask;
+                            await Task.CompletedTask;
 
-                        throw;
+                            throw;
+                        }
+                        finally
+                        {
+                        }
+
+                        return null;
                     }
-                    finally
-                    {
-                    }
-
-                    return null;
                 }
-            }
-            """;
+                """;
 
-        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
-            // (13,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //             Func<Task> f = async () =>
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(13, 37)
-        );
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (13,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             Func<Task> f = async () =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(13, 37)
+            );
+        }
     }
 }

@@ -5,15 +5,16 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundListPattern
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private partial void Validate()
+    internal partial class BoundListPattern
     {
-        Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
-        Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
-        Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
-        Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
+        private partial void Validate()
+        {
+            Debug.Assert(LengthAccess is null or BoundPropertyAccess or BoundBadExpression);
+            Debug.Assert(IndexerAccess is null or BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess or BoundBadExpression or BoundDynamicIndexerAccess);
+            Debug.Assert(Binder.GetIndexerOrImplicitIndexerSymbol(IndexerAccess) is var _);
+            Debug.Assert(NarrowedType.Equals(InputType.StrippedType(), TypeCompareKind.AllIgnoreOptions));
+        }
     }
 }

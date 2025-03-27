@@ -5,25 +5,26 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-public sealed class CSharpScriptCompilationInfo : ScriptCompilationInfo
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public new CSharpCompilation? PreviousScriptCompilation { get; }
-
-    internal CSharpScriptCompilationInfo(CSharpCompilation? previousCompilationOpt, Type? returnType, Type? globalsType)
-        : base(returnType, globalsType)
+    public sealed class CSharpScriptCompilationInfo : ScriptCompilationInfo
     {
-        Debug.Assert(previousCompilationOpt == null || previousCompilationOpt.HostObjectType == globalsType);
+        public new CSharpCompilation? PreviousScriptCompilation { get; }
 
-        PreviousScriptCompilation = previousCompilationOpt;
+        internal CSharpScriptCompilationInfo(CSharpCompilation? previousCompilationOpt, Type? returnType, Type? globalsType)
+            : base(returnType, globalsType)
+        {
+            Debug.Assert(previousCompilationOpt == null || previousCompilationOpt.HostObjectType == globalsType);
+
+            PreviousScriptCompilation = previousCompilationOpt;
+        }
+
+        internal override Compilation? CommonPreviousScriptCompilation => PreviousScriptCompilation;
+
+        public CSharpScriptCompilationInfo WithPreviousScriptCompilation(CSharpCompilation? compilation) =>
+            (compilation == PreviousScriptCompilation) ? this : new CSharpScriptCompilationInfo(compilation, ReturnTypeOpt, GlobalsType);
+
+        internal override ScriptCompilationInfo CommonWithPreviousScriptCompilation(Compilation? compilation) =>
+            WithPreviousScriptCompilation((CSharpCompilation?)compilation);
     }
-
-    internal override Compilation? CommonPreviousScriptCompilation => PreviousScriptCompilation;
-
-    public CSharpScriptCompilationInfo WithPreviousScriptCompilation(CSharpCompilation? compilation) =>
-        (compilation == PreviousScriptCompilation) ? this : new CSharpScriptCompilationInfo(compilation, ReturnTypeOpt, GlobalsType);
-
-    internal override ScriptCompilationInfo CommonWithPreviousScriptCompilation(Compilation? compilation) =>
-        WithPreviousScriptCompilation((CSharpCompilation?)compilation);
 }

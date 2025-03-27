@@ -5,19 +5,20 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal static class ImmutableArrayExtensions
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal static int IndexOf<TItem, TArg>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, TArg arg)
+    internal static class ImmutableArrayExtensions
     {
-        for (int i = 0; i < array.Length; i++)
+        internal static int IndexOf<TItem, TArg>(this ImmutableArray<TItem> array, Func<TItem, TArg, bool> predicate, TArg arg)
         {
-            if (predicate(array[i], arg))
+            for (int i = 0; i < array.Length; i++)
             {
-                return i;
+                if (predicate(array[i], arg))
+                {
+                    return i;
+                }
             }
+            return -1;
         }
-        return -1;
     }
 }

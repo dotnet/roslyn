@@ -4,13 +4,14 @@
 
 #nullable disable
 
-namespace Roslyn.Test.Utilities;
-
-public static class OSVersion
+namespace Roslyn.Test.Utilities
 {
-    /// <summary>
-    /// True when the operating system is at least Windows version 8
-    /// </summary>
-    public static bool IsWin8 =>
-        System.Environment.OSVersion.Version.Build >= 9200;
+    public static class OSVersion
+    {
+        /// <summary>
+        /// True when the operating system is at least Windows version 8
+        /// </summary>
+        public static bool IsWin8 =>
+            System.Environment.OSVersion.Version.Build >= 9200;
+    }
 }

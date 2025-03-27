@@ -9,201 +9,202 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents a field that is based on another field.
-/// When inheriting from this class, one shouldn't assume that 
-/// the default behavior it has is appropriate for every case.
-/// That behavior should be carefully reviewed and derived type
-/// should override behavior as appropriate.
-/// </summary>
-internal abstract class WrappedFieldSymbol : FieldSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// The underlying FieldSymbol.
+    /// Represents a field that is based on another field.
+    /// When inheriting from this class, one shouldn't assume that 
+    /// the default behavior it has is appropriate for every case.
+    /// That behavior should be carefully reviewed and derived type
+    /// should override behavior as appropriate.
     /// </summary>
-    protected readonly FieldSymbol _underlyingField;
-
-    public WrappedFieldSymbol(FieldSymbol underlyingField)
+    internal abstract class WrappedFieldSymbol : FieldSymbol
     {
-        Debug.Assert((object)underlyingField != null);
-        _underlyingField = underlyingField;
-    }
+        /// <summary>
+        /// The underlying FieldSymbol.
+        /// </summary>
+        protected readonly FieldSymbol _underlyingField;
 
-    public FieldSymbol UnderlyingField
-    {
-        get
+        public WrappedFieldSymbol(FieldSymbol underlyingField)
         {
-            return _underlyingField;
+            Debug.Assert((object)underlyingField != null);
+            _underlyingField = underlyingField;
         }
-    }
 
-    public override bool IsImplicitlyDeclared
-    {
-        get { return _underlyingField.IsImplicitlyDeclared; }
-    }
-
-    public override FlowAnalysisAnnotations FlowAnalysisAnnotations
-    {
-        get { return _underlyingField.FlowAnalysisAnnotations; }
-    }
-
-    public override Accessibility DeclaredAccessibility
-    {
-        get
+        public FieldSymbol UnderlyingField
         {
-            return _underlyingField.DeclaredAccessibility;
+            get
+            {
+                return _underlyingField;
+            }
         }
-    }
 
-    public override string Name
-    {
-        get
+        public override bool IsImplicitlyDeclared
         {
-            return _underlyingField.Name;
+            get { return _underlyingField.IsImplicitlyDeclared; }
         }
-    }
 
-    internal override bool HasSpecialName
-    {
-        get
+        public override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            return _underlyingField.HasSpecialName;
+            get { return _underlyingField.FlowAnalysisAnnotations; }
         }
-    }
 
-    internal override bool HasRuntimeSpecialName
-    {
-        get
+        public override Accessibility DeclaredAccessibility
         {
-            return _underlyingField.HasRuntimeSpecialName;
+            get
+            {
+                return _underlyingField.DeclaredAccessibility;
+            }
         }
-    }
 
-    public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-    {
-        return _underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-    }
-
-    internal override bool IsNotSerialized
-    {
-        get
+        public override string Name
         {
-            return _underlyingField.IsNotSerialized;
+            get
+            {
+                return _underlyingField.Name;
+            }
         }
-    }
 
-    internal override bool HasPointerType => _underlyingField.HasPointerType;
-
-    internal override bool IsMarshalledExplicitly
-    {
-        get
+        internal override bool HasSpecialName
         {
-            return _underlyingField.IsMarshalledExplicitly;
+            get
+            {
+                return _underlyingField.HasSpecialName;
+            }
         }
-    }
 
-    internal override MarshalPseudoCustomAttributeData MarshallingInformation
-    {
-        get
+        internal override bool HasRuntimeSpecialName
         {
-            return _underlyingField.MarshallingInformation;
+            get
+            {
+                return _underlyingField.HasRuntimeSpecialName;
+            }
         }
-    }
 
-    internal override ImmutableArray<byte> MarshallingDescriptor
-    {
-        get
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _underlyingField.MarshallingDescriptor;
+            return _underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
-    }
 
-    public override bool IsFixedSizeBuffer
-    {
-        get
+        internal override bool IsNotSerialized
         {
-            return _underlyingField.IsFixedSizeBuffer;
+            get
+            {
+                return _underlyingField.IsNotSerialized;
+            }
         }
-    }
 
-    internal override int? TypeLayoutOffset
-    {
-        get
+        internal override bool HasPointerType => _underlyingField.HasPointerType;
+
+        internal override bool IsMarshalledExplicitly
         {
-            return _underlyingField.TypeLayoutOffset;
+            get
+            {
+                return _underlyingField.IsMarshalledExplicitly;
+            }
         }
-    }
 
-    public override bool IsReadOnly
-    {
-        get
+        internal override MarshalPseudoCustomAttributeData MarshallingInformation
         {
-            return _underlyingField.IsReadOnly;
+            get
+            {
+                return _underlyingField.MarshallingInformation;
+            }
         }
-    }
 
-    public override bool IsVolatile
-    {
-        get
+        internal override ImmutableArray<byte> MarshallingDescriptor
         {
-            return _underlyingField.IsVolatile;
+            get
+            {
+                return _underlyingField.MarshallingDescriptor;
+            }
         }
-    }
 
-    public override bool IsConst
-    {
-        get
+        public override bool IsFixedSizeBuffer
         {
-            return _underlyingField.IsConst;
+            get
+            {
+                return _underlyingField.IsFixedSizeBuffer;
+            }
         }
-    }
 
-    internal override ObsoleteAttributeData ObsoleteAttributeData
-    {
-        get
+        internal override int? TypeLayoutOffset
         {
-            return _underlyingField.ObsoleteAttributeData;
+            get
+            {
+                return _underlyingField.TypeLayoutOffset;
+            }
         }
-    }
 
-    public override object ConstantValue
-    {
-        get
+        public override bool IsReadOnly
         {
-            return _underlyingField.ConstantValue;
+            get
+            {
+                return _underlyingField.IsReadOnly;
+            }
         }
-    }
 
-    internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
-    {
-        return _underlyingField.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        public override bool IsVolatile
         {
-            return _underlyingField.Locations;
+            get
+            {
+                return _underlyingField.IsVolatile;
+            }
         }
-    }
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get
+        public override bool IsConst
         {
-            return _underlyingField.DeclaringSyntaxReferences;
+            get
+            {
+                return _underlyingField.IsConst;
+            }
         }
-    }
 
-    public override bool IsStatic
-    {
-        get
+        internal override ObsoleteAttributeData ObsoleteAttributeData
         {
-            return _underlyingField.IsStatic;
+            get
+            {
+                return _underlyingField.ObsoleteAttributeData;
+            }
         }
-    }
 
-    internal sealed override bool IsRequired => _underlyingField.IsRequired;
+        public override object ConstantValue
+        {
+            get
+            {
+                return _underlyingField.ConstantValue;
+            }
+        }
+
+        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+        {
+            return _underlyingField.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
+        }
+
+        public override ImmutableArray<Location> Locations
+        {
+            get
+            {
+                return _underlyingField.Locations;
+            }
+        }
+
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get
+            {
+                return _underlyingField.DeclaringSyntaxReferences;
+            }
+        }
+
+        public override bool IsStatic
+        {
+            get
+            {
+                return _underlyingField.IsStatic;
+            }
+        }
+
+        internal sealed override bool IsRequired => _underlyingField.IsRequired;
+    }
 }

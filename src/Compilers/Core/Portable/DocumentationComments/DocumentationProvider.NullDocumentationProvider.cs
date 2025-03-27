@@ -6,29 +6,30 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis;
-
-public partial class DocumentationProvider
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// A trivial DocumentationProvider which never returns documentation.
-    /// </summary>
-    private class NullDocumentationProvider : DocumentationProvider
+    public partial class DocumentationProvider
     {
-        protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// A trivial DocumentationProvider which never returns documentation.
+        /// </summary>
+        private class NullDocumentationProvider : DocumentationProvider
         {
-            return "";
-        }
+            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                return "";
+            }
 
-        public override bool Equals(object? obj)
-        {
-            // Only one instance is expected to exist, so reference equality is fine.
-            return (object)this == obj;
-        }
+            public override bool Equals(object? obj)
+            {
+                // Only one instance is expected to exist, so reference equality is fine.
+                return (object)this == obj;
+            }
 
-        public override int GetHashCode()
-        {
-            return RuntimeHelpers.GetHashCode(this);
+            public override int GetHashCode()
+            {
+                return RuntimeHelpers.GetHashCode(this);
+            }
         }
     }
 }

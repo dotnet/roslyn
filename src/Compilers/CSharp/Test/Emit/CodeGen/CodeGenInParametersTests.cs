@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-[CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-public class CodeGenInParametersTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void ThreeParamReorder()
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public class CodeGenInParametersTests : CompilingTestBase
     {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void ThreeParamReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -52,7 +52,7 @@ GetField 2 2
 3
 3
 3");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       43 (0x2b)
   .maxstack  3
@@ -75,12 +75,12 @@ GetField 2 2
   IL_002a:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    public void InParamReadonlyFieldReorder()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamReadonlyFieldReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -111,7 +111,7 @@ class C
 0
 1
 0", verify: Verification.Fails);
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       51 (0x33)
   .maxstack  2
@@ -139,12 +139,12 @@ class C
   IL_0031:  pop
   IL_0032:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamCallOptionalArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamCallOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -160,7 +160,7 @@ class C
     }
 }", expectedOutput: @"1
 0");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -172,12 +172,12 @@ class C
   IL_0005:  call       ""void C.M(in int, int)""
   IL_000a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamCtorOptionalArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamCtorOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -194,7 +194,7 @@ class C
     }
 }", expectedOutput: @"1
 0");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       12 (0xc)
   .maxstack  2
@@ -207,12 +207,12 @@ class C
   IL_000a:  pop
   IL_000b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamInitializerOptionalArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamInitializerOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -232,7 +232,7 @@ class C
     }
 }", expectedOutput: @"1
 0");
-        comp.VerifyIL("C..ctor", @"
+            comp.VerifyIL("C..ctor", @"
 {
   // Code size       24 (0x18)
   .maxstack  3
@@ -246,12 +246,12 @@ class C
   IL_0017:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    public void InParamCollectionInitializerOptionalArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamCollectionInitializerOptionalArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 using System.Collections;
 class C : IEnumerable
@@ -270,7 +270,7 @@ class C : IEnumerable
         Console.WriteLine(y);
     }
 }");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       16 (0x10)
   .maxstack  3
@@ -283,12 +283,12 @@ class C : IEnumerable
   IL_000a:  callvirt   ""void C.Add(in int, int)""
   IL_000f:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamSetter()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamSetter()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 using System.Collections;
 class C
@@ -315,7 +315,7 @@ class C
 }", expectedOutput: @"1
 0
 2");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       18 (0x12)
   .maxstack  4
@@ -326,12 +326,12 @@ class C
   IL_000c:  call       ""void C.this[in int, int].set""
   IL_0011:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamParamsArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamParamsArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -347,7 +347,7 @@ class C
     }
 }", expectedOutput: @"1
 0");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -359,12 +359,12 @@ class C
   IL_0009:  call       ""void C.M(in int, params int[])""
   IL_000e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void EmptyParamsArg()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void EmptyParamsArg()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -379,7 +379,7 @@ class C
     }
 }", expectedOutput: @"1
 0");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       13 (0xd)
   .maxstack  3
@@ -389,12 +389,12 @@ class C
   IL_0007:  call       ""void C.M(int, int, params int[])""
   IL_000c:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamReorder()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -425,7 +425,7 @@ class C
 GetField 1 1
 2
 2");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -441,12 +441,12 @@ GetField 1 1
   IL_0018:  call       ""void C.M(in int, in int)""
   IL_001d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamCtorReorder()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamCtorReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -477,7 +477,7 @@ class C
 GetField 1 1
 2
 2");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -494,12 +494,12 @@ GetField 1 1
   IL_001d:  pop
   IL_001e:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InIndexerReorder()
-    {
-        var verifier = CompileAndVerify(@"
+        [Fact]
+        public void InIndexerReorder()
+        {
+            var verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -535,7 +535,7 @@ class C
 GetField 1 1
 2
 2");
-        verifier.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  3
@@ -553,12 +553,12 @@ GetField 1 1
   IL_0022:  pop
   IL_0023:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InIndexerReorderWithCopy()
-    {
-        var verifier = CompileAndVerify(@"
+        [Fact]
+        public void InIndexerReorderWithCopy()
+        {
+            var verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -599,7 +599,7 @@ GetField 2 0
 GetField 3 1
 4
 5");
-        verifier.VerifyIL("C.Main", @"
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size       75 (0x4b)
   .maxstack  4
@@ -635,12 +635,12 @@ GetField 3 1
   IL_0049:  pop
   IL_004a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamSetterReorder()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamSetterReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 using System.Collections;
 class C
@@ -669,7 +669,7 @@ class C
 1
 2
 2");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       24 (0x18)
   .maxstack  4
@@ -683,12 +683,12 @@ class C
   IL_0012:  call       ""void C.this[in int, in int].set""
   IL_0017:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamMemberInitializerReorder()
-    {
-        var comp = CompileAndVerify(@"
+        [Fact]
+        public void InParamMemberInitializerReorder()
+        {
+            var comp = CompileAndVerify(@"
 using System;
 using System.Collections;
 class C
@@ -717,7 +717,7 @@ class C
 1
 2
 2");
-        comp.VerifyIL("C.Main", @"
+            comp.VerifyIL("C.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -734,12 +734,12 @@ class C
   IL_0014:  callvirt   ""void C.this[in int, in int].set""
   IL_0019:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void RefReturnParamAccess()
-    {
-        var text = @"
+        [Fact]
+        public void RefReturnParamAccess()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M(in int x)
@@ -749,21 +749,21 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-        comp.VerifyIL("Program.M(in int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamPassLValue()
-    {
-        var text = @"
+        [Fact]
+        public void InParamPassLValue()
+        {
+            var text = @"
 struct Program
 {
     public static void Main()
@@ -797,10 +797,10 @@ struct Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 84");
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       55 (0x37)
   .maxstack  2
@@ -826,12 +826,12 @@ struct Program
   IL_0031:  call       ""void System.Console.WriteLine(int)""
   IL_0036:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamPassRValue()
-    {
-        var text = @"
+        [Fact]
+        public void InParamPassRValue()
+        {
+            var text = @"
 class Program
 {
     public static void Main()
@@ -851,12 +851,12 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 11
 42
 42");
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       72 (0x48)
   .maxstack  3
@@ -891,13 +891,13 @@ class Program
   IL_0042:  call       ""void System.Console.WriteLine(int)""
   IL_0047:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-    public void InParamPassRoField()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamPassRoField()
+        {
+            var text = @"
 class Program
 {
     public static readonly int F = 42;
@@ -914,9 +914,9 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -927,7 +927,7 @@ class Program
   IL_0010:  ret
 }");
 
-        comp.VerifyIL("Program.M(in int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -935,9 +935,9 @@ class Program
   IL_0001:  ret
 }");
 
-        comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -951,13 +951,13 @@ class Program
   IL_0013:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-    public void InParamPassRoField1()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamPassRoField1()
+        {
+            var text = @"
 class Program
 {
     public static readonly int F = 42;
@@ -974,9 +974,9 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -987,7 +987,7 @@ class Program
   IL_0010:  ret
 }");
 
-        comp.VerifyIL("Program.M(in int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -995,9 +995,9 @@ class Program
   IL_0001:  ret
 }");
 
-        comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            comp = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "42", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
-        comp.VerifyIL("Program.Main()", @"
+            comp.VerifyIL("Program.Main()", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -1008,12 +1008,12 @@ class Program
   IL_0010:  ret
 }");
 
-    }
+        }
 
-    [Fact]
-    public void InParamPassRoParamReturn()
-    {
-        var text = @"
+        [Fact]
+        public void InParamPassRoParamReturn()
+        {
+            var text = @"
 class Program
 {
     public static readonly int F = 42;
@@ -1035,9 +1035,9 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
-        comp.VerifyIL("Program.M(in int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1045,12 +1045,12 @@ class Program
   IL_0001:  call       ""ref readonly int Program.M1(in int)""
   IL_0006:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamBase()
-    {
-        var text = @"
+        [Fact]
+        public void InParamBase()
+        {
+            var text = @"
 class Program
 {
     public static readonly string S = ""hi"";
@@ -1086,10 +1086,10 @@ class P1 : Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
 42");
 
-        comp.VerifyIL("P1..ctor(in string)", @"
+            comp.VerifyIL("P1..ctor(in string)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -1099,7 +1099,7 @@ class P1 : Program
   IL_0007:  ret
 }");
 
-        comp.VerifyIL("P1.M(in int)", @"
+            comp.VerifyIL("P1.M(in int)", @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -1108,12 +1108,12 @@ class P1 : Program
   IL_0002:  call       ""ref readonly int Program.M(in int)""
   IL_0007:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void RefReturnParamAccess1()
-    {
-        var text = @"
+        [Fact]
+        public void RefReturnParamAccess1()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M(in int x)
@@ -1123,21 +1123,21 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-        comp.VerifyIL("Program.M(in int)", @"
+            comp.VerifyIL("Program.M(in int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldarg.0
   IL_0001:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamCannotAssign()
-    {
-        var text = @"
+        [Fact]
+        public void InParamCannotAssign()
+        {
+            var text = @"
 class Program
 {
     static void M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1154,32 +1154,32 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        comp.VerifyDiagnostics(
-            // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg1 = 1;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 9),
-            // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg2.Alice = 2;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 9),
-            // (9,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg1 ++;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(9, 9),
-            // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg2.Alice --;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(10, 9),
-            // (12,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg1 += 1;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(12, 9),
-            // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
-            //         arg2.Alice -= 2;
-            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(13, 9));
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg1 = 1;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 9),
+                // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg2.Alice = 2;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 9),
+                // (9,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg1 ++;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(9, 9),
+                // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg2.Alice --;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(10, 9),
+                // (12,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg1 += 1;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(12, 9),
+                // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //         arg2.Alice -= 2;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(13, 9));
+        }
 
-    [Fact]
-    public void InParamCannotRefReturn()
-    {
-        var text = @"
+        [Fact]
+        public void InParamCannotRefReturn()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M1_baseline(in int arg1, in (int Alice, int Bob) arg2)
@@ -1206,21 +1206,21 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        comp.VerifyDiagnostics(
-            // (18,20): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
-            //         return ref arg1;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(18, 20),
-            // (23,20): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
-            //         return ref arg2.Alice;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(23, 20)
-        );
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (18,20): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
+                //         return ref arg1;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(18, 20),
+                // (23,20): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
+                //         return ref arg2.Alice;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(23, 20)
+            );
+        }
 
-    [Fact]
-    public void InParamCannotAssignByref()
-    {
-        var text = @"
+        [Fact]
+        public void InParamCannotAssignByref()
+        {
+            var text = @"
 class Program
 {
     static void M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1231,21 +1231,21 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        comp.VerifyDiagnostics(
-            // (6,25): error CS8329: Cannot use variable 'arg1' as a ref or out value because it is a readonly variable
-            //         ref var y = ref arg1;
-            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 25),
-            // (7,25): error CS8330: Members of variable 'arg2' cannot be used as a ref or out value because it is a readonly variable
-            //         ref int a = ref arg2.Alice;
-            Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 25));
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,25): error CS8329: Cannot use variable 'arg1' as a ref or out value because it is a readonly variable
+                //         ref var y = ref arg1;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 25),
+                // (7,25): error CS8330: Members of variable 'arg2' cannot be used as a ref or out value because it is a readonly variable
+                //         ref int a = ref arg2.Alice;
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 25));
+        }
 
-    [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
-    [Fact]
-    public void InParamCannotTakePtr()
-    {
-        var text = @"
+        [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
+        [Fact]
+        public void InParamCannotTakePtr()
+        {
+            var text = @"
 class Program
 {
     unsafe static void M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1264,21 +1264,21 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
-        comp.VerifyDiagnostics(
-            // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-            //         int* a = & arg1;
-            Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg1").WithLocation(6, 18),
-            // (7,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-            //         int* b = & arg2.Alice;
-            Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg2.Alice").WithLocation(7, 18)
-        );
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* a = & arg1;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg1").WithLocation(6, 18),
+                // (7,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         int* b = & arg2.Alice;
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "& arg2.Alice").WithLocation(7, 18)
+            );
+        }
 
-    [Fact]
-    public void InParamCannotReturnByOrdinaryRef()
-    {
-        var text = @"
+        [Fact]
+        public void InParamCannotReturnByOrdinaryRef()
+        {
+            var text = @"
 class Program
 {
     static ref int M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1297,21 +1297,21 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        comp.VerifyDiagnostics(
-            // (10,24): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
-            //             return ref arg1;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(10, 24),
-            // (14,24): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
-            //             return ref arg2.Alice;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(14, 24)
-        );
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (10,24): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
+                //             return ref arg1;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(10, 24),
+                // (14,24): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
+                //             return ref arg2.Alice;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(14, 24)
+            );
+        }
 
-    [Fact]
-    public void InParamCanReturnByRefReadonly()
-    {
-        var text = @"
+        [Fact]
+        public void InParamCanReturnByRefReadonly()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1330,9 +1330,9 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-        comp.VerifyIL("Program.M", @"
+            comp.VerifyIL("Program.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1344,12 +1344,12 @@ class Program
   IL_0006:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_000b:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
-    public void InParamCanReturnByRefReadonlyNested()
-    {
-        var text = @"
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
+        public void InParamCanReturnByRefReadonlyNested()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1373,9 +1373,9 @@ class Program
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
-        comp.VerifyIL("Program.<M>g__M1|0_0(in int, in System.ValueTuple<int, int>)", @"
+            comp.VerifyIL("Program.<M>g__M1|0_0(in int, in System.ValueTuple<int, int>)", @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1387,12 +1387,12 @@ class Program
   IL_0006:  ldflda     ""int System.ValueTuple<int, int>.Item1""
   IL_000b:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
-    public void InParamCannotReturnByRefNested()
-    {
-        var text = @"
+        [Fact, WorkItem(18357, "https://github.com/dotnet/roslyn/issues/18357")]
+        public void InParamCannotReturnByRefNested()
+        {
+            var text = @"
 class Program
 {
     static ref readonly int M(in int arg1, in (int Alice, int Bob) arg2)
@@ -1416,21 +1416,21 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        comp.VerifyDiagnostics(
-            // (12,28): error CS8333: Cannot return variable 'arg11' by writable reference because it is a readonly variable
-            //                 return ref arg11;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "arg11").WithLocation(12, 28),
-            // (16,28): error CS8334: Members of variable 'arg21' cannot be returned by writable reference because it is a readonly variable
-            //                 return ref arg21.Alice;
-            Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "arg21").WithLocation(16, 28)
-            );
-    }
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (12,28): error CS8333: Cannot return variable 'arg11' by writable reference because it is a readonly variable
+                //                 return ref arg11;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "arg11").WithLocation(12, 28),
+                // (16,28): error CS8334: Members of variable 'arg21' cannot be returned by writable reference because it is a readonly variable
+                //                 return ref arg21.Alice;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "arg21").WithLocation(16, 28)
+                );
+        }
 
-    [Fact]
-    public void InParamOptional()
-    {
-        var text = @"
+        [Fact]
+        public void InParamOptional()
+        {
+            var text = @"
 class Program
 {
     static void Main()
@@ -1443,9 +1443,9 @@ class Program
 
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
-        comp.VerifyIL("Program.Main", @"
+            comp.VerifyIL("Program.Main", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -1457,12 +1457,12 @@ class Program
   IL_000a:  call       ""void System.Console.WriteLine(int)""
   IL_000f:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamConv()
-    {
-        var text = @"
+        [Fact]
+        public void InParamConv()
+        {
+            var text = @"
 class Program
 {
     static void Main()
@@ -1476,9 +1476,9 @@ class Program
 
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
-        comp.VerifyIL("Program.Main", @"
+            comp.VerifyIL("Program.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -1491,12 +1491,12 @@ class Program
   IL_000b:  call       ""void System.Console.WriteLine(double)""
   IL_0010:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InParamAsyncSpill1()
-    {
-        var text = @"
+        [Fact]
+        public void InParamAsyncSpill1()
+        {
+            var text = @"
     using System.Threading.Tasks;
 
     class Program
@@ -1525,14 +1525,14 @@ class Program
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
-    }
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
+        }
 
-    [Fact]
-    public void ReadonlyParamAsyncSpillIn()
-    {
-        var text = @"
+        [Fact]
+        public void ReadonlyParamAsyncSpillIn()
+        {
+            var text = @"
     using System.Threading.Tasks;
 
     class Program
@@ -1567,18 +1567,18 @@ class Program
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        comp.VerifyEmitDiagnostics(
-            // (14,19): error CS8178: A reference returned by a call to 'Program.RefReturning(ref int)' cannot be preserved across 'await' or 'yield' boundary.
-            //             M1(in RefReturning(ref local), await GetT(2), 3);
-            Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
-            );
-    }
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics(
+                // (14,19): error CS8178: A reference returned by a call to 'Program.RefReturning(ref int)' cannot be preserved across 'await' or 'yield' boundary.
+                //             M1(in RefReturning(ref local), await GetT(2), 3);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "RefReturning(ref local)").WithArguments("Program.RefReturning(ref int)").WithLocation(14, 19)
+                );
+        }
 
-    [Fact]
-    public void ReadonlyParamAsyncSpillIn2()
-    {
-        var text = @"
+        [Fact]
+        public void ReadonlyParamAsyncSpillIn2()
+        {
+            var text = @"
     using System.Threading.Tasks;
 
     class Program
@@ -1613,8 +1613,8 @@ class Program
 
 ";
 
-        var verifier = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "6");
-        verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            var verifier = CompileAndVerify(text, verify: Verification.Fails, expectedOutput: "6");
+            verifier.VerifyIL("Program.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      180 (0xb4)
   .maxstack  3
@@ -1702,12 +1702,12 @@ class Program
   IL_00ae:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00b3:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void ReadonlyParamAsyncSpillInRoField()
-    {
-        var text = @"
+        [Fact]
+        public void ReadonlyParamAsyncSpillInRoField()
+        {
+            var text = @"
     using System.Threading.Tasks;
 
     class Program
@@ -1748,10 +1748,10 @@ class Program
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
-        var result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
+            var result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
-        var expectedIL = @"
+            var expectedIL = @"
 {
   // Code size      162 (0xa2)
   .maxstack  3
@@ -1832,19 +1832,19 @@ class Program
 }
 ";
 
-        result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
+            result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
 
-        comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-        result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
+            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
-        result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
+            result.VerifyIL("Program.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", expectedIL);
 
-    }
+        }
 
-    [Fact]
-    public void InParamAsyncSpill2()
-    {
-        var text = @"
+        [Fact]
+        public void InParamAsyncSpill2()
+        {
+            var text = @"
     using System.Threading.Tasks;
 
     class Program
@@ -1873,15 +1873,15 @@ class Program
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
-    }
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
+        }
 
-    [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
-    [Fact]
-    public void InParamAsyncSpillMethods()
-    {
-        var text = @"
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void InParamAsyncSpillMethods()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -1933,8 +1933,8 @@ public struct S1
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -1943,13 +1943,13 @@ public struct S1
 42
 3
 3");
-    }
+        }
 
-    [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
-    [Fact]
-    public void InParamAsyncSpillMethodsWriteable()
-    {
-        var text = @"
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void InParamAsyncSpillMethodsWriteable()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2001,8 +2001,8 @@ public struct S1
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -2011,13 +2011,13 @@ public struct S1
 42
 3
 3");
-    }
+        }
 
-    [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
-    [Fact]
-    public void InParamAsyncSpillStructField()
-    {
-        var text = @"
+        [WorkItem(20764, "https://github.com/dotnet/roslyn/issues/20764")]
+        [Fact]
+        public void InParamAsyncSpillStructField()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2063,18 +2063,18 @@ public struct S1
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
 2");
-    }
+        }
 
-    [Fact]
-    public void InParamAsyncSpillClassField()
-    {
-        var text = @"
+        [Fact]
+        public void InParamAsyncSpillClassField()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2120,18 +2120,18 @@ public class S1
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
 2");
-    }
+        }
 
-    [Fact]
-    public void InParamAsyncSpillExtension()
-    {
-        var text = @"
+        [Fact]
+        public void InParamAsyncSpillExtension()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2180,19 +2180,19 @@ public struct S1
 
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
 2
 2");
-    }
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-    public void InParamAsyncSpillReadOnlyStructThis()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamAsyncSpillReadOnlyStructThis()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2259,8 +2259,8 @@ public readonly struct S1
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 3
@@ -2274,8 +2274,8 @@ public readonly struct S1
 3
 3");
 
-        comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
 2
@@ -2288,13 +2288,13 @@ public readonly struct S1
 42
 2
 3");
-    }
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.PEVerifyCompat)]
-    public void InParamAsyncSpillReadOnlyStructThis_NoValCapture()
-    {
-        var text = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.PEVerifyCompat)]
+        public void InParamAsyncSpillReadOnlyStructThis_NoValCapture()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -2340,15 +2340,15 @@ public readonly struct S1
 }
 ";
 
-        var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-        var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 1
 2
 3
 4");
 
-        // NOTE: s1, s3 and s4 are all directly loaded via ldsflda and not spilled.
-        v.VerifyIL("Program.<Test>d__5.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            // NOTE: s1, s3 and s4 are all directly loaded via ldsflda and not spilled.
+            v.VerifyIL("Program.<Test>d__5.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      170 (0xaa)
   .maxstack  4
@@ -2427,15 +2427,15 @@ public readonly struct S1
 }
 ");
 
-        comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-        v = CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"
+            comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            v = CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"
 1
 2
 3
 4");
 
-        // NOTE: s1, s3 and s4 are all directly loaded via ldsflda and not spilled.
-        v.VerifyIL("Program.<Test>d__5.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            // NOTE: s1, s3 and s4 are all directly loaded via ldsflda and not spilled.
+            v.VerifyIL("Program.<Test>d__5.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      183 (0xb7)
   .maxstack  4
@@ -2522,12 +2522,12 @@ public readonly struct S1
   IL_00b6:  ret
 }
 ");
-    }
+        }
 
-    [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
-    public void InParamGenericReadonly([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var text = @"
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonly([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var text = @"
 
     class Program
     {
@@ -2571,9 +2571,9 @@ public readonly struct S1
     }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
-        comp.VerifyIL($"D.M1<T>({modifier} T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2586,12 +2586,12 @@ public readonly struct S1
   IL_000f:  callvirt   ""void I1.M3()""
   IL_0014:  ret
 }");
-    }
+        }
 
-    [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
-    public void InParamGenericReadonlyROstruct([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var text = @"
+        [ConditionalTheory(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10834"), CombinatorialData]
+        public void InParamGenericReadonlyROstruct([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var text = @"
 
     class Program
     {
@@ -2629,9 +2629,9 @@ public readonly struct S1
     }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
-        comp.VerifyIL($"D.M1<T>({modifier} T)", @"
+            comp.VerifyIL($"D.M1<T>({modifier} T)", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -2644,12 +2644,12 @@ public readonly struct S1
   IL_000f:  callvirt   ""void I1.M3()""
   IL_0014:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void RefReadOnlyOptionalParameters()
-    {
-        CompileAndVerify(@"
+        [Fact]
+        public void RefReadOnlyOptionalParameters()
+        {
+            CompileAndVerify(@"
 using System;
 class Program
 {
@@ -2664,13 +2664,13 @@ class Program
         Print(9);
     }
 }", expectedOutput: "5-9");
-    }
+        }
 
-    [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
-    [Theory, CombinatorialData]
-    public void InParamsNullable([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var text = @"
+        [WorkItem(23338, "https://github.com/dotnet/roslyn/issues/23338")]
+        [Theory, CombinatorialData]
+        public void InParamsNullable([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var text = @"
 
 class Program
 {
@@ -2721,9 +2721,9 @@ struct S1
 }
 ";
 
-        var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
+            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
-        comp.VerifyIL($"Program.Test1({modifier} S1?)", @"
+            comp.VerifyIL($"Program.Test1({modifier} S1?)", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -2746,7 +2746,7 @@ struct S1
   IL_0035:  ret
 }");
 
-        comp.VerifyIL("Program.Test2(ref S1?)", @"
+            comp.VerifyIL("Program.Test2(ref S1?)", @"
 {
   // Code size       46 (0x2e)
   .maxstack  1
@@ -2764,13 +2764,13 @@ struct S1
   IL_0028:  call       ""void System.Console.Write(object)""
   IL_002d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
-    public void OperatorsWithInParametersFromMetadata_Binary()
-    {
-        var reference = CreateCompilation(@"
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary()
+        {
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2781,7 +2781,7 @@ public class Test
     }
 }");
 
-        var code = @"
+            var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -2793,15 +2793,15 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-        CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
-    }
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
 
-    [Fact]
-    [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
-    public void OperatorsWithInParametersFromMetadata_Binary_Right()
-    {
-        var reference = CreateCompilation(@"
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Right()
+        {
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2812,7 +2812,7 @@ public class Test
     }
 }");
 
-        var code = @"
+            var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -2824,15 +2824,15 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-        CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
-    }
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
 
-    [Fact]
-    [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
-    public void OperatorsWithInParametersFromMetadata_Binary_Left()
-    {
-        var reference = CreateCompilation(@"
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Binary_Left()
+        {
+            var reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2843,7 +2843,7 @@ public class Test
     }
 }");
 
-        var code = @"
+            var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -2855,15 +2855,15 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
-        CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
-    }
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "9");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "9");
+        }
 
-    [Fact]
-    [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
-    public void OperatorsWithInParametersFromMetadata_Unary()
-    {
-        var reference = CreateCompilation(@"
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Unary()
+        {
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2874,7 +2874,7 @@ public class Test
     }
 }");
 
-        var code = @"
+            var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -2885,15 +2885,15 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
-        CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
-    }
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "False");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "False");
+        }
 
-    [Fact]
-    [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
-    public void OperatorsWithInParametersFromMetadata_Conversion()
-    {
-        var reference = CreateCompilation(@"
+        [Fact]
+        [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
+        public void OperatorsWithInParametersFromMetadata_Conversion()
+        {
+            var reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2904,7 +2904,7 @@ public class Test
     }
 }");
 
-        var code = @"
+            var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -2915,16 +2915,16 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
-        CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
-    }
+            CompileAndVerify(code, references: new[] { reference.ToMetadataReference() }, expectedOutput: "3");
+            CompileAndVerify(code, references: new[] { reference.EmitToImageReference() }, expectedOutput: "3");
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Optional_NoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_NoArgs()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value = 5)
@@ -2938,7 +2938,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "5").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "5").VerifyIL("Program.Main", @"
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -2950,7 +2950,7 @@ class Program
   IL_0009:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
   Instance Receiver: 
     null
@@ -2959,15 +2959,15 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Optional_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_OneArg()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value = 5)
@@ -2981,7 +2981,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "10").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "10").VerifyIL("Program.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -2993,7 +2993,7 @@ class Program
   IL_000a:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(10)')
   Instance Receiver: 
     null
@@ -3002,15 +3002,15 @@ IInvocationOperation (void Program.Test([in System.Int32 value = 5])) (Operation
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Optional_Optional_NoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_NoArgs()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value1 = 1, in int value2 = 5)
@@ -3024,7 +3024,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3040,7 +3040,7 @@ class Program
   IL_000d:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test()')
   Instance Receiver: 
     null
@@ -3053,15 +3053,15 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test()')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Optional_Optional_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_OneArg()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value1 = 1, in int value2 = 5)
@@ -3075,7 +3075,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "(2, 5)").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "(2, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3091,7 +3091,7 @@ class Program
   IL_000d:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(2)')
   Instance Receiver: 
     null
@@ -3104,15 +3104,15 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test(2)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Optional_Optional_TwoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Optional_Optional_TwoArgs()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value1 = 1, in int value2 = 5)
@@ -3126,7 +3126,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "(3, 10)").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "(3, 10)").VerifyIL("Program.Main", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -3142,7 +3142,7 @@ class Program
   IL_000e:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(3, 10)')
   Instance Receiver: 
     null
@@ -3155,15 +3155,15 @@ IInvocationOperation (void Program.Test([in System.Int32 value1 = 1], [in System
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Required_Optional_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Required_Optional_OneArg()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value1, in int value2 = 5)
@@ -3177,7 +3177,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "(1, 5)").VerifyIL("Program.Main", @"
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3193,7 +3193,7 @@ class Program
   IL_000d:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(1)')
   Instance Receiver: 
     null
@@ -3206,15 +3206,15 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsImplicit) (Syntax: 'Test(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_Method_Required_Optional_TwoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_Method_Required_Optional_TwoArgs()
+        {
+            var code = @"
 class Program
 {
     static void Test(in int value1, in int value2 = 5)
@@ -3228,7 +3228,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: "(2, 10)").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "(2, 10)").VerifyIL("Program.Main", @"
 {
   // Code size       15 (0xf)
   .maxstack  2
@@ -3244,7 +3244,7 @@ class Program
   IL_000e:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32 value2 = 5])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test(2, 10)')
   Instance Receiver: 
     null
@@ -3257,15 +3257,15 @@ IInvocationOperation (void Program.Test(in System.Int32 value1, [in System.Int32
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_CompoundAssignment_Optional_Optional_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Optional_Optional_OneArg()
+        {
+            var code = @"
 class Program
 {
     public int this[in int p1 = 1, in int p2 = 2]
@@ -3289,7 +3289,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 get p1=3 p2=2
 set p1=3 p2=2 to 10
 ").VerifyIL("Program.Main", @"
@@ -3324,7 +3324,7 @@ set p1=3 p2=2 to 10
   IL_0026:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
 IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1], [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[3]')
   Instance Receiver: 
     ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
@@ -3337,15 +3337,15 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'obj[3]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_CompoundAssignment_Optional_Optional_TwoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Optional_Optional_TwoArgs()
+        {
+            var code = @"
 class Program
 {
     public int this[in int p1 = 1, in int p2 = 2]
@@ -3369,7 +3369,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 get p1=4 p2=5
 set p1=4 p2=5 to 11
 ").VerifyIL("Program.Main", @"
@@ -3404,7 +3404,7 @@ set p1=4 p2=5 to 11
   IL_0026:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
 IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1], [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[4, 5]')
   Instance Receiver: 
     ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
@@ -3417,15 +3417,15 @@ IPropertyReferenceOperation: System.Int32 Program.this[[in System.Int32 p1 = 1],
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_CompoundAssignment_Required_Optional_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Required_Optional_OneArg()
+        {
+            var code = @"
 class Program
 {
     public int this[in int p1, in int p2 = 2]
@@ -3449,7 +3449,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 get p1=3 p2=2
 set p1=3 p2=2 to 10
 ").VerifyIL("Program.Main", @"
@@ -3484,7 +3484,7 @@ set p1=3 p2=2 to 10
   IL_0026:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
 IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[3]')
   Instance Receiver: 
     ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
@@ -3497,15 +3497,15 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'obj[3]')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void OptionalInParameters_CompoundAssignment_Required_Optional_TwoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void OptionalInParameters_CompoundAssignment_Required_Optional_TwoArgs()
+        {
+            var code = @"
 class Program
 {
     public int this[in int p1, in int p2 = 2]
@@ -3529,7 +3529,7 @@ class Program
     }
 }";
 
-        CompileAndVerify(code, expectedOutput: @"
+            CompileAndVerify(code, expectedOutput: @"
 get p1=4 p2=5
 set p1=4 p2=5 to 11
 ").VerifyIL("Program.Main", @"
@@ -3564,7 +3564,7 @@ set p1=4 p2=5 to 11
   IL_0026:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(code, @"
 IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in System.Int32 p2 = 2]] { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'obj[4, 5]')
   Instance Receiver: 
     ILocalReferenceOperation: obj (OperationKind.LocalReference, Type: Program) (Syntax: 'obj')
@@ -3577,15 +3577,15 @@ IPropertyReferenceOperation: System.Int32 Program.this[in System.Int32 p1, [in S
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void Issue23691_PassingInOptionalArgumentsByRef_OneArg()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void Issue23691_PassingInOptionalArgumentsByRef_OneArg()
+        {
+            var code = @"
 class Program
 {
     static void Main()
@@ -3598,7 +3598,7 @@ class Program
 
 }";
 
-        CompileAndVerify(code, expectedOutput: "test").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "test").VerifyIL("Program.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -3614,7 +3614,7 @@ class Program
   IL_0019:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.A([in System.Double x = 1], [in System.String y = ""test""])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'A(1)')
   Instance Receiver: 
     null
@@ -3630,15 +3630,15 @@ IInvocationOperation (void Program.A([in System.Double x = 1], [in System.String
         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""test"", IsImplicit) (Syntax: 'A(1)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
-    [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
-    public void Issue23691_PassingInOptionalArgumentsByRef_TwoArgs()
-    {
-        var code = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.ReadOnlyReferences)]
+        [WorkItem(23691, "https://github.com/dotnet/roslyn/issues/23691")]
+        public void Issue23691_PassingInOptionalArgumentsByRef_TwoArgs()
+        {
+            var code = @"
 class Program
 {
     static void Main()
@@ -3651,7 +3651,7 @@ class Program
 
 }";
 
-        CompileAndVerify(code, expectedOutput: "6").VerifyIL("Program.Main", @"
+            CompileAndVerify(code, expectedOutput: "6").VerifyIL("Program.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  3
@@ -3671,7 +3671,7 @@ class Program
   IL_001d:  ret
 }");
 
-        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(code, @"
 IInvocationOperation (void Program.B(in System.Single x, in System.Single y, [in System.Single z = 3])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'B(1, 2)')
   Instance Receiver: 
     null
@@ -3694,14 +3694,14 @@ IInvocationOperation (void Program.B(in System.Single x, in System.Single y, [in
         ILiteralOperation (OperationKind.Literal, Type: System.Single, Constant: 3, IsImplicit) (Syntax: 'B(1, 2)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)",
-    DiagnosticDescription.None);
-    }
+        DiagnosticDescription.None);
+        }
 
-    [WorkItem(23692, "https://github.com/dotnet/roslyn/issues/23692")]
-    [Fact]
-    public void ThisToInParam()
-    {
-        var code = @"
+        [WorkItem(23692, "https://github.com/dotnet/roslyn/issues/23692")]
+        [Fact]
+        public void ThisToInParam()
+        {
+            var code = @"
 using System;
 
 static class Ex
@@ -3732,10 +3732,10 @@ class Program
 }
 ";
 
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
-        verifier.VerifyIL("X.M()", @"
+            verifier.VerifyIL("X.M()", @"
 {
   // Code size        8 (0x8)
   .maxstack  1
@@ -3744,13 +3744,13 @@ class Program
   IL_0007:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_Local()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_Local()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -3770,10 +3770,10 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
-        verifier.VerifyIL("Test.Main(string[])", @"
+            verifier.VerifyIL("Test.Main(string[])", @"
 {
   // Code size       41 (0x29)
   .maxstack  3
@@ -3795,13 +3795,13 @@ public class Test
   IL_0028:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_ArrayAccess()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ArrayAccess()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -3821,10 +3821,10 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
-        verifier.VerifyIL("Test.Main(string[])", @"
+            verifier.VerifyIL("Test.Main(string[])", @"
 {
   // Code size       52 (0x34)
   .maxstack  5
@@ -3853,13 +3853,13 @@ public class Test
   IL_0033:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_ArrayAccessReordered()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ArrayAccessReordered()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -3879,10 +3879,10 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
-        verifier.VerifyIL("Test.Main(string[])", @"
+            verifier.VerifyIL("Test.Main(string[])", @"
 {
   // Code size       52 (0x34)
   .maxstack  5
@@ -3911,13 +3911,13 @@ public class Test
   IL_0033:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_FieldAcces()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_FieldAcces()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -3943,10 +3943,10 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-        var verifier = CompileAndVerify(compilation, expectedOutput: "555555");
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "555555");
 
-        verifier.VerifyIL("Test.Main(string[])", @"
+            verifier.VerifyIL("Test.Main(string[])", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -3959,13 +3959,13 @@ public class Test
   IL_0012:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_RoFieldAcces()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_RoFieldAcces()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4005,12 +4005,12 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        // PEVerify: Cannot change initonly field outside its .ctor.
-        var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.FailsPEVerify);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.FailsPEVerify);
 
-        verifier.VerifyIL("Test..ctor()", @"
+            verifier.VerifyIL("Test..ctor()", @"
 {
   // Code size       38 (0x26)
   .maxstack  3
@@ -4031,7 +4031,7 @@ public class Test
 }
 ");
 
-        verifier.VerifyIL("Test.Test1(in int, ref int)", @"
+            verifier.VerifyIL("Test.Test1(in int, ref int)", @"
 {
   // Code size       39 (0x27)
   .maxstack  3
@@ -4057,13 +4057,13 @@ public class Test
 }
 ");
 
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_ThisAcces()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_ThisAcces()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4084,11 +4084,11 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "");
 
-        verifier.VerifyIL("Test..ctor()", @"
+            verifier.VerifyIL("Test..ctor()", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -4103,13 +4103,13 @@ public class Test
   IL_0010:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_RefMethod()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_RefMethod()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4140,11 +4140,11 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
-        verifier.VerifyIL("Test..ctor()", @"
+            verifier.VerifyIL("Test..ctor()", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -4164,13 +4164,13 @@ public class Test
   IL_0021:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_InOperator()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperator()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4198,11 +4198,11 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
-        verifier.VerifyIL("Test..ctor()", @"
+            verifier.VerifyIL("Test..ctor()", @"
 {
   // Code size       23 (0x17)
   .maxstack  2
@@ -4218,13 +4218,13 @@ public class Test
   IL_0016:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_InOperatorLifted()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperatorLifted()
+        {
+            var code = @"
 using System;
 
 public struct Test
@@ -4261,11 +4261,11 @@ public struct Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "11");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "11");
 
-        verifier.VerifyIL("Test.Test1()", @"
+            verifier.VerifyIL("Test.Test1()", @"
 {
   // Code size       71 (0x47)
   .maxstack  2
@@ -4300,13 +4300,13 @@ public struct Test
   IL_0046:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_InOperatorUnary()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InOperatorUnary()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4334,11 +4334,11 @@ public class Test
 }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
 
-        verifier.VerifyIL("Test.Test1()", @"
+            verifier.VerifyIL("Test.Test1()", @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -4351,13 +4351,13 @@ public class Test
   IL_000e:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
-    [Fact]
-    public void OptimizedRValueToIn_InConversion()
-    {
-        var code = @"
+        [WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        [Fact]
+        public void OptimizedRValueToIn_InConversion()
+        {
+            var code = @"
 using System;
 
 public class Test
@@ -4391,11 +4391,11 @@ public class Test
 class Derived : Test { }
 ";
 
-        var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
 
-        verifier.VerifyIL("Test.Test1()", @"
+            verifier.VerifyIL("Test.Test1()", @"
 {
   // Code size       39 (0x27)
   .maxstack  1
@@ -4415,12 +4415,12 @@ class Derived : Test { }
   IL_0026:  ret
 }
 ");
-    }
+        }
 
-    [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void ConstrainedCallOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var source = @"
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -4450,9 +4450,9 @@ public struct S : IEnumerable<int>
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "00");
-        // Note: we use a temp instead of directly doing a constrained call on `in` parameter
-        verifier.VerifyIL("C.M", """
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            // Note: we use a temp instead of directly doing a constrained call on `in` parameter
+            verifier.VerifyIL("C.M", """
 {
   // Code size       51 (0x33)
   .maxstack  1
@@ -4487,12 +4487,12 @@ public struct S : IEnumerable<int>
   IL_0032:  ret
 }
 """);
-    }
+        }
 
-    [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var source = @"
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnInParameter_ConstrainedGenericReceiver([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -4522,8 +4522,8 @@ public struct S : IEnumerable<int>
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "00");
-        verifier.VerifyIL($"C.M<T>({modifier} T)", """
+            var verifier = CompileAndVerify(source, expectedOutput: "00");
+            verifier.VerifyIL($"C.M<T>({modifier} T)", """
 {
   // Code size       51 (0x33)
   .maxstack  1
@@ -4558,12 +4558,12 @@ public struct S : IEnumerable<int>
   IL_0032:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void ConstrainedCallOnReadonlyField()
-    {
-        var source = @"
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnReadonlyField()
+        {
+            var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -4600,9 +4600,9 @@ public struct S : IEnumerable<int>
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
-        // Note: we use a temp instead of directly doing a constrained call on readonly field
-        verifier.VerifyIL("D.M", """
+            var verifier = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
+            // Note: we use a temp instead of directly doing a constrained call on readonly field
+            verifier.VerifyIL("D.M", """
 {
   // Code size       73 (0x49)
   .maxstack  1
@@ -4642,12 +4642,12 @@ public struct S : IEnumerable<int>
   IL_0048:  ret
 }
 """);
-    }
+        }
 
-    [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void ConstrainedCallOnField()
-    {
-        var source = @"
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void ConstrainedCallOnField()
+        {
+            var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -4684,9 +4684,9 @@ public struct S : IEnumerable<int>
     IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "12");
-        // Note: we do a constrained call directly on the field
-        verifier.VerifyIL("D.M", """
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            // Note: we do a constrained call directly on the field
+            verifier.VerifyIL("D.M", """
 {
   // Code size       70 (0x46)
   .maxstack  1
@@ -4723,12 +4723,12 @@ public struct S : IEnumerable<int>
   IL_0045:  ret
 }
 """);
-    }
+        }
 
-    [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void InvokeStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var text = @"
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var text = @"
 using System;
 
 class C
@@ -4751,9 +4751,9 @@ struct S1
 }
 ";
 
-        var comp = CompileAndVerify(text, expectedOutput: "00");
+            var comp = CompileAndVerify(text, expectedOutput: "00");
 
-        comp.VerifyIL("C.M", """
+            comp.VerifyIL("C.M", """
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -4767,21 +4767,21 @@ struct S1
   IL_0014:  ret
 }
 """);
-    }
+        }
 
-    [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void InvokeAddedStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
-    {
-        var libOrig_cs = """
+        [Theory, CombinatorialData, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnInParameter([CombinatorialValues("in", "ref readonly")] string modifier)
+        {
+            var libOrig_cs = """
 public struct S
 {
     int i;
     public void Report() { throw null; }
 }
 """;
-        var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
 
-        var libChanged_cs = """
+            var libChanged_cs = """
 public struct S
 {
     int i;
@@ -4789,9 +4789,9 @@ public struct S
     public void Report() { System.Console.Write("RAN "); }
 }
 """;
-        var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
 
-        var libUser_cs = $$"""
+            var libUser_cs = $$"""
 public class C
 {
     public static string M({{modifier}} S s)
@@ -4800,8 +4800,8 @@ public class C
     }
 }
 """;
-        var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
-        CompileAndVerify(libUser).VerifyIL("C.M", """
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            CompileAndVerify(libUser).VerifyIL("C.M", """
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -4816,7 +4816,7 @@ public class C
 }
 """);
 
-        var src = """
+            var src = """
 using System;
 
 S s = new S();
@@ -4825,23 +4825,23 @@ Console.Write(C.M(in s));
 Console.Write(C.M(in s));
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
-        CompileAndVerify(comp, expectedOutput: "RAN 00");
-    }
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "RAN 00");
+        }
 
-    [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
-    public void InvokeAddedStructToStringOverrideOnReadonlyField()
-    {
-        var libOrig_cs = """
+        [Fact, WorkItem(66135, "https://github.com/dotnet/roslyn/issues/66135")]
+        public void InvokeAddedStructToStringOverrideOnReadonlyField()
+        {
+            var libOrig_cs = """
 public struct S
 {
     int i;
     public void Report() { throw null; }
 }
 """;
-        var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
+            var libOrig = CreateCompilation(libOrig_cs, assemblyName: "lib");
 
-        var libChanged_cs = """
+            var libChanged_cs = """
 public struct S
 {
     int i;
@@ -4849,9 +4849,9 @@ public struct S
     public void Report() { System.Console.Write($"Report{i} "); }
 }
 """;
-        var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
+            var libChanged = CreateCompilation(libChanged_cs, assemblyName: "lib");
 
-        var libUser_cs = """
+            var libUser_cs = """
 public class C
 {
     readonly S field;
@@ -4866,9 +4866,9 @@ public class C
     public void Report() { field.Report(); }
 }
 """;
-        var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
-        var verifier = CompileAndVerify(libUser);
-        verifier.VerifyIL("C.M", """
+            var libUser = CreateCompilation(libUser_cs, references: new[] { libOrig.EmitToImageReference() });
+            var verifier = CompileAndVerify(libUser);
+            verifier.VerifyIL("C.M", """
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -4883,7 +4883,7 @@ public class C
 }
 """);
 
-        verifier.VerifyIL("C..ctor(int)", """
+            verifier.VerifyIL("C..ctor(int)", """
 {
   // Code size       25 (0x19)
   .maxstack  1
@@ -4898,14 +4898,15 @@ public class C
 }
 """);
 
-        var src = """
+            var src = """
 C c = new C(42);
 c.Report();
 System.Console.Write(c.M());
 System.Console.Write(c.M());
 """;
 
-        var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
-        CompileAndVerify(comp, expectedOutput: "Report1 11");
+            var comp = CreateCompilation(src, references: new[] { libChanged.EmitToImageReference(), libUser.EmitToImageReference() });
+            CompileAndVerify(comp, expectedOutput: "Report1 11");
+        }
     }
 }

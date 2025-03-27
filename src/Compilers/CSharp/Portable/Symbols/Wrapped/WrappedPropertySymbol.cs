@@ -9,185 +9,186 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents a property that is based on another property.
-/// When inheriting from this class, one shouldn't assume that 
-/// the default behavior it has is appropriate for every case.
-/// That behavior should be carefully reviewed and derived type
-/// should override behavior as appropriate.
-/// </summary>
-internal abstract class WrappedPropertySymbol : PropertySymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// The underlying PropertySymbol.
+    /// Represents a property that is based on another property.
+    /// When inheriting from this class, one shouldn't assume that 
+    /// the default behavior it has is appropriate for every case.
+    /// That behavior should be carefully reviewed and derived type
+    /// should override behavior as appropriate.
     /// </summary>
-    protected readonly PropertySymbol _underlyingProperty;
-
-    public WrappedPropertySymbol(PropertySymbol underlyingProperty)
+    internal abstract class WrappedPropertySymbol : PropertySymbol
     {
-        Debug.Assert((object)underlyingProperty != null);
-        _underlyingProperty = underlyingProperty;
-    }
+        /// <summary>
+        /// The underlying PropertySymbol.
+        /// </summary>
+        protected readonly PropertySymbol _underlyingProperty;
 
-    public PropertySymbol UnderlyingProperty
-    {
-        get
+        public WrappedPropertySymbol(PropertySymbol underlyingProperty)
         {
-            return _underlyingProperty;
+            Debug.Assert((object)underlyingProperty != null);
+            _underlyingProperty = underlyingProperty;
         }
-    }
 
-    public override bool IsImplicitlyDeclared
-    {
-        get { return _underlyingProperty.IsImplicitlyDeclared; }
-    }
-
-    public override RefKind RefKind
-    {
-        get
+        public PropertySymbol UnderlyingProperty
         {
-            return _underlyingProperty.RefKind;
+            get
+            {
+                return _underlyingProperty;
+            }
         }
-    }
 
-    public override bool IsIndexer
-    {
-        get
+        public override bool IsImplicitlyDeclared
         {
-            return _underlyingProperty.IsIndexer;
+            get { return _underlyingProperty.IsImplicitlyDeclared; }
         }
-    }
 
-    internal override Microsoft.Cci.CallingConvention CallingConvention
-    {
-        get
+        public override RefKind RefKind
         {
-            return _underlyingProperty.CallingConvention;
+            get
+            {
+                return _underlyingProperty.RefKind;
+            }
         }
-    }
 
-    public override string Name
-    {
-        get
+        public override bool IsIndexer
         {
-            return _underlyingProperty.Name;
+            get
+            {
+                return _underlyingProperty.IsIndexer;
+            }
         }
-    }
 
-    internal override bool HasSpecialName
-    {
-        get
+        internal override Microsoft.Cci.CallingConvention CallingConvention
         {
-            return _underlyingProperty.HasSpecialName;
+            get
+            {
+                return _underlyingProperty.CallingConvention;
+            }
         }
-    }
 
-    public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-    {
-        return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        public override string Name
         {
-            return _underlyingProperty.Locations;
+            get
+            {
+                return _underlyingProperty.Name;
+            }
         }
-    }
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get
+        internal override bool HasSpecialName
         {
-            return _underlyingProperty.DeclaringSyntaxReferences;
+            get
+            {
+                return _underlyingProperty.HasSpecialName;
+            }
         }
-    }
 
-    public override Accessibility DeclaredAccessibility
-    {
-        get
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _underlyingProperty.DeclaredAccessibility;
+            return _underlyingProperty.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
-    }
 
-    public override bool IsStatic
-    {
-        get
+        public override ImmutableArray<Location> Locations
         {
-            return _underlyingProperty.IsStatic;
+            get
+            {
+                return _underlyingProperty.Locations;
+            }
         }
-    }
 
-    public override bool IsVirtual
-    {
-        get
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            return _underlyingProperty.IsVirtual;
+            get
+            {
+                return _underlyingProperty.DeclaringSyntaxReferences;
+            }
         }
-    }
 
-    public override bool IsOverride
-    {
-        get
+        public override Accessibility DeclaredAccessibility
         {
-            return _underlyingProperty.IsOverride;
+            get
+            {
+                return _underlyingProperty.DeclaredAccessibility;
+            }
         }
-    }
 
-    public override bool IsAbstract
-    {
-        get
+        public override bool IsStatic
         {
-            return _underlyingProperty.IsAbstract;
+            get
+            {
+                return _underlyingProperty.IsStatic;
+            }
         }
-    }
 
-    public override bool IsSealed
-    {
-        get
+        public override bool IsVirtual
         {
-            return _underlyingProperty.IsSealed;
+            get
+            {
+                return _underlyingProperty.IsVirtual;
+            }
         }
-    }
 
-    public override bool IsExtern
-    {
-        get
+        public override bool IsOverride
         {
-            return _underlyingProperty.IsExtern;
+            get
+            {
+                return _underlyingProperty.IsOverride;
+            }
         }
-    }
 
-    internal sealed override bool IsRequired => _underlyingProperty.IsRequired;
-
-    internal sealed override bool HasUnscopedRefAttribute => _underlyingProperty.HasUnscopedRefAttribute;
-
-    internal override ObsoleteAttributeData ObsoleteAttributeData
-    {
-        get
+        public override bool IsAbstract
         {
-            return _underlyingProperty.ObsoleteAttributeData;
+            get
+            {
+                return _underlyingProperty.IsAbstract;
+            }
         }
-    }
 
-    public override string MetadataName
-    {
-        get
+        public override bool IsSealed
         {
-            return _underlyingProperty.MetadataName;
+            get
+            {
+                return _underlyingProperty.IsSealed;
+            }
         }
-    }
 
-    internal override bool HasRuntimeSpecialName
-    {
-        get
+        public override bool IsExtern
         {
-            return _underlyingProperty.HasRuntimeSpecialName;
+            get
+            {
+                return _underlyingProperty.IsExtern;
+            }
         }
-    }
 
-    internal override int TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
+        internal sealed override bool IsRequired => _underlyingProperty.IsRequired;
+
+        internal sealed override bool HasUnscopedRefAttribute => _underlyingProperty.HasUnscopedRefAttribute;
+
+        internal override ObsoleteAttributeData ObsoleteAttributeData
+        {
+            get
+            {
+                return _underlyingProperty.ObsoleteAttributeData;
+            }
+        }
+
+        public override string MetadataName
+        {
+            get
+            {
+                return _underlyingProperty.MetadataName;
+            }
+        }
+
+        internal override bool HasRuntimeSpecialName
+        {
+            get
+            {
+                return _underlyingProperty.HasRuntimeSpecialName;
+            }
+        }
+
+        internal override int TryGetOverloadResolutionPriority() => _underlyingProperty.OverloadResolutionPriority;
+    }
 }

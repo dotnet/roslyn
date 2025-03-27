@@ -13,12 +13,13 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-
-public interface IDkmClrFormatter
+namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
-    string GetTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> formatSpecifiers);
-    string GetUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);
-    string GetValueString(DkmClrValue clrValue, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers);
-    bool HasUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);
+    public interface IDkmClrFormatter
+    {
+        string GetTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType, DkmClrCustomTypeInfo CustomTypeInfo, ReadOnlyCollection<string> formatSpecifiers);
+        string GetUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);
+        string GetValueString(DkmClrValue clrValue, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers);
+        bool HasUnderlyingString(DkmClrValue clrValue, DkmInspectionContext inspectionContext);
+    }
 }

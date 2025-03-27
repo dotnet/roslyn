@@ -6,96 +6,97 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal static partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private static partial class Singleton
+    internal static partial class SpecializedCollections
     {
-        internal sealed class List<T> : IReadOnlyList<T>, IList<T>, IReadOnlyCollection<T>
+        private static partial class Singleton
         {
-            private readonly T _loneValue;
-
-            public List(T value)
+            internal sealed class List<T> : IReadOnlyList<T>, IList<T>, IReadOnlyCollection<T>
             {
-                _loneValue = value;
-            }
+                private readonly T _loneValue;
 
-            public void Add(T item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
-
-            public bool Contains(T item)
-            {
-                return EqualityComparer<T>.Default.Equals(_loneValue, item);
-            }
-
-            public void CopyTo(T[] array, int arrayIndex)
-            {
-                array[arrayIndex] = _loneValue;
-            }
-
-            public int Count => 1;
-
-            public bool IsReadOnly => true;
-
-            public bool Remove(T item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                return new Enumerator<T>(_loneValue);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public T this[int index]
-            {
-                get
+                public List(T value)
                 {
-                    if (index != 0)
-                    {
-                        throw new IndexOutOfRangeException();
-                    }
-
-                    return _loneValue;
+                    _loneValue = value;
                 }
 
-                set
+                public void Add(T item)
                 {
                     throw new NotSupportedException();
                 }
-            }
 
-            public int IndexOf(T item)
-            {
-                if (Equals(_loneValue, item))
+                public void Clear()
                 {
-                    return 0;
+                    throw new NotSupportedException();
                 }
 
-                return -1;
-            }
+                public bool Contains(T item)
+                {
+                    return EqualityComparer<T>.Default.Equals(_loneValue, item);
+                }
 
-            public void Insert(int index, T item)
-            {
-                throw new NotSupportedException();
-            }
+                public void CopyTo(T[] array, int arrayIndex)
+                {
+                    array[arrayIndex] = _loneValue;
+                }
 
-            public void RemoveAt(int index)
-            {
-                throw new NotSupportedException();
+                public int Count => 1;
+
+                public bool IsReadOnly => true;
+
+                public bool Remove(T item)
+                {
+                    throw new NotSupportedException();
+                }
+
+                public IEnumerator<T> GetEnumerator()
+                {
+                    return new Enumerator<T>(_loneValue);
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return GetEnumerator();
+                }
+
+                public T this[int index]
+                {
+                    get
+                    {
+                        if (index != 0)
+                        {
+                            throw new IndexOutOfRangeException();
+                        }
+
+                        return _loneValue;
+                    }
+
+                    set
+                    {
+                        throw new NotSupportedException();
+                    }
+                }
+
+                public int IndexOf(T item)
+                {
+                    if (Equals(_loneValue, item))
+                    {
+                        return 0;
+                    }
+
+                    return -1;
+                }
+
+                public void Insert(int index, T item)
+                {
+                    throw new NotSupportedException();
+                }
+
+                public void RemoveAt(int index)
+                {
+                    throw new NotSupportedException();
+                }
             }
         }
     }

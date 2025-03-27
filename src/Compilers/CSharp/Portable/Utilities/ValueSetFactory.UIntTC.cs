@@ -5,62 +5,63 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-using static BinaryOperatorKind;
-
-internal static partial class ValueSetFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private class UIntTC : INumericTC<uint>
+    using static BinaryOperatorKind;
+
+    internal static partial class ValueSetFactory
     {
-        public static readonly UIntTC Instance = new UIntTC();
-
-        uint INumericTC<uint>.MinValue => uint.MinValue;
-
-        uint INumericTC<uint>.MaxValue => uint.MaxValue;
-
-        uint INumericTC<uint>.Zero => 0;
-
-        public bool Related(BinaryOperatorKind relation, uint left, uint right)
+        private class UIntTC : INumericTC<uint>
         {
-            switch (relation)
+            public static readonly UIntTC Instance = new UIntTC();
+
+            uint INumericTC<uint>.MinValue => uint.MinValue;
+
+            uint INumericTC<uint>.MaxValue => uint.MaxValue;
+
+            uint INumericTC<uint>.Zero => 0;
+
+            public bool Related(BinaryOperatorKind relation, uint left, uint right)
             {
-                case Equal:
-                    return left == right;
-                case GreaterThanOrEqual:
-                    return left >= right;
-                case GreaterThan:
-                    return left > right;
-                case LessThanOrEqual:
-                    return left <= right;
-                case LessThan:
-                    return left < right;
-                default:
-                    throw new ArgumentException("relation");
+                switch (relation)
+                {
+                    case Equal:
+                        return left == right;
+                    case GreaterThanOrEqual:
+                        return left >= right;
+                    case GreaterThan:
+                        return left > right;
+                    case LessThanOrEqual:
+                        return left <= right;
+                    case LessThan:
+                        return left < right;
+                    default:
+                        throw new ArgumentException("relation");
+                }
             }
-        }
 
-        uint INumericTC<uint>.Next(uint value)
-        {
-            Debug.Assert(value != uint.MaxValue);
-            return value + 1;
-        }
+            uint INumericTC<uint>.Next(uint value)
+            {
+                Debug.Assert(value != uint.MaxValue);
+                return value + 1;
+            }
 
-        public uint FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (uint)0 : constantValue.UInt32Value;
+            public uint FromConstantValue(ConstantValue constantValue) => constantValue.IsBad ? (uint)0 : constantValue.UInt32Value;
 
-        public ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
+            public ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
 
-        string INumericTC<uint>.ToString(uint value) => value.ToString();
+            string INumericTC<uint>.ToString(uint value) => value.ToString();
 
-        uint INumericTC<uint>.Prev(uint value)
-        {
-            Debug.Assert(value != uint.MinValue);
-            return value - 1;
-        }
+            uint INumericTC<uint>.Prev(uint value)
+            {
+                Debug.Assert(value != uint.MinValue);
+                return value - 1;
+            }
 
-        public uint Random(Random random)
-        {
-            return (uint)((random.Next() << 10) ^ random.Next());
+            public uint Random(Random random)
+            {
+                return (uint)((random.Next() << 10) ^ random.Next());
+            }
         }
     }
 }

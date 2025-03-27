@@ -10,208 +10,209 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests;
-
-public readonly struct ProcessResult
+namespace RunTests
 {
-    public Process Process { get; }
-    public int ExitCode { get; }
-    public ReadOnlyCollection<string> OutputLines { get; }
-    public ReadOnlyCollection<string> ErrorLines { get; }
-
-    public ProcessResult(Process process, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
+    public readonly struct ProcessResult
     {
-        Process = process;
-        ExitCode = exitCode;
-        OutputLines = outputLines;
-        ErrorLines = errorLines;
-    }
-}
+        public Process Process { get; }
+        public int ExitCode { get; }
+        public ReadOnlyCollection<string> OutputLines { get; }
+        public ReadOnlyCollection<string> ErrorLines { get; }
 
-public readonly struct ProcessInfo
-{
-    public Process Process { get; }
-    public ProcessStartInfo StartInfo { get; }
-    public Task<ProcessResult> Result { get; }
-
-    public int Id => Process.Id;
-
-    public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result)
-    {
-        Process = process;
-        StartInfo = startInfo;
-        Result = result;
-    }
-}
-
-public static class ProcessRunner
-{
-    public static void OpenFile(string file)
-    {
-        if (File.Exists(file))
+        public ProcessResult(Process process, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
         {
-            Process.Start(file);
+            Process = process;
+            ExitCode = exitCode;
+            OutputLines = outputLines;
+            ErrorLines = errorLines;
         }
     }
 
-    public static ProcessInfo CreateProcess(
-        string executable,
-        string arguments,
-        bool lowPriority = false,
-        string? workingDirectory = null,
-        bool captureOutput = false,
-        bool displayWindow = true,
-        Dictionary<string, string>? environmentVariables = null,
-        Action<Process>? onProcessStartHandler = null,
-        Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-        CancellationToken cancellationToken = default)
-        => CreateProcess(
-            CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
-            lowPriority: lowPriority,
-            onProcessStartHandler: onProcessStartHandler,
-            onOutputDataReceived: onOutputDataReceived,
-            cancellationToken: cancellationToken);
-
-    public static ProcessInfo CreateProcess(
-        ProcessStartInfo processStartInfo,
-        bool lowPriority = false,
-        Action<Process>? onProcessStartHandler = null,
-        Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-        CancellationToken cancellationToken = default)
+    public readonly struct ProcessInfo
     {
-        var errorLines = new List<string>();
-        var outputLines = new List<string>();
-        var process = new Process();
-        var tcs = new TaskCompletionSource<ProcessResult>();
+        public Process Process { get; }
+        public ProcessStartInfo StartInfo { get; }
+        public Task<ProcessResult> Result { get; }
 
-        process.EnableRaisingEvents = true;
-        process.StartInfo = processStartInfo;
+        public int Id => Process.Id;
 
-        process.OutputDataReceived += (s, e) =>
+        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result)
         {
-            if (e.Data != null)
+            Process = process;
+            StartInfo = startInfo;
+            Result = result;
+        }
+    }
+
+    public static class ProcessRunner
+    {
+        public static void OpenFile(string file)
+        {
+            if (File.Exists(file))
             {
-                onOutputDataReceived?.Invoke(e);
-                outputLines.Add(e.Data);
+                Process.Start(file);
             }
-        };
+        }
 
-        process.ErrorDataReceived += (s, e) =>
+        public static ProcessInfo CreateProcess(
+            string executable,
+            string arguments,
+            bool lowPriority = false,
+            string? workingDirectory = null,
+            bool captureOutput = false,
+            bool displayWindow = true,
+            Dictionary<string, string>? environmentVariables = null,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
+            CancellationToken cancellationToken = default)
+            => CreateProcess(
+                CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
+                lowPriority: lowPriority,
+                onProcessStartHandler: onProcessStartHandler,
+                onOutputDataReceived: onOutputDataReceived,
+                cancellationToken: cancellationToken);
+
+        public static ProcessInfo CreateProcess(
+            ProcessStartInfo processStartInfo,
+            bool lowPriority = false,
+            Action<Process>? onProcessStartHandler = null,
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
+            CancellationToken cancellationToken = default)
         {
-            if (e.Data != null)
+            var errorLines = new List<string>();
+            var outputLines = new List<string>();
+            var process = new Process();
+            var tcs = new TaskCompletionSource<ProcessResult>();
+
+            process.EnableRaisingEvents = true;
+            process.StartInfo = processStartInfo;
+
+            process.OutputDataReceived += (s, e) =>
             {
-                errorLines.Add(e.Data);
-            }
-        };
+                if (e.Data != null)
+                {
+                    onOutputDataReceived?.Invoke(e);
+                    outputLines.Add(e.Data);
+                }
+            };
 
-        process.Exited += (s, e) =>
-        {
-            // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
-            // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
-            // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
-            Task.Run(async () =>
+            process.ErrorDataReceived += (s, e) =>
             {
-                int exitCode;
-                try
+                if (e.Data != null)
                 {
-                    exitCode = await GetExitCodeAsync(process);
+                    errorLines.Add(e.Data);
                 }
-                catch (Exception ex)
-                {
-                    tcs.TrySetException(ex);
-                    throw;
-                }
+            };
 
-                var result = new ProcessResult(
-                    process,
-                    exitCode,
-                    new ReadOnlyCollection<string>(outputLines),
-                    new ReadOnlyCollection<string>(errorLines));
-                tcs.TrySetResult(result);
-
-                static async ValueTask<int> GetExitCodeAsync(Process process)
-                {
-                    await process.WaitForExitAsync();
-                    return process.ExitCode;
-                }
-            }, cancellationToken);
-        };
-
-        var registration = cancellationToken.Register(() =>
-        {
-            if (tcs.TrySetCanceled())
+            process.Exited += (s, e) =>
             {
-                // If the underlying process is still running, we should kill it
-                if (!process.HasExited)
+                // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
+                // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
+                // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
+                Task.Run(async () =>
                 {
+                    int exitCode;
                     try
                     {
-                        process.Kill();
+                        exitCode = await GetExitCodeAsync(process);
                     }
-                    catch (InvalidOperationException)
+                    catch (Exception ex)
                     {
-                        // Ignore, since the process is already dead
+                        tcs.TrySetException(ex);
+                        throw;
+                    }
+
+                    var result = new ProcessResult(
+                        process,
+                        exitCode,
+                        new ReadOnlyCollection<string>(outputLines),
+                        new ReadOnlyCollection<string>(errorLines));
+                    tcs.TrySetResult(result);
+
+                    static async ValueTask<int> GetExitCodeAsync(Process process)
+                    {
+                        await process.WaitForExitAsync();
+                        return process.ExitCode;
+                    }
+                }, cancellationToken);
+            };
+
+            var registration = cancellationToken.Register(() =>
+            {
+                if (tcs.TrySetCanceled())
+                {
+                    // If the underlying process is still running, we should kill it
+                    if (!process.HasExited)
+                    {
+                        try
+                        {
+                            process.Kill();
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Ignore, since the process is already dead
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        process.Start();
-        onProcessStartHandler?.Invoke(process);
+            process.Start();
+            onProcessStartHandler?.Invoke(process);
 
-        if (lowPriority)
-        {
-            process.PriorityClass = ProcessPriorityClass.BelowNormal;
-        }
-
-        if (processStartInfo.RedirectStandardOutput)
-        {
-            process.BeginOutputReadLine();
-        }
-
-        if (processStartInfo.RedirectStandardError)
-        {
-            process.BeginErrorReadLine();
-        }
-
-        return new ProcessInfo(process, processStartInfo, tcs.Task);
-    }
-
-    public static ProcessStartInfo CreateProcessStartInfo(
-        string executable,
-        string arguments,
-        string? workingDirectory = null,
-        bool captureOutput = false,
-        bool displayWindow = true,
-        Dictionary<string, string>? environmentVariables = null)
-    {
-        var processStartInfo = new ProcessStartInfo(executable, arguments);
-
-        if (!string.IsNullOrEmpty(workingDirectory))
-        {
-            processStartInfo.WorkingDirectory = workingDirectory;
-        }
-
-        if (environmentVariables != null)
-        {
-            foreach (var pair in environmentVariables)
+            if (lowPriority)
             {
-                processStartInfo.EnvironmentVariables[pair.Key] = pair.Value;
+                process.PriorityClass = ProcessPriorityClass.BelowNormal;
             }
+
+            if (processStartInfo.RedirectStandardOutput)
+            {
+                process.BeginOutputReadLine();
+            }
+
+            if (processStartInfo.RedirectStandardError)
+            {
+                process.BeginErrorReadLine();
+            }
+
+            return new ProcessInfo(process, processStartInfo, tcs.Task);
         }
 
-        if (captureOutput)
+        public static ProcessStartInfo CreateProcessStartInfo(
+            string executable,
+            string arguments,
+            string? workingDirectory = null,
+            bool captureOutput = false,
+            bool displayWindow = true,
+            Dictionary<string, string>? environmentVariables = null)
         {
-            processStartInfo.UseShellExecute = false;
-            processStartInfo.RedirectStandardOutput = true;
-            processStartInfo.RedirectStandardError = true;
-        }
-        else
-        {
-            processStartInfo.CreateNoWindow = !displayWindow;
-            processStartInfo.UseShellExecute = displayWindow;
-        }
+            var processStartInfo = new ProcessStartInfo(executable, arguments);
 
-        return processStartInfo;
+            if (!string.IsNullOrEmpty(workingDirectory))
+            {
+                processStartInfo.WorkingDirectory = workingDirectory;
+            }
+
+            if (environmentVariables != null)
+            {
+                foreach (var pair in environmentVariables)
+                {
+                    processStartInfo.EnvironmentVariables[pair.Key] = pair.Value;
+                }
+            }
+
+            if (captureOutput)
+            {
+                processStartInfo.UseShellExecute = false;
+                processStartInfo.RedirectStandardOutput = true;
+                processStartInfo.RedirectStandardError = true;
+            }
+            else
+            {
+                processStartInfo.CreateNoWindow = !displayWindow;
+                processStartInfo.UseShellExecute = displayWindow;
+            }
+
+            return processStartInfo;
+        }
     }
 }

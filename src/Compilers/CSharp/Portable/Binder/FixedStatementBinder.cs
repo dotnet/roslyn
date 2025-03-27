@@ -13,70 +13,71 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class FixedStatementBinder : LocalScopeBinder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly FixedStatementSyntax _syntax;
-
-    public FixedStatementBinder(Binder enclosing, FixedStatementSyntax syntax)
-        : base(enclosing)
+    internal sealed class FixedStatementBinder : LocalScopeBinder
     {
-        Debug.Assert(syntax != null);
-        _syntax = syntax;
-    }
+        private readonly FixedStatementSyntax _syntax;
 
-    protected override ImmutableArray<LocalSymbol> BuildLocals()
-    {
-        if (_syntax.Declaration != null)
+        public FixedStatementBinder(Binder enclosing, FixedStatementSyntax syntax)
+            : base(enclosing)
         {
-            var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+            Debug.Assert(syntax != null);
+            _syntax = syntax;
+        }
 
-            _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        {
+            if (_syntax.Declaration != null)
             {
-                foreach (var size in rankSpecifier.Sizes)
+                var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+
+                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
                 {
-                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    foreach (var size in rankSpecifier.Sizes)
                     {
-                        ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
                     }
+                }, (binder: this, locals: locals));
+
+                foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
+                {
+                    locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable, allowScoped: false));
+
+                    // also gather expression-declared variables from the bracketed argument lists and the initializers
+                    ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
                 }
-            }, (binder: this, locals: locals));
 
-            foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
-            {
-                locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable, allowScoped: false));
-
-                // also gather expression-declared variables from the bracketed argument lists and the initializers
-                ExpressionVariableFinder.FindExpressionVariables(this, locals, declarator);
+                return locals.ToImmutable();
             }
 
-            return locals.ToImmutable();
+            return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        return ImmutableArray<LocalSymbol>.Empty;
-    }
-
-    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-    {
-        if (_syntax == scopeDesignator)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            return this.Locals;
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable();
         }
 
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override SyntaxNode ScopeDesignator
-    {
-        get
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return _syntax;
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
         }
     }
 }

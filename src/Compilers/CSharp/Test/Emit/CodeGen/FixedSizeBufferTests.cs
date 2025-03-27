@@ -15,15 +15,15 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class FixedSizeBufferTests : EmitMetadataTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Fact]
-    [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
-    public void NestedStructFixed()
+    public class FixedSizeBufferTests : EmitMetadataTestBase
     {
-        var verifier = CompileAndVerify(@"
+        [Fact]
+        [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
+        public void NestedStructFixed()
+        {
+            var verifier = CompileAndVerify(@"
 class  X {
     internal struct CaseRange {
         public int Lo, Hi;
@@ -48,7 +48,7 @@ class  X {
         var a = new CaseRange (0, 0, 0, 0, 0);
     }
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
-        verifier.VerifyIL("X.CaseRange..ctor", @"
+            verifier.VerifyIL("X.CaseRange..ctor", @"
 {
   // Code size       49 (0x31)
   .maxstack  3
@@ -85,12 +85,12 @@ class  X {
   IL_002f:  stloc.0
   IL_0030:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SimpleFixedBuffer()
-    {
-        var text =
+        [Fact]
+        public void SimpleFixedBuffer()
+        {
+            var text =
 @"using System;
 unsafe struct S
 {
@@ -112,8 +112,8 @@ class Program
         S t = s;
     }
 }";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       56 (0x38)
   .maxstack  2
@@ -144,12 +144,12 @@ class Program
   IL_0032:  call       ""void System.Console.WriteLine(int)""
   IL_0037:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SimpleFixedBufferNestedField()
-    {
-        var text =
+        [Fact]
+        public void SimpleFixedBufferNestedField()
+        {
+            var text =
 @"
 using System;
 unsafe struct S
@@ -173,8 +173,8 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -195,12 +195,12 @@ class Program
   IL_002e:  call       ""void System.Console.WriteLine(int)""
   IL_0033:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SimpleFixedBufferNestedFieldClass()
-    {
-        var text =
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClass()
+        {
+            var text =
 @"
 using System;
 unsafe struct S
@@ -224,8 +224,8 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       46 (0x2e)
   .maxstack  3
@@ -243,12 +243,12 @@ class Program
   IL_0028:  call       ""void System.Console.WriteLine(int)""
   IL_002d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SimpleFixedBufferNestedFieldClassInit()
-    {
-        var text =
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassInit()
+        {
+            var text =
 @"
 using System;
 unsafe struct S
@@ -275,8 +275,8 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       58 (0x3a)
   .maxstack  3
@@ -297,12 +297,12 @@ class Program
   IL_0034:  call       ""void System.Console.WriteLine(int)""
   IL_0039:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void SimpleFixedBufferOfRefStructErr()
-    {
-        var source =
+        [Fact]
+        public void SimpleFixedBufferOfRefStructErr()
+        {
+            var source =
 @"
 ref struct S1
 {
@@ -325,17 +325,17 @@ class Program
 }
 ";
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-            //     public fixed S1 x[10];
-            Diagnostic(ErrorCode.ERR_IllegalFixedType, "S1").WithLocation(9, 18)
-            );
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+                //     public fixed S1 x[10];
+                Diagnostic(ErrorCode.ERR_IllegalFixedType, "S1").WithLocation(9, 18)
+                );
+        }
 
-    [Fact]
-    public void SimpleFixedBufferIndexingNoUnsafe()
-    {
-        var source =
+        [Fact]
+        public void SimpleFixedBufferIndexingNoUnsafe()
+        {
+            var source =
 @"
 
 unsafe struct S
@@ -358,20 +358,20 @@ class Program
 }
 ";
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //         System.Console.WriteLine(s.x[3]);
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),
-            // (18,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //         System.Console.WriteLine(a[0].x[3]);
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[0].x").WithLocation(18, 34)
-            );
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.WriteLine(s.x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),
+                // (18,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.WriteLine(a[0].x[3]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a[0].x").WithLocation(18, 34)
+                );
+        }
 
-    [Fact]
-    public void SimpleFixedBufferNestedFieldClassRo()
-    {
-        var source =
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassRo()
+        {
+            var source =
 @"
 unsafe struct S
 {
@@ -395,20 +395,20 @@ class Program
 }
 ";
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
-            //         c.field.x[0] = 12;
-            Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
-            // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
-            //         ref int irw = ref c.field.x[0];
-            Diagnostic(ErrorCode.ERR_RefReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(19, 27)
-            );
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
+                //         c.field.x[0] = 12;
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
+                // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
+                //         ref int irw = ref c.field.x[0];
+                Diagnostic(ErrorCode.ERR_RefReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(19, 27)
+                );
+        }
 
-    [Fact]
-    public void SimpleFixedBufferNestedFieldClassRoFixed()
-    {
-        var text =
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassRoFixed()
+        {
+            var text =
 @"
 using System;
 unsafe struct S
@@ -436,8 +436,8 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       62 (0x3e)
   .maxstack  4
@@ -472,12 +472,12 @@ class Program
   IL_0038:  call       ""void System.Console.WriteLine(int)""
   IL_003d:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FixedStatementOnFixedBuffer()
-    {
-        var text =
+        [Fact]
+        public void FixedStatementOnFixedBuffer()
+        {
+            var text =
 @"using System;
 unsafe struct S
 {
@@ -501,8 +501,8 @@ class Program
         }
     }
 }";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-            .VerifyIL("Program.Main",
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+                .VerifyIL("Program.Main",
 @"
 {
   // Code size       47 (0x2f)
@@ -537,19 +537,19 @@ class Program
   IL_002e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void SeparateCompilation()
-    {
-        // Here we test round tripping - emitting a fixed-size buffer into metadata, and then reimporting that
-        // fixed-size buffer from metadata and using it in another compilation.
-        var s1 =
+        [Fact]
+        public void SeparateCompilation()
+        {
+            // Here we test round tripping - emitting a fixed-size buffer into metadata, and then reimporting that
+            // fixed-size buffer from metadata and using it in another compilation.
+            var s1 =
 @"public unsafe struct S
 {
     public fixed int x[10];
 }";
-        var s2 =
+            var s2 =
 @"using System;
 class Program
 {
@@ -566,25 +566,25 @@ class Program
         S t = s;
     }
 }";
-        var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-        var comp2 = (CSharpCompilation)CompileAndVerify(s2,
-            options: TestOptions.UnsafeReleaseExe,
-            references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
-            expectedOutput: "12", verify: Verification.Fails).Compilation;
+            var comp2 = (CSharpCompilation)CompileAndVerify(s2,
+                options: TestOptions.UnsafeReleaseExe,
+                references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
+                expectedOutput: "12", verify: Verification.Fails).Compilation;
 
-        var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
-        Assert.Equal("x", f.Name);
-        Assert.True(f.IsFixedSizeBuffer);
-        Assert.Equal("int*", f.TypeWithAnnotations.ToString());
-        Assert.Equal(10, f.FixedSize);
-    }
+            var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
+            Assert.Equal("x", f.Name);
+            Assert.True(f.IsFixedSizeBuffer);
+            Assert.Equal("int*", f.TypeWithAnnotations.ToString());
+            Assert.Equal(10, f.FixedSize);
+        }
 
-    [Fact]
-    [WorkItem(531407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531407")]
-    public void FixedBufferPointer()
-    {
-        var text =
+        [Fact]
+        [WorkItem(531407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531407")]
+        public void FixedBufferPointer()
+        {
+            var text =
 @"using System;
 unsafe struct S
 {
@@ -604,8 +604,8 @@ class Program
         }
     }
 }";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
-            .VerifyIL("Program.Main", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Fails)
+                .VerifyIL("Program.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  3
@@ -624,36 +624,36 @@ class Program
   IL_0021:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
-    public void FixedSizeBufferInFixedSizeBufferSize_Class()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
+        public void FixedSizeBufferInFixedSizeBufferSize_Class()
+        {
+            var source = @"
 unsafe class C
 {
     fixed int F[G];
     fixed int G[1];
 }
 ";
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (5,15): error CS1642: Fixed size buffer fields may only be members of structs
-            //     fixed int G[1];
-            Diagnostic(ErrorCode.ERR_FixedNotInStruct, "G"),
-            // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
-            //     fixed int F[G];
-            Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F"),
-            // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.G'
-            //     fixed int F[G];
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("C.G"));
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,15): error CS1642: Fixed size buffer fields may only be members of structs
+                //     fixed int G[1];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "G"),
+                // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
+                //     fixed int F[G];
+                Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F"),
+                // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'C.G'
+                //     fixed int F[G];
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("C.G"));
+        }
 
-    [Fact]
-    [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
-    public void FixedSizeBufferInFixedSizeBufferSize_Struct()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(587119, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587119")]
+        public void FixedSizeBufferInFixedSizeBufferSize_Struct()
+        {
+            var source = @"
 unsafe struct S
 {
     fixed int F[G];
@@ -661,66 +661,66 @@ unsafe struct S
     fixed int F1[(new S()).G];
 }
 ";
-        // CONSIDER: Dev11 reports CS1666 (ERR_FixedBufferNotFixed), but that's no more helpful.
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (6,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-            //     fixed int F1[(new S()).G];
-            Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "(new S()).G").WithLocation(6, 18),
-            // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.G'
-            //     fixed int F[G];
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("S.G").WithLocation(4, 17),
-            // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-            //     fixed int F[G];
-            Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "G").WithLocation(4, 17)
-            );
-    }
+            // CONSIDER: Dev11 reports CS1666 (ERR_FixedBufferNotFixed), but that's no more helpful.
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,18): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F1[(new S()).G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "(new S()).G").WithLocation(6, 18),
+                // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.G'
+                //     fixed int F[G];
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "G").WithArguments("S.G").WithLocation(4, 17),
+                // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F[G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "G").WithLocation(4, 17)
+                );
+        }
 
-    [Fact]
-    [WorkItem(586977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586977")]
-    public void FixedSizeBufferInFixedSizeBufferSize_Cycle()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(586977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586977")]
+        public void FixedSizeBufferInFixedSizeBufferSize_Cycle()
+        {
+            var source = @"
 unsafe struct S
 {
     fixed int F[F];
     fixed int G[default(S).G];
 }
 ";
-        // CONSIDER: Dev11 also reports CS0110 (ERR_CircConstValue), but Roslyn doesn't regard this as a cycle:
-        // F has no initializer, so it has no constant value, so the constant value of F is "null" - not "the 
-        // constant value of F" (i.e. cyclic).
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (5,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-            //     fixed int G[default(S).G];
-            Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "default(S).G").WithLocation(5, 17),
-            // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
-            //     fixed int F[F];
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S.F").WithLocation(4, 17),
-            // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-            //     fixed int F[F];
-            Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "F").WithLocation(4, 17)
-            );
-    }
+            // CONSIDER: Dev11 also reports CS0110 (ERR_CircConstValue), but Roslyn doesn't regard this as a cycle:
+            // F has no initializer, so it has no constant value, so the constant value of F is "null" - not "the 
+            // constant value of F" (i.e. cyclic).
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int G[default(S).G];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "default(S).G").WithLocation(5, 17),
+                // (4,17): error CS0120: An object reference is required for the non-static field, method, or property 'S.F'
+                //     fixed int F[F];
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "F").WithArguments("S.F").WithLocation(4, 17),
+                // (4,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     fixed int F[F];
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "F").WithLocation(4, 17)
+                );
+        }
 
-    [Fact]
-    [WorkItem(587000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587000")]
-    public void SingleDimensionFixedBuffersOnly()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(587000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587000")]
+        public void SingleDimensionFixedBuffersOnly()
+        {
+            var source = @"
 unsafe struct S
 {
     fixed int F[3, 4];
 }";
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (4,16): error CS7092: A fixed buffer may only have one dimension.
-            //     fixed int F[3, 4];
-            Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
-    }
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (4,16): error CS7092: A fixed buffer may only have one dimension.
+                //     fixed int F[3, 4];
+                Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void UIntFixedBuffer()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void UIntFixedBuffer()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -755,8 +755,8 @@ class Program
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133", verify: Verification.Fails)
-            .VerifyIL("Program.Test", @"
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "133", verify: Verification.Fails)
+                .VerifyIL("Program.Test", @"
 {
   // Code size       19 (0x13)
   .maxstack  3
@@ -771,12 +771,12 @@ class Program
   IL_0011:  ldind.u4
   IL_0012:  ret
 }");
-    }
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void ReadonlyFixedBuffer()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void ReadonlyFixedBuffer()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -795,17 +795,17 @@ class Program
     }
 }
 ";
-        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-// (8,34): error CS0106: The modifier 'readonly' is not valid for this item
-//     public readonly fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("readonly").WithLocation(8, 34)
-            );
-    }
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,34): error CS0106: The modifier 'readonly' is not valid for this item
+    //     public readonly fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("readonly").WithLocation(8, 34)
+                );
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void StaticFixedBuffer()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void StaticFixedBuffer()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -824,17 +824,17 @@ class Program
     }
 }
 ";
-        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-// (8,32): error CS0106: The modifier 'static' is not valid for this item
-//     public static fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("static").WithLocation(8, 32)
-            );
-    }
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,32): error CS0106: The modifier 'static' is not valid for this item
+    //     public static fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("static").WithLocation(8, 32)
+                );
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void ConstFixedBuffer_01()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void ConstFixedBuffer_01()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -853,44 +853,44 @@ class Program
     }
 }
 ";
-        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-// (8,18): error CS1031: Type expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 18),
-// (8,18): error CS1001: Identifier expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
-// (8,18): error CS1003: Syntax error, '[' expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[").WithLocation(8, 18),
-// (8,18): error CS1003: Syntax error, ']' expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]").WithLocation(8, 18),
-// (8,18): error CS0443: Syntax error; value expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),
-// (8,18): error CS1002: ; expected
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(8, 18),
-// (8,44): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_CStyleArray, "[ 16 ]").WithLocation(8, 44),
-// (8,46): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "16").WithLocation(8, 46),
-// (8,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
-//     public fixed const UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_IllegalFixedType, "").WithLocation(8, 18),
-// (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
-//         return pStruct->StartOfTables[ 11 ];
-Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
-            );
-    }
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,18): error CS1031: Type expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1001: Identifier expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1003: Syntax error, '[' expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[").WithLocation(8, 18),
+    // (8,18): error CS1003: Syntax error, ']' expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]").WithLocation(8, 18),
+    // (8,18): error CS0443: Syntax error; value expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),
+    // (8,18): error CS1002: ; expected
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(8, 18),
+    // (8,44): error CS0650: Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_CStyleArray, "[ 16 ]").WithLocation(8, 44),
+    // (8,46): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "16").WithLocation(8, 46),
+    // (8,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
+    //     public fixed const UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IllegalFixedType, "").WithLocation(8, 18),
+    // (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
+    //         return pStruct->StartOfTables[ 11 ];
+    Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
+                );
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void ConstFixedBuffer_02()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void ConstFixedBuffer_02()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -909,29 +909,29 @@ class Program
     }
 }
 ";
-        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-// (8,18): error CS1031: Type expected
-//     public const fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(8, 18),
-// (8,18): error CS1001: Identifier expected
-//     public const fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_IdentifierExpected, "fixed").WithLocation(8, 18),
-// (8,18): error CS0145: A const field requires a value to be provided
-//     public const fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_ConstValueRequired, "fixed").WithLocation(8, 18),
-// (8,18): error CS1002: ; expected
-//     public const fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "fixed").WithLocation(8, 18),
-// (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
-//         return pStruct->StartOfTables[ 11 ];
-Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
-            );
-    }
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,18): error CS1031: Type expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(8, 18),
+    // (8,18): error CS1001: Identifier expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "fixed").WithLocation(8, 18),
+    // (8,18): error CS0145: A const field requires a value to be provided
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_ConstValueRequired, "fixed").WithLocation(8, 18),
+    // (8,18): error CS1002: ; expected
+    //     public const fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "fixed").WithLocation(8, 18),
+    // (15,25): error CS0122: 'AssemblyRecord.StartOfTables' is inaccessible due to its protection level
+    //         return pStruct->StartOfTables[ 11 ];
+    Diagnostic(ErrorCode.ERR_BadAccess, "StartOfTables").WithArguments("AssemblyRecord.StartOfTables").WithLocation(15, 25)
+                );
+        }
 
-    [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
-    public void VolatileFixedBuffer()
-    {
-        var text =
+        [Fact, WorkItem(1171076, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1171076")]
+        public void VolatileFixedBuffer()
+        {
+            var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -950,21 +950,21 @@ class Program
     }
 }
 ";
-        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
-// (8,34): error CS0106: The modifier 'volatile' is not valid for this item
-//     public volatile fixed UInt32 StartOfTables[ 16 ];
-Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("volatile").WithLocation(8, 34)
-            );
-    }
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+    // (8,34): error CS0106: The modifier 'volatile' is not valid for this item
+    //     public volatile fixed UInt32 StartOfTables[ 16 ];
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("volatile").WithLocation(8, 34)
+                );
+        }
 
-    [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
-    public void StructLayout_01()
-    {
-        foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
+        public void StructLayout_01()
         {
-            foreach (var charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
+            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
             {
-                var text =
+                foreach (var charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
+                {
+                    var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -975,28 +975,28 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
-                    symbolValidator: (m) =>
-                    {
-                        var test = m.GlobalNamespace.GetTypeMember("Test");
-                        Assert.Equal(layout, test.Layout.Kind);
-                        Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, test.MarshallingCharSet);
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
+                        symbolValidator: (m) =>
+                        {
+                            var test = m.GlobalNamespace.GetTypeMember("Test");
+                            Assert.Equal(layout, test.Layout.Kind);
+                            Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, test.MarshallingCharSet);
 
-                        var bufferType = test.GetTypeMembers().Single();
-                        Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
-                        Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
-                        Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, bufferType.MarshallingCharSet);
-                    });
+                            var bufferType = test.GetTypeMembers().Single();
+                            Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
+                            Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
+                            Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, bufferType.MarshallingCharSet);
+                        });
+                }
             }
         }
-    }
 
-    [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
-    public void StructLayout_02()
-    {
-        foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+        [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
+        public void StructLayout_02()
         {
-            var text =
+            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+            {
+                var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -1007,25 +1007,25 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
-                symbolValidator: (m) =>
-                {
-                    var test = m.GlobalNamespace.GetTypeMember("Test");
-                    Assert.Equal(layout, test.Layout.Kind);
-                    Assert.Equal(CharSet.Ansi, test.MarshallingCharSet);
+                CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
+                    symbolValidator: (m) =>
+                    {
+                        var test = m.GlobalNamespace.GetTypeMember("Test");
+                        Assert.Equal(layout, test.Layout.Kind);
+                        Assert.Equal(CharSet.Ansi, test.MarshallingCharSet);
 
-                    var bufferType = test.GetTypeMembers().Single();
-                    Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
-                    Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
-                    Assert.Equal(CharSet.Ansi, bufferType.MarshallingCharSet);
-                });
+                        var bufferType = test.GetTypeMembers().Single();
+                        Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
+                        Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
+                        Assert.Equal(CharSet.Ansi, bufferType.MarshallingCharSet);
+                    });
+            }
         }
-    }
 
-    [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
-    public void FixedFieldDoesNotRequirePinningWithThis()
-    {
-        CompileAndVerify(@"
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
+        public void FixedFieldDoesNotRequirePinningWithThis()
+        {
+            CompileAndVerify(@"
 using System;
 unsafe struct Foo
 {
@@ -1052,12 +1052,12 @@ class Program
 }", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: @"
 1
 2");
-    }
+        }
 
-    [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
-    public void FixedFieldDoesNotAllowAddressOfOperator()
-    {
-        CreateCompilation(@"
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
+        public void FixedFieldDoesNotAllowAddressOfOperator()
+        {
+            CreateCompilation(@"
 unsafe struct Foo
 {
     private fixed int Bar[2];
@@ -1065,18 +1065,18 @@ unsafe struct Foo
     public int* M1 => &this.Bar[0];
     public int* M2 => &Bar[1];
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-            //     public int* M1 => &this.Bar[0];
-            Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
-            // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
-            //     public int* M2 => &Bar[1];
-            Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
-    }
+                // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M1 => &this.Bar[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
+                // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M2 => &Bar[1];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
 
-    [Fact]
-    public void StaticField()
-    {
-        var verifier = CompileAndVerify(@"
+        [Fact]
+        public void StaticField()
+        {
+            var verifier = CompileAndVerify(@"
 unsafe struct S
 {
     public fixed int Buf[1];
@@ -1089,7 +1089,7 @@ unsafe class C
         s_f.Buf[0] = 1;
     }
 }", options: TestOptions.UnsafeReleaseDll);
-        verifier.VerifyIL("C.M", @"
+            verifier.VerifyIL("C.M", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -1100,12 +1100,12 @@ unsafe class C
   IL_0010:  stind.i4
   IL_0011:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FixedSizeBufferOffPointerAcess()
-    {
-        var verifier = CompileAndVerify(@"
+        [Fact]
+        public void FixedSizeBufferOffPointerAcess()
+        {
+            var verifier = CompileAndVerify(@"
 using System;
 unsafe struct S
 {
@@ -1120,7 +1120,7 @@ unsafe class C
         int* y = &s->Buf[0];
     }
 }", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
-        verifier.VerifyIL("C.M", @"
+            verifier.VerifyIL("C.M", @"
 {
   // Code size       32 (0x20)
   .maxstack  1
@@ -1138,22 +1138,23 @@ unsafe class C
   IL_001e:  pop
   IL_001f:  ret
 }");
-    }
+        }
 
-    [Fact]
-    [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
-    public void FixedSizeBufferRetargeting()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void FixedSizeBufferRetargeting()
+        {
+            var source = @"
 public unsafe struct FixedBuffer
 {
     public fixed byte buffer[256];
 }";
-        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
+            comp.VerifyDiagnostics();
 
-        var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
-        var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
-        Assert.True(retargetingField.IsFixedSizeBuffer);
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
+        }
     }
 }

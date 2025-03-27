@@ -7,30 +7,31 @@ using System.Diagnostics;
 using System.Globalization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal readonly struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable
+namespace Microsoft.CodeAnalysis
 {
-    private readonly string _targetResourceId;
-
-    internal CodeAnalysisResourcesLocalizableErrorArgument(string targetResourceId)
+    internal readonly struct CodeAnalysisResourcesLocalizableErrorArgument : IFormattable
     {
-        RoslynDebug.Assert(targetResourceId != null);
-        _targetResourceId = targetResourceId;
-    }
+        private readonly string _targetResourceId;
 
-    public override string ToString()
-    {
-        return ToString(null, null);
-    }
-
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        if (_targetResourceId != null)
+        internal CodeAnalysisResourcesLocalizableErrorArgument(string targetResourceId)
         {
-            return CodeAnalysisResources.ResourceManager.GetString(_targetResourceId, formatProvider as System.Globalization.CultureInfo) ?? string.Empty;
+            RoslynDebug.Assert(targetResourceId != null);
+            _targetResourceId = targetResourceId;
         }
 
-        return string.Empty;
+        public override string ToString()
+        {
+            return ToString(null, null);
+        }
+
+        public string ToString(string? format, IFormatProvider? formatProvider)
+        {
+            if (_targetResourceId != null)
+            {
+                return CodeAnalysisResources.ResourceManager.GetString(_targetResourceId, formatProvider as System.Globalization.CultureInfo) ?? string.Empty;
+            }
+
+            return string.Empty;
+        }
     }
 }

@@ -10,120 +10,121 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-internal abstract class MethodReference : TypeMemberReference, Cci.IMethodReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    protected readonly MethodSymbol UnderlyingMethod;
-
-    public MethodReference(MethodSymbol underlyingMethod)
+    internal abstract class MethodReference : TypeMemberReference, Cci.IMethodReference
     {
-        Debug.Assert((object)underlyingMethod != null);
+        protected readonly MethodSymbol UnderlyingMethod;
 
-        this.UnderlyingMethod = underlyingMethod;
-    }
-
-    protected override Symbol UnderlyingSymbol
-    {
-        get
+        public MethodReference(MethodSymbol underlyingMethod)
         {
-            return UnderlyingMethod;
-        }
-    }
+            Debug.Assert((object)underlyingMethod != null);
 
-    bool Cci.IMethodReference.AcceptsExtraArguments
-    {
-        get
+            this.UnderlyingMethod = underlyingMethod;
+        }
+
+        protected override Symbol UnderlyingSymbol
         {
-            return UnderlyingMethod.IsVararg;
+            get
+            {
+                return UnderlyingMethod;
+            }
         }
-    }
 
-    ushort Cci.IMethodReference.GenericParameterCount
-    {
-        get
+        bool Cci.IMethodReference.AcceptsExtraArguments
         {
-            return (ushort)UnderlyingMethod.Arity;
+            get
+            {
+                return UnderlyingMethod.IsVararg;
+            }
         }
-    }
 
-    ushort Cci.ISignature.ParameterCount
-    {
-        get
+        ushort Cci.IMethodReference.GenericParameterCount
         {
-            return (ushort)UnderlyingMethod.ParameterCount;
+            get
+            {
+                return (ushort)UnderlyingMethod.Arity;
+            }
         }
-    }
 
-    Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
-    {
-        return null;
-    }
-
-    ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
-    {
-        get
+        ushort Cci.ISignature.ParameterCount
         {
-            return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
+            get
+            {
+                return (ushort)UnderlyingMethod.ParameterCount;
+            }
         }
-    }
 
-    Cci.CallingConvention Cci.ISignature.CallingConvention
-    {
-        get
-        {
-            return UnderlyingMethod.CallingConvention;
-        }
-    }
-
-    ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
-    {
-        PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-        return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
-    }
-
-    ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
-    {
-        get
-        {
-            return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers);
-        }
-    }
-
-    ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
-    {
-        get
-        {
-            return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.RefCustomModifiers);
-        }
-    }
-
-    bool Cci.ISignature.ReturnValueIsByRef
-    {
-        get
-        {
-            return UnderlyingMethod.RefKind.IsManagedReference();
-        }
-    }
-
-    Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
-    {
-        return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
-    }
-
-    public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
-    {
-        get
+        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
         {
             return null;
         }
-    }
 
-    public virtual Cci.ISpecializedMethodReference AsSpecializedMethodReference
-    {
-        get
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
         {
-            return null;
+            get
+            {
+                return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
+            }
+        }
+
+        Cci.CallingConvention Cci.ISignature.CallingConvention
+        {
+            get
+            {
+                return UnderlyingMethod.CallingConvention;
+            }
+        }
+
+        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
+        {
+            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers);
+            }
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+        {
+            get
+            {
+                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.RefCustomModifiers);
+            }
+        }
+
+        bool Cci.ISignature.ReturnValueIsByRef
+        {
+            get
+            {
+                return UnderlyingMethod.RefKind.IsManagedReference();
+            }
+        }
+
+        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
+        {
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+        }
+
+        public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public virtual Cci.ISpecializedMethodReference AsSpecializedMethodReference
+        {
+            get
+            {
+                return null;
+            }
         }
     }
 }

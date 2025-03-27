@@ -5,18 +5,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-/// <summary>
-/// Provide structural equality for ReadOnlyMemory{char} instances.
-/// </summary>
-internal sealed class CharMemoryEqualityComparer : IEqualityComparer<ReadOnlyMemory<char>>
+namespace Roslyn.Utilities
 {
-    public static readonly CharMemoryEqualityComparer Instance = new CharMemoryEqualityComparer();
+    /// <summary>
+    /// Provide structural equality for ReadOnlyMemory{char} instances.
+    /// </summary>
+    internal sealed class CharMemoryEqualityComparer : IEqualityComparer<ReadOnlyMemory<char>>
+    {
+        public static readonly CharMemoryEqualityComparer Instance = new CharMemoryEqualityComparer();
 
-    private CharMemoryEqualityComparer() { }
+        private CharMemoryEqualityComparer() { }
 
-    public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) => x.Span.SequenceEqual(y.Span);
+        public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) => x.Span.SequenceEqual(y.Span);
 
-    public int GetHashCode(ReadOnlyMemory<char> mem) => Hash.GetFNVHashCode(mem.Span);
+        public int GetHashCode(ReadOnlyMemory<char> mem) => Hash.GetFNVHashCode(mem.Span);
+    }
 }

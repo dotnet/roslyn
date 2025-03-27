@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class LocalDeclarationStatementSyntax : StatementSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public bool IsConst
+    public partial class LocalDeclarationStatementSyntax : StatementSyntax
     {
-        get
+        public bool IsConst
         {
-            return this.Modifiers.Any(SyntaxKind.ConstKeyword);
+            get
+            {
+                return this.Modifiers.Any(SyntaxKind.ConstKeyword);
+            }
         }
     }
 }

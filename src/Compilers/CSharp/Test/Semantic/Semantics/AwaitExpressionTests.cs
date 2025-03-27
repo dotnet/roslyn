@@ -13,17 +13,17 @@ using Roslyn.Utilities;
 using Xunit;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-/// <summary>
-/// Tests related to await expressions.
-/// </summary>
-public class AwaitExpressionTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void TestAwaitInfoExtensionMethod()
+    /// <summary>
+    /// Tests related to await expressions.
+    /// </summary>
+    public class AwaitExpressionTests : CompilingTestBase
     {
-        var text =
+        [Fact]
+        public void TestAwaitInfoExtensionMethod()
+        {
+            var text =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -77,33 +77,33 @@ static class MyAwaitableExtension
     }
 }";
 
-        var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
-        var tree = csCompilation.SyntaxTrees.Single();
+            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp);
+            var tree = csCompilation.SyntaxTrees.Single();
 
-        var model = csCompilation.GetSemanticModel(tree);
-        var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
-        Assert.Equal("await x", awaitExpression.ToString());
+            var model = csCompilation.GetSemanticModel(tree);
+            var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
+            Assert.Equal("await x", awaitExpression.ToString());
 
-        var info = model.GetAwaitExpressionInfo(awaitExpression);
-        Assert.Equal(
-            "System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32> MyAwaitableExtension.GetAwaiter(this MyAwaitable a)",
-            info.GetAwaiterMethod.ToTestDisplayString()
-        );
-        Assert.Equal(
-            "System.Int32 System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.GetResult()",
-            info.GetResultMethod.ToTestDisplayString()
-        );
-        Assert.Equal(
-            "System.Boolean System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.IsCompleted { get; }",
-            info.IsCompletedProperty.ToTestDisplayString()
-        );
-    }
+            var info = model.GetAwaitExpressionInfo(awaitExpression);
+            Assert.Equal(
+                "System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32> MyAwaitableExtension.GetAwaiter(this MyAwaitable a)",
+                info.GetAwaiterMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Int32 System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.GetResult()",
+                info.GetResultMethod.ToTestDisplayString()
+            );
+            Assert.Equal(
+                "System.Boolean System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>.IsCompleted { get; }",
+                info.IsCompletedProperty.ToTestDisplayString()
+            );
+        }
 
-    [Fact]
-    [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
-    public void TestAwaitInfo()
-    {
-        var text =
+        [Fact]
+        [WorkItem(711413, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/711413")]
+        public void TestAwaitInfo()
+        {
+            var text =
 @"using System.Threading.Tasks;
 
 class C
@@ -113,17 +113,17 @@ class C
         int c = 1 + await t;
     }
 }";
-        var info = GetAwaitExpressionInfo(text);
-        Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
-        Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
-        Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
-    }
+            var info = GetAwaitExpressionInfo(text);
+            Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
 
-    [Fact]
-    [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
-    public void TestAwaitInfo2()
-    {
-        var text =
+        [Fact]
+        [WorkItem(1084696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084696")]
+        public void TestAwaitInfo2()
+        {
+            var text =
 @"using System;
 using System.Threading.Tasks;
 public class C {
@@ -131,46 +131,46 @@ public class C {
         Func<Task> f = async() => await t;
     }
 }";
-        var info = GetAwaitExpressionInfo(text);
-        Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
-        Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
-        Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
-    }
+            var info = GetAwaitExpressionInfo(text);
+            Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+        }
 
-    [Fact]
-    [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
-    public void DefaultAwaitExpressionInfo()
-    {
-        AwaitExpressionInfo info = default;
-        Assert.Null(info.GetAwaiterMethod);
-        Assert.Null(info.GetResultMethod);
-        Assert.Null(info.IsCompletedProperty);
-        Assert.False(info.IsDynamic);
-        Assert.Equal(0, info.GetHashCode());
-    }
+        [Fact]
+        [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
+        public void DefaultAwaitExpressionInfo()
+        {
+            AwaitExpressionInfo info = default;
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.False(info.IsDynamic);
+            Assert.Equal(0, info.GetHashCode());
+        }
 
-    private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
-    {
-        var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
-        var comp = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
-        comp.VerifyDiagnostics(diagnostics);
-        compilation = comp;
-        var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
-        var treeModel = comp.GetSemanticModel(tree);
-        return treeModel.GetAwaitExpressionInfo(syntaxNode);
-    }
+        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
+        {
+            var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            var comp = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
+            comp.VerifyDiagnostics(diagnostics);
+            compilation = comp;
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var treeModel = comp.GetSemanticModel(tree);
+            return treeModel.GetAwaitExpressionInfo(syntaxNode);
+        }
 
-    private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
-    {
-        CSharpCompilation temp;
-        return GetAwaitExpressionInfo(text, out temp, diagnostics);
-    }
+        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
+        {
+            CSharpCompilation temp;
+            return GetAwaitExpressionInfo(text, out temp, diagnostics);
+        }
 
-    [Fact]
-    [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
-    public void Bug748533()
-    {
-        var text =
+        [Fact]
+        [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
+        public void Bug748533()
+        {
+            var text =
 @"
 using System;
 using System.Threading;
@@ -211,24 +211,24 @@ class Driver
     }
 }
 ";
-        var comp = CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll);
-        comp.VerifyEmitDiagnostics(
-            // (16,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(16, 62),
-            // (20,69): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //         dynamic ff = new Func<Task<int>>((Func<Task<int>>)(async () => 1));
-            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(20, 69),
-            // (17,13): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
-            //         if (await f == 1)
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create"));
-    }
+            var comp = CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,62): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         dynamic f = (await GetVal((Func<Task<int>>)(async () => 1)))();
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(16, 62),
+                // (20,69): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         dynamic ff = new Func<Task<int>>((Func<Task<int>>)(async () => 1));
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(20, 69),
+                // (17,13): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         if (await f == 1)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await f").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create"));
+        }
 
-    [Fact]
-    [WorkItem(576316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576316")]
-    public void Bug576316()
-    {
-        var text =
+        [Fact]
+        [WorkItem(576316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576316")]
+        public void Bug576316()
+        {
+            var text =
 @"using System;
 using System.Threading.Tasks;
  
@@ -239,18 +239,18 @@ class C
         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
     }
 }";
-        var comp = CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll);
-        comp.VerifyEmitDiagnostics(
-            // (8,27): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
-            //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithArguments("System.TypedReference").WithLocation(8, 27));
-    }
+            var comp = CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (8,27): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
+                //         Console.WriteLine(new TypedReference().Equals(await Task.FromResult(0)));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new TypedReference()").WithArguments("System.TypedReference").WithLocation(8, 27));
+        }
 
-    [Fact]
-    [WorkItem(3951, "https://github.com/dotnet/roslyn/issues/3951")]
-    public void TestAwaitInNonAsync()
-    {
-        var text =
+        [Fact]
+        [WorkItem(3951, "https://github.com/dotnet/roslyn/issues/3951")]
+        public void TestAwaitInNonAsync()
+        {
+            var text =
 @"using System.Threading.Tasks;
 
 class C
@@ -260,25 +260,25 @@ class C
         var v = await t;
     }
 }";
-        CSharpCompilation compilation;
-        var info = GetAwaitExpressionInfo(text, out compilation,
-            // (7,21): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-            //         int c = 1 + await t;
-            Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await t").WithLocation(7, 17)
-            );
-        Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
-        Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
-        Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
-        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-        var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
-        var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
-        Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
-    }
+            CSharpCompilation compilation;
+            var info = GetAwaitExpressionInfo(text, out compilation,
+                // (7,21): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+                //         int c = 1 + await t;
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await t").WithLocation(7, 17)
+                );
+            Assert.Equal("System.Runtime.CompilerServices.TaskAwaiter<System.Int32> System.Threading.Tasks.Task<System.Int32>.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.Runtime.CompilerServices.TaskAwaiter<System.Int32>.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            var decl = compilation.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().AsSingleton();
+            var symbolV = (ILocalSymbol)semanticModel.GetDeclaredSymbol(decl);
+            Assert.Equal("System.Int32", symbolV.Type.ToTestDisplayString());
+        }
 
-    [Fact]
-    public void Dynamic()
-    {
-        string source =
+        [Fact]
+        public void Dynamic()
+        {
+            string source =
 @"using System.Threading.Tasks;
 class Program
 {
@@ -288,22 +288,22 @@ class Program
         await d;
     }
 }";
-        var comp = CreateCompilation(source);
-        var tree = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(tree);
-        var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
-        var info = model.GetAwaitExpressionInfo(expr);
-        Assert.True(info.IsDynamic);
-        Assert.Null(info.GetAwaiterMethod);
-        Assert.Null(info.IsCompletedProperty);
-        Assert.Null(info.GetResultMethod);
-    }
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var info = model.GetAwaitExpressionInfo(expr);
+            Assert.True(info.IsDynamic);
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.IsCompletedProperty);
+            Assert.Null(info.GetResultMethod);
+        }
 
-    [Fact]
-    [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
-    public void Issue52639_1()
-    {
-        var text =
+        [Fact]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
+        public void Issue52639_1()
+        {
+            var text =
 @"
 using System;
 using System.Threading.Tasks;
@@ -372,15 +372,15 @@ public class SecondImplementation : MyBaseClass
     public string MyString2 { get; set; }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
-        CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
-    }
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
-    public void Issue52639_2()
-    {
-        var text =
+        [Fact]
+        [WorkItem(52639, "https://github.com/dotnet/roslyn/issues/52639")]
+        public void Issue52639_2()
+        {
+            var text =
 @"
 using System.Threading.Tasks;
 
@@ -416,7 +416,8 @@ class C
     }
 }
 ";
-        CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
-        CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Passed").VerifyDiagnostics();
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Passed").VerifyDiagnostics();
+        }
     }
 }

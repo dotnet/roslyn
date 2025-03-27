@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenStructsAndEnum : EmitMetadataTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    #region "Struct"
-
-    [Fact]
-    public void ValInstanceField()
+    public class CodeGenStructsAndEnum : EmitMetadataTestBase
     {
-        string source = @"
+        #region "Struct"
+
+        [Fact]
+        public void ValInstanceField()
+        {
+            string source = @"
 
 public class D
 {
@@ -43,9 +43,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "0427");
+            var compilation = CompileAndVerify(source, expectedOutput: "0427");
 
-        compilation.VerifyIL("D.Main",
+            compilation.VerifyIL("D.Main",
 @"
 {
   // Code size       57 (0x39)
@@ -71,12 +71,12 @@ public class D
   IL_0038:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void ValStaticField()
-    {
-        string source = @"
+        [Fact]
+        public void ValStaticField()
+        {
+            string source = @"
 
 public class D
 {
@@ -100,9 +100,9 @@ public class D
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "042");
+            var compilation = CompileAndVerify(source, expectedOutput: "042");
 
-        compilation.VerifyIL("D.Main",
+            compilation.VerifyIL("D.Main",
 @"{
   // Code size       52 (0x34)
   .maxstack  2
@@ -123,12 +123,12 @@ public class D
   IL_0033:  ret       
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void StructCtor()
-    {
-        string source = @"
+        [Fact]
+        public void StructCtor()
+        {
+            string source = @"
 public class D
 {
     public static void Main()
@@ -148,10 +148,10 @@ public class D
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "0708589934592");
+            var compilation = CompileAndVerify(source, expectedOutput: "0708589934592");
 
-        // expect just two locals (temp is reused)
-        compilation.VerifyIL("D.Main",
+            // expect just two locals (temp is reused)
+            compilation.VerifyIL("D.Main",
 @"
 {
   // Code size       51 (0x33)
@@ -169,12 +169,12 @@ public class D
   IL_0032:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void AddressUnbox()
-    {
-        string source = @"
+        [Fact]
+        public void AddressUnbox()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -200,9 +200,9 @@ class Program
         Console.Write(goo().x);
     }
 }";
-        var compilation = CompileAndVerify(source, expectedOutput: @"0");
+            var compilation = CompileAndVerify(source, expectedOutput: @"0");
 
-        compilation.VerifyIL("Program.Main",
+            compilation.VerifyIL("Program.Main",
 @"{
   // Code size       36 (0x24)
   .maxstack  1
@@ -219,12 +219,12 @@ class Program
   IL_0023:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void EqualsHashcode()
-    {
-        string source = @"
+        [Fact]
+        public void EqualsHashcode()
+        {
+            string source = @"
 using System;
 
 struct S1
@@ -259,9 +259,9 @@ class Program
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
-        compilation.VerifyIL("S1.Equals(object)",
+            compilation.VerifyIL("S1.Equals(object)",
 @"
 {
   // Code size       30 (0x1e)
@@ -315,12 +315,12 @@ class Program
   IL_0011:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void EmitObjectGetTypeCallOnStruct()
-    {
-        string source = @"
+        [Fact]
+        public void EmitObjectGetTypeCallOnStruct()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -334,9 +334,9 @@ class Program
         Console.Write((new S1()).GetType());
     }
 }";
-        var compilation = CompileAndVerify(source, expectedOutput: @"Program+S1");
+            var compilation = CompileAndVerify(source, expectedOutput: @"Program+S1");
 
-        compilation.VerifyIL("Program.Main",
+            compilation.VerifyIL("Program.Main",
 @"{
   // Code size       25 (0x19)
   .maxstack  1
@@ -350,12 +350,12 @@ class Program
   IL_0018:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void EmitInterfaceMethodOnStruct()
-    {
-        string source = @"
+        [Fact]
+        public void EmitInterfaceMethodOnStruct()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -380,10 +380,10 @@ class Program
         ((I)s).M();
     }
 }";
-        var compilation = CompileAndVerify(source, expectedOutput: @"S::M
+            var compilation = CompileAndVerify(source, expectedOutput: @"S::M
 S::M");
 
-        compilation.VerifyIL("Program.Main",
+            compilation.VerifyIL("Program.Main",
 @"{
   // Code size       27 (0x1b)
   .maxstack  1
@@ -398,12 +398,12 @@ S::M");
   IL_001a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void ValueTypeWithGeneric()
-    {
-        string source = @"
+        [Fact]
+        public void ValueTypeWithGeneric()
+        {
+            string source = @"
 namespace NS
 {
     using System;
@@ -448,12 +448,12 @@ namespace NS
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Abc
 255
 q");
 
-        compilation.VerifyIL("NS.Test.Main",
+            compilation.VerifyIL("NS.Test.Main",
 @"{
   // Code size      120 (0x78)
   .maxstack  8
@@ -495,13 +495,13 @@ q");
   IL_0077:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(540954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
-    [Fact]
-    public void StructInit()
-    {
-        var text =
+        [WorkItem(540954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540954")]
+        [Fact]
+        public void StructInit()
+        {
+            var text =
 @"
 struct Struct
 {
@@ -511,7 +511,7 @@ struct Struct
     }
 }
 ";
-        string expectedIL = @"
+            string expectedIL = @"
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -522,14 +522,14 @@ struct Struct
   IL_0009:  ret
 }
 ";
-        CompileAndVerify(text, options: TestOptions.DebugExe).VerifyIL("Struct.Main()", expectedIL);
-    }
+            CompileAndVerify(text, options: TestOptions.DebugExe).VerifyIL("Struct.Main()", expectedIL);
+        }
 
-    [WorkItem(541845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541845")]
-    [Fact]
-    public void ConstructEnum()
-    {
-        var text =
+        [WorkItem(541845, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541845")]
+        [Fact]
+        public void ConstructEnum()
+        {
+            var text =
 @"
 using System;
  
@@ -549,7 +549,7 @@ class A
     }
 }
 ";
-        string expectedIL = @"
+            string expectedIL = @"
 {
   // Code size       41 (0x29)
   .maxstack  1
@@ -569,14 +569,14 @@ class A
   IL_0023:  call       ""void System.Console.WriteLine(string)""
   IL_0028:  ret
 }";
-        CompileAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
-    }
+            CompileAndVerify(text, expectedOutput: "SundayAA").VerifyIL("A.Main()", expectedIL);
+        }
 
-    [WorkItem(541599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541599")]
-    [Fact]
-    public void TestStructWithStaticField01()
-    {
-        var source = @"
+        [WorkItem(541599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541599")]
+        [Fact]
+        public void TestStructWithStaticField01()
+        {
+            var source = @"
 using System;
 
 public struct S
@@ -588,13 +588,13 @@ public struct S
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: @"123");
-    }
+            CompileAndVerify(source, expectedOutput: @"123");
+        }
 
-    [Fact, WorkItem(543088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543088")]
-    public void UseStructLocal()
-    {
-        var text = @"
+        [Fact, WorkItem(543088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543088")]
+        public void UseStructLocal()
+        {
+            var text = @"
 using System;
 
 struct GetProperty
@@ -613,13 +613,13 @@ struct GetProperty
 }
 ";
 
-        CompileAndVerify(text, expectedOutput: "123");
-    }
+            CompileAndVerify(text, expectedOutput: "123");
+        }
 
-    [Fact]
-    public void InplaceInit001()
-    {
-        string source = @"
+        [Fact]
+        public void InplaceInit001()
+        {
+            string source = @"
 
 public class D
 {
@@ -658,9 +658,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size       73 (0x49)
@@ -687,12 +687,12 @@ public class D
   IL_0048:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InplaceInit002()
-    {
-        string source = @"
+        [Fact]
+        public void InplaceInit002()
+        {
+            string source = @"
 
 public class D
 {
@@ -739,9 +739,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size       96 (0x60)
@@ -782,12 +782,12 @@ public class D
   IL_005f:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InplaceCtor001()
-    {
-        string source = @"
+        [Fact]
+        public void InplaceCtor001()
+        {
+            string source = @"
 
 public class D
 {
@@ -839,9 +839,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size       79 (0x4f)
@@ -870,12 +870,12 @@ public class D
   IL_004e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InplaceCtor002()
-    {
-        string source = @"
+        [Fact]
+        public void InplaceCtor002()
+        {
+            string source = @"
 
 public class D
 {
@@ -952,9 +952,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size      222 (0xde)
@@ -1038,13 +1038,13 @@ public class D
   IL_00dd:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-    [Fact]
-    public void InplaceCtor003()
-    {
-        string source = @"
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [Fact]
+        public void InplaceCtor003()
+        {
+            string source = @"
 
 public class D
 {
@@ -1090,9 +1090,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "1111");
+            var compilation = CompileAndVerify(source, expectedOutput: "1111");
 
-        compilation.VerifyIL("D.Main",
+            compilation.VerifyIL("D.Main",
 @"
 {
   // Code size      136 (0x88)
@@ -1133,13 +1133,13 @@ public class D
   IL_0087:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-    [Fact]
-    public void InplaceCtor004()
-    {
-        string source = @"
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [Fact]
+        public void InplaceCtor004()
+        {
+            string source = @"
 
 public class D
 {
@@ -1189,9 +1189,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "1111");
+            var compilation = CompileAndVerify(source, expectedOutput: "1111");
 
-        compilation.VerifyIL("D.Main",
+            compilation.VerifyIL("D.Main",
 @"
 {
   // Code size      146 (0x92)
@@ -1244,13 +1244,13 @@ public class D
   IL_0091:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
-    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
-    public void InplaceCtor005()
-    {
-        string source = @"
+        [WorkItem(16364, "https://github.com/dotnet/roslyn/issues/16364")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void InplaceCtor005()
+        {
+            string source = @"
 using System;
 
 public class D
@@ -1281,9 +1281,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "11");
+            var compilation = CompileAndVerify(source, expectedOutput: "11");
 
-        compilation.VerifyIL("D.Main",
+            compilation.VerifyIL("D.Main",
 @"
 {
   // Code size       60 (0x3c)
@@ -1308,12 +1308,12 @@ public class D
   IL_003b:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitUsed001()
-    {
-        string source = @"
+        [Fact]
+        public void InitUsed001()
+        {
+            string source = @"
 
 public class D
 {
@@ -1368,9 +1368,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size      126 (0x7e)
@@ -1418,12 +1418,12 @@ public class D
   IL_007d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void CtorUsed001()
-    {
-        string source = @"
+        [Fact]
+        public void CtorUsed001()
+        {
+            string source = @"
 
 public class D
 {
@@ -1476,9 +1476,9 @@ public class D
 }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
 
-        compilation.VerifyIL("D.TestInit",
+            compilation.VerifyIL("D.TestInit",
 @"
 {
   // Code size      122 (0x7a)
@@ -1525,12 +1525,12 @@ public class D
   IL_0079:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InheritedCallOnReadOnly()
-    {
-        string source = @"
+        [Fact]
+        public void InheritedCallOnReadOnly()
+        {
+            string source = @"
     class Program
     {
         static void Main()
@@ -1550,9 +1550,9 @@ public class D
     }
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
+            var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
-        compilation.VerifyIL("Program.Main", @"
+            compilation.VerifyIL("Program.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  1
@@ -1567,9 +1567,9 @@ public class D
   IL_001d:  ret
 }
 ");
-        compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
 
-        compilation.VerifyIL("Program.Main",
+            compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       30 (0x1e)
@@ -1585,13 +1585,13 @@ public class D
   IL_001d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
-    public void BoxingRefStructForBaseCall()
-    {
-        CreateCompilation(@"
+        [Fact]
+        [WorkItem(27049, "https://github.com/dotnet/roslyn/issues/27049")]
+        public void BoxingRefStructForBaseCall()
+        {
+            CreateCompilation(@"
 ref struct S
 {
     public override bool Equals(object obj) => base.Equals(obj);
@@ -1600,24 +1600,24 @@ ref struct S
 
     public override string ToString() => base.ToString();
 }").VerifyDiagnostics(
-            // (4,48): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
-            //     public override bool Equals(object obj) => base.Equals(obj);
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(4, 48),
-            // (6,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
-            //     public override int GetHashCode() => base.GetHashCode();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(6, 42),
-            // (8,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
-            //     public override string ToString() => base.ToString();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(8, 42));
-    }
+                // (4,48): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override bool Equals(object obj) => base.Equals(obj);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(4, 48),
+                // (6,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override int GetHashCode() => base.GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(6, 42),
+                // (8,42): error CS0029: Cannot implicitly convert type 'S' to 'System.ValueType'
+                //     public override string ToString() => base.ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "base").WithArguments("S", "System.ValueType").WithLocation(8, 42));
+        }
 
-    #endregion
-    #region "Enum"
+        #endregion
+        #region "Enum"
 
-    [Fact]
-    public void TestEnum()
-    {
-        string source =
+        [Fact]
+        public void TestEnum()
+        {
+            string source =
 @"enum E { A, B }
 class C
 {
@@ -1628,9 +1628,9 @@ class C
     }
 }
 ";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main",
+            compilation.VerifyIL("C.Main",
 @"{
   // Code size        3 (0x3)
   .maxstack  1
@@ -1639,12 +1639,12 @@ class C
   IL_0002:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void BoxEnum()
-    {
-        string source =
+        [Fact]
+        public void BoxEnum()
+        {
+            string source =
 @"enum E { A, B }
 class C
 {
@@ -1657,9 +1657,9 @@ class C
     }
 }
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "B");
+            var compilation = CompileAndVerify(source, expectedOutput: "B");
 
-        compilation.VerifyIL("C.Main",
+            compilation.VerifyIL("C.Main",
 @"{
   // Code size       22 (0x16)
   .maxstack  1
@@ -1671,12 +1671,12 @@ class C
   IL_0015:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void MBRO_StructField()
-    {
-        string source =
+        [Fact]
+        public void MBRO_StructField()
+        {
+            string source =
 @"
     using System;
 
@@ -1726,14 +1726,14 @@ class C
     }
 
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: @"ca761232-ed42-11ce-bacd-00aa0057b223
+            var compilation = CompileAndVerify(source, expectedOutput: @"ca761232-ed42-11ce-bacd-00aa0057b223
 00000000-0000-0000-0000-000000000000
 00000000-0000-0000-0000-000000000000
 ca761232-ed42-11ce-bacd-00aa0057b223
 00000000-0000-0000-0000-000000000000
 00000000-0000-0000-0000-000000000000");
 
-        compilation.VerifyIL("cls1.Test",
+            compilation.VerifyIL("cls1.Test",
 @"
 {
   // Code size      237 (0xed)
@@ -1804,12 +1804,12 @@ ca761232-ed42-11ce-bacd-00aa0057b223
   IL_00ec:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp001()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp001()
+        {
+            string source = @"
 
 using System;
  
@@ -1825,9 +1825,9 @@ struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
 
-        compilation.VerifyIL("S.Main",
+            compilation.VerifyIL("S.Main",
 @"
 {
   // Code size       57 (0x39)
@@ -1853,12 +1853,12 @@ struct S
   IL_0038:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp001a()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp001a()
+        {
+            string source = @"
 
 using System;
  
@@ -1881,9 +1881,9 @@ struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
 
-        compilation.VerifyIL("S.Main",
+            compilation.VerifyIL("S.Main",
 @"
 {
   // Code size       94 (0x5e)
@@ -1921,12 +1921,12 @@ struct S
   IL_005d:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp001b()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp001b()
+        {
+            string source = @"
 
 using System;
  
@@ -1949,9 +1949,9 @@ struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
 
-        compilation.VerifyIL("S.Main",
+            compilation.VerifyIL("S.Main",
 @"
 {
   // Code size       77 (0x4d)
@@ -1982,12 +1982,12 @@ struct S
   IL_004c:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp002()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp002()
+        {
+            string source = @"
 using System;
 
 struct S
@@ -2003,9 +2003,9 @@ struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, expectedOutput: "False");
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
 
-        compilation.VerifyIL("S.Main",
+            compilation.VerifyIL("S.Main",
 @"
 {
   // Code size      116 (0x74)
@@ -2051,12 +2051,12 @@ struct S
   IL_0073:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp003()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp003()
+        {
+            string source = @"
 using System;
 
 readonly struct S
@@ -2096,9 +2096,9 @@ readonly struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: "True");
 
-        compilation.VerifyIL("S.Main",
+            compilation.VerifyIL("S.Main",
 @"
 {
   // Code size       57 (0x39)
@@ -2130,12 +2130,12 @@ readonly struct S
   IL_0038:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InitTemp004()
-    {
-        string source = @"
+        [Fact]
+        public void InitTemp004()
+        {
+            string source = @"
 using System;
 
 readonly struct S
@@ -2211,10 +2211,10 @@ readonly struct S
 
 ";
 
-        var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
+            var compilation = CompileAndVerify(source, verify: Verification.Fails, expectedOutput: @"353
 353");
 
-        compilation.VerifyIL("S.TestRO",
+            compilation.VerifyIL("S.TestRO",
 @"
 {
   // Code size       46 (0x2e)
@@ -2250,13 +2250,13 @@ readonly struct S
   IL_002d:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(842477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842477")]
-    [Fact]
-    public void DecimalConst()
-    {
-        string source = @"
+        [WorkItem(842477, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/842477")]
+        [Fact]
+        public void DecimalConst()
+        {
+            string source = @"
 
 #pragma warning disable 458, 169, 414
 using System;
@@ -2283,9 +2283,9 @@ public class Test
 
 ";
 
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("NullableTest.EqualEqual",
+            compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
   // Code size      112 (0x70)
@@ -2325,12 +2325,12 @@ public class Test
   IL_006f:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void FieldLoad001()
-    {
-        string source = @"
+        [Fact]
+        public void FieldLoad001()
+        {
+            string source = @"
     using System;
 
     struct Point
@@ -2366,9 +2366,9 @@ public class Test
     }
 
 ";
-        var compilation = CompileAndVerify(source, expectedOutput: "0");
+            var compilation = CompileAndVerify(source, expectedOutput: "0");
 
-        compilation.VerifyIL("Program.Main",
+            compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       31 (0x1f)
@@ -2382,7 +2382,8 @@ public class Test
   IL_001e:  ret
 }
 ");
-    }
+        }
 
-    #endregion
+        #endregion
+    }
 }

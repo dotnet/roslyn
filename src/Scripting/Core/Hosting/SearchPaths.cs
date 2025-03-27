@@ -4,8 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal sealed class SearchPaths : SynchronizedList<string>
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
+    internal sealed class SearchPaths : SynchronizedList<string>
+    {
+    }
 }

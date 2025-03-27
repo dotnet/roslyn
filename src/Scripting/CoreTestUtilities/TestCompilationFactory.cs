@@ -11,36 +11,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Basic.Reference.Assemblies;
 
-namespace Microsoft.CodeAnalysis.Scripting;
-
-internal static class TestCompilationFactory
+namespace Microsoft.CodeAnalysis.Scripting
 {
-    // TODO: we need to clean up and refactor CreateCompilationWithMscorlib in compiler tests 
-    // so that it can be used in portable tests.
-    internal static Compilation CreateCSharpCompilationWithCorlib(string source, string assemblyName = null)
+    internal static class TestCompilationFactory
     {
-        return CSharpCompilation.Create(
-            assemblyName ?? Guid.NewGuid().ToString(),
-            new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-            new[] { NetStandard13.References.SystemRuntime },
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-    }
+        // TODO: we need to clean up and refactor CreateCompilationWithMscorlib in compiler tests 
+        // so that it can be used in portable tests.
+        internal static Compilation CreateCSharpCompilationWithCorlib(string source, string assemblyName = null)
+        {
+            return CSharpCompilation.Create(
+                assemblyName ?? Guid.NewGuid().ToString(),
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                new[] { NetStandard13.References.SystemRuntime },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        }
 
-    internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
-    {
-        return VisualBasicCompilation.Create(
-            assemblyName ?? Guid.NewGuid().ToString(),
-            new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-            new[] { NetStandard13.References.SystemRuntime },
-            new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-    }
+        internal static Compilation CreateVisualBasicCompilationWithCorlib(string source, string assemblyName = null)
+        {
+            return VisualBasicCompilation.Create(
+                assemblyName ?? Guid.NewGuid().ToString(),
+                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                new[] { NetStandard13.References.SystemRuntime },
+                new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        }
 
-    internal static Compilation CreateCSharpCompilation(string source, IEnumerable<MetadataReference> references, string assemblyName = null, CSharpCompilationOptions options = null)
-    {
-        return CSharpCompilation.Create(
-            assemblyName ?? Guid.NewGuid().ToString(),
-            new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-            references,
-            options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        internal static Compilation CreateCSharpCompilation(string source, IEnumerable<MetadataReference> references, string assemblyName = null, CSharpCompilationOptions options = null)
+        {
+            return CSharpCompilation.Create(
+                assemblyName ?? Guid.NewGuid().ToString(),
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                references,
+                options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        }
     }
 }

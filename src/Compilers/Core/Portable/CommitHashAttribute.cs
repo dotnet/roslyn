@@ -4,14 +4,15 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis;
-
-[AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
-internal sealed class CommitHashAttribute : Attribute
+namespace Microsoft.CodeAnalysis
 {
-    internal readonly string Hash;
-    public CommitHashAttribute(string hash)
+    [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false)]
+    internal sealed class CommitHashAttribute : Attribute
     {
-        Hash = hash;
+        internal readonly string Hash;
+        public CommitHashAttribute(string hash)
+        {
+            Hash = hash;
+        }
     }
 }

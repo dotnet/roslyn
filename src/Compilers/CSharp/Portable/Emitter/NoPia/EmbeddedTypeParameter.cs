@@ -14,63 +14,64 @@ using Cci = Microsoft.Cci;
 using TypeParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia;
-
-internal sealed class EmbeddedTypeParameter : EmbeddedTypesManager.CommonEmbeddedTypeParameter
+namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {
-    public EmbeddedTypeParameter(EmbeddedMethod containingMethod, TypeParameterSymbolAdapter underlyingTypeParameter) :
-        base(containingMethod, underlyingTypeParameter)
+    internal sealed class EmbeddedTypeParameter : EmbeddedTypesManager.CommonEmbeddedTypeParameter
     {
-        Debug.Assert(underlyingTypeParameter.AdaptedTypeParameterSymbol.IsDefinition);
-    }
-
-    protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context)
-    {
-        return ((Cci.IGenericParameter)UnderlyingTypeParameter).GetConstraints(context);
-    }
-
-    protected override bool MustBeReferenceType
-    {
-        get
+        public EmbeddedTypeParameter(EmbeddedMethod containingMethod, TypeParameterSymbolAdapter underlyingTypeParameter) :
+            base(containingMethod, underlyingTypeParameter)
         {
-            return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasReferenceTypeConstraint;
+            Debug.Assert(underlyingTypeParameter.AdaptedTypeParameterSymbol.IsDefinition);
         }
-    }
 
-    protected override bool MustBeValueType
-    {
-        get
+        protected override IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context)
         {
-            return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasValueTypeConstraint;
+            return ((Cci.IGenericParameter)UnderlyingTypeParameter).GetConstraints(context);
         }
-    }
 
-    protected override bool AllowsRefLikeType
-    {
-        get
+        protected override bool MustBeReferenceType
         {
-            return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsRefLikeType;
+            get
+            {
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasReferenceTypeConstraint;
+            }
         }
-    }
 
-    protected override bool MustHaveDefaultConstructor
-    {
-        get
+        protected override bool MustBeValueType
         {
-            return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasConstructorConstraint;
+            get
+            {
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasValueTypeConstraint;
+            }
         }
-    }
 
-    protected override string Name
-    {
-        get { return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.MetadataName; }
-    }
-
-    protected override ushort Index
-    {
-        get
+        protected override bool AllowsRefLikeType
         {
-            return (ushort)UnderlyingTypeParameter.AdaptedTypeParameterSymbol.Ordinal;
+            get
+            {
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.AllowsRefLikeType;
+            }
+        }
+
+        protected override bool MustHaveDefaultConstructor
+        {
+            get
+            {
+                return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.HasConstructorConstraint;
+            }
+        }
+
+        protected override string Name
+        {
+            get { return UnderlyingTypeParameter.AdaptedTypeParameterSymbol.MetadataName; }
+        }
+
+        protected override ushort Index
+        {
+            get
+            {
+                return (ushort)UnderlyingTypeParameter.AdaptedTypeParameterSymbol.Ordinal;
+            }
         }
     }
 }

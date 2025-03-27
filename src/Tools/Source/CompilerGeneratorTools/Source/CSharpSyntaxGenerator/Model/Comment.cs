@@ -7,10 +7,11 @@
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace CSharpSyntaxGenerator;
-
-public class Comment
+namespace CSharpSyntaxGenerator
 {
-    [XmlAnyElement]
-    public XmlElement[] Body;
+    public class Comment
+    {
+        [XmlAnyElement]
+        public XmlElement[] Body;
+    }
 }

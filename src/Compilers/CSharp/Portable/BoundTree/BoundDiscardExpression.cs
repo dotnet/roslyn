@@ -5,32 +5,33 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundDiscardExpression
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
+    internal partial class BoundDiscardExpression
     {
-        Debug.Assert(Type is null && type.HasType);
-        Debug.Assert(this.IsInferred);
-        return this.Update(type.NullableAnnotation, isInferred: true, type.Type);
-    }
-
-    public BoundDiscardExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)
-    {
-        if (diagnosticsOpt?.DiagnosticBag != null)
+        public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
         {
-            Binder.Error(diagnosticsOpt, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
+            Debug.Assert(Type is null && type.HasType);
+            Debug.Assert(this.IsInferred);
+            return this.Update(type.NullableAnnotation, isInferred: true, type.Type);
         }
-        return this.Update(NullableAnnotation.Oblivious, this.IsInferred, binder.CreateErrorType("var"));
-    }
 
-    public override Symbol ExpressionSymbol
-    {
-        get
+        public BoundDiscardExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)
         {
-            Debug.Assert(this.Type is { });
-            return new DiscardSymbol(TypeWithAnnotations.Create(this.Type, this.TopLevelNullability.Annotation.ToInternalAnnotation()));
+            if (diagnosticsOpt?.DiagnosticBag != null)
+            {
+                Binder.Error(diagnosticsOpt, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
+            }
+            return this.Update(NullableAnnotation.Oblivious, this.IsInferred, binder.CreateErrorType("var"));
+        }
+
+        public override Symbol ExpressionSymbol
+        {
+            get
+            {
+                Debug.Assert(this.Type is { });
+                return new DiscardSymbol(TypeWithAnnotations.Create(this.Type, this.TopLevelNullability.Annotation.ToInternalAnnotation()));
+            }
         }
     }
 }

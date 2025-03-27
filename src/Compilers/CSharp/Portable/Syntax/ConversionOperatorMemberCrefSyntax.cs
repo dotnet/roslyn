@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class ConversionOperatorMemberCrefSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+    public partial class ConversionOperatorMemberCrefSyntax
     {
-        return Update(
-            implicitOrExplicitKeyword: implicitOrExplicitKeyword,
-            operatorKeyword: operatorKeyword,
-            checkedKeyword: this.CheckedKeyword,
-            type: type,
-            parameters: parameters);
+        public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        {
+            return Update(
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                operatorKeyword: operatorKeyword,
+                checkedKeyword: this.CheckedKeyword,
+                type: type,
+                parameters: parameters);
+        }
     }
 }

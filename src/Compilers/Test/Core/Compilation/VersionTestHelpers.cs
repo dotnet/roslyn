@@ -6,13 +6,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public static class VersionTestHelpers
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public static void GetDefaultVersion(DateTime time, out int days, out int seconds)
+    public static class VersionTestHelpers
     {
-        days = (int)(time - new DateTime(2000, 1, 1)).TotalDays; // number of days since Jan 1, 2000
-        seconds = (int)time.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+        public static void GetDefaultVersion(DateTime time, out int days, out int seconds)
+        {
+            days = (int)(time - new DateTime(2000, 1, 1)).TotalDays; // number of days since Jan 1, 2000
+            seconds = (int)time.TimeOfDay.TotalSeconds / 2; // number of seconds since midnight divided by two
+        }
     }
 }

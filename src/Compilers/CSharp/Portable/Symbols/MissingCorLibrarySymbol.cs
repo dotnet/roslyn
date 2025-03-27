@@ -11,74 +11,75 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// AssemblySymbol to represent missing, for whatever reason, CorLibrary.
-/// The symbol is created by ReferenceManager on as needed basis and is shared by all compilations
-/// with missing CorLibraries.
-/// </summary>
-internal sealed class MissingCorLibrarySymbol : MissingAssemblySymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal static readonly MissingCorLibrarySymbol Instance = new MissingCorLibrarySymbol();
-
     /// <summary>
-    /// An array of cached Cor types defined in this assembly.
-    /// Lazily filled by GetDeclaredSpecialType method.
+    /// AssemblySymbol to represent missing, for whatever reason, CorLibrary.
+    /// The symbol is created by ReferenceManager on as needed basis and is shared by all compilations
+    /// with missing CorLibraries.
     /// </summary>
-    /// <remarks></remarks>
-    private NamedTypeSymbol[] _lazySpecialTypes;
-
-    private TypeConversions _lazyTypeConversions;
-
-    private MissingCorLibrarySymbol()
-        : base(new AssemblyIdentity("<Missing Core Assembly>"))
+    internal sealed class MissingCorLibrarySymbol : MissingAssemblySymbol
     {
-        this.SetCorLibrary(this);
-    }
+        internal static readonly MissingCorLibrarySymbol Instance = new MissingCorLibrarySymbol();
 
-    internal override TypeConversions TypeConversions
-    {
-        get
+        /// <summary>
+        /// An array of cached Cor types defined in this assembly.
+        /// Lazily filled by GetDeclaredSpecialType method.
+        /// </summary>
+        /// <remarks></remarks>
+        private NamedTypeSymbol[] _lazySpecialTypes;
+
+        private TypeConversions _lazyTypeConversions;
+
+        private MissingCorLibrarySymbol()
+            : base(new AssemblyIdentity("<Missing Core Assembly>"))
         {
-            Debug.Assert(this == CorLibrary);
+            this.SetCorLibrary(this);
+        }
 
-            if (_lazyTypeConversions is null)
+        internal override TypeConversions TypeConversions
+        {
+            get
             {
-                Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                Debug.Assert(this == CorLibrary);
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
             }
-
-            return _lazyTypeConversions;
         }
-    }
 
-    /// <summary>
-    /// Lookup declaration for predefined CorLib type in this Assembly. Only should be
-    /// called if it is know that this is the Cor Library (mscorlib).
-    /// </summary>
-    /// <param name="type"></param>
-    internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
-    {
-#if DEBUG
-        foreach (var module in this.Modules)
+        /// <summary>
+        /// Lookup declaration for predefined CorLib type in this Assembly. Only should be
+        /// called if it is know that this is the Cor Library (mscorlib).
+        /// </summary>
+        /// <param name="type"></param>
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
-            Debug.Assert(module.GetReferencedAssemblies().Length == 0);
-        }
+#if DEBUG
+            foreach (var module in this.Modules)
+            {
+                Debug.Assert(module.GetReferencedAssemblies().Length == 0);
+            }
 #endif
 
-        if (_lazySpecialTypes == null)
-        {
-            Interlocked.CompareExchange(ref _lazySpecialTypes,
-                new NamedTypeSymbol[(int)InternalSpecialType.NextAvailable], null);
-        }
+            if (_lazySpecialTypes == null)
+            {
+                Interlocked.CompareExchange(ref _lazySpecialTypes,
+                    new NamedTypeSymbol[(int)InternalSpecialType.NextAvailable], null);
+            }
 
-        if ((object)_lazySpecialTypes[(int)type] == null)
-        {
-            MetadataTypeName emittedFullName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding: true);
-            NamedTypeSymbol corType = new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedFullName, type);
-            Interlocked.CompareExchange(ref _lazySpecialTypes[(int)type], corType, null);
-        }
+            if ((object)_lazySpecialTypes[(int)type] == null)
+            {
+                MetadataTypeName emittedFullName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding: true);
+                NamedTypeSymbol corType = new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedFullName, type);
+                Interlocked.CompareExchange(ref _lazySpecialTypes[(int)type], corType, null);
+            }
 
-        return _lazySpecialTypes[(int)type];
+            return _lazySpecialTypes[(int)type];
+        }
     }
 }

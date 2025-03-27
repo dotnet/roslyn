@@ -5,44 +5,45 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SynthesizedReadOnlyListConstructor : SynthesizedInstanceConstructor
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal SynthesizedReadOnlyListConstructor(SynthesizedReadOnlyListTypeSymbol containingType, TypeSymbol parameterType, string parameterName) : base(containingType)
+    internal sealed class SynthesizedReadOnlyListConstructor : SynthesizedInstanceConstructor
     {
-        Parameters = ImmutableArray.Create(
-            SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(parameterType), ordinal: 0, RefKind.None, parameterName));
-    }
-
-    public override ImmutableArray<ParameterSymbol> Parameters { get; }
-
-    internal override bool SynthesizesLoweredBoundBody => true;
-
-    internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-    {
-        SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-        f.CurrentFunction = this;
-
-        try
+        internal SynthesizedReadOnlyListConstructor(SynthesizedReadOnlyListTypeSymbol containingType, TypeSymbol parameterType, string parameterName) : base(containingType)
         {
-            var baseConstructor = ContainingType.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single();
-            var field = ContainingType.GetFieldsToEmit().Single();
-            var parameter = Parameters.Single();
-
-            var block = f.Block(
-                // object..ctor();
-                f.ExpressionStatement(f.Call(f.This(), baseConstructor)),
-                // _items = items;
-                f.Assignment(f.Field(f.This(), field), f.Parameter(parameter)),
-                // return;
-                f.Return());
-            f.CloseMethod(block);
+            Parameters = ImmutableArray.Create(
+                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(parameterType), ordinal: 0, RefKind.None, parameterName));
         }
-        catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+
+        public override ImmutableArray<ParameterSymbol> Parameters { get; }
+
+        internal override bool SynthesizesLoweredBoundBody => true;
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            diagnostics.Add(ex.Diagnostic);
-            f.CloseMethod(f.ThrowNull());
+            SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            f.CurrentFunction = this;
+
+            try
+            {
+                var baseConstructor = ContainingType.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single();
+                var field = ContainingType.GetFieldsToEmit().Single();
+                var parameter = Parameters.Single();
+
+                var block = f.Block(
+                    // object..ctor();
+                    f.ExpressionStatement(f.Call(f.This(), baseConstructor)),
+                    // _items = items;
+                    f.Assignment(f.Field(f.This(), field), f.Parameter(parameter)),
+                    // return;
+                    f.Return());
+                f.CloseMethod(block);
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                f.CloseMethod(f.ThrowNull());
+            }
         }
     }
 }

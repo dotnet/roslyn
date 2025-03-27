@@ -9,78 +9,78 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-public class XmlOptions
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public bool Trivia
+    public class XmlOptions
     {
-        get;
-        set;
-    }
-
-    public bool Spans
-    {
-        get;
-        set;
-    }
-
-    public bool ReflectionInfo
-    {
-        get;
-        set;
-    }
-
-    public bool Text
-    {
-        get;
-        set;
-    }
-
-    public bool Errors
-    {
-        get;
-        set;
-    }
-}
-
-public static class XmlHelpers
-{
-    private static void AddNodeInfo(NodeInfo info, XElement xml)
-    {
-        xml.Add(new XAttribute("Type", info.ClassName));
-        foreach (var f in info.FieldInfos)
+        public bool Trivia
         {
-            if (!(f.PropertyName.Contains("Span") || f.PropertyName.Contains("Kind") || f.PropertyName.Contains("Text") || f.PropertyName.Contains("IsMissing")))
-            {
-                xml.Add(@"<<%= f.PropertyName %> FieldType=<%= f.FieldType.Name %>><%= New XCData(f.Value.ToString) %></>");
-            }
+            get;
+            set;
+        }
+
+        public bool Spans
+        {
+            get;
+            set;
+        }
+
+        public bool ReflectionInfo
+        {
+            get;
+            set;
+        }
+
+        public bool Text
+        {
+            get;
+            set;
+        }
+
+        public bool Errors
+        {
+            get;
+            set;
         }
     }
 
-    public static void AddInfo(SyntaxNode node, XElement xml)
+    public static class XmlHelpers
     {
-        AddNodeInfo(node.GetNodeInfo(), xml);
-    }
+        private static void AddNodeInfo(NodeInfo info, XElement xml)
+        {
+            xml.Add(new XAttribute("Type", info.ClassName));
+            foreach (var f in info.FieldInfos)
+            {
+                if (!(f.PropertyName.Contains("Span") || f.PropertyName.Contains("Kind") || f.PropertyName.Contains("Text") || f.PropertyName.Contains("IsMissing")))
+                {
+                    xml.Add(@"<<%= f.PropertyName %> FieldType=<%= f.FieldType.Name %>><%= New XCData(f.Value.ToString) %></>");
+                }
+            }
+        }
 
-    public static void AddInfo(SyntaxNodeOrToken node, XElement xml)
-    {
-        AddNodeInfo(node.GetNodeInfo(), xml);
-    }
+        public static void AddInfo(SyntaxNode node, XElement xml)
+        {
+            AddNodeInfo(node.GetNodeInfo(), xml);
+        }
 
-    public static void AddInfo(SyntaxToken node, XElement xml)
-    {
-        AddNodeInfo(node.GetNodeInfo(), xml);
-    }
+        public static void AddInfo(SyntaxNodeOrToken node, XElement xml)
+        {
+            AddNodeInfo(node.GetNodeInfo(), xml);
+        }
 
-    public static void AddInfo(SyntaxTrivia node, XElement xml)
-    {
-        AddNodeInfo(node.GetNodeInfo(), xml);
-    }
+        public static void AddInfo(SyntaxToken node, XElement xml)
+        {
+            AddNodeInfo(node.GetNodeInfo(), xml);
+        }
 
-    public static void AddErrors(XElement xml)
-    {
-        xml.Add(@"<Errors>
+        public static void AddInfo(SyntaxTrivia node, XElement xml)
+        {
+            AddNodeInfo(node.GetNodeInfo(), xml);
+        }
+
+        public static void AddErrors(XElement xml)
+        {
+            xml.Add(@"<Errors>
                     <%= From e In errors
                         Let l = e.Location
                         Select If(l.InSource,
@@ -93,161 +93,162 @@ public static class XmlHelpers
                         </Error>
                         ) %>
                 </Errors>");
-    }
-
-    public static XElement ToXml(this SyntaxNodeOrToken node, SyntaxTree syntaxTree, XmlOptions options = null)
-    {
-        XElement xml = null;
-        if (node.IsNode)
-        {
-            xml = ToXml(node.AsNode(), syntaxTree, options);
-        }
-        else
-        {
-            xml = ToXml(node.AsToken(), syntaxTree, options);
         }
 
-        return xml;
-    }
-
-    public static XElement ToXml(this SyntaxNode node, SyntaxTree syntaxTree, XmlOptions options = null)
-    {
-        if (options == null)
+        public static XElement ToXml(this SyntaxNodeOrToken node, SyntaxTree syntaxTree, XmlOptions options = null)
         {
-            options = new XmlOptions();
+            XElement xml = null;
+            if (node.IsNode)
+            {
+                xml = ToXml(node.AsNode(), syntaxTree, options);
+            }
+            else
+            {
+                xml = ToXml(node.AsToken(), syntaxTree, options);
+            }
+
+            return xml;
         }
 
-        XElement xml = null;
-        if (node != null)
+        public static XElement ToXml(this SyntaxNode node, SyntaxTree syntaxTree, XmlOptions options = null)
         {
-            xml = new XElement("Node",
-            new XAttribute("IsToken", false),
-            new XAttribute("IsTrivia", true),
-            new XAttribute("Kind", node.GetKind()),
-            new XAttribute("IsMissing", node.IsMissing));
+            if (options == null)
+            {
+                options = new XmlOptions();
+            }
+
+            XElement xml = null;
+            if (node != null)
+            {
+                xml = new XElement("Node",
+                new XAttribute("IsToken", false),
+                new XAttribute("IsTrivia", true),
+                new XAttribute("Kind", node.GetKind()),
+                new XAttribute("IsMissing", node.IsMissing));
+
+                if (options.Spans)
+                {
+                    xml.Add(@"<Span Start=<%= node.SpanStart %> End=<%= node.Span.End %> Length=<%= node.Span.Length %>/>");
+                    xml.Add(@"<FullSpan Start=<%= node.FullSpan.Start %> End=<%= node.FullSpan.End %> Length=<%= node.FullSpan.Length %>/>");
+                }
+
+                if (options.ReflectionInfo)
+                {
+                    AddInfo(node, xml);
+                }
+
+                if (options.Errors)
+                {
+                    if (syntaxTree.GetDiagnostics(node).Any())
+                    {
+                        AddErrors(xml);
+                    }
+                }
+
+                foreach (var c in node.ChildNodesAndTokens())
+                {
+                    xml.Add(c.ToXml(syntaxTree, options));
+                }
+            }
+
+            return xml;
+        }
+
+        public static XElement ToXml(this SyntaxToken token, SyntaxTree syntaxTree, XmlOptions options = null)
+        {
+            if (options == null)
+            {
+                options = new XmlOptions();
+            }
+
+            XElement retVal = new XElement("Node",
+                new XAttribute("IsToken", false),
+                new XAttribute("IsTrivia", true),
+                new XAttribute("Kind", token.GetKind()),
+                new XAttribute("IsMissing", token.IsMissing));
 
             if (options.Spans)
             {
-                xml.Add(@"<Span Start=<%= node.SpanStart %> End=<%= node.Span.End %> Length=<%= node.Span.Length %>/>");
-                xml.Add(@"<FullSpan Start=<%= node.FullSpan.Start %> End=<%= node.FullSpan.End %> Length=<%= node.FullSpan.Length %>/>");
+                retVal.Add(@"<Span Start=<%= token.SpanStart %> End=<%= token.Span.End %> Length=<%= token.Span.Length %>/>");
+                retVal.Add(@"<FullSpan Start=<%= token.FullSpan.Start %> End=<%= token.FullSpan.End %> Length=<%= token.FullSpan.Length %>/>");
+            }
+
+            if (options.Text)
+            {
+                retVal.Add(@"<Text><%= New XCData(token.GetText()) %></Text>");
             }
 
             if (options.ReflectionInfo)
             {
-                AddInfo(node, xml);
+                AddInfo(token, retVal);
             }
 
             if (options.Errors)
             {
-                if (syntaxTree.GetDiagnostics(node).Any())
+                if (syntaxTree.GetDiagnostics(token).Any())
                 {
-                    AddErrors(xml);
+                    AddErrors(retVal);
                 }
             }
 
-            foreach (var c in node.ChildNodesAndTokens())
+            if (options.Trivia)
             {
-                xml.Add(c.ToXml(syntaxTree, options));
-            }
-        }
+                if (token.LeadingTrivia.Any())
+                {
+                    retVal.Add(@"<LeadingTrivia><%= From t In token.LeadingTrivia Select t.ToXml(syntaxTree, options) %></LeadingTrivia>");
+                }
 
-        return xml;
-    }
-
-    public static XElement ToXml(this SyntaxToken token, SyntaxTree syntaxTree, XmlOptions options = null)
-    {
-        if (options == null)
-        {
-            options = new XmlOptions();
-        }
-
-        XElement retVal = new XElement("Node",
-            new XAttribute("IsToken", false),
-            new XAttribute("IsTrivia", true),
-            new XAttribute("Kind", token.GetKind()),
-            new XAttribute("IsMissing", token.IsMissing));
-
-        if (options.Spans)
-        {
-            retVal.Add(@"<Span Start=<%= token.SpanStart %> End=<%= token.Span.End %> Length=<%= token.Span.Length %>/>");
-            retVal.Add(@"<FullSpan Start=<%= token.FullSpan.Start %> End=<%= token.FullSpan.End %> Length=<%= token.FullSpan.Length %>/>");
-        }
-
-        if (options.Text)
-        {
-            retVal.Add(@"<Text><%= New XCData(token.GetText()) %></Text>");
-        }
-
-        if (options.ReflectionInfo)
-        {
-            AddInfo(token, retVal);
-        }
-
-        if (options.Errors)
-        {
-            if (syntaxTree.GetDiagnostics(token).Any())
-            {
-                AddErrors(retVal);
-            }
-        }
-
-        if (options.Trivia)
-        {
-            if (token.LeadingTrivia.Any())
-            {
-                retVal.Add(@"<LeadingTrivia><%= From t In token.LeadingTrivia Select t.ToXml(syntaxTree, options) %></LeadingTrivia>");
+                if (token.TrailingTrivia.Any())
+                {
+                    retVal.Add(@"<TrailingTrivia><%= From t In token.TrailingTrivia Select t.ToXml(syntaxTree, options) %></TrailingTrivia>");
+                }
             }
 
-            if (token.TrailingTrivia.Any())
+            return retVal;
+        }
+
+        public static XElement ToXml(this SyntaxTrivia trivia, SyntaxTree syntaxTree, XmlOptions options = null)
+        {
+            if (options == null)
             {
-                retVal.Add(@"<TrailingTrivia><%= From t In token.TrailingTrivia Select t.ToXml(syntaxTree, options) %></TrailingTrivia>");
+                options = new XmlOptions();
             }
-        }
 
-        return retVal;
-    }
-
-    public static XElement ToXml(this SyntaxTrivia trivia, SyntaxTree syntaxTree, XmlOptions options = null)
-    {
-        if (options == null)
-        {
-            options = new XmlOptions();
-        }
-
-        XElement retVal = new XElement("Node",
-            new XAttribute("IsToken", false),
-            new XAttribute("IsTrivia", true),
-            new XAttribute("Kind", trivia.GetKind()),
-            new XAttribute("IsMissing", false));
-        if (options.Spans)
-        {
-            retVal.Add(@"<Span Start=<%= trivia.SpanStart %> End=<%= trivia.Span.End %> Length=<%= trivia.Span.Length %>/>");
-            retVal.Add(@"<FullSpan Start=<%= trivia.FullSpan.Start %> End=<%= trivia.FullSpan.End %> Length=<%= trivia.FullSpan.Length %>/>");
-        }
-
-        if (options.Text)
-        {
-            retVal.Add(@"<Text><%= New XCData(trivia.GetText()) %></Text>");
-        }
-
-        if (options.ReflectionInfo)
-        {
-            AddInfo(trivia, retVal);
-        }
-
-        if (options.Errors)
-        {
-            if (syntaxTree.GetDiagnostics(trivia).Any())
+            XElement retVal = new XElement("Node",
+                new XAttribute("IsToken", false),
+                new XAttribute("IsTrivia", true),
+                new XAttribute("Kind", trivia.GetKind()),
+                new XAttribute("IsMissing", false));
+            if (options.Spans)
             {
-                AddErrors(retVal);
+                retVal.Add(@"<Span Start=<%= trivia.SpanStart %> End=<%= trivia.Span.End %> Length=<%= trivia.Span.Length %>/>");
+                retVal.Add(@"<FullSpan Start=<%= trivia.FullSpan.Start %> End=<%= trivia.FullSpan.End %> Length=<%= trivia.FullSpan.Length %>/>");
             }
-        }
 
-        if (trivia.HasStructure)
-        {
-            retVal.Add(trivia.GetStructure().ToXml(syntaxTree, options));
-        }
+            if (options.Text)
+            {
+                retVal.Add(@"<Text><%= New XCData(trivia.GetText()) %></Text>");
+            }
 
-        return retVal;
+            if (options.ReflectionInfo)
+            {
+                AddInfo(trivia, retVal);
+            }
+
+            if (options.Errors)
+            {
+                if (syntaxTree.GetDiagnostics(trivia).Any())
+                {
+                    AddErrors(retVal);
+                }
+            }
+
+            if (trivia.HasStructure)
+            {
+                retVal.Add(trivia.GetStructure().ToXml(syntaxTree, options));
+            }
+
+            return retVal;
+        }
     }
 }

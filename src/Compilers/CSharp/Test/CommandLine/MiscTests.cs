@@ -11,20 +11,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
-
-public class MiscTests
+namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    /// <summary>
-    /// Sanity check to help ensure our code base was compiled without overflow checking.
-    /// </summary>
-    [Fact]
-    public void OverflowCheck()
+    public class MiscTests
     {
-        int max = int.MaxValue;
-        int x = max + max;
-        Assert.Equal(-2, x);
-        int y = 0 - int.MaxValue;
-        Assert.Equal(-2147483647, y);
+        /// <summary>
+        /// Sanity check to help ensure our code base was compiled without overflow checking.
+        /// </summary>
+        [Fact]
+        public void OverflowCheck()
+        {
+            int max = int.MaxValue;
+            int x = max + max;
+            Assert.Equal(-2, x);
+            int y = 0 - int.MaxValue;
+            Assert.Equal(-2147483647, y);
+        }
     }
 }

@@ -7,56 +7,57 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Collections;
-
-internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
+namespace Microsoft.CodeAnalysis.Collections
 {
-    public partial class Builder
+    internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
     {
-        public readonly struct KeyCollection : ICollection<TKey>, IReadOnlyCollection<TKey>, ICollection
+        public partial class Builder
         {
-            private readonly ImmutableSegmentedDictionary<TKey, TValue>.Builder _dictionary;
-
-            internal KeyCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
+            public readonly struct KeyCollection : ICollection<TKey>, IReadOnlyCollection<TKey>, ICollection
             {
-                Debug.Assert(dictionary is not null);
-                _dictionary = dictionary!;
+                private readonly ImmutableSegmentedDictionary<TKey, TValue>.Builder _dictionary;
+
+                internal KeyCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
+                {
+                    Debug.Assert(dictionary is not null);
+                    _dictionary = dictionary!;
+                }
+
+                public int Count => _dictionary.Count;
+
+                bool ICollection<TKey>.IsReadOnly => false;
+
+                bool ICollection.IsSynchronized => false;
+
+                object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
+
+                void ICollection<TKey>.Add(TKey item)
+                    => throw new NotSupportedException();
+
+                public void Clear()
+                    => _dictionary.Clear();
+
+                public bool Contains(TKey item)
+                    => _dictionary.ContainsKey(item);
+
+                public void CopyTo(TKey[] array, int arrayIndex)
+                    => _dictionary.ReadOnlyDictionary.Keys.CopyTo(array, arrayIndex);
+
+                public ImmutableSegmentedDictionary<TKey, TValue>.KeyCollection.Enumerator GetEnumerator()
+                    => new(_dictionary.GetEnumerator());
+
+                public bool Remove(TKey item)
+                    => _dictionary.Remove(item);
+
+                void ICollection.CopyTo(Array array, int index)
+                    => ((ICollection)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, index);
+
+                IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+                    => GetEnumerator();
+
+                IEnumerator IEnumerable.GetEnumerator()
+                    => GetEnumerator();
             }
-
-            public int Count => _dictionary.Count;
-
-            bool ICollection<TKey>.IsReadOnly => false;
-
-            bool ICollection.IsSynchronized => false;
-
-            object ICollection.SyncRoot => ((ICollection)_dictionary).SyncRoot;
-
-            void ICollection<TKey>.Add(TKey item)
-                => throw new NotSupportedException();
-
-            public void Clear()
-                => _dictionary.Clear();
-
-            public bool Contains(TKey item)
-                => _dictionary.ContainsKey(item);
-
-            public void CopyTo(TKey[] array, int arrayIndex)
-                => _dictionary.ReadOnlyDictionary.Keys.CopyTo(array, arrayIndex);
-
-            public ImmutableSegmentedDictionary<TKey, TValue>.KeyCollection.Enumerator GetEnumerator()
-                => new(_dictionary.GetEnumerator());
-
-            public bool Remove(TKey item)
-                => _dictionary.Remove(item);
-
-            void ICollection.CopyTo(Array array, int index)
-                => ((ICollection)_dictionary.ReadOnlyDictionary.Keys).CopyTo(array, index);
-
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
-                => GetEnumerator();
-
-            IEnumerator IEnumerable.GetEnumerator()
-                => GetEnumerator();
         }
     }
 }

@@ -6,176 +6,177 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal abstract class AnalyzerAction
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal DiagnosticAnalyzer Analyzer { get; }
-
-    internal AnalyzerAction(DiagnosticAnalyzer analyzer)
+    internal abstract class AnalyzerAction
     {
-        Analyzer = analyzer;
+        internal DiagnosticAnalyzer Analyzer { get; }
+
+        internal AnalyzerAction(DiagnosticAnalyzer analyzer)
+        {
+            Analyzer = analyzer;
+        }
     }
-}
 
-internal sealed class SymbolAnalyzerAction : AnalyzerAction
-{
-    public Action<SymbolAnalysisContext> Action { get; }
-    public ImmutableArray<SymbolKind> Kinds { get; }
-
-    public SymbolAnalyzerAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> kinds, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SymbolAnalyzerAction : AnalyzerAction
     {
-        Action = action;
-        Kinds = kinds;
+        public Action<SymbolAnalysisContext> Action { get; }
+        public ImmutableArray<SymbolKind> Kinds { get; }
+
+        public SymbolAnalyzerAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> kinds, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+            Kinds = kinds;
+        }
     }
-}
 
-internal sealed class SymbolStartAnalyzerAction : AnalyzerAction
-{
-    public Action<SymbolStartAnalysisContext> Action { get; }
-    public SymbolKind Kind { get; }
-
-    public SymbolStartAnalyzerAction(Action<SymbolStartAnalysisContext> action, SymbolKind kind, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SymbolStartAnalyzerAction : AnalyzerAction
     {
-        Action = action;
-        Kind = kind;
+        public Action<SymbolStartAnalysisContext> Action { get; }
+        public SymbolKind Kind { get; }
+
+        public SymbolStartAnalyzerAction(Action<SymbolStartAnalysisContext> action, SymbolKind kind, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+            Kind = kind;
+        }
     }
-}
 
-internal sealed class SymbolEndAnalyzerAction : AnalyzerAction
-{
-    public Action<SymbolAnalysisContext> Action { get; }
-
-    public SymbolEndAnalyzerAction(Action<SymbolAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SymbolEndAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<SymbolAnalysisContext> Action { get; }
+
+        public SymbolEndAnalyzerAction(Action<SymbolAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
-{
-    public Action<SyntaxNodeAnalysisContext> Action { get; }
-    public ImmutableArray<TLanguageKindEnum> Kinds { get; }
-
-    public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> kinds, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SyntaxNodeAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
-        Action = action;
-        Kinds = kinds;
+        public Action<SyntaxNodeAnalysisContext> Action { get; }
+        public ImmutableArray<TLanguageKindEnum> Kinds { get; }
+
+        public SyntaxNodeAnalyzerAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> kinds, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+            Kinds = kinds;
+        }
     }
-}
 
-internal sealed class OperationBlockStartAnalyzerAction : AnalyzerAction
-{
-    public Action<OperationBlockStartAnalysisContext> Action { get; }
-
-    public OperationBlockStartAnalyzerAction(Action<OperationBlockStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class OperationBlockStartAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<OperationBlockStartAnalysisContext> Action { get; }
+
+        public OperationBlockStartAnalyzerAction(Action<OperationBlockStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class OperationBlockAnalyzerAction : AnalyzerAction
-{
-    public Action<OperationBlockAnalysisContext> Action { get; }
-
-    public OperationBlockAnalyzerAction(Action<OperationBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class OperationBlockAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<OperationBlockAnalysisContext> Action { get; }
+
+        public OperationBlockAnalyzerAction(Action<OperationBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class OperationAnalyzerAction : AnalyzerAction
-{
-    public Action<OperationAnalysisContext> Action { get; }
-    public ImmutableArray<OperationKind> Kinds { get; }
-
-    public OperationAnalyzerAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> kinds, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class OperationAnalyzerAction : AnalyzerAction
     {
-        Action = action;
-        Kinds = kinds;
+        public Action<OperationAnalysisContext> Action { get; }
+        public ImmutableArray<OperationKind> Kinds { get; }
+
+        public OperationAnalyzerAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> kinds, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+            Kinds = kinds;
+        }
     }
-}
 
-internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
-{
-    public Action<CompilationStartAnalysisContext> Action { get; }
-
-    public CompilationStartAnalyzerAction(Action<CompilationStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class CompilationStartAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<CompilationStartAnalysisContext> Action { get; }
+
+        public CompilationStartAnalyzerAction(Action<CompilationStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class CompilationAnalyzerAction : AnalyzerAction
-{
-    public Action<CompilationAnalysisContext> Action { get; }
-
-    public CompilationAnalyzerAction(Action<CompilationAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class CompilationAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<CompilationAnalysisContext> Action { get; }
+
+        public CompilationAnalyzerAction(Action<CompilationAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
-{
-    public Action<SemanticModelAnalysisContext> Action { get; }
-
-    public SemanticModelAnalyzerAction(Action<SemanticModelAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SemanticModelAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<SemanticModelAnalysisContext> Action { get; }
+
+        public SemanticModelAnalyzerAction(Action<SemanticModelAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
-{
-    public Action<SyntaxTreeAnalysisContext> Action { get; }
-
-    public SyntaxTreeAnalyzerAction(Action<SyntaxTreeAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class SyntaxTreeAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<SyntaxTreeAnalysisContext> Action { get; }
+
+        public SyntaxTreeAnalyzerAction(Action<SyntaxTreeAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class AdditionalFileAnalyzerAction : AnalyzerAction
-{
-    public Action<AdditionalFileAnalysisContext> Action { get; }
-
-    public AdditionalFileAnalyzerAction(Action<AdditionalFileAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class AdditionalFileAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<AdditionalFileAnalysisContext> Action { get; }
+
+        public AdditionalFileAnalyzerAction(Action<AdditionalFileAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
-{
-    public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get; }
-
-    public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
-        Action = action;
+        public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get; }
+
+        public CodeBlockStartAnalyzerAction(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
-}
 
-internal sealed class CodeBlockAnalyzerAction : AnalyzerAction
-{
-    public Action<CodeBlockAnalysisContext> Action { get; }
-
-    public CodeBlockAnalyzerAction(Action<CodeBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
-        : base(analyzer)
+    internal sealed class CodeBlockAnalyzerAction : AnalyzerAction
     {
-        Action = action;
+        public Action<CodeBlockAnalysisContext> Action { get; }
+
+        public CodeBlockAnalyzerAction(Action<CodeBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
     }
 }

@@ -8,109 +8,110 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class FieldSymbol : Symbol, IFieldSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly Symbols.FieldSymbol _underlying;
-    private ITypeSymbol _lazyType;
-
-    public FieldSymbol(Symbols.FieldSymbol underlying)
+    internal sealed class FieldSymbol : Symbol, IFieldSymbol
     {
-        Debug.Assert(underlying is object);
-        _underlying = underlying;
-    }
+        private readonly Symbols.FieldSymbol _underlying;
+        private ITypeSymbol _lazyType;
 
-    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-    ISymbol IFieldSymbol.AssociatedSymbol
-    {
-        get
+        public FieldSymbol(Symbols.FieldSymbol underlying)
         {
-            return _underlying.AssociatedSymbol.GetPublicSymbol();
+            Debug.Assert(underlying is object);
+            _underlying = underlying;
         }
-    }
 
-    RefKind IFieldSymbol.RefKind => _underlying.RefKind;
+        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
 
-    ImmutableArray<CustomModifier> IFieldSymbol.RefCustomModifiers => _underlying.RefCustomModifiers;
-
-    ITypeSymbol IFieldSymbol.Type
-    {
-        get
+        ISymbol IFieldSymbol.AssociatedSymbol
         {
-            if (_lazyType is null)
+            get
             {
-                Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
+                return _underlying.AssociatedSymbol.GetPublicSymbol();
             }
-
-            return _lazyType;
         }
-    }
 
-    CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
+        RefKind IFieldSymbol.RefKind => _underlying.RefKind;
 
-    ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
-    {
-        get { return _underlying.TypeWithAnnotations.CustomModifiers; }
-    }
+        ImmutableArray<CustomModifier> IFieldSymbol.RefCustomModifiers => _underlying.RefCustomModifiers;
 
-    IFieldSymbol IFieldSymbol.OriginalDefinition
-    {
-        get
+        ITypeSymbol IFieldSymbol.Type
         {
-            return _underlying.OriginalDefinition.GetPublicSymbol();
-        }
-    }
+            get
+            {
+                if (_lazyType is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
+                }
 
-    IFieldSymbol IFieldSymbol.CorrespondingTupleField
-    {
-        get
+                return _lazyType;
+            }
+        }
+
+        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
+
+        ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            return _underlying.CorrespondingTupleField.GetPublicSymbol();
+            get { return _underlying.TypeWithAnnotations.CustomModifiers; }
         }
-    }
 
-    bool IFieldSymbol.IsExplicitlyNamedTupleElement
-    {
-        get
+        IFieldSymbol IFieldSymbol.OriginalDefinition
         {
-            return _underlying.IsExplicitlyNamedTupleElement;
+            get
+            {
+                return _underlying.OriginalDefinition.GetPublicSymbol();
+            }
         }
+
+        IFieldSymbol IFieldSymbol.CorrespondingTupleField
+        {
+            get
+            {
+                return _underlying.CorrespondingTupleField.GetPublicSymbol();
+            }
+        }
+
+        bool IFieldSymbol.IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _underlying.IsExplicitlyNamedTupleElement;
+            }
+        }
+
+        bool IFieldSymbol.IsConst => _underlying.IsConst;
+
+        bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;
+
+        bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
+
+        bool IFieldSymbol.IsRequired => _underlying.IsRequired;
+
+        bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
+
+        int IFieldSymbol.FixedSize => _underlying.FixedSize;
+
+        bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
+
+        object IFieldSymbol.ConstantValue => _underlying.ConstantValue;
+
+        #region ISymbol Members
+
+        protected override void Accept(SymbolVisitor visitor)
+        {
+            visitor.VisitField(this);
+        }
+
+        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        {
+            return visitor.VisitField(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitField(this, argument);
+        }
+
+        #endregion
     }
-
-    bool IFieldSymbol.IsConst => _underlying.IsConst;
-
-    bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;
-
-    bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
-
-    bool IFieldSymbol.IsRequired => _underlying.IsRequired;
-
-    bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
-
-    int IFieldSymbol.FixedSize => _underlying.FixedSize;
-
-    bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
-
-    object IFieldSymbol.ConstantValue => _underlying.ConstantValue;
-
-    #region ISymbol Members
-
-    protected override void Accept(SymbolVisitor visitor)
-    {
-        visitor.VisitField(this);
-    }
-
-    protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-    {
-        return visitor.VisitField(this);
-    }
-
-    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
-        return visitor.VisitField(this, argument);
-    }
-
-    #endregion
 }

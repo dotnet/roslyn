@@ -4,51 +4,52 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-using static BinaryOperatorKind;
-
-internal static partial class ValueSetFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private sealed class NintValueSetFactory : IValueSetFactory<int>, IValueSetFactory
+    using static BinaryOperatorKind;
+
+    internal static partial class ValueSetFactory
     {
-        public static readonly NintValueSetFactory Instance = new NintValueSetFactory();
-
-        private NintValueSetFactory() { }
-
-        IValueSet IValueSetFactory.AllValues => NintValueSet.AllValues;
-
-        IValueSet IValueSetFactory.NoValues => NintValueSet.NoValues;
-
-        public IValueSet<int> Related(BinaryOperatorKind relation, int value)
+        private sealed class NintValueSetFactory : IValueSetFactory<int>, IValueSetFactory
         {
-            return new NintValueSet(
-                hasSmall: relation switch { LessThan => true, LessThanOrEqual => true, _ => false },
-                values: new NumericValueSetFactory<int>(IntTC.DefaultInstance).Related(relation, value),
-                hasLarge: relation switch { GreaterThan => true, GreaterThanOrEqual => true, _ => false }
-                );
-        }
+            public static readonly NintValueSetFactory Instance = new NintValueSetFactory();
 
-        IValueSet IValueSetFactory.Random(int expectedSize, Random random)
-        {
-            return new NintValueSet(
-                hasSmall: random.NextDouble() < 0.25,
-                values: (IValueSet<int>)new NumericValueSetFactory<int>(IntTC.DefaultInstance).Random(expectedSize, random),
-                hasLarge: random.NextDouble() < 0.25
-                );
-        }
+            private NintValueSetFactory() { }
 
-        ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeInt(IntTC.DefaultInstance.Random(random));
+            IValueSet IValueSetFactory.AllValues => NintValueSet.AllValues;
 
-        IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
-        {
-            return value.IsBad ? NintValueSet.AllValues : Related(relation, IntTC.DefaultInstance.FromConstantValue(value));
-        }
+            IValueSet IValueSetFactory.NoValues => NintValueSet.NoValues;
 
-        bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
-        {
-            var tc = IntTC.DefaultInstance;
-            return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
+            public IValueSet<int> Related(BinaryOperatorKind relation, int value)
+            {
+                return new NintValueSet(
+                    hasSmall: relation switch { LessThan => true, LessThanOrEqual => true, _ => false },
+                    values: new NumericValueSetFactory<int>(IntTC.DefaultInstance).Related(relation, value),
+                    hasLarge: relation switch { GreaterThan => true, GreaterThanOrEqual => true, _ => false }
+                    );
+            }
+
+            IValueSet IValueSetFactory.Random(int expectedSize, Random random)
+            {
+                return new NintValueSet(
+                    hasSmall: random.NextDouble() < 0.25,
+                    values: (IValueSet<int>)new NumericValueSetFactory<int>(IntTC.DefaultInstance).Random(expectedSize, random),
+                    hasLarge: random.NextDouble() < 0.25
+                    );
+            }
+
+            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeInt(IntTC.DefaultInstance.Random(random));
+
+            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
+            {
+                return value.IsBad ? NintValueSet.AllValues : Related(relation, IntTC.DefaultInstance.FromConstantValue(value));
+            }
+
+            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            {
+                var tc = IntTC.DefaultInstance;
+                return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
+            }
         }
     }
 }

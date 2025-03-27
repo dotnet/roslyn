@@ -9,14 +9,15 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Scripting;
-
-internal abstract class ScriptCompiler
+namespace Microsoft.CodeAnalysis.Scripting
 {
-    public abstract Compilation CreateSubmission(Script script);
-    public abstract DiagnosticFormatter DiagnosticFormatter { get; }
-    public abstract StringComparer IdentifierComparer { get; }
+    internal abstract class ScriptCompiler
+    {
+        public abstract Compilation CreateSubmission(Script script);
+        public abstract DiagnosticFormatter DiagnosticFormatter { get; }
+        public abstract StringComparer IdentifierComparer { get; }
 
-    public abstract SyntaxTree ParseSubmission(SourceText text, ParseOptions parseOptions, CancellationToken cancellationToken);
-    public abstract bool IsCompleteSubmission(SyntaxTree tree);
+        public abstract SyntaxTree ParseSubmission(SourceText text, ParseOptions parseOptions, CancellationToken cancellationToken);
+        public abstract bool IsCompleteSubmission(SyntaxTree tree);
+    }
 }

@@ -12,45 +12,46 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-public class SyntaxDifferences
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    /// <summary>
-    /// Returns the nodes in the new tree that do not share the same underlying 
-    /// representation in the old tree. These may be entirely new nodes or rebuilt nodes.
-    /// </summary>
-    public static ImmutableArray<SyntaxNodeOrToken> GetRebuiltNodes(SyntaxTree oldTree, SyntaxTree newTree)
+    public class SyntaxDifferences
     {
-        var hashSet = new HashSet<GreenNode>();
-        GatherNodes(oldTree.GetCompilationUnitRoot(), hashSet);
-
-        var nodes = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
-        GetRebuiltNodes(newTree.GetCompilationUnitRoot(), hashSet, nodes);
-        return nodes.ToImmutableAndFree();
-    }
-
-    private static void GetRebuiltNodes(SyntaxNodeOrToken newNode, HashSet<GreenNode> hashSet, ArrayBuilder<SyntaxNodeOrToken> nodes)
-    {
-        if (hashSet.Contains(newNode.UnderlyingNode))
+        /// <summary>
+        /// Returns the nodes in the new tree that do not share the same underlying 
+        /// representation in the old tree. These may be entirely new nodes or rebuilt nodes.
+        /// </summary>
+        public static ImmutableArray<SyntaxNodeOrToken> GetRebuiltNodes(SyntaxTree oldTree, SyntaxTree newTree)
         {
-            return;
+            var hashSet = new HashSet<GreenNode>();
+            GatherNodes(oldTree.GetCompilationUnitRoot(), hashSet);
+
+            var nodes = ArrayBuilder<SyntaxNodeOrToken>.GetInstance();
+            GetRebuiltNodes(newTree.GetCompilationUnitRoot(), hashSet, nodes);
+            return nodes.ToImmutableAndFree();
         }
 
-        nodes.Add(newNode);
-
-        foreach (var child in newNode.ChildNodesAndTokens())
+        private static void GetRebuiltNodes(SyntaxNodeOrToken newNode, HashSet<GreenNode> hashSet, ArrayBuilder<SyntaxNodeOrToken> nodes)
         {
-            GetRebuiltNodes(child, hashSet, nodes);
+            if (hashSet.Contains(newNode.UnderlyingNode))
+            {
+                return;
+            }
+
+            nodes.Add(newNode);
+
+            foreach (var child in newNode.ChildNodesAndTokens())
+            {
+                GetRebuiltNodes(child, hashSet, nodes);
+            }
         }
-    }
 
-    private static void GatherNodes(SyntaxNodeOrToken node, HashSet<GreenNode> hashSet)
-    {
-        hashSet.Add(node.UnderlyingNode);
-        foreach (var child in node.ChildNodesAndTokens())
+        private static void GatherNodes(SyntaxNodeOrToken node, HashSet<GreenNode> hashSet)
         {
-            GatherNodes(child, hashSet);
+            hashSet.Add(node.UnderlyingNode);
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                GatherNodes(child, hashSet);
+            }
         }
     }
 }

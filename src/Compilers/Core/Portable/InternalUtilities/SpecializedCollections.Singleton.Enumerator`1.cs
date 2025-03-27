@@ -5,45 +5,46 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal static partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private static partial class Singleton
+    internal static partial class SpecializedCollections
     {
-        internal class Enumerator<T> : IEnumerator<T>
+        private static partial class Singleton
         {
-            private readonly T _loneValue;
-            private bool _moveNextCalled;
-
-            public Enumerator(T value)
+            internal class Enumerator<T> : IEnumerator<T>
             {
-                _loneValue = value;
-                _moveNextCalled = false;
-            }
+                private readonly T _loneValue;
+                private bool _moveNextCalled;
 
-            public T Current => _loneValue;
-
-            object? IEnumerator.Current => _loneValue;
-
-            public void Dispose()
-            {
-            }
-
-            public bool MoveNext()
-            {
-                if (!_moveNextCalled)
+                public Enumerator(T value)
                 {
-                    _moveNextCalled = true;
-                    return true;
+                    _loneValue = value;
+                    _moveNextCalled = false;
                 }
 
-                return false;
-            }
+                public T Current => _loneValue;
 
-            public void Reset()
-            {
-                _moveNextCalled = false;
+                object? IEnumerator.Current => _loneValue;
+
+                public void Dispose()
+                {
+                }
+
+                public bool MoveNext()
+                {
+                    if (!_moveNextCalled)
+                    {
+                        _moveNextCalled = true;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    _moveNextCalled = false;
+                }
             }
         }
     }

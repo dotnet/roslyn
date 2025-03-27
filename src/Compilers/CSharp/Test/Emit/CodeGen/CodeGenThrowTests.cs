@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenThrowTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void TestThrowNewExpression()
+    public class CodeGenThrowTests : CSharpTestBase
     {
-        var source = @"
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void TestThrowNewExpression()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -24,9 +24,9 @@ class C
         throw new System.Exception(""TestThrowNewExpression"");
     }
 }";
-        var compilation = CompileAndVerifyException<Exception>(source, "TestThrowNewExpression");
+            var compilation = CompileAndVerifyException<Exception>(source, "TestThrowNewExpression");
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldstr      ""TestThrowNewExpression""
@@ -34,12 +34,12 @@ class C
   IL_000a:  throw     
 }
 ");
-    }
+        }
 
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void TestThrowLocalExpression()
-    {
-        var source = @"
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void TestThrowLocalExpression()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -48,9 +48,9 @@ class C
         throw e;
     }
 }";
-        var compilation = CompileAndVerifyException<Exception>(source, "TestThrowLocalExpression");
+            var compilation = CompileAndVerifyException<Exception>(source, "TestThrowLocalExpression");
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldstr      ""TestThrowLocalExpression""
@@ -58,12 +58,12 @@ class C
   IL_000a:  throw
 }
 ");
-    }
+        }
 
-    [ConditionalFact(typeof(DesktopOnly))]
-    public void TestThrowNull()
-    {
-        var source = @"
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void TestThrowNull()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -71,21 +71,21 @@ class C
         throw null;
     }
 }";
-        var compilation = CompileAndVerifyException<NullReferenceException>(source);
+            var compilation = CompileAndVerifyException<NullReferenceException>(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldnull    
   IL_0001:  throw     
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowImplicit()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowImplicit()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -100,9 +100,9 @@ class C
         }
     }
 }";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
   .maxstack  1
   .try
@@ -118,12 +118,12 @@ class C
   IL_000a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowTyped()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowTyped()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -137,20 +137,20 @@ class C
         }
     }
 }";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
  // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowTyped2()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowTyped2()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -165,9 +165,9 @@ class C
         }
     }
 }";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
   .maxstack  1
   .try
@@ -183,12 +183,12 @@ class C
   IL_000a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowNamed()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowNamed()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -202,20 +202,20 @@ class C
         }
     }
 }";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowNamed2()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowNamed2()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -230,9 +230,9 @@ class C
         }
     }
 }";
-        var compilation = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
 
-        compilation.VerifyIL("C.Main", @"{
+            compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
   .maxstack  1
   .try
@@ -248,12 +248,12 @@ class C
   IL_000a:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestRethrowModified()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowModified()
+        {
+            var source = @"
 using System;
 
 class C
@@ -281,13 +281,13 @@ class C
         }
     }
 }";
-        CompileAndVerify(source, expectedOutput: "B");
-    }
+            CompileAndVerify(source, expectedOutput: "B");
+        }
 
-    [Fact]
-    public void TestRethrowOverwritten()
-    {
-        var source = @"
+        [Fact]
+        public void TestRethrowOverwritten()
+        {
+            var source = @"
 using System;
 
 class C
@@ -313,13 +313,13 @@ class C
         }
     }
 }";
-        CompileAndVerify(source, expectedOutput: "A");
-    }
+            CompileAndVerify(source, expectedOutput: "A");
+        }
 
-    [Fact, WorkItem(14965, "https://github.com/dotnet/roslyn/issues/14965")]
-    public void TestThrowConvertedValue()
-    {
-        var source = @"
+        [Fact, WorkItem(14965, "https://github.com/dotnet/roslyn/issues/14965")]
+        public void TestThrowConvertedValue()
+        {
+            var source = @"
 class C
 {
     static void M(X x)
@@ -332,15 +332,15 @@ class X
     public static implicit operator System.NullReferenceException(X x) => new System.NullReferenceException();
 }
 ";
-        CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-            // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
-            //         throw x;
-            Diagnostic(ErrorCode.ERR_BadExceptionType, "x").WithLocation(6, 15)
-            );
-        var compilation = CompileAndVerify(source);
-        compilation.VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (6,15): error CS0155: The type caught or thrown must be derived from System.Exception
+                //         throw x;
+                Diagnostic(ErrorCode.ERR_BadExceptionType, "x").WithLocation(6, 15)
+                );
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyDiagnostics();
 
-        compilation.VerifyIL("C.M",
+            compilation.VerifyIL("C.M",
 @"{
     // Code size        7 (0x7)
     .maxstack  1
@@ -348,12 +348,12 @@ class X
     IL_0001:  call       ""System.NullReferenceException X.op_Implicit(X)""
     IL_0006:  throw
 }");
-    }
+        }
 
-    [Fact]
-    public void TestThrowSwitchedValue()
-    {
-        var source = @"
+        [Fact]
+        public void TestThrowSwitchedValue()
+        {
+            var source = @"
 class C
 {
     static void M(bool c)
@@ -362,10 +362,10 @@ class C
     }
 }
 ";
-        var compilation = CompileAndVerify(source);
-        compilation.VerifyDiagnostics();
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyDiagnostics();
 
-        compilation.VerifyIL("C.M",
+            compilation.VerifyIL("C.M",
 @"
 {
     // Code size       19 (0x13)
@@ -382,12 +382,12 @@ class C
     IL_0012:  throw
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void TestThrowTypeParameter()
-    {
-        var source = @"
+        [Fact]
+        public void TestThrowTypeParameter()
+        {
+            var source = @"
 class C
 {
     static void M<T>(T t)
@@ -396,10 +396,11 @@ class C
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (6,15): error CS0029: Cannot implicitly convert type 'T' to 'System.Exception'
-            //         throw t;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "System.Exception").WithLocation(6, 15)
-            );
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0029: Cannot implicitly convert type 'T' to 'System.Exception'
+                //         throw t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "System.Exception").WithLocation(6, 15)
+                );
+        }
     }
 }

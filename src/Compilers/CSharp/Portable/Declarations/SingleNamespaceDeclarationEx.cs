@@ -6,37 +6,38 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class SingleNamespaceDeclarationEx : SingleNamespaceDeclaration
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly bool _hasUsings;
-    private readonly bool _hasExternAliases;
-
-    public SingleNamespaceDeclarationEx(
-        string name, bool hasUsings, bool hasExternAliases,
-        SyntaxReference syntaxReference, SourceLocation nameLocation,
-        ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
-        ImmutableArray<Diagnostic> diagnostics)
-        : base(name, syntaxReference, nameLocation, children, diagnostics)
+    internal sealed class SingleNamespaceDeclarationEx : SingleNamespaceDeclaration
     {
-        _hasUsings = hasUsings;
-        _hasExternAliases = hasExternAliases;
-    }
+        private readonly bool _hasUsings;
+        private readonly bool _hasExternAliases;
 
-    public override bool HasUsings
-    {
-        get
+        public SingleNamespaceDeclarationEx(
+            string name, bool hasUsings, bool hasExternAliases,
+            SyntaxReference syntaxReference, SourceLocation nameLocation,
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, children, diagnostics)
         {
-            return _hasUsings;
+            _hasUsings = hasUsings;
+            _hasExternAliases = hasExternAliases;
         }
-    }
 
-    public override bool HasExternAliases
-    {
-        get
+        public override bool HasUsings
         {
-            return _hasExternAliases;
+            get
+            {
+                return _hasUsings;
+            }
+        }
+
+        public override bool HasExternAliases
+        {
+            get
+            {
+                return _hasExternAliases;
+            }
         }
     }
 }

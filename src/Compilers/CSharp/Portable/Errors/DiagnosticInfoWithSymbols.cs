@@ -6,32 +6,33 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal class DiagnosticInfoWithSymbols : DiagnosticInfo
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    // not serialized:
-    internal readonly ImmutableArray<Symbol> Symbols;
-
-    internal DiagnosticInfoWithSymbols(ErrorCode errorCode, object[] arguments, ImmutableArray<Symbol> symbols)
-        : base(CSharp.MessageProvider.Instance, (int)errorCode, arguments)
+    internal class DiagnosticInfoWithSymbols : DiagnosticInfo
     {
-        this.Symbols = symbols;
-    }
+        // not serialized:
+        internal readonly ImmutableArray<Symbol> Symbols;
 
-    internal DiagnosticInfoWithSymbols(bool isWarningAsError, ErrorCode errorCode, object[] arguments, ImmutableArray<Symbol> symbols)
-        : base(CSharp.MessageProvider.Instance, isWarningAsError, (int)errorCode, arguments)
-    {
-        this.Symbols = symbols;
-    }
+        internal DiagnosticInfoWithSymbols(ErrorCode errorCode, object[] arguments, ImmutableArray<Symbol> symbols)
+            : base(CSharp.MessageProvider.Instance, (int)errorCode, arguments)
+        {
+            this.Symbols = symbols;
+        }
 
-    protected DiagnosticInfoWithSymbols(DiagnosticInfoWithSymbols original, DiagnosticSeverity severity) : base(original, severity)
-    {
-        this.Symbols = original.Symbols;
-    }
+        internal DiagnosticInfoWithSymbols(bool isWarningAsError, ErrorCode errorCode, object[] arguments, ImmutableArray<Symbol> symbols)
+            : base(CSharp.MessageProvider.Instance, isWarningAsError, (int)errorCode, arguments)
+        {
+            this.Symbols = symbols;
+        }
 
-    protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
-    {
-        return new DiagnosticInfoWithSymbols(this, severity);
+        protected DiagnosticInfoWithSymbols(DiagnosticInfoWithSymbols original, DiagnosticSeverity severity) : base(original, severity)
+        {
+            this.Symbols = original.Symbols;
+        }
+
+        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+        {
+            return new DiagnosticInfoWithSymbols(this, severity);
+        }
     }
 }

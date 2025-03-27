@@ -11,9 +11,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss;
-
-internal interface ICheckerUtil
+namespace BuildBoss
 {
-    bool Check(TextWriter textWriter);
+    internal interface ICheckerUtil
+    {
+        bool Check(TextWriter textWriter);
+    }
 }

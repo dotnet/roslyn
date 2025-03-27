@@ -6,133 +6,134 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class ReadOnlyUnmanagedMemoryStream : Stream
+namespace Microsoft.CodeAnalysis
 {
-    private readonly object _memoryOwner;
-    private readonly IntPtr _data;
-    private readonly int _length;
-    private int _position;
-
-    public ReadOnlyUnmanagedMemoryStream(object memoryOwner, IntPtr data, int length)
+    internal sealed class ReadOnlyUnmanagedMemoryStream : Stream
     {
-        _memoryOwner = memoryOwner;
-        _data = data;
-        _length = length;
-    }
+        private readonly object _memoryOwner;
+        private readonly IntPtr _data;
+        private readonly int _length;
+        private int _position;
 
-    public override unsafe int ReadByte()
-    {
-        if (_position == _length)
+        public ReadOnlyUnmanagedMemoryStream(object memoryOwner, IntPtr data, int length)
         {
-            return -1;
+            _memoryOwner = memoryOwner;
+            _data = data;
+            _length = length;
         }
 
-        return ((byte*)_data)[_position++];
-    }
-
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        int bytesRead = Math.Min(count, _length - _position);
-        Marshal.Copy(_data + _position, buffer, offset, bytesRead);
-        _position += bytesRead;
-        return bytesRead;
-    }
-
-    public override void Flush()
-    {
-    }
-
-    public override bool CanRead
-    {
-        get
+        public override unsafe int ReadByte()
         {
-            return true;
-        }
-    }
-
-    public override bool CanSeek
-    {
-        get
-        {
-            return true;
-        }
-    }
-
-    public override bool CanWrite
-    {
-        get
-        {
-            return false;
-        }
-    }
-
-    public override long Length
-    {
-        get
-        {
-            return _length;
-        }
-    }
-
-    public override long Position
-    {
-        get
-        {
-            return _position;
-        }
-
-        set
-        {
-            Seek(value, SeekOrigin.Begin);
-        }
-    }
-
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        long target;
-        try
-        {
-            switch (origin)
+            if (_position == _length)
             {
-                case SeekOrigin.Begin:
-                    target = offset;
-                    break;
+                return -1;
+            }
 
-                case SeekOrigin.Current:
-                    target = checked(offset + _position);
-                    break;
+            return ((byte*)_data)[_position++];
+        }
 
-                case SeekOrigin.End:
-                    target = checked(offset + _length);
-                    break;
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int bytesRead = Math.Min(count, _length - _position);
+            Marshal.Copy(_data + _position, buffer, offset, bytesRead);
+            _position += bytesRead;
+            return bytesRead;
+        }
 
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(origin));
+        public override void Flush()
+        {
+        }
+
+        public override bool CanRead
+        {
+            get
+            {
+                return true;
             }
         }
-        catch (OverflowException)
+
+        public override bool CanSeek
         {
-            throw new ArgumentOutOfRangeException(nameof(offset));
+            get
+            {
+                return true;
+            }
         }
 
-        if (target < 0 || target >= _length)
+        public override bool CanWrite
         {
-            throw new ArgumentOutOfRangeException(nameof(offset));
+            get
+            {
+                return false;
+            }
         }
 
-        _position = (int)target;
-        return target;
-    }
+        public override long Length
+        {
+            get
+            {
+                return _length;
+            }
+        }
 
-    public override void SetLength(long value)
-    {
-        throw new NotSupportedException();
-    }
+        public override long Position
+        {
+            get
+            {
+                return _position;
+            }
 
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        throw new NotSupportedException();
+            set
+            {
+                Seek(value, SeekOrigin.Begin);
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            long target;
+            try
+            {
+                switch (origin)
+                {
+                    case SeekOrigin.Begin:
+                        target = offset;
+                        break;
+
+                    case SeekOrigin.Current:
+                        target = checked(offset + _position);
+                        break;
+
+                    case SeekOrigin.End:
+                        target = checked(offset + _length);
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(origin));
+                }
+            }
+            catch (OverflowException)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            if (target < 0 || target >= _length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            _position = (int)target;
+            return target;
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

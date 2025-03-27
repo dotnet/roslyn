@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.IOperation;
-
-public class IOperationTests_IPointerIndirectionReferenceOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.IOperation
 {
-    //Currently, we are not creating the IPointerIndirectionReferenceOperation node
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void PointerIndirectionFlow_01()
+    public class IOperationTests_IPointerIndirectionReferenceOperation : SemanticModelTestBase
     {
-        string source = @"
+        //Currently, we are not creating the IPointerIndirectionReferenceOperation node
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void PointerIndirectionFlow_01()
+        {
+            string source = @"
 class C
 {
     unsafe static void M(S s, S* sp)
@@ -31,9 +31,9 @@ class C
      struct S { }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -55,14 +55,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void PointerIndirectionFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void PointerIndirectionFlow_02()
+        {
+            string source = @"
 class C
 {
     unsafe static void M(S* sp, int i)
@@ -75,9 +75,9 @@ class C
      struct S { public int x; }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -113,6 +113,7 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
     }
 }

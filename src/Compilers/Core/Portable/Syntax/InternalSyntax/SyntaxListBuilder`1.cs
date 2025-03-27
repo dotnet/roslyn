@@ -4,121 +4,122 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-internal readonly struct SyntaxListBuilder<TNode> where TNode : GreenNode
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    private readonly SyntaxListBuilder _builder;
-
-    public SyntaxListBuilder(int size)
-        : this(new SyntaxListBuilder(size))
+    internal readonly struct SyntaxListBuilder<TNode> where TNode : GreenNode
     {
-    }
+        private readonly SyntaxListBuilder _builder;
 
-    public static SyntaxListBuilder<TNode> Create()
-    {
-        return new SyntaxListBuilder<TNode>(8);
-    }
-
-    internal SyntaxListBuilder(SyntaxListBuilder builder)
-    {
-        _builder = builder;
-    }
-
-    public bool IsNull
-    {
-        get
+        public SyntaxListBuilder(int size)
+            : this(new SyntaxListBuilder(size))
         {
-            return _builder == null;
-        }
-    }
-
-    public int Count
-    {
-        get
-        {
-            return _builder.Count;
-        }
-    }
-
-    public TNode this[int index]
-    {
-        get
-        {
-            // We only allow assigning non-null nodes into us, and .Add filters null out.  So we should never get null here.
-            var result = _builder[index];
-            Debug.Assert(result != null);
-            return (TNode)result;
         }
 
-        set
+        public static SyntaxListBuilder<TNode> Create()
         {
-            _builder[index] = value;
-        }
-    }
-
-    public void Clear()
-    {
-        _builder.Clear();
-    }
-
-    /// <summary>
-    /// Adds <paramref name="node"/> to the end of this builder.  No change happens if <see langword="null"/> is
-    /// passed in.
-    /// </summary>
-    public SyntaxListBuilder<TNode> Add(TNode? node)
-    {
-        _builder.Add(node);
-        return this;
-    }
-
-    public void AddRange(TNode[] items, int offset, int length)
-    {
-        _builder.AddRange(items, offset, length);
-    }
-
-    public void AddRange(SyntaxList<TNode> nodes)
-    {
-        _builder.AddRange(nodes);
-    }
-
-    public void AddRange(SyntaxList<TNode> nodes, int offset, int length)
-    {
-        _builder.AddRange(nodes, offset, length);
-    }
-
-    public bool Any(int kind)
-    {
-        return _builder.Any(kind);
-    }
-
-    public SyntaxList<TNode> ToList()
-    {
-        return _builder.ToList();
-    }
-
-    public GreenNode? ToListNode()
-    {
-        return _builder.ToListNode();
-    }
-
-    public static implicit operator SyntaxListBuilder(SyntaxListBuilder<TNode> builder)
-    {
-        return builder._builder;
-    }
-
-    public static implicit operator SyntaxList<TNode>(SyntaxListBuilder<TNode> builder)
-    {
-        if (builder._builder != null)
-        {
-            return builder.ToList();
+            return new SyntaxListBuilder<TNode>(8);
         }
 
-        return default(SyntaxList<TNode>);
-    }
+        internal SyntaxListBuilder(SyntaxListBuilder builder)
+        {
+            _builder = builder;
+        }
 
-    public SyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
-    {
-        return new SyntaxList<TDerived>(ToListNode());
+        public bool IsNull
+        {
+            get
+            {
+                return _builder == null;
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                return _builder.Count;
+            }
+        }
+
+        public TNode this[int index]
+        {
+            get
+            {
+                // We only allow assigning non-null nodes into us, and .Add filters null out.  So we should never get null here.
+                var result = _builder[index];
+                Debug.Assert(result != null);
+                return (TNode)result;
+            }
+
+            set
+            {
+                _builder[index] = value;
+            }
+        }
+
+        public void Clear()
+        {
+            _builder.Clear();
+        }
+
+        /// <summary>
+        /// Adds <paramref name="node"/> to the end of this builder.  No change happens if <see langword="null"/> is
+        /// passed in.
+        /// </summary>
+        public SyntaxListBuilder<TNode> Add(TNode? node)
+        {
+            _builder.Add(node);
+            return this;
+        }
+
+        public void AddRange(TNode[] items, int offset, int length)
+        {
+            _builder.AddRange(items, offset, length);
+        }
+
+        public void AddRange(SyntaxList<TNode> nodes)
+        {
+            _builder.AddRange(nodes);
+        }
+
+        public void AddRange(SyntaxList<TNode> nodes, int offset, int length)
+        {
+            _builder.AddRange(nodes, offset, length);
+        }
+
+        public bool Any(int kind)
+        {
+            return _builder.Any(kind);
+        }
+
+        public SyntaxList<TNode> ToList()
+        {
+            return _builder.ToList();
+        }
+
+        public GreenNode? ToListNode()
+        {
+            return _builder.ToListNode();
+        }
+
+        public static implicit operator SyntaxListBuilder(SyntaxListBuilder<TNode> builder)
+        {
+            return builder._builder;
+        }
+
+        public static implicit operator SyntaxList<TNode>(SyntaxListBuilder<TNode> builder)
+        {
+            if (builder._builder != null)
+            {
+                return builder.ToList();
+            }
+
+            return default(SyntaxList<TNode>);
+        }
+
+        public SyntaxList<TDerived> ToList<TDerived>() where TDerived : GreenNode
+        {
+            return new SyntaxList<TDerived>(ToListNode());
+        }
     }
 }

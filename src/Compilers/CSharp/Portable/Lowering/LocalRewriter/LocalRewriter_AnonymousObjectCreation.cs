@@ -8,29 +8,30 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
+    internal sealed partial class LocalRewriter
     {
-        // We should never encounter an interpolated string handler conversion that was implicitly inferred, because
-        // there are no target types for an anonymous object creation.
-        AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
-        // Rewrite the arguments.
-        var rewrittenArguments = VisitList(node.Arguments);
+        public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
+        {
+            // We should never encounter an interpolated string handler conversion that was implicitly inferred, because
+            // there are no target types for an anonymous object creation.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
+            // Rewrite the arguments.
+            var rewrittenArguments = VisitList(node.Arguments);
 
-        return new BoundObjectCreationExpression(
-            syntax: node.Syntax,
-            constructor: node.Constructor,
-            arguments: rewrittenArguments,
-            argumentNamesOpt: default(ImmutableArray<string?>),
-            argumentRefKindsOpt: default(ImmutableArray<RefKind>),
-            expanded: false,
-            argsToParamsOpt: default(ImmutableArray<int>),
-            defaultArguments: default(BitVector),
-            constantValueOpt: null,
-            initializerExpressionOpt: null,
-            type: node.Type);
+            return new BoundObjectCreationExpression(
+                syntax: node.Syntax,
+                constructor: node.Constructor,
+                arguments: rewrittenArguments,
+                argumentNamesOpt: default(ImmutableArray<string?>),
+                argumentRefKindsOpt: default(ImmutableArray<RefKind>),
+                expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                type: node.Type);
+        }
     }
 }

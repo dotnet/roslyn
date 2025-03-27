@@ -12,34 +12,34 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace IdeBenchmarks.Lsp;
-
-[MemoryDiagnoser]
-public class LspCompletionBenchmarks : AbstractLanguageServerProtocolTests
+namespace IdeBenchmarks.Lsp
 {
-    private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
-
-    private TestLspServer? _testServer;
-    private IGlobalOptionService? _globalOptionService;
-    private LSP.CompletionParams? _completionParams;
-
-    public LspCompletionBenchmarks() : base(null)
+    [MemoryDiagnoser]
+    public class LspCompletionBenchmarks : AbstractLanguageServerProtocolTests
     {
-    }
+        private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
-    [GlobalSetup]
-    public void GlobalSetup()
-    {
-    }
+        private TestLspServer? _testServer;
+        private IGlobalOptionService? _globalOptionService;
+        private LSP.CompletionParams? _completionParams;
 
-    [IterationSetup]
-    public void IterationSetup() => LoadSolutionAsync().Wait();
+        public LspCompletionBenchmarks() : base(null)
+        {
+        }
 
-    private async Task LoadSolutionAsync()
-    {
-        _useExportProviderAttribute.Before(null);
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+        }
 
-        var markup =
+        [IterationSetup]
+        public void IterationSetup() => LoadSolutionAsync().Wait();
+
+        private async Task LoadSolutionAsync()
+        {
+            _useExportProviderAttribute.Before(null);
+
+            var markup =
 @"using System;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -73,45 +73,46 @@ class A
         T{|caret:|}
     }
 }";
-        _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
-        {
-            TextDocument = new LSP.TextDocumentClientCapabilities
+            _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
             {
-                Completion = new LSP.CompletionSetting
+                TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    CompletionListSetting = new LSP.CompletionListSetting
+                    Completion = new LSP.CompletionSetting
                     {
-                        ItemDefaults = ["editRange"],
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = ["editRange"],
+                        }
                     }
                 }
-            }
-        }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
-        _completionParams = CreateCompletionParams(
-            _testServer.GetLocations("caret").Single(),
-            invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-            triggerCharacter: "T",
-            triggerKind: LSP.CompletionTriggerKind.Invoked);
+            _completionParams = CreateCompletionParams(
+                _testServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "T",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
 
-        _globalOptionService = _testServer.TestWorkspace.GetService<IGlobalOptionService>();
-    }
-
-    [Benchmark]
-    public void GetCompletionsWithTextEdits()
-    {
-        var results = CompletionTests.RunGetCompletionsAsync(_testServer!, _completionParams!).Result;
-        Assert.Equal(1000, results.Items.Length);
-        Assert.True(results.IsIncomplete);
-        Assert.NotNull(results.ItemDefaults?.EditRange);
-    }
-
-    [IterationCleanup]
-    public async Task CleanupAsync()
-    {
-        if (_testServer is not null)
-        {
-            await _testServer.DisposeAsync();
+            _globalOptionService = _testServer.TestWorkspace.GetService<IGlobalOptionService>();
         }
-        _useExportProviderAttribute.After(null);
+
+        [Benchmark]
+        public void GetCompletionsWithTextEdits()
+        {
+            var results = CompletionTests.RunGetCompletionsAsync(_testServer!, _completionParams!).Result;
+            Assert.Equal(1000, results.Items.Length);
+            Assert.True(results.IsIncomplete);
+            Assert.NotNull(results.ItemDefaults?.EditRange);
+        }
+
+        [IterationCleanup]
+        public async Task CleanupAsync()
+        {
+            if (_testServer is not null)
+            {
+                await _testServer.DisposeAsync();
+            }
+            _useExportProviderAttribute.After(null);
+        }
     }
 }

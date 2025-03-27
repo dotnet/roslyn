@@ -5,22 +5,23 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class OutDeconstructVarPendingInference
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundDeconstructValuePlaceholder? Placeholder;
-
-    public BoundDeconstructValuePlaceholder SetInferredTypeWithAnnotations(TypeWithAnnotations type, bool success)
+    internal partial class OutDeconstructVarPendingInference
     {
-        Debug.Assert(Placeholder is null);
+        public BoundDeconstructValuePlaceholder? Placeholder;
 
-        Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, isDiscardExpression: IsDiscardExpression, type.Type, hasErrors: this.HasErrors || !success);
-        return Placeholder;
-    }
+        public BoundDeconstructValuePlaceholder SetInferredTypeWithAnnotations(TypeWithAnnotations type, bool success)
+        {
+            Debug.Assert(Placeholder is null);
 
-    public BoundDeconstructValuePlaceholder FailInference(Binder binder)
-    {
-        return SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(binder.CreateErrorType()), success: false);
+            Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol: VariableSymbol, isDiscardExpression: IsDiscardExpression, type.Type, hasErrors: this.HasErrors || !success);
+            return Placeholder;
+        }
+
+        public BoundDeconstructValuePlaceholder FailInference(Binder binder)
+        {
+            return SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(binder.CreateErrorType()), success: false);
+        }
     }
 }

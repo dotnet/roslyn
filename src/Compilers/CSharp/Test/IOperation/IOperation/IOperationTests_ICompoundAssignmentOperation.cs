@@ -12,24 +12,24 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_ICompoundAssignmentOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_NullArgumentToGetConversionThrows()
+    public class IOperationTests_ICompoundAssignmentOperation : SemanticModelTestBase
     {
-        ICompoundAssignmentOperation nullAssignment = null;
-        Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetInConversion());
-        Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetOutConversion());
-    }
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_NullArgumentToGetConversionThrows()
+        {
+            ICompoundAssignmentOperation nullAssignment = null;
+            Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetInConversion());
+            Assert.Throws<ArgumentNullException>("compoundAssignment", () => nullAssignment.GetOutConversion());
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_GetConversionOnValidNode_IdentityConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_GetConversionOnValidNode_IdentityConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -40,20 +40,20 @@ class C
 }
 ";
 
-        var syntaxTree = Parse(source);
-        var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
-        (IOperation operation, _) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
-        var compoundAssignment = (ICompoundAssignmentOperation)operation;
+            var syntaxTree = Parse(source);
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
+            (IOperation operation, _) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
+            var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
-        Assert.Equal(Conversion.Identity, compoundAssignment.GetInConversion());
-        Assert.Equal(Conversion.Identity, compoundAssignment.GetOutConversion());
-    }
+            Assert.Equal(Conversion.Identity, compoundAssignment.GetInConversion());
+            Assert.Equal(Conversion.Identity, compoundAssignment.GetOutConversion());
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_GetConversionOnValidNode_InOutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_GetConversionOnValidNode_InOutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -76,27 +76,27 @@ class C
 
 ";
 
-        var syntaxTree = Parse(source);
-        var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
-        (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
-        var compoundAssignment = (ICompoundAssignmentOperation)operation;
+            var syntaxTree = Parse(source);
+            var compilation = CreateCompilationWithMscorlib461(new[] { syntaxTree });
+            (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
+            var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
-        var typeSymbol = compilation.GetTypeByMetadataName("C");
-        var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
-        var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
-        var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
-        var inConversion = new Conversion(ConversionKind.ImplicitUserDefined, inSymbol, false);
-        var outConversion = new Conversion(ConversionKind.ImplicitUserDefined, outSymbol, false);
+            var typeSymbol = compilation.GetTypeByMetadataName("C");
+            var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
+            var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
+            var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
+            var inConversion = new Conversion(ConversionKind.ImplicitUserDefined, inSymbol, false);
+            var outConversion = new Conversion(ConversionKind.ImplicitUserDefined, outSymbol, false);
 
-        Assert.Equal(inConversion, compoundAssignment.GetInConversion());
-        Assert.Equal(outConversion, compoundAssignment.GetOutConversion());
-    }
+            Assert.Equal(inConversion, compoundAssignment.GetInConversion());
+            Assert.Equal(outConversion, compoundAssignment.GetOutConversion());
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_BinaryOperatorInOutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_BinaryOperatorInOutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -117,7 +117,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
   OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit(System.Int32 i))
@@ -126,16 +126,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAss
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UnsignedRightShift()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UnsignedRightShift()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -146,7 +146,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'c >>>= x')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -155,16 +155,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperationK
   Right:
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_BinaryOperatorInConversion_InvalidMissingOutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_BinaryOperatorInConversion_InvalidMissingOutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -180,7 +180,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: C, IsInvalid) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -189,20 +189,20 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAss
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0029: Cannot implicitly convert type 'int' to 'C'
-            //         /*<bind>*/c += x/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c += x").WithArguments("int", "C").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'C'
+                //         /*<bind>*/c += x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c += x").WithArguments("int", "C").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_BinaryOperatorOutConversion_InvalidMissingInConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_BinaryOperatorOutConversion_InvalidMissingInConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -218,7 +218,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.None) (OperationKind.CompoundAssignment, Type: ?, IsInvalid) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -227,20 +227,20 @@ ICompoundAssignmentOperation (BinaryOperatorKind.None) (OperationKind.CompoundAs
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0019: Operator '+=' cannot be applied to operands of type 'C' and 'int'
-            //         /*<bind>*/c += x/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadBinaryOps, "c += x").WithArguments("+=", "C", "int").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0019: Operator '+=' cannot be applied to operands of type 'C' and 'int'
+                //         /*<bind>*/c += x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c += x").WithArguments("+=", "C", "int").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_InConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_InConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -266,7 +266,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Addition(System.Int32 c1, C c2)) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -278,16 +278,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Ad
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_UnsignedRightShift()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_UnsignedRightShift()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -303,7 +303,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperatorMethod: C C.op_UnsignedRightShift(C c1, System.Int32 c2)) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c >>>= x')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -312,16 +312,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperatorMe
   Right:
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_OutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_OutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -347,7 +347,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 C.op_Addition(C c1, C c2)) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit(System.Int32 i))
@@ -359,16 +359,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.In
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_InOutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_InOutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -394,7 +394,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 C.op_Addition(System.Int32 c1, C c2)) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
   OutConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit(System.Int32 i))
@@ -406,16 +406,16 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.In
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_InvalidMissingInConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_InvalidMissingInConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -436,7 +436,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.None) (OperationKind.CompoundAssignment, Type: ?, IsInvalid) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -445,20 +445,20 @@ ICompoundAssignmentOperation (BinaryOperatorKind.None) (OperationKind.CompoundAs
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0019: Operator '+=' cannot be applied to operands of type 'C' and 'int'
-            //         /*<bind>*/c += x/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadBinaryOps, "c += x").WithArguments("+=", "C", "int").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0019: Operator '+=' cannot be applied to operands of type 'C' and 'int'
+                //         /*<bind>*/c += x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c += x").WithArguments("+=", "C", "int").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ICompoundAssignment_UserDefinedBinaryOperator_InvalidMissingOutConversion()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_InvalidMissingOutConversion()
+        {
+            string source = @"
 class C
 {
     static void M()
@@ -479,7 +479,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: C, IsInvalid) (Syntax: 'c += x')
   InConversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 C.op_Implicit(C c))
   OutConversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -488,20 +488,20 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAss
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0029: Cannot implicitly convert type 'int' to 'C'
-            //         /*<bind>*/c += x/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c += x").WithArguments("int", "C").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'C'
+                //         /*<bind>*/c += x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c += x").WithArguments("int", "C").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_01()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -511,9 +511,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -596,14 +596,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_02()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -613,9 +613,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -698,14 +698,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_03()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_03()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -715,9 +715,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -800,14 +800,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_04()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_04()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -817,9 +817,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -902,14 +902,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_05()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_05()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -919,9 +919,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1004,14 +1004,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_06()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_06()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1021,9 +1021,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1106,14 +1106,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_07()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_07()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1123,9 +1123,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1208,14 +1208,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_08()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_08()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1225,9 +1225,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1310,14 +1310,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_09()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_09()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1327,9 +1327,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1412,14 +1412,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void CompoundAssignment_10()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void CompoundAssignment_10()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1429,9 +1429,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1514,6 +1514,7 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

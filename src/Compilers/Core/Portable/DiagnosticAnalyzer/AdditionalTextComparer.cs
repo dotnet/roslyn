@@ -9,63 +9,64 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class AdditionalTextComparer : IEqualityComparer<AdditionalText>
+namespace Microsoft.CodeAnalysis
 {
-    public static readonly AdditionalTextComparer Instance = new AdditionalTextComparer();
-
-    public bool Equals(AdditionalText? x, AdditionalText? y)
+    internal sealed class AdditionalTextComparer : IEqualityComparer<AdditionalText>
     {
-        if (object.ReferenceEquals(x, y))
+        public static readonly AdditionalTextComparer Instance = new AdditionalTextComparer();
+
+        public bool Equals(AdditionalText? x, AdditionalText? y)
         {
-            return true;
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            if (!PathUtilities.Comparer.Equals(x.Path, y.Path))
+            {
+                return false;
+            }
+
+            var xText = GetTextOrNullIfBinary(x);
+            var yText = GetTextOrNullIfBinary(y);
+
+            // If xText and yText are both null, then the additional text is observably not changed
+            // and can be treated as equal.
+            if (xText is null && yText is null)
+            {
+                return true;
+            }
+
+            if (xText is null || yText is null || xText.Length != yText.Length)
+            {
+                return false;
+            }
+
+            return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
         }
 
-        if (x is null || y is null)
+        public int GetHashCode(AdditionalText obj)
         {
-            return false;
+            return Hash.Combine(PathUtilities.Comparer.GetHashCode(obj.Path),
+                                ByteSequenceComparer.GetHashCode(GetTextOrNullIfBinary(obj)?.GetChecksum() ?? ImmutableArray<byte>.Empty));
         }
 
-        if (!PathUtilities.Comparer.Equals(x.Path, y.Path))
+        private static SourceText? GetTextOrNullIfBinary(AdditionalText text)
         {
-            return false;
-        }
-
-        var xText = GetTextOrNullIfBinary(x);
-        var yText = GetTextOrNullIfBinary(y);
-
-        // If xText and yText are both null, then the additional text is observably not changed
-        // and can be treated as equal.
-        if (xText is null && yText is null)
-        {
-            return true;
-        }
-
-        if (xText is null || yText is null || xText.Length != yText.Length)
-        {
-            return false;
-        }
-
-        return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
-    }
-
-    public int GetHashCode(AdditionalText obj)
-    {
-        return Hash.Combine(PathUtilities.Comparer.GetHashCode(obj.Path),
-                            ByteSequenceComparer.GetHashCode(GetTextOrNullIfBinary(obj)?.GetChecksum() ?? ImmutableArray<byte>.Empty));
-    }
-
-    private static SourceText? GetTextOrNullIfBinary(AdditionalText text)
-    {
-        try
-        {
-            return text.GetText();
-        }
-        catch (InvalidDataException)
-        {
-            // InvalidDataException is thrown when the underlying text is binary
-            return null;
+            try
+            {
+                return text.GetText();
+            }
+            catch (InvalidDataException)
+            {
+                // InvalidDataException is thrown when the underlying text is binary
+                return null;
+            }
         }
     }
 }

@@ -9,36 +9,37 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SynthesizedLambdaCacheFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly TypeWithAnnotations _type;
-    private readonly MethodSymbol _topLevelMethod;
-
-    public SynthesizedLambdaCacheFieldSymbol(NamedTypeSymbol containingType, TypeSymbol type, string name, MethodSymbol topLevelMethod, bool isReadOnly, bool isStatic)
-        : base(containingType, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
+    internal sealed class SynthesizedLambdaCacheFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
     {
-        Debug.Assert((object)type != null);
-        Debug.Assert((object)topLevelMethod != null);
-        _type = TypeWithAnnotations.Create(type);
-        _topLevelMethod = topLevelMethod;
-    }
+        private readonly TypeWithAnnotations _type;
+        private readonly MethodSymbol _topLevelMethod;
 
-    internal override bool SuppressDynamicAttribute => true;
+        public SynthesizedLambdaCacheFieldSymbol(NamedTypeSymbol containingType, TypeSymbol type, string name, MethodSymbol topLevelMethod, bool isReadOnly, bool isStatic)
+            : base(containingType, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
+        {
+            Debug.Assert((object)type != null);
+            Debug.Assert((object)topLevelMethod != null);
+            _type = TypeWithAnnotations.Create(type);
+            _topLevelMethod = topLevelMethod;
+        }
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
+        internal override bool SuppressDynamicAttribute => true;
 
-    // When the containing top-level method body is updated we don't need to attempt to update the cache field
-    // since a field update is a no-op.
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => false;
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 
-    public override RefKind RefKind => RefKind.None;
+        // When the containing top-level method body is updated we don't need to attempt to update the cache field
+        // since a field update is a no-op.
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => false;
 
-    public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        public override RefKind RefKind => RefKind.None;
 
-    internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-    {
-        return _type;
+        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            return _type;
+        }
     }
 }

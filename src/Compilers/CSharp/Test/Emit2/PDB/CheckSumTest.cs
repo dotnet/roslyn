@@ -13,29 +13,29 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
-
-public class CheckSumTest : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
-    private static CSharpCompilation CreateCompilationWithChecksums(string source, string filePath, string baseDirectory)
+    public class CheckSumTest : CSharpTestBase
     {
-        return CSharpCompilation.Create(
-            GetUniqueName(),
-            new[] { Parse(source, filePath) },
-            new[] { MscorlibRef },
-            TestOptions.DebugDll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
-    }
+        private static CSharpCompilation CreateCompilationWithChecksums(string source, string filePath, string baseDirectory)
+        {
+            return CSharpCompilation.Create(
+                GetUniqueName(),
+                new[] { Parse(source, filePath) },
+                new[] { MscorlibRef },
+                TestOptions.DebugDll.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray.Create<string>(), baseDirectory)));
+        }
 
-    [Fact]
-    public void ChecksumAlgorithms()
-    {
-        var source1 = "public class C1 { public C1() { } }";
-        var source256 = "public class C256 { public C256() { } }";
-        var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
-        var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
+        [Fact]
+        public void ChecksumAlgorithms()
+        {
+            var source1 = "public class C1 { public C1() { } }";
+            var source256 = "public class C256 { public C256() { } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
+            var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
 
-        var compilation = CreateCompilation(new[] { tree1, tree256 });
-        compilation.VerifyPdb(@"
+            var compilation = CreateCompilation(new[] { tree1, tree256 });
+            compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""sha1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8E-37-F3-94-ED-18-24-3F-35-EC-1B-70-25-29-42-1C-B0-84-9B-C8"" />
@@ -64,12 +64,12 @@ public class CheckSumTest : CSharpTestBase
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [Fact]
-    public void CheckSumPragmaClashesSameTree()
-    {
-        var text =
+        [Fact]
+        public void CheckSumPragmaClashesSameTree()
+        {
+            var text =
 @"
 class C
 {
@@ -100,20 +100,20 @@ class C
 }
 ";
 
-        CompileAndVerify(text, options: TestOptions.DebugExe).
-            VerifyDiagnostics(
-            // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A798}" "ab007f1d23d9"
-            Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A798}"" ""ab007f1d23d9""").WithArguments("bogus1.cs"),
-            // (22,1): warning CS1697: Different checksum values given for 'bogus1.cs'
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d8"
-            Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d8""").WithArguments("bogus1.cs"));
-    }
+            CompileAndVerify(text, options: TestOptions.DebugExe).
+                VerifyDiagnostics(
+                // (20,1): warning CS1697: Different checksum values given for 'bogus1.cs'
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A798}" "ab007f1d23d9"
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A798}"" ""ab007f1d23d9""").WithArguments("bogus1.cs"),
+                // (22,1): warning CS1697: Different checksum values given for 'bogus1.cs'
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d8"
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d8""").WithArguments("bogus1.cs"));
+        }
 
-    [Fact]
-    public void CheckSumPragmaClashesDifferentLength()
-    {
-        var text =
+        [Fact]
+        public void CheckSumPragmaClashesDifferentLength()
+        {
+            var text =
 @"
 class C
 {
@@ -135,26 +135,26 @@ class C
 }
 ";
 
-        CompileAndVerify(text).
-            VerifyDiagnostics(
-            // (11,71): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d"
-            Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""ab007f1d23d"""),
-            // (14,30): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A79}" "ab007f1d23d9"
-            Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""{406EA660-64CF-4C82-B6F0-42D48172A79}"""),
-            // (6,1): warning CS1697: Different checksum values given for 'bogus1.cs'
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
-            Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus1.cs"),
-            // (7,1): warning CS1697: Different checksum values given for 'bogus1.cs'
-            // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" ""
-            Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" """"").WithArguments("bogus1.cs"));
-    }
+            CompileAndVerify(text).
+                VerifyDiagnostics(
+                // (11,71): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23d"
+                Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""ab007f1d23d"""),
+                // (14,30): warning CS1695: Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A79}" "ab007f1d23d9"
+                Diagnostic(ErrorCode.WRN_IllegalPPChecksum, @"""{406EA660-64CF-4C82-B6F0-42D48172A79}"""),
+                // (6,1): warning CS1697: Different checksum values given for 'bogus1.cs'
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus1.cs"),
+                // (7,1): warning CS1697: Different checksum values given for 'bogus1.cs'
+                // #pragma checksum "bogus1.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" ""
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus1.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" """"").WithArguments("bogus1.cs"));
+        }
 
-    [Fact]
-    public void CheckSumPragmaClashesDifferentTrees()
-    {
-        var text1 =
+        [Fact]
+        public void CheckSumPragmaClashesDifferentTrees()
+        {
+            var text1 =
 @"
 class C
 {
@@ -170,7 +170,7 @@ class C
 }
 ";
 
-        var text2 =
+            var text2 =
 @"
 class C1
 {
@@ -186,18 +186,18 @@ class C1
 }
 ";
 
-        CompileAndVerify(new string[] { text1, text2 }).
-            VerifyDiagnostics(
-            // (11,1): warning CS1697: Different checksum values given for 'bogus.cs'
-            // #pragma checksum "bogus.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
-            Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus.cs"));
-    }
+            CompileAndVerify(new string[] { text1, text2 }).
+                VerifyDiagnostics(
+                // (11,1): warning CS1697: Different checksum values given for 'bogus.cs'
+                // #pragma checksum "bogus.cs" "{406EA660-64CF-4C82-B6F0-42D48172A799}" "ab007f1d23"
+                Diagnostic(ErrorCode.WRN_ConflictingChecksum, @"#pragma checksum ""bogus.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23""").WithArguments("bogus.cs"));
+        }
 
-    [Fact]
-    [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
-    public void TestPartialClassFieldInitializers()
-    {
-        var text1 = WithWindowsLineBreaks(@"
+        [Fact]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
+        public void TestPartialClassFieldInitializers()
+        {
+            var text1 = WithWindowsLineBreaks(@"
 public partial class C
 {
     int x = 1;
@@ -209,7 +209,7 @@ public partial class C
 
 ");
 
-        var text2 = WithWindowsLineBreaks(@"
+            var text2 = WithWindowsLineBreaks(@"
 public partial class C
 {
 #pragma checksum ""USED2.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d9""
@@ -230,8 +230,8 @@ int y = 1;
     }
 }
 ");
-        var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
-        compilation.VerifyPdb("C.Main", @"
+            var compilation = CreateCompilation(new[] { Parse(text1, "a.cs"), Parse(text2, "b.cs") });
+            compilation.VerifyPdb("C.Main", @"
 <symbols>
   <files>
     <file id=""1"" name=""a.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F0-C4-23-63-A5-89-B9-29-AF-94-07-85-2F-3A-40-D3-70-14-8F-9B"" />
@@ -250,13 +250,13 @@ int y = 1;
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-    }
+        }
 
-    [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void NormalizedPath_Tree()
-    {
-        var source = @"
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NormalizedPath_Tree()
+        {
+            var source = @"
 class C
 {
     void M()
@@ -264,10 +264,10 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
+            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
 
-        // Verify the value of name attribute in file element.
-        comp.VerifyPdb("C.M", @"
+            // Verify the value of name attribute in file element.
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""05-25-26-AE-53-A0-54-46-AC-A6-1D-8A-3B-1E-3F-C3-43-39-FB-59"" />
@@ -286,25 +286,25 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [ConditionalFact(typeof(WindowsOnly))]
-    [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
-    public void NoResolver()
-    {
-        var comp = CSharpCompilation.Create(
-            GetUniqueName(),
-            new[] { Parse(@"
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem(50611, "https://github.com/dotnet/roslyn/issues/50611")]
+        public void NoResolver()
+        {
+            var comp = CSharpCompilation.Create(
+                GetUniqueName(),
+                new[] { Parse(@"
 #pragma checksum ""a\..\a.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d5""
 #line 10 ""a\..\a.cs""
 class C { void M() { } }
 
 ", @"C:\a\..\b.cs") },
-            new[] { MscorlibRef },
-            TestOptions.DebugDll.WithSourceReferenceResolver(null));
+                new[] { MscorlibRef },
+                TestOptions.DebugDll.WithSourceReferenceResolver(null));
 
-        // Verify the value of name attribute in file element.
-        comp.VerifyPdb(@"
+            // Verify the value of name attribute in file element.
+            comp.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""C:\a\..\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""36-39-3C-83-56-97-F2-F0-60-95-A4-A0-32-C6-32-C7-B2-4B-16-92"" />
@@ -319,13 +319,13 @@ class C { void M() { } }
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-    }
+        }
 
-    [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void NormalizedPath_LineDirective()
-    {
-        var source = @"
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NormalizedPath_LineDirective()
+        {
+            var source = @"
 class C
 {
     void M()
@@ -345,11 +345,11 @@ class C
 }
 ";
 
-        var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
+            var comp = CreateCompilationWithChecksums(source, "b.cs", @"b:\base");
 
-        // Verify the fact that there's a single file element for "line.cs" and it has an absolute path.
-        // Verify the fact that the path that was already absolute wasn't affected by the base directory.
-        comp.VerifyPdb("C.M", @"
+            // Verify the fact that there's a single file element for "line.cs" and it has an absolute path.
+            // Verify the fact that the path that was already absolute wasn't affected by the base directory.
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\b.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""B6-C3-C8-D1-2D-F4-BD-FA-F7-25-AC-F8-17-E1-83-BE-CC-9B-40-84"" />
@@ -376,13 +376,13 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void NormalizedPath_ChecksumDirective()
-    {
-        var source = @"
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NormalizedPath_ChecksumDirective()
+        {
+            var source = @"
 class C
 {
 #pragma checksum ""a.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d5""
@@ -407,11 +407,11 @@ class C
 }
 ";
 
-        var comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithChecksums(source, "file.cs", @"b:\base");
+            comp.VerifyDiagnostics();
 
-        // Verify the fact that all pragmas are referenced, even though the paths differ before normalization.
-        comp.VerifyPdb("C.M", @"
+            // Verify the fact that all pragmas are referenced, even though the paths differ before normalization.
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""b:\base\file.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""2B-34-42-7D-32-E5-0A-24-3D-01-43-BF-42-FB-38-57-62-60-8B-14"" />
@@ -441,13 +441,13 @@ class C
     </method>
   </methods>
 </symbols>");
-    }
+        }
 
-    [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-    [ConditionalFact(typeof(WindowsOnly))]
-    public void NormalizedPath_NoBaseDirectory()
-    {
-        var source = @"
+        [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void NormalizedPath_NoBaseDirectory()
+        {
+            var source = @"
 class C
 {
 #pragma checksum ""a.cs"" ""{406EA660-64CF-4C82-B6F0-42D48172A799}"" ""ab007f1d23d5""
@@ -464,11 +464,11 @@ class C
 }
 ";
 
-        var comp = CreateCompilationWithChecksums(source, "file.cs", null);
-        comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithChecksums(source, "file.cs", null);
+            comp.VerifyDiagnostics();
 
-        // Verify nothing blew up.
-        comp.VerifyPdb("C.M", @"
+            // Verify nothing blew up.
+            comp.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name=""file.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""9B-81-4F-A7-E1-1F-D2-45-8B-00-F3-82-65-DF-E4-BF-A1-3A-3B-29"" />
@@ -494,5 +494,6 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
     }
 }

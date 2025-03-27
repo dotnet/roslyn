@@ -9,64 +9,64 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-[CompilerTrait(CompilerFeature.IOperation)]
-public class IOperationTests_IConstructorBodyOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void ConstructorBody_01()
+    [CompilerTrait(CompilerFeature.IOperation)]
+    public class IOperationTests_IConstructorBodyOperation : SemanticModelTestBase
     {
-        string source = @"
+        [Fact]
+        public void ConstructorBody_01()
+        {
+            string source = @"
 class C
 {
     public C()
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // file.cs(4,15): error CS1002: ; expected
-            //     public C()
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 15),
-            // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
-            //     public C()
-            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
-            );
+            compilation.VerifyDiagnostics(
+                // file.cs(4,15): error CS1002: ; expected
+                //     public C()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 15),
+                // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     public C()
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
-        Assert.Null(model.GetOperation(node1));
-    }
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            Assert.Null(model.GetOperation(node1));
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_02()
-    {
-        // No body, initializer without declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_02()
+        {
+            // No body, initializer without declarations
+            string source = @"
 class C
 {
     public C() : base()
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,24): error CS1002: ; expected
-            //     public C() : base()
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 24),
-            // (4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
-            //     public C() : base()
-            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
-            );
+            compilation.VerifyDiagnostics(
+                // (4,24): error CS1002: ; expected
+                //     public C() : base()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 24),
+                // (4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     public C() : base()
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
 IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() : base()')
   Initializer: 
@@ -81,7 +81,7 @@ IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid)
   ExpressionBody: 
     null
 ");
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -101,28 +101,28 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_03()
-    {
-        // Block body, initializer without declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_03()
+        {
+            // Block body, initializer without declarations
+            string source = @"
 class C
 {
     public C() : base()
     { throw null; }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... row null; }')
       Initializer: 
@@ -143,7 +143,7 @@ class C
         null
 ");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -167,28 +167,28 @@ class C
         Predecessors (0)
         Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_04()
-    {
-        // Expression body, initializer without declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_04()
+        {
+            // Expression body, initializer without declarations
+            string source = @"
 class C
 {
     public C() : base()
     => throw null;
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C()  ... throw null;')
       Initializer: 
@@ -211,7 +211,7 @@ class C
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -235,28 +235,28 @@ class C
         Predecessors (0)
         Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_05()
-    {
-        // Block body, no initializer
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_05()
+        {
+            // Block body, no initializer
+            string source = @"
 class C
 {
     public C()
     { throw null; }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... row null; }')
       Initializer:
@@ -277,7 +277,7 @@ class C
         null
 ");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -301,28 +301,28 @@ class C
         Predecessors (0)
         Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_06()
-    {
-        // Expression body, no initializer
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_06()
+        {
+            // Expression body, no initializer
+            string source = @"
 class C
 {
     public C()
     => throw null;
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public C() ... throw null;')
       Initializer:
@@ -345,7 +345,7 @@ class C
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -369,14 +369,14 @@ class C
         Predecessors (0)
         Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_07()
-    {
-        // Block and expression body, no initializer
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_07()
+        {
+            // Block and expression body, no initializer
+            string source = @"
 class C
 {
     public C()
@@ -384,20 +384,20 @@ class C
     => throw null;
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
-            //     public C()
-            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
     { throw null; }
     => throw null;").WithLocation(4, 5)
-            );
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'public C() ... throw null;')
       Initializer:
@@ -425,7 +425,7 @@ class C
                     ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ");
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -461,39 +461,39 @@ class C
         Predecessors (0)
         Statements (0)
 ");
-    }
+        }
 
-    [Fact]
-    public void ConstructorBody_08()
-    {
-        // No body, no initializer
-        string source = @"
+        [Fact]
+        public void ConstructorBody_08()
+        {
+            // No body, no initializer
+            string source = @"
 class C
 {
     public C();
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
-            //     public C();
-            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
-            );
+            compilation.VerifyDiagnostics(
+                // file.cs(4,12): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     public C();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 12)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
-        Assert.Null(model.GetOperation(node1));
-    }
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            Assert.Null(model.GetOperation(node1));
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_09()
-    {
-        // Block and expression body, initializer without declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_09()
+        {
+            // Block and expression body, initializer without declarations
+            string source = @"
 class C
 {
     public C(int i1, int i2, int j1, int j2) : base()
@@ -501,19 +501,19 @@ class C
     => j1 = j2;
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
-            //     public C(int i1, int i2, int j1, int j2) : base()
-            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C(int i1, int i2, int j1, int j2) : base()
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public C(int i1, int i2, int j1, int j2) : base()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C(int i1, int i2, int j1, int j2) : base()
     { i1 = i2; }
     => j1 = j2;").WithLocation(4, 5));
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -559,15 +559,15 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_10()
-    {
-        // Verify block body with a return statement, followed by throw in expression body.
-        // This caught an assert when attempting to link current basic block which was already linked to exit.
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_10()
+        {
+            // Verify block body with a return statement, followed by throw in expression body.
+            // This caught an assert when attempting to link current basic block which was already linked to exit.
+            string source = @"
 class C
 {
     public C()
@@ -575,20 +575,20 @@ class C
     => throw null;
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
-            //     public C()
-            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public C()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public C()
     { return; }
     => throw null;").WithLocation(4, 5)
-        );
+            );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
     Block[B0] - Entry
         Statements (0)
@@ -619,14 +619,14 @@ class C
         Predecessors: [B1]
         Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_11()
-    {
-        // Block body, initializer with declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_11()
+        {
+            // Block body, initializer with declarations
+            string source = @"
 class C : Base
 {
     C(int p) : base(out var i)
@@ -643,14 +643,14 @@ class Base
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -691,14 +691,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_12()
-    {
-        // Expression body, initializer with declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_12()
+        {
+            // Expression body, initializer with declarations
+            string source = @"
 class C : Base
 {
     C(int p) : base(out var i)
@@ -713,14 +713,14 @@ class Base
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -761,14 +761,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_13()
-    {
-        // No body, initializer with declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_13()
+        {
+            // No body, initializer with declarations
+            string source = @"
 class C : Base
 {
     C() : base(out var i)
@@ -782,20 +782,20 @@ class Base
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,26): error CS1002: ; expected
-            //     C() : base(out var i)
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 26),
-            // (4,5): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
-            //     C() : base(out var i)
-            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 5));
+            compilation.VerifyDiagnostics(
+                // (4,26): error CS1002: ; expected
+                //     C() : base(out var i)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 26),
+                // (4,5): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
+                //     C() : base(out var i)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(4, 5));
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -828,14 +828,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_14()
-    {
-        // Block and expression body, initializer with declarations
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_14()
+        {
+            // Block and expression body, initializer with declarations
+            string source = @"
 class C : Base
 {
     C(int j1, int j2) : base(out var i1, out var i2)
@@ -852,19 +852,19 @@ class Base
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
-            //     C(int j1, int j2) : base(out var i1, out var i2)
-            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C(int j1, int j2) : base(out var i1, out var i2)
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     C(int j1, int j2) : base(out var i1, out var i2)
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C(int j1, int j2) : base(out var i1, out var i2)
     { i1 = j1; }
     => j2 = i2;").WithLocation(4, 5));
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -927,14 +927,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ");
-    }
+        }
 
-    [CompilerTrait(CompilerFeature.Dataflow)]
-    [Fact]
-    public void ConstructorBody_15()
-    {
-        // Verify "this" initializer with control flow in initializer.
-        string source = @"
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_15()
+        {
+            // Verify "this" initializer with control flow in initializer.
+            string source = @"
 class C
 {
     C(int? i, int j, int k, int p) : this(i ?? j) 
@@ -947,14 +947,14 @@ class C
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
 
-        VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
@@ -1047,64 +1047,64 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ");
-    }
+        }
 
-    [Fact]
-    public void ConstructorBody_16()
-    {
-        string source = @"
+        [Fact]
+        public void ConstructorBody_16()
+        {
+            string source = @"
 class C
 {
     extern public C();
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-            // (4,19): warning CS0824: Constructor 'C.C()' is marked external
-            //     extern public C();
-            Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C.C()").WithLocation(4, 19)
-            );
+            compilation.VerifyDiagnostics(
+                // (4,19): warning CS0824: Constructor 'C.C()' is marked external
+                //     extern public C();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C.C()").WithLocation(4, 19)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
-        Assert.Null(model.GetOperation(node1));
-    }
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            Assert.Null(model.GetOperation(node1));
+        }
 
-    [Fact]
-    public void ConstructorBody_17()
-    {
-        string source = @"
+        [Fact]
+        public void ConstructorBody_17()
+        {
+            string source = @"
 class C
 {
     static C() { }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
-        compilation.VerifyOperationTree(node1, """
-            IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'static C() { }')
-              Initializer:
-                null
-              BlockBody:
-                IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
-              ExpressionBody:
-                null
-            """);
-    }
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'static C() { }')
+                  Initializer:
+                    null
+                  BlockBody:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+                  ExpressionBody:
+                    null
+                """);
+        }
 
-    [Fact]
-    public void ConstructorBody_18()
-    {
-        string source = @"
+        [Fact]
+        public void ConstructorBody_18()
+        {
+            string source = @"
 namespace System
 {
     public class Object
@@ -1115,29 +1115,29 @@ namespace System
     public class Void { }
 }
 ";
-        var compilation = CreateEmptyCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
 
-        compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics();
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
-        compilation.VerifyOperationTree(node1, """
-            IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public Object() { }')
-              Initializer:
-                null
-              BlockBody:
-                IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
-              ExpressionBody:
-                null
-            """);
-    }
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public Object() { }')
+                  Initializer:
+                    null
+                  BlockBody:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+                  ExpressionBody:
+                    null
+                """);
+        }
 
-    [Fact]
-    public void ConstructorBody_19()
-    {
-        string source = @"
+        [Fact]
+        public void ConstructorBody_19()
+        {
+            string source = @"
 class Base
 {
     public Base(int x){}
@@ -1149,29 +1149,30 @@ class Program : Base
     {}
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyEmitDiagnostics(
-            // (9,5): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Base.Base(int)'
-            //     Program()
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Program").WithArguments("x", "Base.Base(int)").WithLocation(9, 5)
-            );
+            compilation.VerifyEmitDiagnostics(
+                // (9,5): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Base.Base(int)'
+                //     Program()
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Program").WithArguments("x", "Base.Base(int)").WithLocation(9, 5)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var model = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
 
-        var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Skip(1).Single();
-        compilation.VerifyOperationTree(node1, """
-            IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'Program() ... {}')
-            Initializer:
-              IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
-                Expression:
-                  IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
-                    Children(0)
-            BlockBody:
-              IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
-            ExpressionBody:
-              null
-            """);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Skip(1).Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'Program() ... {}')
+                Initializer:
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                    Expression:
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                        Children(0)
+                BlockBody:
+                  IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                ExpressionBody:
+                  null
+                """);
+        }
     }
 }

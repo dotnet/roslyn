@@ -8,65 +8,66 @@ using System.Xml;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Used by the DocumentationCommentCompiler(s) to check doc comments for XML parse errors.
-/// As a performance optimization, this class tries to re-use the same underlying <see cref="XmlReader"/> instance
-/// when possible. 
-/// </summary>
-internal partial class XmlDocumentationCommentTextReader
+namespace Microsoft.CodeAnalysis
 {
-    private XmlReader _reader;
-    private readonly Reader _textReader = new Reader();
-
-    private static readonly ObjectPool<XmlDocumentationCommentTextReader> s_pool =
-        new ObjectPool<XmlDocumentationCommentTextReader>(() => new XmlDocumentationCommentTextReader(), size: 2);
-
-    public static XmlException ParseAndGetException(string text)
+    /// <summary>
+    /// Used by the DocumentationCommentCompiler(s) to check doc comments for XML parse errors.
+    /// As a performance optimization, this class tries to re-use the same underlying <see cref="XmlReader"/> instance
+    /// when possible. 
+    /// </summary>
+    internal partial class XmlDocumentationCommentTextReader
     {
-        var reader = s_pool.Allocate();
-        var retVal = reader.ParseInternal(text);
-        s_pool.Free(reader);
-        return retVal;
-    }
+        private XmlReader _reader;
+        private readonly Reader _textReader = new Reader();
 
-    private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+        private static readonly ObjectPool<XmlDocumentationCommentTextReader> s_pool =
+            new ObjectPool<XmlDocumentationCommentTextReader>(() => new XmlDocumentationCommentTextReader(), size: 2);
 
-    // internal for testing
-    internal XmlException ParseInternal(string text)
-    {
-        _textReader.SetText(text);
-
-        if (_reader == null)
+        public static XmlException ParseAndGetException(string text)
         {
-            _reader = XmlReader.Create(_textReader, s_xmlSettings);
+            var reader = s_pool.Allocate();
+            var retVal = reader.ParseInternal(text);
+            s_pool.Free(reader);
+            return retVal;
         }
 
-        try
-        {
-            do
-            {
-                _reader.Read();
-            }
-            while (!Reader.ReachedEnd(_reader));
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
 
-            if (_textReader.Eof)
+        // internal for testing
+        internal XmlException ParseInternal(string text)
+        {
+            _textReader.SetText(text);
+
+            if (_reader == null)
             {
+                _reader = XmlReader.Create(_textReader, s_xmlSettings);
+            }
+
+            try
+            {
+                do
+                {
+                    _reader.Read();
+                }
+                while (!Reader.ReachedEnd(_reader));
+
+                if (_textReader.Eof)
+                {
+                    _reader.Dispose();
+                    _reader = null;
+                    _textReader.Reset();
+                }
+
+                return null;
+            }
+            catch (XmlException ex)
+            {
+                // The reader is in a bad state, so dispose of it and recreate a new one next time we get called.
                 _reader.Dispose();
                 _reader = null;
                 _textReader.Reset();
+                return ex;
             }
-
-            return null;
-        }
-        catch (XmlException ex)
-        {
-            // The reader is in a bad state, so dispose of it and recreate a new one next time we get called.
-            _reader.Dispose();
-            _reader = null;
-            _textReader.Reset();
-            return ex;
         }
     }
 }

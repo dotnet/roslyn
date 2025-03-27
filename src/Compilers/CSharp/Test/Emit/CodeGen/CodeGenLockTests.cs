@@ -10,16 +10,16 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
-
-public class CodeGenLockTests : EmitMetadataTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    #region 4.0 codegen
-
-    [Fact]
-    public void LockNull()
+    public class CodeGenLockTests : EmitMetadataTestBase
     {
-        var text =
+        #region 4.0 codegen
+
+        [Fact]
+        public void LockNull()
+        {
+            var text =
 @"
 public class Test
 {
@@ -34,8 +34,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
   .maxstack  2
@@ -68,12 +68,12 @@ public class Test
   IL_0031:  call       ""void System.Console.WriteLine(string)""
  -IL_0036:  ret
 }", sequencePoints: "Test.M");
-    }
+        }
 
-    [Fact]
-    public void LockLocal()
-    {
-        var text =
+        [Fact]
+        public void LockLocal()
+        {
+            var text =
 @"
 public class Test
 {
@@ -89,8 +89,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -123,12 +123,12 @@ public class Test
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
 }", sequencePoints: "Test.M");
-    }
+        }
 
-    [Fact]
-    public void LockParameter()
-    {
-        var text =
+        [Fact]
+        public void LockParameter()
+        {
+            var text =
 @"
 public class Test
 {
@@ -143,8 +143,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
   .maxstack  2
@@ -177,12 +177,12 @@ public class Test
   IL_0031:  call       ""void System.Console.WriteLine(string)""
   IL_0036:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LockField()
-    {
-        var text =
+        [Fact]
+        public void LockField()
+        {
+            var text =
 @"
 public class Test
 {
@@ -199,8 +199,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -234,12 +234,12 @@ public class Test
   IL_0036:  call       ""void System.Console.WriteLine(string)""
   IL_003b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LockStaticField()
-    {
-        var text =
+        [Fact]
+        public void LockStaticField()
+        {
+            var text =
 @"
 public class Test
 {
@@ -256,8 +256,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -290,12 +290,12 @@ public class Test
   IL_0035:  call       ""void System.Console.WriteLine(string)""
   IL_003a:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LockThis()
-    {
-        var text =
+        [Fact]
+        public void LockThis()
+        {
+            var text =
 @"
 public class Test
 {
@@ -310,8 +310,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
   .maxstack  2
@@ -344,12 +344,12 @@ public class Test
   IL_0031:  call       ""void System.Console.WriteLine(string)""
   IL_0036:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LockExpression()
-    {
-        var text =
+        [Fact]
+        public void LockExpression()
+        {
+            var text =
 @"
 public class Test
 {
@@ -364,8 +364,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -398,12 +398,12 @@ public class Test
   IL_0035:  call       ""void System.Console.WriteLine(string)""
  -IL_003a:  ret
 }", sequencePoints: "Test.M");
-    }
+        }
 
-    [Fact]
-    public void LockTypeParameterExpression()
-    {
-        var text =
+        [Fact]
+        public void LockTypeParameterExpression()
+        {
+            var text =
 @"
 public class Test
 {
@@ -418,8 +418,8 @@ public class Test
     }
 }
 ";
-        var verifier = CompileAndVerify(text);
-        verifier.VerifyIL("Test.M<T>", @"
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -453,12 +453,12 @@ public class Test
   IL_0036:  call       ""void System.Console.WriteLine(string)""
   IL_003b:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void LockQuery()
-    {
-        var text =
+        [Fact]
+        public void LockQuery()
+        {
+            var text =
 @"
 using System.Linq;
 class Test
@@ -475,8 +475,8 @@ class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
-        CompileAndVerify(compilation).VerifyIL("Test.Main", @"
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       95 (0x5f)
   .maxstack  3
@@ -520,12 +520,12 @@ class Test
   IL_005e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void LockDelegate()
-    {
-        var text =
+        [Fact]
+        public void LockDelegate()
+        {
+            var text =
 @"
 delegate void D(int p1);
 partial class Test
@@ -544,7 +544,7 @@ partial class Test
 }
 ";
 
-        CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular10).VerifyIL("Test.Main", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -573,12 +573,12 @@ partial class Test
   }
   IL_0023:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void InitInLock()
-    {
-        CompileAndVerify(@"
+        [Fact]
+        public void InitInLock()
+        {
+            CompileAndVerify(@"
 class Test
 {
     public static void Main()
@@ -598,12 +598,12 @@ class Res
     public int x;
     public object y;
 }");
-    }
+        }
 
-    [Fact]
-    public void ImplicitArraysInLockStatement()
-    {
-        CompileAndVerify(@"
+        [Fact]
+        public void ImplicitArraysInLockStatement()
+        {
+            CompileAndVerify(@"
 class Test
 {
     public static void Main()
@@ -618,13 +618,13 @@ class Test
         }
     }
 }");
-    }
+        }
 
-    // Extension method call in a lock() or lock block
-    [Fact()]
-    public void ExtensionMethodCalledInLock()
-    {
-        var text =
+        // Extension method call in a lock() or lock block
+        [Fact()]
+        public void ExtensionMethodCalledInLock()
+        {
+            var text =
 @"
 class Test
 {
@@ -648,8 +648,8 @@ public static partial class Extensions
     public static object Test(this object o) { return o; }
 }
 ";
-        var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
-        CompileAndVerify(compilation).VerifyIL("Test.Main", @"
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       72 (0x48)
   .maxstack  2
@@ -704,13 +704,13 @@ public static partial class Extensions
   }
   IL_0047:  ret
 }");
-    }
+        }
 
-    // Anonymous types can appear in lock statements
-    [Fact()]
-    public void LockAnonymousTypes_1()
-    {
-        var text =
+        // Anonymous types can appear in lock statements
+        [Fact()]
+        public void LockAnonymousTypes_1()
+        {
+            var text =
 @"
 class Test
 {
@@ -723,7 +723,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -750,12 +750,12 @@ class Test
   }
   IL_001c:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockAnonymousTypes_2()
-    {
-        var text =
+        [Fact()]
+        public void LockAnonymousTypes_2()
+        {
+            var text =
 @"
 class Test
 {
@@ -768,7 +768,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -796,12 +796,12 @@ class Test
   }
   IL_001e:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockAnonymousTypes_3()
-    {
-        var text =
+        [Fact()]
+        public void LockAnonymousTypes_3()
+        {
+            var text =
 @"
 class Test
 {
@@ -814,7 +814,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       40 (0x28)
   .maxstack  2
@@ -843,12 +843,12 @@ class Test
   }
   IL_0027:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockTypeOf()
-    {
-        var text =
+        [Fact()]
+        public void LockTypeOf()
+        {
+            var text =
 @"
 class Test
 {
@@ -860,7 +860,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -888,12 +888,12 @@ class Test
   }
   IL_0021:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockGetType()
-    {
-        var text =
+        [Fact()]
+        public void LockGetType()
+        {
+            var text =
 @"
 class Test
 {
@@ -906,7 +906,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  2
@@ -934,12 +934,12 @@ class Test
   }
   IL_0021:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockGetType_Struct()
-    {
-        var text =
+        [Fact()]
+        public void LockGetType_Struct()
+        {
+            var text =
 @"
 public class Test
 {
@@ -954,7 +954,7 @@ public class Test
 struct S
 { }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -983,12 +983,12 @@ struct S
   }
   IL_0026:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void LockString()
-    {
-        var text =
+        [Fact()]
+        public void LockString()
+        {
+            var text =
 @"
 class Test
 {
@@ -1000,7 +1000,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -1027,12 +1027,12 @@ class Test
   }
   IL_001c:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void NestedLock()
-    {
-        var text =
+        [Fact()]
+        public void NestedLock()
+        {
+            var text =
 @"
 class Test
 {
@@ -1048,7 +1048,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -1096,12 +1096,12 @@ class Test
   }
   IL_003b:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void NestedLock_2()
-    {
-        var text =
+        [Fact()]
+        public void NestedLock_2()
+        {
+            var text =
 @"
 class Test
 {
@@ -1117,7 +1117,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.goo", @"
+            CompileAndVerify(text).VerifyIL("Test.goo", @"
 {
   // Code size       57 (0x39)
   .maxstack  2
@@ -1166,14 +1166,14 @@ class Test
   }
   IL_0038:  ret
 }");
-    }
+        }
 
-    //	Yield return inside a lock statement
-    [WorkItem(10765, "DevDiv_Projects/Roslyn")]
-    [Fact()]
-    public void YieldInLock()
-    {
-        var text =
+        //	Yield return inside a lock statement
+        [WorkItem(10765, "DevDiv_Projects/Roslyn")]
+        [Fact()]
+        public void YieldInLock()
+        {
+            var text =
 @"
 using System.Collections.Generic;
 class Test
@@ -1191,7 +1191,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Values", @"
+            CompileAndVerify(text).VerifyIL("Test.Values", @"
 {
   // Code size       15 (0xf)
   .maxstack  3
@@ -1202,12 +1202,12 @@ class Test
   IL_0009:  stfld      ""Test Test.<Values>d__2.<>4__this""
   IL_000e:  ret
 }");
-    }
+        }
 
-    [Fact()]
-    public void YieldAfterLock()
-    {
-        var text =
+        [Fact()]
+        public void YieldAfterLock()
+        {
+            var text =
 @"
 using System.Collections.Generic;
 class Test
@@ -1223,14 +1223,14 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text);
-    }
+            CompileAndVerify(text);
+        }
 
-    // The definite assignment state of v at the beginning of expr is the same as the state of v at the beginning of stmt
-    [Fact()]
-    public void AssignmentInLock()
-    {
-        var text =
+        // The definite assignment state of v at the beginning of expr is the same as the state of v at the beginning of stmt
+        [Fact()]
+        public void AssignmentInLock()
+        {
+            var text =
 @"
 class Test
 {
@@ -1244,7 +1244,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -1283,13 +1283,13 @@ class Test
   }
   IL_0030:  ret
 }");
-    }
+        }
 
-    // The definite assignment state of v on the control flow transfer to embedded-statement is the same as the state of v at the end of expr
-    [Fact()]
-    public void AssignmentInLock_1()
-    {
-        var text =
+        // The definite assignment state of v on the control flow transfer to embedded-statement is the same as the state of v at the end of expr
+        [Fact()]
+        public void AssignmentInLock_1()
+        {
+            var text =
 @"
 class Test
 {
@@ -1303,7 +1303,7 @@ class Test
     }
 }
 ";
-        CompileAndVerify(text).VerifyIL("Test.Main", @"
+            CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
   // Code size       37 (0x25)
   .maxstack  2
@@ -1335,16 +1335,16 @@ class Test
   }
   IL_0024:  ret
 }");
-    }
+        }
 
-    #endregion 4.0 codegen
+        #endregion 4.0 codegen
 
-    #region Pre-4.0 codegen
+        #region Pre-4.0 codegen
 
-    [Fact]
-    public void FallbackLockNull()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockNull()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1359,9 +1359,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
   .maxstack  1
@@ -1388,12 +1388,12 @@ public class Test
   IL_002a:  call       ""void System.Console.WriteLine(string)""
  -IL_002f:  ret
 }", sequencePoints: "Test.M");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockLocal()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockLocal()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1409,9 +1409,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -1438,12 +1438,12 @@ public class Test
   IL_002e:  call       ""void System.Console.WriteLine(string)""
   IL_0033:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockParameter()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockParameter()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1458,9 +1458,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
   .maxstack  1
@@ -1487,12 +1487,12 @@ public class Test
   IL_002a:  call       ""void System.Console.WriteLine(string)""
   IL_002f:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockField()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockField()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1509,9 +1509,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       53 (0x35)
   .maxstack  1
@@ -1539,12 +1539,12 @@ public class Test
   IL_002f:  call       ""void System.Console.WriteLine(string)""
   IL_0034:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockStaticField()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockStaticField()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1561,9 +1561,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
   .maxstack  1
@@ -1590,12 +1590,12 @@ public class Test
   IL_002e:  call       ""void System.Console.WriteLine(string)""
   IL_0033:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockThis()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockThis()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1610,9 +1610,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
   .maxstack  1
@@ -1639,12 +1639,12 @@ public class Test
   IL_002a:  call       ""void System.Console.WriteLine(string)""
   IL_002f:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockExpression()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockExpression()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1659,9 +1659,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
   .maxstack  1
@@ -1688,12 +1688,12 @@ public class Test
   IL_002e:  call       ""void System.Console.WriteLine(string)""
   IL_0033:  ret
 }");
-    }
+        }
 
-    [Fact]
-    public void FallbackLockTypeParameterExpression()
-    {
-        var text =
+        [Fact]
+        public void FallbackLockTypeParameterExpression()
+        {
+            var text =
 @"
 public class Test
 {
@@ -1708,9 +1708,9 @@ public class Test
     }
 }
 ";
-        var compilation = CreateCompilationWithCorlib20(text);
-        var verifier = CompileAndVerify(compilation);
-        verifier.VerifyIL("Test.M<T>", @"
+            var compilation = CreateCompilationWithCorlib20(text);
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       53 (0x35)
   .maxstack  1
@@ -1738,21 +1738,21 @@ public class Test
   IL_002f:  call       ""void System.Console.WriteLine(string)""
   IL_0034:  ret
 }");
-    }
+        }
 
-    private static CSharpCompilation CreateCompilationWithCorlib20(string text)
-    {
-        return CreateEmptyCompilation(new string[] { text }, new[] { Net20.References.mscorlib });
-    }
+        private static CSharpCompilation CreateCompilationWithCorlib20(string text)
+        {
+            return CreateEmptyCompilation(new string[] { text }, new[] { Net20.References.mscorlib });
+        }
 
-    #endregion Pre-4.0 codegen
+        #endregion Pre-4.0 codegen
 
-    #region Execution
+        #region Execution
 
-    [Fact]
-    public void ProducerConsumer()
-    {
-        var text =
+        [Fact]
+        public void ProducerConsumer()
+        {
+            var text =
 @"
 using System;
 using System.Threading;
@@ -1816,7 +1816,7 @@ public class Program
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"Writer wrote 0
+            CompileAndVerify(text, expectedOutput: @"Writer wrote 0
 Reader read 0
 Writer wrote 1
 Reader read 1
@@ -1836,12 +1836,12 @@ Writer wrote 8
 Reader read 8
 Writer wrote 9
 Reader read 9");
-    }
+        }
 
-    [Fact]
-    public void ProducerConsumer_1()
-    {
-        var text =
+        [Fact]
+        public void ProducerConsumer_1()
+        {
+            var text =
 @"
 class C
 {
@@ -1879,15 +1879,15 @@ class D
     }
 }
 ";
-        CompileAndVerify(text, expectedOutput: @"1000000");
-    }
+            CompileAndVerify(text, expectedOutput: @"1000000");
+        }
 
-    #endregion Execution
+        #endregion Execution
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_01()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_01()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -1899,16 +1899,16 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
 
-        CompileAndVerify(compilation, expectedOutput: "Inside lock.");
-    }
+            CompileAndVerify(compilation, expectedOutput: "Inside lock.");
+        }
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_02()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_02()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -1920,16 +1920,16 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
-        CompileAndVerify(compilation, expectedOutput: "Inside lock.");
-    }
+            CompileAndVerify(compilation, expectedOutput: "Inside lock.");
+        }
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_03()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_03()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -1941,24 +1941,24 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
-        compilation.VerifyEmitDiagnostics(
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
-            );
-    }
+                );
+        }
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_04()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_04()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -1970,23 +1970,23 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
-        compilation.VerifyEmitDiagnostics(
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9)
-            );
-    }
+                );
+        }
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_05()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_05()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -1998,31 +1998,31 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
-        compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
-        compilation.VerifyEmitDiagnostics(
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9),
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
-            );
-    }
+                );
+        }
 
-    [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
-    public void Bug1106943_06()
-    {
-        var source = @"
+        [Fact(), WorkItem(1106943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106943")]
+        public void Bug1106943_06()
+        {
+            var source = @"
 class C1
 {
     public static void Main()
@@ -2034,22 +2034,23 @@ class C1
     }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
-        compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
 
-        compilation.VerifyEmitDiagnostics(
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9),
-// (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
-//         lock (typeof(C1))
-Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
         {
             System.Console.WriteLine(""Inside lock."");
         }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
-            );
+                );
+        }
     }
 }

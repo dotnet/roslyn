@@ -12,41 +12,42 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeGen.CompilationTestData;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public static class BasicCompilationUtils
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = default)
+    public static class BasicCompilationUtils
     {
-        if (references == null)
+        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = default)
         {
-            references = new[] { TestBase.MscorlibRef };
+            if (references == null)
+            {
+                references = new[] { TestBase.MscorlibRef };
+            }
+            var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
+            var verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
+            return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
-        var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-        var verifier = Instance.CompileAndVerifyCommon(compilation, verify: verify);
-        return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
-    }
 
-    private static VisualBasicCompilation CreateCompilationWithMscorlib(string source, string assemblyName, IEnumerable<MetadataReference> references)
-    {
-        if (assemblyName == null)
+        private static VisualBasicCompilation CreateCompilationWithMscorlib(string source, string assemblyName, IEnumerable<MetadataReference> references)
         {
-            assemblyName = TestBase.GetUniqueName();
+            if (assemblyName == null)
+            {
+                assemblyName = TestBase.GetUniqueName();
+            }
+            var tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default));
+            var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
+            return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }
-        var tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default));
-        var options = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release);
-        return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
-    }
 
-    private static BasicTestBase s_instance;
+        private static BasicTestBase s_instance;
 
-    private static BasicTestBase Instance => s_instance ?? (s_instance = new BasicTestBase());
+        private static BasicTestBase Instance => s_instance ?? (s_instance = new BasicTestBase());
 
-    private sealed class BasicTestBase : CommonTestBase
-    {
-        internal override string VisualizeRealIL(IModuleSymbol peModule, MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+        private sealed class BasicTestBase : CommonTestBase
         {
-            throw new NotImplementedException();
+            internal override string VisualizeRealIL(IModuleSymbol peModule, MethodData methodData, IReadOnlyDictionary<int, string> markers, bool areLocalsZeroed)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

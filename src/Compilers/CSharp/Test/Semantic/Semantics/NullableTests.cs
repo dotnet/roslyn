@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public partial class NullableSemanticTests : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact, WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
-    public void NestedNullableWithAttemptedConversion()
+    public partial class NullableSemanticTests : SemanticModelTestBase
     {
-        var src =
+        [Fact, WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
+        public void NestedNullableWithAttemptedConversion()
+        {
+            var src =
 @"using System;
 class C {
   public void Main()
@@ -30,20 +30,20 @@ class C {
   }
 }";
 
-        var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
-            // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-            //       Nullable<Nullable<int>> x = null;
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Nullable<int>").WithArguments("System.Nullable<T>", "T", "int?"),
-            // (7,25): error CS0019: Operator '==' cannot be applied to operands of type 'int??' and 'int?'
-            //       Console.WriteLine(x == y);
-            Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "int??", "int?"));
-    }
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                //       Nullable<Nullable<int>> x = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Nullable<int>").WithArguments("System.Nullable<T>", "T", "int?"),
+                // (7,25): error CS0019: Operator '==' cannot be applied to operands of type 'int??' and 'int?'
+                //       Console.WriteLine(x == y);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "int??", "int?"));
+        }
 
-    [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
-    public void TestBug12347()
-    {
-        string source = @"
+        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
+        public void TestBug12347()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -54,31 +54,31 @@ class C
     Console.WriteLine(s1.ToString() + s2.ToString());
   }
 }";
-        var expected = new[]
-        {
-            // (7,11): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
-            //     string? s1 = null;
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
-            // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-            //     Nullable<string> s2 = null;
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
-        };
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-        comp.VerifyDiagnostics(expected);
-        comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-        comp.VerifyDiagnostics(
-            // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-            //     string? s1 = null;
-            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 11),
-            // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-            //     Nullable<string> s2 = null;
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14));
-    }
+            var expected = new[]
+            {
+                // (7,11): error CS8652: The feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     string? s1 = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
+                // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(expected);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,11): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     string? s1 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 11),
+                // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14));
+        }
 
-    [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
-    public void TestBug12347_CSharp8()
-    {
-        string source = @"
+        [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
+        public void TestBug12347_CSharp8()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -89,38 +89,38 @@ class C
         Console.WriteLine(s1.ToString() + s2.ToString());
     }
 }";
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-        comp.VerifyDiagnostics(
-            // (7,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
-            //         string? s1 = null;
-            Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 15),
-            // (8,18): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-            //         Nullable<string> s2 = null;
-            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 18)
-            );
-    }
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //         string? s1 = null;
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 15),
+                // (8,18): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //         Nullable<string> s2 = null;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 18)
+                );
+        }
 
-    [Fact, WorkItem(529269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529269")]
-    public void TestLiftedIncrementOperatorBreakingChanges01()
-    {
-        // The native compiler not only *allows* this to compile, it lowers to:
-        // 
-        // C temp1 = c;
-        // int? temp2 = C.op_Implicit_C_To_Nullable_Int(temp1);
-        // c = temp2.HasValue ? 
-        //         C.op_Implicit_Nullable_Int_To_C(new short?((short)(temp2.GetValueOrDefault() + 1))) :
-        //         null;
-        //
-        // !!!
-        //
-        // Not only does the native compiler silently insert a data-losing conversion from int to short,
-        // if the result of the initial conversion to int? is null, the result is a null *C*, not 
-        // an implicit conversion from a null *int?* to C.
-        //
-        // This should simply be disallowed. The increment on int? produces int?, and there is no implicit
-        // conversion from int? to S.
+        [Fact, WorkItem(529269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529269")]
+        public void TestLiftedIncrementOperatorBreakingChanges01()
+        {
+            // The native compiler not only *allows* this to compile, it lowers to:
+            // 
+            // C temp1 = c;
+            // int? temp2 = C.op_Implicit_C_To_Nullable_Int(temp1);
+            // c = temp2.HasValue ? 
+            //         C.op_Implicit_Nullable_Int_To_C(new short?((short)(temp2.GetValueOrDefault() + 1))) :
+            //         null;
+            //
+            // !!!
+            //
+            // Not only does the native compiler silently insert a data-losing conversion from int to short,
+            // if the result of the initial conversion to int? is null, the result is a null *C*, not 
+            // an implicit conversion from a null *int?* to C.
+            //
+            // This should simply be disallowed. The increment on int? produces int?, and there is no implicit
+            // conversion from int? to S.
 
-        string source1 = @"
+            string source1 = @"
 class C
 {
   public readonly int? i;
@@ -134,39 +134,39 @@ class C
     System.Console.WriteLine(object.ReferenceEquals(c, null));
   }
 }";
-        var comp = CreateCompilation(source1);
-        comp.VerifyDiagnostics(
-            // (11,5): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
-            //     c++;
-            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c++").WithArguments("int?", "C")
-            );
-    }
+            var comp = CreateCompilation(source1);
+            comp.VerifyDiagnostics(
+                // (11,5): error CS0266: Cannot implicitly convert type 'int?' to 'C'. An explicit conversion exists (are you missing a cast?)
+                //     c++;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c++").WithArguments("int?", "C")
+                );
+        }
 
-    [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
-    public void TestLiftedIncrementOperatorBreakingChanges02()
-    {
-        // Now here we have a case where the compilation *should* succeed, and does, but 
-        // the native compiler and Roslyn produce opposite behavior. Again, the native
-        // compiler lowers this to:
-        //
-        // C temp1 = c;
-        // int? temp2 = C.op_Implicit_C_To_Nullable_Int(temp1);
-        // c = temp2.HasValue ? 
-        //         C.op_Implicit_Nullable_Int_To_C(new int?(temp2.GetValueOrDefault() + 1)) :
-        //         null;
-        //
-        // And therefore produces "True". The correct lowering, performed by Roslyn, is:
-        //
-        // C temp1 = c;
-        // int? temp2 = C.op_Implicit_C_To_Nullable_Int( temp1 );
-        // int? temp3 = temp2.HasValue ? 
-        //                  new int?(temp2.GetValueOrDefault() + 1)) : 
-        //                  default(int?);
-        // c = C.op_Implicit_Nullable_Int_To_C(temp3);
-        //
-        // and therefore should produce "False".
+        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
+        public void TestLiftedIncrementOperatorBreakingChanges02()
+        {
+            // Now here we have a case where the compilation *should* succeed, and does, but 
+            // the native compiler and Roslyn produce opposite behavior. Again, the native
+            // compiler lowers this to:
+            //
+            // C temp1 = c;
+            // int? temp2 = C.op_Implicit_C_To_Nullable_Int(temp1);
+            // c = temp2.HasValue ? 
+            //         C.op_Implicit_Nullable_Int_To_C(new int?(temp2.GetValueOrDefault() + 1)) :
+            //         null;
+            //
+            // And therefore produces "True". The correct lowering, performed by Roslyn, is:
+            //
+            // C temp1 = c;
+            // int? temp2 = C.op_Implicit_C_To_Nullable_Int( temp1 );
+            // int? temp3 = temp2.HasValue ? 
+            //                  new int?(temp2.GetValueOrDefault() + 1)) : 
+            //                  default(int?);
+            // c = C.op_Implicit_Nullable_Int_To_C(temp3);
+            //
+            // and therefore should produce "False".
 
-        string source2 = @"
+            string source2 = @"
 class C
 {
   public readonly int? i;
@@ -181,13 +181,13 @@ class C
   }
 }";
 
-        var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
-        verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+            verifier = CompileAndVerify(source: source2, expectedOutput: "0");
 
-        // And in fact, this should work if there is an implicit conversion from the result of the addition
-        // to the type:
+            // And in fact, this should work if there is an implicit conversion from the result of the addition
+            // to the type:
 
-        string source3 = @"
+            string source3 = @"
 class C
 {
   public readonly int? i;
@@ -205,16 +205,16 @@ class C
   }
 }";
 
-        verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
-        verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
-    }
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+        }
 
-    [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
-    public void TestLiftedIncrementOperatorBreakingChanges03()
-    {
-        // Let's in fact verify that this works correctly for all possible conversions to built-in types:
+        [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
+        public void TestLiftedIncrementOperatorBreakingChanges03()
+        {
+            // Let's in fact verify that this works correctly for all possible conversions to built-in types:
 
-        string source4 = @"
+            string source4 = @"
 using System;
 class C
 {
@@ -262,17 +262,17 @@ class C
   }
 }
 ";
-        foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
-        {
-            CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
-            CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
+            {
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            }
         }
-    }
 
-    [Fact]
-    public void TestLiftedBuiltInIncrementOperators()
-    {
-        string source = @"
+        [Fact]
+        public void TestLiftedBuiltInIncrementOperators()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -319,17 +319,17 @@ class C
 
 }";
 
-        foreach (string type in new[] { "uint", "short", "sbyte", "ulong", "double", "decimal" })
-        {
-            string expected = "0";
-            var verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
+            foreach (string type in new[] { "uint", "short", "sbyte", "ulong", "double", "decimal" })
+            {
+                string expected = "0";
+                var verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
+            }
         }
-    }
 
-    [Fact]
-    public void TestLiftedUserDefinedIncrementOperators()
-    {
-        string source = @"
+        [Fact]
+        public void TestLiftedUserDefinedIncrementOperators()
+        {
+            string source = @"
 using System;
 struct S
 {
@@ -382,13 +382,13 @@ class C
 
 }
 ";
-        var verifier = CompileAndVerify(source: source, expectedOutput: "1");
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: "1");
+        }
 
-    [Fact]
-    public void TestNullableBuiltInUnaryOperator()
-    {
-        string source = @"
+        [Fact]
+        public void TestNullableBuiltInUnaryOperator()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -530,19 +530,19 @@ class C
   }
 }";
 
-        string expected =
+            string expected =
 @"!TTTFF
 -TTFF1TTFF2TTFF3TTFF4TTFF
 +TFTF1TTF2TFTF3TTF4TFTF5TFTF6TFTF
 ~TTF1TTF2TTF3TTF4TTF";
 
-        var verifier = CompileAndVerify(source: source, expectedOutput: expected);
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+        }
 
-    [Fact]
-    public void TestNullableUserDefinedUnary()
-    {
-        string source = @"
+        [Fact]
+        public void TestNullableUserDefinedUnary()
+        {
+            string source = @"
 using System;
 
 struct S
@@ -596,43 +596,43 @@ class C
   }
 }";
 
-        string expected =
+            string expected =
 @"TF~x
 TF!x
 TF+x
 TF-x";
 
-        var verifier = CompileAndVerify(source: source, expectedOutput: expected);
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
-    public void TestLiftedComparison()
-    {
-        TestNullableComparison("==", "FFTFF1FTFFTF2FFTFFT3TFFTFF4FTFFTF5FFTFFT",
-            "int", "short", "byte", "long", "double", "decimal", "char", "Base64FormattingOptions", "S", "bool");
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
+        public void TestLiftedComparison()
+        {
+            TestNullableComparison("==", "FFTFF1FTFFTF2FFTFFT3TFFTFF4FTFFTF5FFTFFT",
+                "int", "short", "byte", "long", "double", "decimal", "char", "Base64FormattingOptions", "S", "bool");
 
-        TestNullableComparison("!=", "TTFTT1TFTTFT2TTFTTF3FTTFTT4TFTTFT5TTFTTF",
-            "uint", "ushort", "sbyte", "ulong", "float", "decimal", "char", "Base64FormattingOptions", "S", "bool");
+            TestNullableComparison("!=", "TTFTT1TFTTFT2TTFTTF3FTTFTT4TFTTFT5TTFTTF",
+                "uint", "ushort", "sbyte", "ulong", "float", "decimal", "char", "Base64FormattingOptions", "S", "bool");
 
-        TestNullableComparison("<", "FFFFF1FFTFFT2FFFFFF3FFFFFF4FFTFFT5FFFFFF",
-            "uint", "sbyte", "float", "decimal", "Base64FormattingOptions", "S");
+            TestNullableComparison("<", "FFFFF1FFTFFT2FFFFFF3FFFFFF4FFTFFT5FFFFFF",
+                "uint", "sbyte", "float", "decimal", "Base64FormattingOptions", "S");
 
-        TestNullableComparison("<=", "FFFFF1FTTFTT2FFTFFT3FFFFFF4FTTFTT5FFTFFT",
-            "int", "byte", "double", "decimal", "char");
+            TestNullableComparison("<=", "FFFFF1FTTFTT2FFTFFT3FFFFFF4FTTFTT5FFTFFT",
+                "int", "byte", "double", "decimal", "char");
 
-        TestNullableComparison(">", "FFFFF1FFFFFF2FTFFTF3FFFFFF4FFFFFF5FTFFTF",
-            "ushort", "ulong", "decimal");
+            TestNullableComparison(">", "FFFFF1FFFFFF2FTFFTF3FFFFFF4FFFFFF5FTFFTF",
+                "ushort", "ulong", "decimal");
 
-        TestNullableComparison(">=", "FFFFF1FTFFTF2FTTFTT3FFFFFF4FTFFTF5FTTFTT",
-            "short", "long", "decimal");
-    }
+            TestNullableComparison(">=", "FFFFF1FTFFTF2FTTFTT3FFFFFF4FTFFTF5FTTFTT",
+                "short", "long", "decimal");
+        }
 
-    private void TestNullableComparison(
-        string oper,
-        string expected,
-        params string[] types)
-    {
-        string source = @"
+        private void TestNullableComparison(
+            string oper,
+            string expected,
+            params string[] types)
+        {
+            string source = @"
 using System;
 struct S 
 {
@@ -709,490 +709,490 @@ class C
   }
 }
 ";
-        var zeros = new Dictionary<string, string>()
-        {
-            { "int", "0" },
-            { "uint", "0" },
-            { "short", "0" },
-            { "ushort", "0" },
-            { "byte", "0" },
-            { "sbyte", "0" },
-            { "long", "0" },
-            { "ulong", "0" },
-            { "double", "0" },
-            { "float", "0" },
-            { "decimal", "0" },
-            { "char", "'a'" },
-            { "bool", "false" },
-            { "Base64FormattingOptions", "Base64FormattingOptions.None" },
-            { "S", "new S(0)" }
-        };
-        var ones = new Dictionary<string, string>()
-        {
-            { "int", "1" },
-            { "uint", "1" },
-            { "short", "1" },
-            { "ushort", "1" },
-            { "byte", "1" },
-            { "sbyte", "1" },
-            { "long", "1" },
-            { "ulong", "1" },
-            { "double", "1" },
-            { "float", "1" },
-            { "decimal", "1" },
-            { "char", "'b'" },
-            { "bool", "true" },
-            { "Base64FormattingOptions", "Base64FormattingOptions.InsertLineBreaks" },
-            { "S", "new S(1)" }
-        };
+            var zeros = new Dictionary<string, string>()
+            {
+                { "int", "0" },
+                { "uint", "0" },
+                { "short", "0" },
+                { "ushort", "0" },
+                { "byte", "0" },
+                { "sbyte", "0" },
+                { "long", "0" },
+                { "ulong", "0" },
+                { "double", "0" },
+                { "float", "0" },
+                { "decimal", "0" },
+                { "char", "'a'" },
+                { "bool", "false" },
+                { "Base64FormattingOptions", "Base64FormattingOptions.None" },
+                { "S", "new S(0)" }
+            };
+            var ones = new Dictionary<string, string>()
+            {
+                { "int", "1" },
+                { "uint", "1" },
+                { "short", "1" },
+                { "ushort", "1" },
+                { "byte", "1" },
+                { "sbyte", "1" },
+                { "long", "1" },
+                { "ulong", "1" },
+                { "double", "1" },
+                { "float", "1" },
+                { "decimal", "1" },
+                { "char", "'b'" },
+                { "bool", "true" },
+                { "Base64FormattingOptions", "Base64FormattingOptions.InsertLineBreaks" },
+                { "S", "new S(1)" }
+            };
 
-        foreach (string t in types)
-        {
-            string s = source.Replace("TYPE", t).Replace("OP", oper).Replace("ZERO", zeros[t]).Replace("ONE", ones[t]);
-            var verifier = CompileAndVerify(source: s, expectedOutput: expected);
+            foreach (string t in types)
+            {
+                string s = source.Replace("TYPE", t).Replace("OP", oper).Replace("ZERO", zeros[t]).Replace("ONE", ones[t]);
+                var verifier = CompileAndVerify(source: s, expectedOutput: expected);
+            }
         }
-    }
 
-    [Fact]
-    public void TestLiftedBuiltInBinaryArithmetic()
-    {
-        string[,] enumAddition =
+        [Fact]
+        public void TestLiftedBuiltInBinaryArithmetic()
         {
-            //{ "sbyte", "Base64FormattingOptions"},
-            { "byte", "Base64FormattingOptions"},
-            //{ "short", "Base64FormattingOptions"},
-            { "ushort", "Base64FormattingOptions"},
-            //{ "int", "Base64FormattingOptions"},
-            //{ "uint", "Base64FormattingOptions"},
-            //{ "long", "Base64FormattingOptions"},
-            //{ "ulong", "Base64FormattingOptions"},
-            { "char", "Base64FormattingOptions"},
-            //{ "decimal", "Base64FormattingOptions"},
-            //{ "double", "Base64FormattingOptions"},
-            //{ "float", "Base64FormattingOptions"},
-            { "Base64FormattingOptions", "sbyte" },
-            { "Base64FormattingOptions", "byte" },
-            { "Base64FormattingOptions", "short" },
-            { "Base64FormattingOptions", "ushort" },
-            { "Base64FormattingOptions", "int" },
-            //{ "Base64FormattingOptions", "uint" },
-            //{ "Base64FormattingOptions", "long" },
-            //{ "Base64FormattingOptions", "ulong" },
-            { "Base64FormattingOptions", "char" },
-            //{ "Base64FormattingOptions", "decimal" },
-            //{ "Base64FormattingOptions", "double" },
-            //{ "Base64FormattingOptions", "float" },
-            //{ "Base64FormattingOptions", "Base64FormattingOptions"},
-        };
+            string[,] enumAddition =
+            {
+                //{ "sbyte", "Base64FormattingOptions"},
+                { "byte", "Base64FormattingOptions"},
+                //{ "short", "Base64FormattingOptions"},
+                { "ushort", "Base64FormattingOptions"},
+                //{ "int", "Base64FormattingOptions"},
+                //{ "uint", "Base64FormattingOptions"},
+                //{ "long", "Base64FormattingOptions"},
+                //{ "ulong", "Base64FormattingOptions"},
+                { "char", "Base64FormattingOptions"},
+                //{ "decimal", "Base64FormattingOptions"},
+                //{ "double", "Base64FormattingOptions"},
+                //{ "float", "Base64FormattingOptions"},
+                { "Base64FormattingOptions", "sbyte" },
+                { "Base64FormattingOptions", "byte" },
+                { "Base64FormattingOptions", "short" },
+                { "Base64FormattingOptions", "ushort" },
+                { "Base64FormattingOptions", "int" },
+                //{ "Base64FormattingOptions", "uint" },
+                //{ "Base64FormattingOptions", "long" },
+                //{ "Base64FormattingOptions", "ulong" },
+                { "Base64FormattingOptions", "char" },
+                //{ "Base64FormattingOptions", "decimal" },
+                //{ "Base64FormattingOptions", "double" },
+                //{ "Base64FormattingOptions", "float" },
+                //{ "Base64FormattingOptions", "Base64FormattingOptions"},
+            };
 
-        string[,] enumSubtraction =
-        {
-            { "Base64FormattingOptions", "sbyte" },
-            //{ "Base64FormattingOptions", "byte" },
-            { "Base64FormattingOptions", "short" },
-            { "Base64FormattingOptions", "ushort" },
-            { "Base64FormattingOptions", "int" },
-            //{ "Base64FormattingOptions", "uint" },
-            //{ "Base64FormattingOptions", "long" },
-            //{ "Base64FormattingOptions", "ulong" },
-            //{ "Base64FormattingOptions", "char" },
-            //{ "Base64FormattingOptions", "decimal" },
-            //{ "Base64FormattingOptions", "double" },
-            //{ "Base64FormattingOptions", "float" },
-            { "Base64FormattingOptions", "Base64FormattingOptions"},
-        };
+            string[,] enumSubtraction =
+            {
+                { "Base64FormattingOptions", "sbyte" },
+                //{ "Base64FormattingOptions", "byte" },
+                { "Base64FormattingOptions", "short" },
+                { "Base64FormattingOptions", "ushort" },
+                { "Base64FormattingOptions", "int" },
+                //{ "Base64FormattingOptions", "uint" },
+                //{ "Base64FormattingOptions", "long" },
+                //{ "Base64FormattingOptions", "ulong" },
+                //{ "Base64FormattingOptions", "char" },
+                //{ "Base64FormattingOptions", "decimal" },
+                //{ "Base64FormattingOptions", "double" },
+                //{ "Base64FormattingOptions", "float" },
+                { "Base64FormattingOptions", "Base64FormattingOptions"},
+            };
 
-        string[,] numerics1 =
-        {
-            { "sbyte", "sbyte" },
-            { "sbyte", "byte" },
-            //{ "sbyte", "short" },
-            { "sbyte", "ushort" },
-            //{ "sbyte", "int" },
-            { "sbyte", "uint" },
-            //{ "sbyte", "long" },
-            //{ "sbyte", "ulong" },
-            //{ "sbyte", "char" },
-            { "sbyte", "decimal" },
-            { "sbyte", "double" },
-            //{ "sbyte", "float" },
+            string[,] numerics1 =
+            {
+                { "sbyte", "sbyte" },
+                { "sbyte", "byte" },
+                //{ "sbyte", "short" },
+                { "sbyte", "ushort" },
+                //{ "sbyte", "int" },
+                { "sbyte", "uint" },
+                //{ "sbyte", "long" },
+                //{ "sbyte", "ulong" },
+                //{ "sbyte", "char" },
+                { "sbyte", "decimal" },
+                { "sbyte", "double" },
+                //{ "sbyte", "float" },
 
-            //{ "byte", "sbyte" },
-            { "byte", "byte" },
-            //{ "byte", "short" },
-            { "byte", "ushort" },
-            //{ "byte", "int" },
-            { "byte", "uint" },
-            //{ "byte", "long" },
-            { "byte", "ulong" },
-            //{ "byte", "char" },
-            { "byte", "decimal" },
-            //{ "byte", "double" },
-            { "byte", "float" },
+                //{ "byte", "sbyte" },
+                { "byte", "byte" },
+                //{ "byte", "short" },
+                { "byte", "ushort" },
+                //{ "byte", "int" },
+                { "byte", "uint" },
+                //{ "byte", "long" },
+                { "byte", "ulong" },
+                //{ "byte", "char" },
+                { "byte", "decimal" },
+                //{ "byte", "double" },
+                { "byte", "float" },
 
-            { "short", "sbyte" },
-            { "short", "byte" },
-            { "short", "short" },
-            //{ "short", "ushort" },
-            { "short", "int" },
-            //{ "short", "uint" },
-            { "short", "long" },
-            //{ "short", "ulong" },
-            //{ "short", "char" },
-            { "short", "decimal" },
-            //{ "short", "double" },
-            { "short", "float" },
-        };
+                { "short", "sbyte" },
+                { "short", "byte" },
+                { "short", "short" },
+                //{ "short", "ushort" },
+                { "short", "int" },
+                //{ "short", "uint" },
+                { "short", "long" },
+                //{ "short", "ulong" },
+                //{ "short", "char" },
+                { "short", "decimal" },
+                //{ "short", "double" },
+                { "short", "float" },
+            };
 
-        string[,] numerics2 =
-        {
-            //{ "ushort", "sbyte" },
-            //{ "ushort", "byte" },
-            { "ushort", "short" },
-            { "ushort", "ushort" },
-            //{ "ushort", "int" },
-            { "ushort", "uint" },
-            { "ushort", "long" },
-            //{ "ushort", "ulong" },
-            //{ "ushort", "char" },
-            //{ "ushort", "decimal" },
-            //{ "ushort", "double" },
-            { "ushort", "float" },
+            string[,] numerics2 =
+            {
+                //{ "ushort", "sbyte" },
+                //{ "ushort", "byte" },
+                { "ushort", "short" },
+                { "ushort", "ushort" },
+                //{ "ushort", "int" },
+                { "ushort", "uint" },
+                { "ushort", "long" },
+                //{ "ushort", "ulong" },
+                //{ "ushort", "char" },
+                //{ "ushort", "decimal" },
+                //{ "ushort", "double" },
+                { "ushort", "float" },
 
-            { "int", "sbyte" },
-            { "int", "byte" },
-            //{ "int", "short" },
-            { "int", "ushort" },
-            { "int", "int" },
-            //{ "int", "uint" },
-            { "int", "long" },
-            // { "int", "ulong" },
-            { "int", "char" },
-            //{ "int", "decimal" },
-            { "int", "double" },
-            //{ "int", "float" },
+                { "int", "sbyte" },
+                { "int", "byte" },
+                //{ "int", "short" },
+                { "int", "ushort" },
+                { "int", "int" },
+                //{ "int", "uint" },
+                { "int", "long" },
+                // { "int", "ulong" },
+                { "int", "char" },
+                //{ "int", "decimal" },
+                { "int", "double" },
+                //{ "int", "float" },
 
-            //{ "uint", "sbyte" },
-            //{ "uint", "byte" },
-            { "uint", "short" },
-            //{ "uint", "ushort" },
-            { "uint", "int" },
-            { "uint", "uint" },
-            { "uint", "long" },
-            //{ "uint", "ulong" },
-            { "uint", "char" },
-            //{ "uint", "decimal" },
-            //{ "uint", "double" },
-            { "uint", "float" },
-        };
+                //{ "uint", "sbyte" },
+                //{ "uint", "byte" },
+                { "uint", "short" },
+                //{ "uint", "ushort" },
+                { "uint", "int" },
+                { "uint", "uint" },
+                { "uint", "long" },
+                //{ "uint", "ulong" },
+                { "uint", "char" },
+                //{ "uint", "decimal" },
+                //{ "uint", "double" },
+                { "uint", "float" },
+            };
 
-        string[,] numerics3 =
-        {
-            { "long", "sbyte" },
-            { "long", "byte" },
-            //{ "long", "short" },
-            //{ "long", "ushort" },
-            //{ "long", "int" },
-            //{ "long", "uint" },
-            { "long", "long" },
-            // { "long", "ulong" },
-            { "long", "char" },
-            //{ "long", "decimal" },
-            //{ "long", "double" },
-            { "long", "float" },
+            string[,] numerics3 =
+            {
+                { "long", "sbyte" },
+                { "long", "byte" },
+                //{ "long", "short" },
+                //{ "long", "ushort" },
+                //{ "long", "int" },
+                //{ "long", "uint" },
+                { "long", "long" },
+                // { "long", "ulong" },
+                { "long", "char" },
+                //{ "long", "decimal" },
+                //{ "long", "double" },
+                { "long", "float" },
 
-            //{ "ulong", "sbyte" },
-            //{ "ulong", "byte" },
-            //{ "ulong", "short" },
-            { "ulong", "ushort" },
-            //{ "ulong", "int" },
-            { "ulong", "uint" },
-            //{ "ulong", "long" },
-            { "ulong", "ulong" },
-            //{ "ulong", "char" },
-            { "ulong", "decimal" },
-            { "ulong", "double" },
-            //{ "ulong", "float" },
-        };
+                //{ "ulong", "sbyte" },
+                //{ "ulong", "byte" },
+                //{ "ulong", "short" },
+                { "ulong", "ushort" },
+                //{ "ulong", "int" },
+                { "ulong", "uint" },
+                //{ "ulong", "long" },
+                { "ulong", "ulong" },
+                //{ "ulong", "char" },
+                { "ulong", "decimal" },
+                { "ulong", "double" },
+                //{ "ulong", "float" },
+            };
 
-        string[,] numerics4 =
-        {
-            { "char", "sbyte" },
-            { "char", "byte" },
-            { "char", "short" },
-            { "char", "ushort" },
-            //{ "char", "int" },
-            //{ "char", "uint" },
-            //{ "char", "long" },
-            { "char", "ulong" },
-            { "char", "char" },
-            //{ "char", "decimal" },
-            //{ "char", "double" },
-            { "char", "float" },
+            string[,] numerics4 =
+            {
+                { "char", "sbyte" },
+                { "char", "byte" },
+                { "char", "short" },
+                { "char", "ushort" },
+                //{ "char", "int" },
+                //{ "char", "uint" },
+                //{ "char", "long" },
+                { "char", "ulong" },
+                { "char", "char" },
+                //{ "char", "decimal" },
+                //{ "char", "double" },
+                { "char", "float" },
 
-            //{ "decimal", "sbyte" },
-            //{ "decimal", "byte" },
-            //{ "decimal", "short" },
-            { "decimal", "ushort" },
-            { "decimal", "int" },
-            { "decimal", "uint" },
-            { "decimal", "long" },
-            //{ "decimal", "ulong" },
-            { "decimal", "char" },
-            { "decimal", "decimal" },
-            //{ "decimal", "double" },
-            //{ "decimal", "float" },
-        };
+                //{ "decimal", "sbyte" },
+                //{ "decimal", "byte" },
+                //{ "decimal", "short" },
+                { "decimal", "ushort" },
+                { "decimal", "int" },
+                { "decimal", "uint" },
+                { "decimal", "long" },
+                //{ "decimal", "ulong" },
+                { "decimal", "char" },
+                { "decimal", "decimal" },
+                //{ "decimal", "double" },
+                //{ "decimal", "float" },
+            };
 
-        string[,] numerics5 =
-        {
-            //{ "double", "sbyte" },
-            { "double", "byte" },
-            { "double", "short" },
-            { "double", "ushort" },
-            //{ "double", "int" },
-            { "double", "uint" },
-            { "double", "long" },
-            //{ "double", "ulong" },
-            { "double", "char" },
-            //{ "double", "decimal" },
-            { "double", "double" },
-            { "double", "float" },
+            string[,] numerics5 =
+            {
+                //{ "double", "sbyte" },
+                { "double", "byte" },
+                { "double", "short" },
+                { "double", "ushort" },
+                //{ "double", "int" },
+                { "double", "uint" },
+                { "double", "long" },
+                //{ "double", "ulong" },
+                { "double", "char" },
+                //{ "double", "decimal" },
+                { "double", "double" },
+                { "double", "float" },
 
-            { "float", "sbyte" },
-            //{ "float", "byte" },
-            //{ "float", "short" },
-            //{ "float", "ushort" },
-            { "float", "int" },
-            //{ "float", "uint" },
-            //{ "float", "long" },
-            { "float", "ulong" },
-            //{ "float", "char" },
-            //{ "float", "decimal" },
-            //{ "float", "double" },
-            { "float", "float" },
-       };
+                { "float", "sbyte" },
+                //{ "float", "byte" },
+                //{ "float", "short" },
+                //{ "float", "ushort" },
+                { "float", "int" },
+                //{ "float", "uint" },
+                //{ "float", "long" },
+                { "float", "ulong" },
+                //{ "float", "char" },
+                //{ "float", "decimal" },
+                //{ "float", "double" },
+                { "float", "float" },
+           };
 
-        string[,] shift1 =
-        {
-            { "sbyte", "sbyte" },
-            { "sbyte", "byte" },
-            { "sbyte", "short" },
-            { "sbyte", "ushort" },
-            { "sbyte", "int" },
-            { "sbyte", "char" },
+            string[,] shift1 =
+            {
+                { "sbyte", "sbyte" },
+                { "sbyte", "byte" },
+                { "sbyte", "short" },
+                { "sbyte", "ushort" },
+                { "sbyte", "int" },
+                { "sbyte", "char" },
 
-            { "byte", "sbyte" },
-            { "byte", "byte" },
-            { "byte", "short" },
-            { "byte", "ushort" },
-            { "byte", "int" },
-            { "byte", "char" },
+                { "byte", "sbyte" },
+                { "byte", "byte" },
+                { "byte", "short" },
+                { "byte", "ushort" },
+                { "byte", "int" },
+                { "byte", "char" },
 
-            { "short", "sbyte" },
-            { "short", "byte" },
-            { "short", "short" },
-            { "short", "ushort" },
-            { "short", "int" },
-            { "short", "char" },
+                { "short", "sbyte" },
+                { "short", "byte" },
+                { "short", "short" },
+                { "short", "ushort" },
+                { "short", "int" },
+                { "short", "char" },
 
-            { "ushort", "sbyte" },
-            { "ushort", "byte" },
-            { "ushort", "short" },
-            { "ushort", "ushort" },
-            { "ushort", "int" },
-            { "ushort", "char" },
-        };
+                { "ushort", "sbyte" },
+                { "ushort", "byte" },
+                { "ushort", "short" },
+                { "ushort", "ushort" },
+                { "ushort", "int" },
+                { "ushort", "char" },
+            };
 
-        string[,] shift2 =
-        {
-            { "int", "sbyte" },
-            { "int", "byte" },
-            { "int", "short" },
-            { "int", "ushort" },
-            { "int", "int" },
-            { "int", "char" },
+            string[,] shift2 =
+            {
+                { "int", "sbyte" },
+                { "int", "byte" },
+                { "int", "short" },
+                { "int", "ushort" },
+                { "int", "int" },
+                { "int", "char" },
 
-            { "uint", "sbyte" },
-            { "uint", "byte" },
-            { "uint", "short" },
-            { "uint", "ushort" },
-            { "uint", "int" },
-            { "uint", "char" },
+                { "uint", "sbyte" },
+                { "uint", "byte" },
+                { "uint", "short" },
+                { "uint", "ushort" },
+                { "uint", "int" },
+                { "uint", "char" },
 
-            { "long", "sbyte" },
-            { "long", "byte" },
-            { "long", "short" },
-            { "long", "ushort" },
-            { "long", "int" },
-            { "long", "char" },
+                { "long", "sbyte" },
+                { "long", "byte" },
+                { "long", "short" },
+                { "long", "ushort" },
+                { "long", "int" },
+                { "long", "char" },
 
-            { "ulong", "sbyte" },
-            { "ulong", "byte" },
-            { "ulong", "short" },
-            { "ulong", "ushort" },
-            { "ulong", "int" },
-            { "ulong", "char" },
+                { "ulong", "sbyte" },
+                { "ulong", "byte" },
+                { "ulong", "short" },
+                { "ulong", "ushort" },
+                { "ulong", "int" },
+                { "ulong", "char" },
 
-            { "char", "sbyte" },
-            { "char", "byte" },
-            { "char", "short" },
-            { "char", "ushort" },
-            { "char", "int" },
-            { "char", "char" },
-        };
+                { "char", "sbyte" },
+                { "char", "byte" },
+                { "char", "short" },
+                { "char", "ushort" },
+                { "char", "int" },
+                { "char", "char" },
+            };
 
-        string[,] logical1 =
-        {
-            { "sbyte", "sbyte" },
-            //{ "sbyte", "byte" },
-            { "sbyte", "short" },
-            { "sbyte", "ushort" },
-            { "sbyte", "int" },
-            //{ "sbyte", "uint" },
-            { "sbyte", "long" },
-            //{ "sbyte", "ulong" },
-            //{ "sbyte", "char" },
+            string[,] logical1 =
+            {
+                { "sbyte", "sbyte" },
+                //{ "sbyte", "byte" },
+                { "sbyte", "short" },
+                { "sbyte", "ushort" },
+                { "sbyte", "int" },
+                //{ "sbyte", "uint" },
+                { "sbyte", "long" },
+                //{ "sbyte", "ulong" },
+                //{ "sbyte", "char" },
 
-            { "byte", "sbyte" },
-            { "byte", "byte" },
-            //{ "byte", "short" },
-            { "byte", "ushort" },
-            //{ "byte", "int" },
-            { "byte", "uint" },
-            //{ "byte", "long" },
-            //{ "byte", "ulong" },
-            { "byte", "char" },
+                { "byte", "sbyte" },
+                { "byte", "byte" },
+                //{ "byte", "short" },
+                { "byte", "ushort" },
+                //{ "byte", "int" },
+                { "byte", "uint" },
+                //{ "byte", "long" },
+                //{ "byte", "ulong" },
+                { "byte", "char" },
 
-            { "short", "sbyte" },
-            { "short", "byte" },
-            { "short", "short" },
-            //{ "short", "ushort" },
-            { "short", "int" },
-            //{ "short", "uint" },
-            { "short", "long" },
-            //{ "short", "ulong" },
-            { "short", "char" },
-        };
+                { "short", "sbyte" },
+                { "short", "byte" },
+                { "short", "short" },
+                //{ "short", "ushort" },
+                { "short", "int" },
+                //{ "short", "uint" },
+                { "short", "long" },
+                //{ "short", "ulong" },
+                { "short", "char" },
+            };
 
-        string[,] logical2 =
-        {
-            //{ "ushort", "sbyte" },
-            { "ushort", "byte" },
-            { "ushort", "short" },
-            { "ushort", "ushort" },
-            //{ "ushort", "int" },
-            { "ushort", "uint" },
-            //{ "ushort", "long" },
-            //{ "ushort", "ulong" },
-            //{ "ushort", "char" },
+            string[,] logical2 =
+            {
+                //{ "ushort", "sbyte" },
+                { "ushort", "byte" },
+                { "ushort", "short" },
+                { "ushort", "ushort" },
+                //{ "ushort", "int" },
+                { "ushort", "uint" },
+                //{ "ushort", "long" },
+                //{ "ushort", "ulong" },
+                //{ "ushort", "char" },
 
-            //{ "int", "sbyte" },
-            { "int", "byte" },
-            //{ "int", "short" },
-            { "int", "ushort" },
-            { "int", "int" },
-            //{ "int", "uint" },
-            { "int", "long" },
-            //{ "int", "ulong" },
-            //{ "int", "char" },
+                //{ "int", "sbyte" },
+                { "int", "byte" },
+                //{ "int", "short" },
+                { "int", "ushort" },
+                { "int", "int" },
+                //{ "int", "uint" },
+                { "int", "long" },
+                //{ "int", "ulong" },
+                //{ "int", "char" },
 
-            { "uint", "sbyte" },
-            //{ "uint", "byte" },
-            { "uint", "short" },
-            //{ "uint", "ushort" },
-            { "uint", "int" },
-            { "uint", "uint" },
-            //{ "uint", "long" },
-            //{ "uint", "ulong" },
-            { "uint", "char" },
-        };
+                { "uint", "sbyte" },
+                //{ "uint", "byte" },
+                { "uint", "short" },
+                //{ "uint", "ushort" },
+                { "uint", "int" },
+                { "uint", "uint" },
+                //{ "uint", "long" },
+                //{ "uint", "ulong" },
+                { "uint", "char" },
+            };
 
-        string[,] logical3 =
-        {
-            //{ "long", "sbyte" },
-            { "long", "byte" },
-            //{ "long", "short" },
-            { "long", "ushort" },
-            //{ "long", "int" },
-            { "long", "uint" },
-            { "long", "long" },
-            // { "long", "ulong" },
-            { "long", "char" },
+            string[,] logical3 =
+            {
+                //{ "long", "sbyte" },
+                { "long", "byte" },
+                //{ "long", "short" },
+                { "long", "ushort" },
+                //{ "long", "int" },
+                { "long", "uint" },
+                { "long", "long" },
+                // { "long", "ulong" },
+                { "long", "char" },
 
-            //{ "ulong", "sbyte" },
-            { "ulong", "byte" },
-            //{ "ulong", "short" },
-            { "ulong", "ushort" },
-            //{ "ulong", "int" },
-            { "ulong", "uint" },
-            //{ "ulong", "long" },
-            { "ulong", "ulong" },
-            //{ "ulong", "char" },
+                //{ "ulong", "sbyte" },
+                { "ulong", "byte" },
+                //{ "ulong", "short" },
+                { "ulong", "ushort" },
+                //{ "ulong", "int" },
+                { "ulong", "uint" },
+                //{ "ulong", "long" },
+                { "ulong", "ulong" },
+                //{ "ulong", "char" },
 
-            { "char", "sbyte" },
-            //{ "char", "byte" },
-            //{ "char", "short" },
-            { "char", "ushort" },
-            { "char", "int" },
-            //{ "char", "uint" },
-            //{ "char", "long" },
-            { "char", "ulong" },
-            { "char", "char" },
+                { "char", "sbyte" },
+                //{ "char", "byte" },
+                //{ "char", "short" },
+                { "char", "ushort" },
+                { "char", "int" },
+                //{ "char", "uint" },
+                //{ "char", "long" },
+                { "char", "ulong" },
+                { "char", "char" },
 
-            { "Base64FormattingOptions", "Base64FormattingOptions"},
-        };
+                { "Base64FormattingOptions", "Base64FormattingOptions"},
+            };
 
-        // Use 2 instead of 0 so that we don't get divide by zero errors.
-        var twos = new Dictionary<string, string>()
-        {
-            { "int", "2" },
-            { "uint", "2" },
-            { "short", "2" },
-            { "ushort", "2" },
-            { "byte", "2" },
-            { "sbyte", "2" },
-            { "long", "2" },
-            { "ulong", "2" },
-            { "double", "2" },
-            { "float", "2" },
-            { "decimal", "2" },
-            { "char", "'\\u0002'" },
-            { "Base64FormattingOptions", "Base64FormattingOptions.None" },
-        };
-        var ones = new Dictionary<string, string>()
-        {
-            { "int", "1" },
-            { "uint", "1" },
-            { "short", "1" },
-            { "ushort", "1" },
-            { "byte", "1" },
-            { "sbyte", "1" },
-            { "long", "1" },
-            { "ulong", "1" },
-            { "double", "1" },
-            { "float", "1" },
-            { "decimal", "1" },
-            { "char", "'\\u0001'" },
-            { "Base64FormattingOptions", "Base64FormattingOptions.InsertLineBreaks" },
-        };
+            // Use 2 instead of 0 so that we don't get divide by zero errors.
+            var twos = new Dictionary<string, string>()
+            {
+                { "int", "2" },
+                { "uint", "2" },
+                { "short", "2" },
+                { "ushort", "2" },
+                { "byte", "2" },
+                { "sbyte", "2" },
+                { "long", "2" },
+                { "ulong", "2" },
+                { "double", "2" },
+                { "float", "2" },
+                { "decimal", "2" },
+                { "char", "'\\u0002'" },
+                { "Base64FormattingOptions", "Base64FormattingOptions.None" },
+            };
+            var ones = new Dictionary<string, string>()
+            {
+                { "int", "1" },
+                { "uint", "1" },
+                { "short", "1" },
+                { "ushort", "1" },
+                { "byte", "1" },
+                { "sbyte", "1" },
+                { "long", "1" },
+                { "ulong", "1" },
+                { "double", "1" },
+                { "float", "1" },
+                { "decimal", "1" },
+                { "char", "'\\u0001'" },
+                { "Base64FormattingOptions", "Base64FormattingOptions.InsertLineBreaks" },
+            };
 
-        var names = new Dictionary<string, string>()
-        {
-            { "+", "plus" },
-            { "-", "minus" },
-            { "*", "times" },
-            { "/", "divide" },
-            { "%", "remainder" },
-            { ">>", "rshift" },
-            { ">>>", "urshift" },
-            { "<<", "lshift" },
-            { "&", "and" },
-            { "|", "or" },
-            { "^", "xor" }
-        };
+            var names = new Dictionary<string, string>()
+            {
+                { "+", "plus" },
+                { "-", "minus" },
+                { "*", "times" },
+                { "/", "divide" },
+                { "%", "remainder" },
+                { ">>", "rshift" },
+                { ">>>", "urshift" },
+                { "<<", "lshift" },
+                { "&", "and" },
+                { "|", "or" },
+                { "^", "xor" }
+            };
 
-        var source = new StringBuilder(@"
+            var source = new StringBuilder(@"
 using System; 
 class C 
 {
@@ -1205,8 +1205,8 @@ class C
     if (b) throw new Exception(x.ToString());
   }
 ");
-        string main = "static void Main() {";
-        string method = @"
+            string main = "static void Main() {";
+            string method = @"
   static void METHOD_TYPEX_NAME_TYPEY()
   {
     TYPEX? xn0 = TWOX;
@@ -1259,61 +1259,61 @@ class C
     F(31, (x1 OP ynn).HasValue);
   }";
 
-        List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
-        {
-            Tuple.Create("*", numerics1),
-            Tuple.Create("/", numerics2),
-            Tuple.Create("%", numerics3),
-            Tuple.Create("+", numerics4),
-            Tuple.Create("+", enumAddition),
-            Tuple.Create("-", numerics5),
-            // UNDONE: Overload resolution of "enum - null" ,
-            // UNDONE: so this test is disabled:
-            // UNDONE: Tuple.Create("-", enumSubtraction),
-            Tuple.Create(">>", shift1),
-            Tuple.Create(">>>", shift1),
-            Tuple.Create("<<", shift2),
-            Tuple.Create("&", logical1),
-            Tuple.Create("|", logical2),
-            Tuple.Create("^", logical3)
-        };
-
-        int m = 0;
-
-        foreach (var item in items)
-        {
-            string oper = item.Item1;
-            string[,] types = item.Item2;
-            for (int i = 0; i < types.GetLength(0); ++i)
+            List<Tuple<string, string[,]>> items = new List<Tuple<string, string[,]>>()
             {
-                ++m;
-                string typeX = types[i, 0];
-                string typeY = types[i, 1];
-                source.Append(method
-                .Replace("METHOD", "M" + m)
-                .Replace("TYPEX", typeX)
-                .Replace("TYPEY", typeY)
-                .Replace("OP", oper)
-                .Replace("NAME", names[oper])
-                .Replace("TWOX", twos[typeX])
-                .Replace("ONEX", ones[typeX])
-                .Replace("TWOY", twos[typeY])
-                .Replace("ONEY", ones[typeY]));
+                Tuple.Create("*", numerics1),
+                Tuple.Create("/", numerics2),
+                Tuple.Create("%", numerics3),
+                Tuple.Create("+", numerics4),
+                Tuple.Create("+", enumAddition),
+                Tuple.Create("-", numerics5),
+                // UNDONE: Overload resolution of "enum - null" ,
+                // UNDONE: so this test is disabled:
+                // UNDONE: Tuple.Create("-", enumSubtraction),
+                Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
+                Tuple.Create("<<", shift2),
+                Tuple.Create("&", logical1),
+                Tuple.Create("|", logical2),
+                Tuple.Create("^", logical3)
+            };
 
-                main += "M" + m + "_" + typeX + "_" + names[oper] + "_" + typeY + "();\n";
+            int m = 0;
+
+            foreach (var item in items)
+            {
+                string oper = item.Item1;
+                string[,] types = item.Item2;
+                for (int i = 0; i < types.GetLength(0); ++i)
+                {
+                    ++m;
+                    string typeX = types[i, 0];
+                    string typeY = types[i, 1];
+                    source.Append(method
+                    .Replace("METHOD", "M" + m)
+                    .Replace("TYPEX", typeX)
+                    .Replace("TYPEY", typeY)
+                    .Replace("OP", oper)
+                    .Replace("NAME", names[oper])
+                    .Replace("TWOX", twos[typeX])
+                    .Replace("ONEX", ones[typeX])
+                    .Replace("TWOY", twos[typeY])
+                    .Replace("ONEY", ones[typeY]));
+
+                    main += "M" + m + "_" + typeX + "_" + names[oper] + "_" + typeY + "();\n";
+                }
             }
+
+            source.Append(main);
+            source.Append("} }");
+
+            var verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
         }
 
-        source.Append(main);
-        source.Append("} }");
-
-        var verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
-    }
-
-    [Fact]
-    public void TestLiftedUserDefinedBinaryArithmetic()
-    {
-        string source = @"
+        [Fact]
+        public void TestLiftedUserDefinedBinaryArithmetic()
+        {
+            string source = @"
 using System;
 struct SX
 {
@@ -1374,7 +1374,7 @@ class C
         int? i1nn = null; 
 ";
 
-        source += @"
+            source += @"
                 T((sx + syn).Value == (sx + sy));
                 F((sx - synn).HasValue);
                 F((sx * null).HasValue);
@@ -1387,7 +1387,7 @@ class C
                 F((sxnn + synn).HasValue);
                 F((sxnn - null).HasValue);";
 
-        source += @"
+            source += @"
                 T((sx << i1n).Value == (sx << i1));
                 F((sx >> i1nn).HasValue);
                 F((sx << null).HasValue);
@@ -1400,15 +1400,15 @@ class C
                 F((sxnn >> i1nn).HasValue);
                 F((sxnn << null).HasValue);";
 
-        source += "}}";
+            source += "}}";
 
-        var verifier = CompileAndVerify(source: source, expectedOutput: "");
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+        }
 
-    [Fact]
-    public void TestLiftedBoolLogicOperators()
-    {
-        string source = @"
+        [Fact]
+        public void TestLiftedBoolLogicOperators()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1601,13 +1601,13 @@ class C
     }
 }";
 
-        var verifier = CompileAndVerify(source: source, expectedOutput: "");
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: "");
+        }
 
-    [Fact]
-    public void TestLiftedCompoundAssignment()
-    {
-        string source = @"
+        [Fact]
+        public void TestLiftedCompoundAssignment()
+        {
+            string source = @"
 using System;
 class C
 {
@@ -1646,15 +1646,15 @@ class C
     static void F(int x, bool b) { if (b) throw new Exception(x.ToString()); }
 }";
 
-        var verifier = CompileAndVerify(source: source, expectedOutput: "123");
-    }
+            var verifier = CompileAndVerify(source: source, expectedOutput: "123");
+        }
 
-    #region "Regression"
+        #region "Regression"
 
-    [Fact, WorkItem(543837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
-    public void Test11827()
-    {
-        string source2 = @"
+        [Fact, WorkItem(543837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
+        public void Test11827()
+        {
+            string source2 = @"
 using System;
 class Program
 {       
@@ -1664,13 +1664,13 @@ class Program
         Console.WriteLine(0);
     }
 }";
-        var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
-    }
+            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
+        }
 
-    [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
-    public void NullableUsedInUsingStatement()
-    {
-        string source = @"
+        [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
+        public void NullableUsedInUsingStatement()
+        {
+            string source = @"
 using System;
 
 struct S : IDisposable
@@ -1690,13 +1690,13 @@ struct S : IDisposable
 }
 ";
 
-        CompileAndVerify(source: source, expectedOutput: @"S123");
-    }
+            CompileAndVerify(source: source, expectedOutput: @"S123");
+        }
 
-    [Fact, WorkItem(544002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
-    public void NullableUserDefinedUnary02()
-    {
-        string source = @"
+        [Fact, WorkItem(544002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544002")]
+        public void NullableUserDefinedUnary02()
+        {
+            string source = @"
 using System;
 
 struct S
@@ -1730,13 +1730,13 @@ struct S
 }
 ";
 
-        CompileAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
-    }
+            CompileAndVerify(source: source, expectedOutput: @"10203040-10-20-30-40");
+        }
 
-    [Fact, WorkItem(544005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
-    public void NoNullableValueFromOptionalParam()
-    {
-        string source = @"
+        [Fact, WorkItem(544005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544005")]
+        public void NoNullableValueFromOptionalParam()
+        {
+            string source = @"
 class Test
 {
     static void M(
@@ -1760,21 +1760,21 @@ class Test
     }
 }
 ";
-        string expected = @"0: 1:1.11 2:2 3: 4:4 5:0 6:6 7: 8:";
+            string expected = @"0: 1:1.11 2:2 3: 4:4 5:0 6:6 7: 8:";
 
-        var verifier = CompileAndVerify(source, expectedOutput: expected);
-    }
+            var verifier = CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
-    public void ConflictImportedMethodWithNullableOptionalParam()
-    {
-        string source = @"
+        [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]
+        public void ConflictImportedMethodWithNullableOptionalParam()
+        {
+            string source = @"
 public class Parent
 {
     public int Goo(int? d = 0) { return (int)d; }
 }
 ";
-        string source2 = @"
+            string source2 = @"
 public class Parent
 {
     public int Goo(int? d = 0) { return (int)d; }
@@ -1790,33 +1790,33 @@ public class Test
 }
 ";
 
-        var complib = CreateCompilation(
-            source,
-            options: TestOptions.ReleaseDll,
-            assemblyName: "TestDLL");
+            var complib = CreateCompilation(
+                source,
+                options: TestOptions.ReleaseDll,
+                assemblyName: "TestDLL");
 
-        var comp = CreateCompilation(
-            source2,
-            references: new MetadataReference[] { complib.EmitToImageReference() },
-            options: TestOptions.ReleaseExe,
-            assemblyName: "TestEXE");
+            var comp = CreateCompilation(
+                source2,
+                references: new MetadataReference[] { complib.EmitToImageReference() },
+                options: TestOptions.ReleaseExe,
+                assemblyName: "TestEXE");
 
-        comp.VerifyDiagnostics(
-            // (11,9): warning CS0436: The type 'Parent' in '' conflicts with the imported type 'Parent' in 'TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
-            //         Parent p = new Parent();
-            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Parent").WithArguments("", "Parent", "TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Parent"),
-            // (11,24): warning CS0436: The type 'Parent' in '' conflicts with the imported type 'Parent' in 'TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
-            //         Parent p = new Parent();
-            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Parent").WithArguments("", "Parent", "TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Parent")
-            );
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS0436: The type 'Parent' in '' conflicts with the imported type 'Parent' in 'TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                //         Parent p = new Parent();
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Parent").WithArguments("", "Parent", "TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Parent"),
+                // (11,24): warning CS0436: The type 'Parent' in '' conflicts with the imported type 'Parent' in 'TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
+                //         Parent p = new Parent();
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Parent").WithArguments("", "Parent", "TestDLL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Parent")
+                );
 
-        CompileAndVerify(comp, expectedOutput: @"0");
-    }
+            CompileAndVerify(comp, expectedOutput: @"0");
+        }
 
-    [Fact, WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
-    public void BindDelegateToObjectMethods()
-    {
-        string source = @"
+        [Fact, WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
+        public void BindDelegateToObjectMethods()
+        {
+            string source = @"
 using System;
 public class Test
 {
@@ -1829,13 +1829,13 @@ public class Test
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
-    public void OperationOnEnumNullable()
-    {
-        string source = @"
+        [Fact, WorkItem(544909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544909")]
+        public void OperationOnEnumNullable()
+        {
+            string source = @"
 using System;
 public class NullableTest
 {
@@ -1866,13 +1866,13 @@ public class NullableTest
     }
 }
 ";
-        CompileAndVerify(source, expectedOutput: "tfffttt");
-    }
+            CompileAndVerify(source, expectedOutput: "tfffttt");
+        }
 
-    [Fact, WorkItem(544583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
-    public void ShortCircuitOperatorsOnNullable()
-    {
-        string source = @"
+        [Fact, WorkItem(544583, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544583")]
+        public void ShortCircuitOperatorsOnNullable()
+        {
+            string source = @"
 class A
 {
     static void Main()
@@ -1883,27 +1883,27 @@ class A
     }
 }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
 // (7,18): error CS0019: Operator '&&' cannot be applied to operands of type 'bool?' and 'bool?'
 //         var bb = b1 && b2;
 Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 && b2").WithArguments("&&", "bool?", "bool?"),
 // (8,14): error CS0019: Operator '||' cannot be applied to operands of type 'bool?' and 'bool?'
 //         bb = b1 || b2;
 Diagnostic(ErrorCode.ERR_BadBinaryOps, "b1 || b2").WithArguments("||", "bool?", "bool?")
-            );
-    }
+                );
+        }
 
-    [Fact]
-    public void ShortCircuitLiftedUserDefinedOperators()
-    {
-        // This test illustrates a bug in the native compiler which Roslyn fixes.
-        // The native compiler disallows a *lifted* & operator from being used as an &&
-        // operator, but allows a *nullable* & operator to be used as an && operator.
-        // There is no good reason for this discrepancy; either both should be legal
-        // (because we can obviously generate good code that does what the user wants)
-        // or we should disallow both. 
+        [Fact]
+        public void ShortCircuitLiftedUserDefinedOperators()
+        {
+            // This test illustrates a bug in the native compiler which Roslyn fixes.
+            // The native compiler disallows a *lifted* & operator from being used as an &&
+            // operator, but allows a *nullable* & operator to be used as an && operator.
+            // There is no good reason for this discrepancy; either both should be legal
+            // (because we can obviously generate good code that does what the user wants)
+            // or we should disallow both. 
 
-        string source = @"
+            string source = @"
 using System;
 struct C 
 {
@@ -2017,7 +2017,7 @@ D?[] results3 =
     }
 }
 ";
-        string expected = @"tttftnfffnnn
+            string expected = @"tttftnfffnnn
 tfnfffnnn
 tttftnfffnnn
 tfnfffnnn
@@ -2026,13 +2026,13 @@ ttttfnnnn
 tttftfffnntnfnn
 ttttfnnnn";
 
-        CompileAndVerify(source, expectedOutput: expected);
-    }
+            CompileAndVerify(source, expectedOutput: expected);
+        }
 
-    [Fact, WorkItem(529530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
-    public void NullableEnumMinusNull()
-    {
-        var source = @"
+        [Fact, WorkItem(529530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529530"), WorkItem(1036392, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1036392")]
+        public void NullableEnumMinusNull()
+        {
+            var source = @"
 using System;
 
 class Program
@@ -2044,17 +2044,17 @@ class Program
     }
 }";
 
-        CompileAndVerify(source, expectedOutput: "False").VerifyDiagnostics(
-// (9,28): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         Console.WriteLine((xn0 - null).HasValue);
-Diagnostic(ErrorCode.WRN_AlwaysNull, "xn0 - null").WithArguments("int?").WithLocation(9, 28)
-            );
-    }
+            CompileAndVerify(source, expectedOutput: "False").VerifyDiagnostics(
+    // (9,28): warning CS0458: The result of the expression is always 'null' of type 'int?'
+    //         Console.WriteLine((xn0 - null).HasValue);
+    Diagnostic(ErrorCode.WRN_AlwaysNull, "xn0 - null").WithArguments("int?").WithLocation(9, 28)
+                );
+        }
 
-    [Fact]
-    public void NullableNullEquality()
-    {
-        var source = @"
+        [Fact]
+        public void NullableNullEquality()
+        {
+            var source = @"
 using System;
 
 public struct S
@@ -2066,13 +2066,13 @@ public struct S
     }
 }";
 
-        CompileAndVerify(source, expectedOutput: "False");
-    }
+            CompileAndVerify(source, expectedOutput: "False");
+        }
 
-    [Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]
-    public void Op_ExplicitImplicitOnNullable()
-    {
-        var source = @"
+        [Fact, WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")]
+        public void Op_ExplicitImplicitOnNullable()
+        {
+            var source = @"
 using System;
 
 class Test
@@ -2085,25 +2085,25 @@ class Test
 }
 ";
 
-        // VB now allow these syntax, but C# does NOT (spec said)
-        // Dev11 & Roslyn: (8,23): error CS1525: Invalid expression term '.'
-        // ---
-        // Dev11: error CS0118: 'int?' is a 'type' but is used like a 'variable'
-        // Roslyn: (9,18): error CS0119: 'int?' is a type, which is not valid in the given context
-        // Roslyn: (9,33): error CS0571: 'int?.implicit operator int?(int)': cannot explicitly call operator or accessor
-        CreateCompilation(source).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments("."),
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "Nullable<int>").WithArguments("int?", "type"),
-            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Implicit").WithArguments("int?.implicit operator int?(int)")
-        );
-    }
+            // VB now allow these syntax, but C# does NOT (spec said)
+            // Dev11 & Roslyn: (8,23): error CS1525: Invalid expression term '.'
+            // ---
+            // Dev11: error CS0118: 'int?' is a 'type' but is used like a 'variable'
+            // Roslyn: (9,18): error CS0119: 'int?' is a type, which is not valid in the given context
+            // Roslyn: (9,33): error CS0571: 'int?.implicit operator int?(int)': cannot explicitly call operator or accessor
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments("."),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Nullable<int>").WithArguments("int?", "type"),
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Implicit").WithArguments("int?.implicit operator int?(int)")
+            );
+        }
 
-    #endregion
+        #endregion
 
-    [Fact]
-    public void UserDefinedConversion_01()
-    {
-        var source = @"
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
 
 
 _ = (bool?)new S();
@@ -2119,20 +2119,20 @@ struct S
 }
 ";
 
-        CreateCompilation(source).VerifyEmitDiagnostics(
-            // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
-            // _ = (bool?)new S();
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
-            // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
-            // z = new S();
-            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
-            );
-    }
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
-    public void TestIsNullable1()
-    {
-        var source = @"
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestIsNullable1()
+        {
+            var source = @"
 class C
 {
     void M(object o)
@@ -2144,16 +2144,16 @@ class C
 }
 ";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (6,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //         if (o is int? i)
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 18));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is int? i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "int?").WithArguments("int").WithLocation(6, 18));
+        }
 
-    [Fact]
-    public void TestIsNullable2()
-    {
-        var source = @"
+        [Fact]
+        public void TestIsNullable2()
+        {
+            var source = @"
 using A = System.Nullable<int>;
 class C
 {
@@ -2166,16 +2166,16 @@ class C
 }
 ";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //         if (o is A i)
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
 
-    [Fact]
-    public void TestIsNullable3()
-    {
-        var source = @"
+        [Fact]
+        public void TestIsNullable3()
+        {
+            var source = @"
 using A = int?;
 class C
 {
@@ -2188,82 +2188,83 @@ class C
 }
 ";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
-            //         if (o is A i)
-            Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): error CS8116: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+                //         if (o is A i)
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "A").WithArguments("int").WithLocation(7, 18));
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
-    public void MissingSystemNullable()
-    {
-        var source = """
-            #nullable enable
-            class C
-            {
-                X<Y?> M1() => M3(() => M2());
-                X<Y?> M2() => new();
-                void M3(object _) { }
-            }
-            class X<T> { }
-            struct Y { }
-            """;
-        var comp = CreateCompilation(source);
-        comp.MakeTypeMissing(SpecialType.System_Nullable_T);
-        comp.VerifyDiagnostics(
-            // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
-            // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
-            // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
-            // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M2() => new();
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
-            // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M2() => new();
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
-    }
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                struct Y { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
-    public void MissingSystemNullable_MissingUserType()
-    {
-        var source = """
-            #nullable enable
-            class C
-            {
-                X<Y?> M1() => M3(() => M2());
-                X<Y?> M2() => new();
-                void M3(object _) { }
-            }
-            class X<T> { }
-            """;
-        var comp = CreateCompilation(source);
-        comp.MakeTypeMissing(SpecialType.System_Nullable_T);
-        comp.VerifyDiagnostics(
-            // (4,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(4, 7),
-            // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
-            // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
-            // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M1() => M3(() => M2());
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
-            // (5,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
-            //     X<Y?> M2() => new();
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(5, 7),
-            // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M2() => new();
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
-            // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
-            //     X<Y?> M2() => new();
-            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74297")]
+        public void MissingSystemNullable_MissingUserType()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    X<Y?> M1() => M3(() => M2());
+                    X<Y?> M2() => new();
+                    void M3(object _) { }
+                }
+                class X<T> { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (4,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(4, 7),
+                // (4,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(4, 7),
+                // (4,22): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "() => M2()").WithArguments("System.Nullable`1").WithLocation(4, 22),
+                // (4,28): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M1() => M3(() => M2());
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Nullable`1").WithLocation(4, 28),
+                // (5,7): error CS0246: The type or namespace name 'Y' could not be found (are you missing a using directive or an assembly reference?)
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Y").WithArguments("Y").WithLocation(5, 7),
+                // (5,7): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Y?").WithArguments("System.Nullable`1").WithLocation(5, 7),
+                // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     X<Y?> M2() => new();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
+        }
     }
 }

@@ -11,81 +11,82 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RunTests;
-
-internal static class ProcessUtil
+namespace RunTests
 {
-    internal static int? TryGetParentProcessId(Process p)
+    internal static class ProcessUtil
     {
-        // System.Management is not supported outside of Windows.
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        internal static int? TryGetParentProcessId(Process p)
         {
-            return null;
-        }
-
-        try
-        {
-            ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");
-            mo.Get();
-            return Convert.ToInt32(mo["ParentProcessId"]);
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Return the list of processes which are direct children of the provided <paramref name="process"/> 
-    /// instance.
-    /// </summary>
-    /// <remarks>
-    /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
-    /// the building of this list.
-    /// </remarks>
-    internal static List<Process> GetProcessChildren(Process process) => GetProcessChildrenCore(process, Process.GetProcesses());
-
-    private static List<Process> GetProcessChildrenCore(Process parentProcess, IEnumerable<Process> processes)
-    {
-        var list = new List<Process>();
-        foreach (var process in processes)
-        {
-            var parentId = TryGetParentProcessId(process);
-            if (parentId == parentProcess.Id)
+            // System.Management is not supported outside of Windows.
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                list.Add(process);
+                return null;
+            }
+
+            try
+            {
+                ManagementObject mo = new ManagementObject("win32_process.handle='" + p.Id + "'");
+                mo.Get();
+                return Convert.ToInt32(mo["ParentProcessId"]);
+            }
+            catch
+            {
+                return null;
             }
         }
 
-        return list;
-    }
+        /// <summary>
+        /// Return the list of processes which are direct children of the provided <paramref name="process"/> 
+        /// instance.
+        /// </summary>
+        /// <remarks>
+        /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
+        /// the building of this list.
+        /// </remarks>
+        internal static List<Process> GetProcessChildren(Process process) => GetProcessChildrenCore(process, Process.GetProcesses());
 
-    /// <summary>
-    /// Return the list of processes which are direct or indirect children of the provided <paramref name="process"/> 
-    /// instance.
-    /// </summary>
-    /// <remarks>
-    /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
-    /// the building of this list.
-    /// </remarks>
-    internal static List<Process> GetProcessTree(Process process)
-    {
-        var processes = Process.GetProcesses();
-        var list = new List<Process>();
-        var toVisit = new Queue<Process>();
-        toVisit.Enqueue(process);
-
-        while (toVisit.Count > 0)
+        private static List<Process> GetProcessChildrenCore(Process parentProcess, IEnumerable<Process> processes)
         {
-            var cur = toVisit.Dequeue();
-            var children = GetProcessChildrenCore(cur, processes);
-            foreach (var child in children)
+            var list = new List<Process>();
+            foreach (var process in processes)
             {
-                toVisit.Enqueue(child);
-                list.Add(child);
+                var parentId = TryGetParentProcessId(process);
+                if (parentId == parentProcess.Id)
+                {
+                    list.Add(process);
+                }
             }
+
+            return list;
         }
 
-        return list;
+        /// <summary>
+        /// Return the list of processes which are direct or indirect children of the provided <paramref name="process"/> 
+        /// instance.
+        /// </summary>
+        /// <remarks>
+        /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
+        /// the building of this list.
+        /// </remarks>
+        internal static List<Process> GetProcessTree(Process process)
+        {
+            var processes = Process.GetProcesses();
+            var list = new List<Process>();
+            var toVisit = new Queue<Process>();
+            toVisit.Enqueue(process);
+
+            while (toVisit.Count > 0)
+            {
+                var cur = toVisit.Dequeue();
+                var children = GetProcessChildrenCore(cur, processes);
+                foreach (var child in children)
+                {
+                    toVisit.Enqueue(child);
+                    list.Add(child);
+                }
+            }
+
+            return list;
+        }
     }
 }

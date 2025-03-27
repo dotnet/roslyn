@@ -9,35 +9,36 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator;
-
-internal sealed record AssemblyInfo(string FilePath, Guid Mvid)
+namespace BuildValidator
 {
-    internal string FileName => Path.GetFileName(FilePath);
-    internal string TargetFramework => Path.GetFileName(Path.GetDirectoryName(FilePath))!;
-}
-
-internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun, bool IsReferenceAssembly);
-
-internal record Options(
-    string[] AssembliesPaths,
-    string[] ReferencesPaths,
-    string[] Excludes,
-    string SourcePath,
-    bool Verbose,
-    bool Quiet,
-    bool Debug,
-    string DebugPath);
-
-/// <summary>An entry in the source-link.json dictionary.</summary>
-public record SourceLinkEntry
-{
-    public string Prefix { get; }
-    public string Replace { get; }
-
-    public SourceLinkEntry(string prefix, string replace)
+    internal sealed record AssemblyInfo(string FilePath, Guid Mvid)
     {
-        Prefix = prefix;
-        Replace = replace;
+        internal string FileName => Path.GetFileName(FilePath);
+        internal string TargetFramework => Path.GetFileName(Path.GetDirectoryName(FilePath))!;
+    }
+
+    internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun, bool IsReferenceAssembly);
+
+    internal record Options(
+        string[] AssembliesPaths,
+        string[] ReferencesPaths,
+        string[] Excludes,
+        string SourcePath,
+        bool Verbose,
+        bool Quiet,
+        bool Debug,
+        string DebugPath);
+
+    /// <summary>An entry in the source-link.json dictionary.</summary>
+    public record SourceLinkEntry
+    {
+        public string Prefix { get; }
+        public string Replace { get; }
+
+        public SourceLinkEntry(string prefix, string replace)
+        {
+            Prefix = prefix;
+            Replace = replace;
+        }
     }
 }

@@ -6,56 +6,57 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// A diagnostic, along with the location where it occurred.
-/// </summary>
-internal sealed class CSDiagnostic : DiagnosticWithInfo
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
-        : base(info, location, isSuppressed)
+    /// <summary>
+    /// A diagnostic, along with the location where it occurred.
+    /// </summary>
+    internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
-    }
-
-    public override string ToString()
-    {
-        return CSharpDiagnosticFormatter.Instance.Format(this);
-    }
-
-    internal override Diagnostic WithLocation(Location location)
-    {
-        if (location == null)
+        internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
+            : base(info, location, isSuppressed)
         {
-            throw new ArgumentNullException(nameof(location));
         }
 
-        if (location != this.Location)
+        public override string ToString()
         {
-            return new CSDiagnostic(this.Info, location, this.IsSuppressed);
+            return CSharpDiagnosticFormatter.Instance.Format(this);
         }
 
-        return this;
-    }
-
-    internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
-    {
-        var info = this.Info.GetInstanceWithSeverity(severity);
-        if (info != this.Info)
+        internal override Diagnostic WithLocation(Location location)
         {
-            return new CSDiagnostic(info, this.Location, this.IsSuppressed);
+            if (location == null)
+            {
+                throw new ArgumentNullException(nameof(location));
+            }
+
+            if (location != this.Location)
+            {
+                return new CSDiagnostic(this.Info, location, this.IsSuppressed);
+            }
+
+            return this;
         }
 
-        return this;
-    }
-
-    internal override Diagnostic WithIsSuppressed(bool isSuppressed)
-    {
-        if (this.IsSuppressed != isSuppressed)
+        internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
         {
-            return new CSDiagnostic(this.Info, this.Location, isSuppressed);
+            var info = this.Info.GetInstanceWithSeverity(severity);
+            if (info != this.Info)
+            {
+                return new CSDiagnostic(info, this.Location, this.IsSuppressed);
+            }
+
+            return this;
         }
 
-        return this;
+        internal override Diagnostic WithIsSuppressed(bool isSuppressed)
+        {
+            if (this.IsSuppressed != isSuppressed)
+            {
+                return new CSDiagnostic(this.Info, this.Location, isSuppressed);
+            }
+
+            return this;
+        }
     }
 }

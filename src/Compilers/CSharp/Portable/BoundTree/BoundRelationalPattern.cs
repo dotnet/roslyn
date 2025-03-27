@@ -4,13 +4,14 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundRelationalPattern
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private partial void Validate()
+    internal partial class BoundRelationalPattern
     {
-        Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
-                     NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+        private partial void Validate()
+        {
+            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
+                         NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+        }
     }
 }

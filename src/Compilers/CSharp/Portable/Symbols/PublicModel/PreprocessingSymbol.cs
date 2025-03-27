@@ -7,132 +7,133 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class PreprocessingSymbol : IPreprocessingSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly string _name;
-
-    internal PreprocessingSymbol(string name)
+    internal sealed class PreprocessingSymbol : IPreprocessingSymbol
     {
-        _name = name;
-    }
+        private readonly string _name;
 
-    ISymbol ISymbol.OriginalDefinition => this;
-
-    ISymbol? ISymbol.ContainingSymbol => null;
-
-    INamedTypeSymbol? ISymbol.ContainingType => null;
-
-    public sealed override int GetHashCode()
-    {
-        return this._name.GetHashCode();
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (ReferenceEquals(this, obj))
+        internal PreprocessingSymbol(string name)
         {
-            return true;
+            _name = name;
         }
 
-        if (ReferenceEquals(obj, null))
+        ISymbol ISymbol.OriginalDefinition => this;
+
+        ISymbol? ISymbol.ContainingSymbol => null;
+
+        INamedTypeSymbol? ISymbol.ContainingType => null;
+
+        public sealed override int GetHashCode()
         {
-            return false;
+            return this._name.GetHashCode();
         }
 
-        PreprocessingSymbol? other = obj as PreprocessingSymbol;
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
 
-        return (object?)other != null &&
-            this._name.Equals(other._name);
-    }
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
 
-    bool IEquatable<ISymbol?>.Equals(ISymbol? other)
-    {
-        return this.Equals(other);
-    }
+            PreprocessingSymbol? other = obj as PreprocessingSymbol;
 
-    bool ISymbol.Equals(ISymbol? other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
-    {
-        return this.Equals(other);
-    }
+            return (object?)other != null &&
+                this._name.Equals(other._name);
+        }
 
-    ImmutableArray<Location> ISymbol.Locations => ImmutableArray<Location>.Empty;
+        bool IEquatable<ISymbol?>.Equals(ISymbol? other)
+        {
+            return this.Equals(other);
+        }
 
-    ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
+        bool ISymbol.Equals(ISymbol? other, CodeAnalysis.SymbolEqualityComparer equalityComparer)
+        {
+            return this.Equals(other);
+        }
 
-    ImmutableArray<AttributeData> ISymbol.GetAttributes() => ImmutableArray<AttributeData>.Empty;
+        ImmutableArray<Location> ISymbol.Locations => ImmutableArray<Location>.Empty;
 
-    Accessibility ISymbol.DeclaredAccessibility => Accessibility.NotApplicable;
+        ImmutableArray<SyntaxReference> ISymbol.DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-    void ISymbol.Accept(SymbolVisitor visitor) => visitor.VisitPreprocessing(this);
+        ImmutableArray<AttributeData> ISymbol.GetAttributes() => ImmutableArray<AttributeData>.Empty;
 
-    TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitPreprocessing(this)!;
+        Accessibility ISymbol.DeclaredAccessibility => Accessibility.NotApplicable;
 
-    TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPreprocessing(this, argument);
+        void ISymbol.Accept(SymbolVisitor visitor) => visitor.VisitPreprocessing(this);
 
-    string? ISymbol.GetDocumentationCommentId() => null;
+        TResult ISymbol.Accept<TResult>(SymbolVisitor<TResult> visitor) => visitor.VisitPreprocessing(this)!;
 
-    string? ISymbol.GetDocumentationCommentXml(CultureInfo? preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => null;
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument) => visitor.VisitPreprocessing(this, argument);
 
-    string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
-    {
-        return SymbolDisplay.ToDisplayString(this, format);
-    }
+        string? ISymbol.GetDocumentationCommentId() => null;
 
-    ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
-    {
-        return SymbolDisplay.ToDisplayParts(this, format);
-    }
+        string? ISymbol.GetDocumentationCommentXml(CultureInfo? preferredCulture, bool expandIncludes, CancellationToken cancellationToken) => null;
 
-    string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
-    {
-        return SymbolDisplay.ToMinimalDisplayString(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
-    }
+        string ISymbol.ToDisplayString(SymbolDisplayFormat? format)
+        {
+            return SymbolDisplay.ToDisplayString(this, format);
+        }
 
-    ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
-    {
-        return SymbolDisplay.ToMinimalDisplayParts(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
-    }
+        ImmutableArray<SymbolDisplayPart> ISymbol.ToDisplayParts(SymbolDisplayFormat? format)
+        {
+            return SymbolDisplay.ToDisplayParts(this, format);
+        }
 
-    SymbolKind ISymbol.Kind => SymbolKind.Preprocessing;
+        string ISymbol.ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
+        {
+            return SymbolDisplay.ToMinimalDisplayString(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
+        }
 
-    string ISymbol.Language => LanguageNames.CSharp;
+        ImmutableArray<SymbolDisplayPart> ISymbol.ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat? format)
+        {
+            return SymbolDisplay.ToMinimalDisplayParts(this, Symbol.GetCSharpSemanticModel(semanticModel), position, format);
+        }
 
-    string ISymbol.Name => _name;
+        SymbolKind ISymbol.Kind => SymbolKind.Preprocessing;
 
-    string ISymbol.MetadataName => _name;
+        string ISymbol.Language => LanguageNames.CSharp;
 
-    int ISymbol.MetadataToken => 0;
+        string ISymbol.Name => _name;
 
-    IAssemblySymbol? ISymbol.ContainingAssembly => null;
+        string ISymbol.MetadataName => _name;
 
-    IModuleSymbol? ISymbol.ContainingModule => null;
+        int ISymbol.MetadataToken => 0;
 
-    INamespaceSymbol? ISymbol.ContainingNamespace => null;
+        IAssemblySymbol? ISymbol.ContainingAssembly => null;
 
-    bool ISymbol.IsDefinition => true;
+        IModuleSymbol? ISymbol.ContainingModule => null;
 
-    bool ISymbol.IsStatic => false;
+        INamespaceSymbol? ISymbol.ContainingNamespace => null;
 
-    bool ISymbol.IsVirtual => false;
+        bool ISymbol.IsDefinition => true;
 
-    bool ISymbol.IsOverride => false;
+        bool ISymbol.IsStatic => false;
 
-    bool ISymbol.IsAbstract => false;
+        bool ISymbol.IsVirtual => false;
 
-    bool ISymbol.IsSealed => false;
+        bool ISymbol.IsOverride => false;
 
-    bool ISymbol.IsExtern => false;
+        bool ISymbol.IsAbstract => false;
 
-    bool ISymbol.IsImplicitlyDeclared => false;
+        bool ISymbol.IsSealed => false;
 
-    bool ISymbol.CanBeReferencedByName => SyntaxFacts.IsValidIdentifier(_name) && !SyntaxFacts.ContainsDroppedIdentifierCharacters(_name);
+        bool ISymbol.IsExtern => false;
 
-    bool ISymbol.HasUnsupportedMetadata => false;
+        bool ISymbol.IsImplicitlyDeclared => false;
 
-    public sealed override string ToString()
-    {
-        return SymbolDisplay.ToDisplayString(this);
+        bool ISymbol.CanBeReferencedByName => SyntaxFacts.IsValidIdentifier(_name) && !SyntaxFacts.ContainsDroppedIdentifierCharacters(_name);
+
+        bool ISymbol.HasUnsupportedMetadata => false;
+
+        public sealed override string ToString()
+        {
+            return SymbolDisplay.ToDisplayString(this);
+        }
     }
 }

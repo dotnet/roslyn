@@ -8,46 +8,47 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-namespace ObjectFormatterFixtures;
-
-/// <summary>
-/// Follows the shape of the Desktop version of <see cref="SpinLock"/> relevant for debugger display.
-/// </summary>
-[DebuggerTypeProxy(typeof(SpinLockDebugView))]
-[DebuggerDisplay("IsHeld = {IsHeld}")]
-internal readonly struct MockDesktopSpinLock
+namespace ObjectFormatterFixtures
 {
-    private readonly int m_owner;
-
-    public MockDesktopSpinLock(bool enableThreadOwnerTracking)
+    /// <summary>
+    /// Follows the shape of the Desktop version of <see cref="SpinLock"/> relevant for debugger display.
+    /// </summary>
+    [DebuggerTypeProxy(typeof(SpinLockDebugView))]
+    [DebuggerDisplay("IsHeld = {IsHeld}")]
+    internal readonly struct MockDesktopSpinLock
     {
-        m_owner = enableThreadOwnerTracking ? 0 : int.MinValue;
-    }
+        private readonly int m_owner;
 
-    public bool IsHeld
-        => false;
-
-    public bool IsHeldByCurrentThread
-        => IsThreadOwnerTrackingEnabled ? true : throw new InvalidOperationException("Error");
-
-    public bool IsThreadOwnerTrackingEnabled
-        => (m_owner & int.MinValue) == 0;
-
-    internal class SpinLockDebugView
-    {
-        private readonly MockDesktopSpinLock m_spinLock;
-
-        public bool? IsHeldByCurrentThread
-            => m_spinLock.IsHeldByCurrentThread;
-
-        public int? OwnerThreadID
-            => m_spinLock.IsThreadOwnerTrackingEnabled ? m_spinLock.m_owner : (int?)null;
-
-        public bool IsHeld => m_spinLock.IsHeld;
-
-        public SpinLockDebugView(MockDesktopSpinLock spinLock)
+        public MockDesktopSpinLock(bool enableThreadOwnerTracking)
         {
-            m_spinLock = spinLock;
+            m_owner = enableThreadOwnerTracking ? 0 : int.MinValue;
+        }
+
+        public bool IsHeld
+            => false;
+
+        public bool IsHeldByCurrentThread
+            => IsThreadOwnerTrackingEnabled ? true : throw new InvalidOperationException("Error");
+
+        public bool IsThreadOwnerTrackingEnabled
+            => (m_owner & int.MinValue) == 0;
+
+        internal class SpinLockDebugView
+        {
+            private readonly MockDesktopSpinLock m_spinLock;
+
+            public bool? IsHeldByCurrentThread
+                => m_spinLock.IsHeldByCurrentThread;
+
+            public int? OwnerThreadID
+                => m_spinLock.IsThreadOwnerTrackingEnabled ? m_spinLock.m_owner : (int?)null;
+
+            public bool IsHeld => m_spinLock.IsHeld;
+
+            public SpinLockDebugView(MockDesktopSpinLock spinLock)
+            {
+                m_spinLock = spinLock;
+            }
         }
     }
 }

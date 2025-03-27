@@ -4,48 +4,49 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal partial class AnalyzerDriver
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    /// <summary>
-    /// Used to represent state of processing of a <see cref="CompilationEvent"/>.
-    /// </summary>
-    private sealed class EventProcessedState
+    internal partial class AnalyzerDriver
     {
-        public static readonly EventProcessedState Processed = new EventProcessedState(EventProcessedStateKind.Processed);
-        public static readonly EventProcessedState NotProcessed = new EventProcessedState(EventProcessedStateKind.NotProcessed);
-
-        public EventProcessedStateKind Kind { get; }
-
         /// <summary>
-        /// Subset of processed analyzers.
-        /// NOTE: This property is only non-null for <see cref="EventProcessedStateKind.PartiallyProcessed"/>.
+        /// Used to represent state of processing of a <see cref="CompilationEvent"/>.
         /// </summary>
-        public ImmutableArray<DiagnosticAnalyzer> SubsetProcessedAnalyzers { get; }
-
-        private EventProcessedState(EventProcessedStateKind kind)
+        private sealed class EventProcessedState
         {
-            Kind = kind;
-            SubsetProcessedAnalyzers = default;
+            public static readonly EventProcessedState Processed = new EventProcessedState(EventProcessedStateKind.Processed);
+            public static readonly EventProcessedState NotProcessed = new EventProcessedState(EventProcessedStateKind.NotProcessed);
+
+            public EventProcessedStateKind Kind { get; }
+
+            /// <summary>
+            /// Subset of processed analyzers.
+            /// NOTE: This property is only non-null for <see cref="EventProcessedStateKind.PartiallyProcessed"/>.
+            /// </summary>
+            public ImmutableArray<DiagnosticAnalyzer> SubsetProcessedAnalyzers { get; }
+
+            private EventProcessedState(EventProcessedStateKind kind)
+            {
+                Kind = kind;
+                SubsetProcessedAnalyzers = default;
+            }
+
+            private EventProcessedState(ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
+            {
+                SubsetProcessedAnalyzers = subsetProcessedAnalyzers;
+                Kind = EventProcessedStateKind.PartiallyProcessed;
+            }
+
+            public static EventProcessedState CreatePartiallyProcessed(ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
+            {
+                return new EventProcessedState(subsetProcessedAnalyzers);
+            }
         }
 
-        private EventProcessedState(ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
+        private enum EventProcessedStateKind
         {
-            SubsetProcessedAnalyzers = subsetProcessedAnalyzers;
-            Kind = EventProcessedStateKind.PartiallyProcessed;
+            Processed,
+            NotProcessed,
+            PartiallyProcessed
         }
-
-        public static EventProcessedState CreatePartiallyProcessed(ImmutableArray<DiagnosticAnalyzer> subsetProcessedAnalyzers)
-        {
-            return new EventProcessedState(subsetProcessedAnalyzers);
-        }
-    }
-
-    private enum EventProcessedStateKind
-    {
-        Processed,
-        NotProcessed,
-        PartiallyProcessed
     }
 }

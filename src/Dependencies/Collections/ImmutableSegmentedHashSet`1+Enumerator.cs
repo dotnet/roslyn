@@ -6,41 +6,42 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Collections;
-
-internal readonly partial struct ImmutableSegmentedHashSet<T>
+namespace Microsoft.CodeAnalysis.Collections
 {
-    /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator"/>
-    public struct Enumerator : IEnumerator<T>
+    internal readonly partial struct ImmutableSegmentedHashSet<T>
     {
-        private readonly SegmentedHashSet<T> _set;
-        private SegmentedHashSet<T>.Enumerator _enumerator;
-
-        internal Enumerator(SegmentedHashSet<T> set)
+        /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator"/>
+        public struct Enumerator : IEnumerator<T>
         {
-            _set = set;
-            _enumerator = set.GetEnumerator();
-        }
+            private readonly SegmentedHashSet<T> _set;
+            private SegmentedHashSet<T>.Enumerator _enumerator;
 
-        /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
-        public readonly T Current => _enumerator.Current;
+            internal Enumerator(SegmentedHashSet<T> set)
+            {
+                _set = set;
+                _enumerator = set.GetEnumerator();
+            }
 
-        readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
+            /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Current"/>
+            public readonly T Current => _enumerator.Current;
 
-        /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
-        public readonly void Dispose()
-            => _enumerator.Dispose();
+            readonly object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
-        /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.MoveNext()"/>
-        public bool MoveNext()
-            => _enumerator.MoveNext();
+            /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Dispose()"/>
+            public readonly void Dispose()
+                => _enumerator.Dispose();
 
-        /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>
-        public void Reset()
-        {
-            // Create a new enumerator, since _enumerator.Reset() will fail for cases where the set was mutated
-            // after enumeration started, and ImmutableSegmentHashSet<T>.Builder allows for this case without error.
-            _enumerator = _set.GetEnumerator();
+            /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.MoveNext()"/>
+            public bool MoveNext()
+                => _enumerator.MoveNext();
+
+            /// <inheritdoc cref="ImmutableHashSet{T}.Enumerator.Reset()"/>
+            public void Reset()
+            {
+                // Create a new enumerator, since _enumerator.Reset() will fail for cases where the set was mutated
+                // after enumeration started, and ImmutableSegmentHashSet<T>.Builder allows for this case without error.
+                _enumerator = _set.GetEnumerator();
+            }
         }
     }
 }

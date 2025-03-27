@@ -7,30 +7,31 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SynthesizedSubmissionConstructor : SynthesizedInstanceConstructor
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-    internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, BindingDiagnosticBag diagnostics)
-        : base(containingType)
+    internal sealed class SynthesizedSubmissionConstructor : SynthesizedInstanceConstructor
     {
-        Debug.Assert(containingType.TypeKind == TypeKind.Submission);
-        Debug.Assert(diagnostics != null);
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-        var compilation = containingType.DeclaringCompilation;
+        internal SynthesizedSubmissionConstructor(NamedTypeSymbol containingType, BindingDiagnosticBag diagnostics)
+            : base(containingType)
+        {
+            Debug.Assert(containingType.TypeKind == TypeKind.Submission);
+            Debug.Assert(diagnostics != null);
 
-        var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
-        var useSiteInfo = submissionArrayType.GetUseSiteInfo();
-        diagnostics.Add(useSiteInfo, NoLocation.Singleton);
+            var compilation = containingType.DeclaringCompilation;
 
-        _parameters = ImmutableArray.Create<ParameterSymbol>(
-            SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
-    }
+            var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
+            var useSiteInfo = submissionArrayType.GetUseSiteInfo();
+            diagnostics.Add(useSiteInfo, NoLocation.Singleton);
 
-    public override ImmutableArray<ParameterSymbol> Parameters
-    {
-        get { return _parameters; }
+            _parameters = ImmutableArray.Create<ParameterSymbol>(
+                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(submissionArrayType), 0, RefKind.None, "submissionArray"));
+        }
+
+        public override ImmutableArray<ParameterSymbol> Parameters
+        {
+            get { return _parameters; }
+        }
     }
 }

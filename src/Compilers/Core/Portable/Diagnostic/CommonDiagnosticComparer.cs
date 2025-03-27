@@ -5,38 +5,39 @@
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class CommonDiagnosticComparer : IEqualityComparer<Diagnostic>
+namespace Microsoft.CodeAnalysis
 {
-    internal static readonly CommonDiagnosticComparer Instance = new CommonDiagnosticComparer();
-
-    private CommonDiagnosticComparer()
+    internal sealed class CommonDiagnosticComparer : IEqualityComparer<Diagnostic>
     {
-    }
+        internal static readonly CommonDiagnosticComparer Instance = new CommonDiagnosticComparer();
 
-    public bool Equals(Diagnostic? x, Diagnostic? y)
-    {
-        if (object.ReferenceEquals(x, y))
+        private CommonDiagnosticComparer()
         {
-            return true;
         }
 
-        if (x == null || y == null)
+        public bool Equals(Diagnostic? x, Diagnostic? y)
         {
-            return false;
+            if (object.ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x == null || y == null)
+            {
+                return false;
+            }
+
+            return x.Location == y.Location && x.Id == y.Id;
         }
 
-        return x.Location == y.Location && x.Id == y.Id;
-    }
-
-    public int GetHashCode(Diagnostic obj)
-    {
-        if (object.ReferenceEquals(obj, null))
+        public int GetHashCode(Diagnostic obj)
         {
-            return 0;
-        }
+            if (object.ReferenceEquals(obj, null))
+            {
+                return 0;
+            }
 
-        return Hash.Combine(obj.Location, obj.Id.GetHashCode());
+            return Hash.Combine(obj.Location, obj.Id.GetHashCode());
+        }
     }
 }

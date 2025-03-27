@@ -7,14 +7,14 @@
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
-public class DiffUtilTests
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [Fact]
-    public void TestDiffTester()
+    public class DiffUtilTests
     {
-        var expected = DiffUtil.DiffReport(
+        [Fact]
+        public void TestDiffTester()
+        {
+            var expected = DiffUtil.DiffReport(
 @"A
 B
 C
@@ -27,8 +27,8 @@ B
 C
 E
 2");
-        // Make sure the diff tester is working!
-        Assert.Equal(@"    A
+            // Make sure the diff tester is working!
+            Assert.Equal(@"    A
 ++> 1
     B
     C
@@ -36,5 +36,6 @@ E
     E
 ++> 2
 --> F", expected);
+        }
     }
 }

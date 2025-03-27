@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IInlineArrayAccessOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public const string Buffer10Definition =
+    public class IOperationTests_IInlineArrayAccessOperation : SemanticModelTestBase
+    {
+        public const string Buffer10Definition =
 @"
 [System.Runtime.CompilerServices.InlineArray(10)]
 public struct Buffer10
@@ -22,11 +22,11 @@ public struct Buffer10
 }
 ";
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ElementAccess()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ElementAccess()
+        {
+            string source = @"
 class C
 {
     public void F(Buffer10 arg, System.Index x)
@@ -36,24 +36,24 @@ class C
 }
 ";
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInlineArrayAccessOperation (OperationKind.InlineArrayAccess, Type: System.Char) (Syntax: 'arg[x]')
   Instance:
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
   Argument:
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Index) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ElementAccess_NoControlFlow()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ElementAccess_NoControlFlow()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10 a1, System.Index i1, char result1)
@@ -62,7 +62,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -85,17 +85,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ElementAccess_ControlFlowInInstance()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ElementAccess_ControlFlowInInstance()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10? a1, Buffer10 a2, System.Index i1, char result)
@@ -104,7 +104,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -175,17 +175,17 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ElementAccess_ControlFlowInArgument()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ElementAccess_ControlFlowInArgument()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10 a, System.Index? i1, System.Index i2, char result)
@@ -194,7 +194,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -268,17 +268,17 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ElementAccess_ControlFlowInInstanceAndArgument()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ElementAccess_ControlFlowInInstanceAndArgument()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10? a1, Buffer10 a2, System.Index? i1, System.Index i2, char result)
@@ -287,7 +287,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -394,17 +394,17 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void Slice()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Slice()
+        {
+            string source = @"
 class C
 {
     public void F(Buffer10 arg, System.Range x)
@@ -414,24 +414,24 @@ class C
 }
 ";
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInlineArrayAccessOperation (OperationKind.InlineArrayAccess, Type: System.Span<System.Char>) (Syntax: 'arg[x]')
   Instance:
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
   Argument:
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Range) (Syntax: 'x')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void Slice_NoControlFlow()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Slice_NoControlFlow()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10 a1, System.Range i1)
@@ -440,7 +440,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -467,17 +467,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void Slice_ControlFlowInInstance()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Slice_ControlFlowInInstance()
+        {
+            string source = @"
 class C
 {
     void M(string a1, string a2, System.Range i1, System.Span<char> result)
@@ -488,7 +488,7 @@ class C
     static ref Buffer10 GetBuffer(string s) => throw null;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -563,17 +563,17 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void Slice_ControlFlowInArgument()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Slice_ControlFlowInArgument()
+        {
+            string source = @"
 class C
 {
     void M(Buffer10 a, System.Range? i1, System.Range i2)
@@ -582,7 +582,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -652,17 +652,17 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
-    }
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void Slice_ControlFlowInInstanceAndArgument()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void Slice_ControlFlowInInstanceAndArgument()
+        {
+            string source = @"
 class C
 {
     void M(string a1, string a2, System.Range? i1, System.Range i2, System.Span<char> result)
@@ -673,7 +673,7 @@ class C
     static ref Buffer10 GetBuffer(string s) => throw null;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -795,9 +795,10 @@ Block[B10] - Exit
     Predecessors: [B9]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+            var comp = CreateCompilation(source + Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

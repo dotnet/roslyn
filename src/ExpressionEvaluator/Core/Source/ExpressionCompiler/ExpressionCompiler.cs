@@ -18,514 +18,515 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-public abstract class ExpressionCompiler :
-    IDkmClrExpressionCompiler,
-    IDkmClrExpressionCompilerCallback,
-    IDkmMetaDataPointerInvalidatedNotification,
-    IDkmModuleModifiedNotification,
-    IDkmModuleInstanceUnloadNotification,
-    IDkmLanguageFrameDecoder,
-    IDkmLanguageInstructionDecoder
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
-    // See https://github.com/dotnet/roslyn/issues/22620
-    private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
-    private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
-    private readonly bool _useReferencedAssembliesOnly;
-
-    public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
+    public abstract class ExpressionCompiler :
+        IDkmClrExpressionCompiler,
+        IDkmClrExpressionCompilerCallback,
+        IDkmMetaDataPointerInvalidatedNotification,
+        IDkmModuleModifiedNotification,
+        IDkmModuleInstanceUnloadNotification,
+        IDkmLanguageFrameDecoder,
+        IDkmLanguageInstructionDecoder
     {
-        _languageFrameDecoder = languageFrameDecoder;
-        _languageInstructionDecoder = languageInstructionDecoder;
-        _useReferencedAssembliesOnly = GetUseReferencedAssembliesOnlySetting();
-    }
+        // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder
+        // See https://github.com/dotnet/roslyn/issues/22620
+        private readonly IDkmLanguageFrameDecoder _languageFrameDecoder;
+        private readonly IDkmLanguageInstructionDecoder _languageInstructionDecoder;
+        private readonly bool _useReferencedAssembliesOnly;
 
-    DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
-        DkmInspectionContext inspectionContext,
-        DkmClrInstructionAddress instructionAddress,
-        bool argumentsOnly)
-    {
-        try
+        public ExpressionCompiler(IDkmLanguageFrameDecoder languageFrameDecoder, IDkmLanguageInstructionDecoder languageInstructionDecoder)
         {
-            var moduleInstance = instructionAddress.ModuleInstance;
-            var runtimeInstance = instructionAddress.RuntimeInstance;
-            var aliases = argumentsOnly
-                ? ImmutableArray<Alias>.Empty
-                : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
-
-            if (TryCompileWithRetry(
-                moduleInstance.AppDomain,
-                runtimeInstance,
-                (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
-                (context, diagnostics) =>
-                {
-                    var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
-                    var assembly = context.CompileGetLocals(
-                        builder,
-                        argumentsOnly,
-                        aliases,
-                        diagnostics,
-                        out var typeName,
-                        testData: null);
-                    Debug.Assert((builder.Count == 0) == (assembly.Count == 0));
-                    var locals = new ReadOnlyCollection<DkmClrLocalVariableInfo>(builder.SelectAsArray(ToLocalVariableInfo));
-                    builder.Free();
-                    return new GetLocalsResult(typeName, locals, assembly);
-                },
-                out var result,
-                out var error))
-            {
-                return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, CompilerId, result.Assembly, result.TypeName, result.Locals);
-            }
-
-            // TODO: better error reporting to the debugger (https://github.com/dotnet/roslyn/issues/76887)
-            throw new BadImageFormatException(error);
-        }
-        catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext? inspectionContext)
-    {
-        var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
-        if (dkmAliases == null)
-        {
-            return ImmutableArray<Alias>.Empty;
+            _languageFrameDecoder = languageFrameDecoder;
+            _languageInstructionDecoder = languageInstructionDecoder;
+            _useReferencedAssembliesOnly = GetUseReferencedAssembliesOnlySetting();
         }
 
-        var builder = ArrayBuilder<Alias>.GetInstance(dkmAliases.Count);
-        foreach (var dkmAlias in dkmAliases)
+        DkmCompiledClrLocalsQuery IDkmClrExpressionCompiler.GetClrLocalVariableQuery(
+            DkmInspectionContext inspectionContext,
+            DkmClrInstructionAddress instructionAddress,
+            bool argumentsOnly)
         {
-            builder.Add(new Alias(
-                dkmAlias.Kind,
-                dkmAlias.Name,
-                dkmAlias.FullName,
-                dkmAlias.Type,
-                dkmAlias.CustomTypeInfoPayloadTypeId,
-                dkmAlias.CustomTypeInfoPayload));
-        }
-        return builder.ToImmutableAndFree();
-    }
-
-    void IDkmClrExpressionCompiler.CompileExpression(
-        DkmLanguageExpression expression,
-        DkmClrInstructionAddress instructionAddress,
-        DkmInspectionContext? inspectionContext,
-        out string? error,
-        out DkmCompiledClrInspectionQuery? result)
-    {
-        try
-        {
-            var moduleInstance = instructionAddress.ModuleInstance;
-            var runtimeInstance = instructionAddress.RuntimeInstance;
-            var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
-
-            if (TryCompileWithRetry(
-                moduleInstance.AppDomain,
-                runtimeInstance,
-                (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
-                (context, diagnostics) =>
-                {
-                    var compileResult = context.CompileExpression(
-                        expression.Text,
-                        expression.CompilationFlags,
-                        aliases,
-                        diagnostics,
-                        out var resultProperties,
-                        testData: null);
-                    return new CompileExpressionResult(compileResult, resultProperties);
-                },
-                out var r,
-                out error))
-            {
-                result = r.CompileResult?.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
-            }
-            else
-            {
-                result = null;
-            }
-        }
-        catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    void IDkmClrExpressionCompiler.CompileAssignment(
-        DkmLanguageExpression expression,
-        DkmClrInstructionAddress instructionAddress,
-        DkmEvaluationResult lValue,
-        out string? error,
-        out DkmCompiledClrInspectionQuery? result)
-    {
-        try
-        {
-            var moduleInstance = instructionAddress.ModuleInstance;
-            var runtimeInstance = instructionAddress.RuntimeInstance;
-            var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
-
-            if (TryCompileWithRetry(
-                moduleInstance.AppDomain,
-                runtimeInstance,
-                (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
-                (context, diagnostics) =>
-                {
-                    // Concord marks this as nullable but it should always have a value in our scenario.
-                    RoslynDebug.AssertNotNull(lValue.FullName);
-
-                    var compileResult = context.CompileAssignment(
-                        lValue.FullName,
-                        expression.Text,
-                        aliases,
-                        diagnostics,
-                        out var resultProperties,
-                        testData: null);
-                    return new CompileExpressionResult(compileResult, resultProperties);
-                },
-                out var r,
-                out error))
-            {
-                Debug.Assert(
-                    r.CompileResult == null && r.ResultProperties.Flags == default ||
-                    (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
-
-                result = r.CompileResult?.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
-            }
-            else
-            {
-                result = null;
-            }
-        }
-        catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    void IDkmClrExpressionCompilerCallback.CompileDisplayAttribute(
-        DkmLanguageExpression expression,
-        DkmClrModuleInstance moduleInstance,
-        int token,
-        out string? error,
-        out DkmCompiledClrInspectionQuery? result)
-    {
-        try
-        {
-            var runtimeInstance = moduleInstance.RuntimeInstance;
-            var appDomain = moduleInstance.AppDomain;
-
-            if (TryCompileWithRetry(
-                appDomain,
-                runtimeInstance,
-                createContext: (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.GetModuleId(), token, useReferencedModulesOnly),
-                compile: (context, diagnostics) =>
-                {
-                    return context.CompileExpression(
-                        expression.Text,
-                        DkmEvaluationFlags.TreatAsExpression,
-                        ImmutableArray<Alias>.Empty,
-                        diagnostics,
-                        out var unusedResultProperties,
-                        testData: null);
-                },
-                out var r,
-                out error))
-            {
-                result = r.ToQueryResult(CompilerId, resultProperties: default, runtimeInstance);
-            }
-            else
-            {
-                result = null;
-            }
-        }
-        catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    internal static bool GetUseReferencedAssembliesOnlySetting()
-    {
-        return RegistryHelpers.GetBoolRegistryValue("UseReferencedAssembliesOnly");
-    }
-
-    internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind(bool useReferencedModulesOnly)
-    {
-        if (useReferencedModulesOnly)
-        {
-            return MakeAssemblyReferencesKind.DirectReferencesOnly;
-        }
-        return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
-    }
-
-    /// <remarks>
-    /// Internal for testing.
-    /// </remarks>
-    internal static bool ShouldTryAgainWithMoreMetadataBlocks(DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities, ref ImmutableArray<MetadataBlock> references)
-    {
-        var newReferences = DkmUtilities.GetMetadataBlocks(getMetaDataBytesPtrFunction, missingAssemblyIdentities);
-        if (newReferences.Length > 0)
-        {
-            references = references.AddRange(newReferences);
-            return true;
-        }
-
-        return false;
-    }
-
-    void IDkmMetaDataPointerInvalidatedNotification.OnMetaDataPointerInvalidated(DkmClrModuleInstance moduleInstance)
-    {
-        RemoveDataItemIfNecessary(moduleInstance);
-    }
-
-    void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)
-    {
-        RemoveDataItemIfNecessary(moduleInstance);
-    }
-
-    void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
-    {
-        RemoveDataItemIfNecessary(moduleInstance);
-    }
-
-    #region IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
-
-    void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
-    {
-        _languageFrameDecoder.GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine);
-    }
-
-    void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
-    {
-        _languageFrameDecoder.GetFrameReturnType(inspectionContext, workList, frame, completionRoutine);
-    }
-
-    string IDkmLanguageInstructionDecoder.GetMethodName(DkmLanguageInstructionAddress languageInstructionAddress, DkmVariableInfoFlags argumentFlags)
-    {
-        return _languageInstructionDecoder.GetMethodName(languageInstructionAddress, argumentFlags);
-    }
-
-    #endregion
-
-    private void RemoveDataItemIfNecessary(DkmModuleInstance moduleInstance)
-    {
-        // If the module is not a managed module, the module change has no effect.
-        var module = moduleInstance as DkmClrModuleInstance;
-        if (module == null)
-        {
-            return;
-        }
-        // Drop any context cached on the AppDomain.
-        var appDomain = module.AppDomain;
-        RemoveDataItem(appDomain);
-    }
-
-    internal abstract DiagnosticFormatter DiagnosticFormatter { get; }
-
-    internal abstract DkmCompilerId CompilerId { get; }
-
-    internal abstract EvaluationContextBase CreateTypeContext(
-        DkmClrAppDomain appDomain,
-        ImmutableArray<MetadataBlock> metadataBlocks,
-        ModuleId moduleId,
-        int typeToken,
-        bool useReferencedModulesOnly);
-
-    internal abstract EvaluationContextBase CreateMethodContext(
-        DkmClrAppDomain appDomain,
-        ImmutableArray<MetadataBlock> metadataBlocks,
-        Lazy<ImmutableArray<AssemblyReaders>> lazyAssemblyReaders,
-        object? symReader,
-        ModuleId moduleId,
-        int methodToken,
-        int methodVersion,
-        uint ilOffset,
-        int localSignatureToken,
-        bool useReferencedModulesOnly);
-
-    internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
-
-    internal abstract ImmutableArray<MetadataBlock> GetMetadataBlocks(
-        DkmClrAppDomain appDomain,
-        DkmClrRuntimeInstance runtimeInstance);
-
-    private EvaluationContextBase CreateMethodContext(
-        DkmClrInstructionAddress instructionAddress,
-        ImmutableArray<MetadataBlock> metadataBlocks,
-        bool useReferencedModulesOnly)
-    {
-        var moduleInstance = instructionAddress.ModuleInstance;
-        var methodToken = instructionAddress.MethodId.Token;
-        int localSignatureToken;
-        try
-        {
-            localSignatureToken = moduleInstance.GetLocalSignatureToken(methodToken);
-        }
-        catch (InvalidOperationException)
-        {
-            // No local signature. May occur when debugging .dmp.
-            localSignatureToken = 0;
-        }
-        catch (FileNotFoundException)
-        {
-            // No local signature. May occur when debugging heapless dumps.
-            localSignatureToken = 0;
-        }
-        return CreateMethodContext(
-            moduleInstance.AppDomain,
-            metadataBlocks,
-            new Lazy<ImmutableArray<AssemblyReaders>>(instructionAddress.MakeAssemblyReaders, LazyThreadSafetyMode.None),
-            symReader: moduleInstance.GetSymReader(),
-            moduleId: moduleInstance.GetModuleId(),
-            methodToken: methodToken,
-            methodVersion: (int)instructionAddress.MethodId.Version,
-            ilOffset: instructionAddress.ILOffset,
-            localSignatureToken: localSignatureToken,
-            useReferencedModulesOnly: useReferencedModulesOnly);
-    }
-
-    internal delegate EvaluationContextBase CreateContextDelegate(ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly);
-    internal delegate TResult CompileDelegate<TResult>(EvaluationContextBase context, DiagnosticBag diagnostics);
-
-    private bool TryCompileWithRetry<TResult>(
-        DkmClrAppDomain appDomain,
-        DkmClrRuntimeInstance runtimeInstance,
-        CreateContextDelegate createContext,
-        CompileDelegate<TResult> compile,
-        [NotNullWhen(true)] out TResult? result,
-        [NotNullWhen(false)] out string? errorMessage)
-    {
-        var metadataBlocks = GetMetadataBlocks(appDomain, runtimeInstance);
-        return TryCompileWithRetry(
-            metadataBlocks,
-            DiagnosticFormatter,
-            createContext,
-            compile,
-            (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
-            out result,
-            out errorMessage);
-    }
-
-    internal static bool TryCompileWithRetry<TResult>(
-        ImmutableArray<MetadataBlock> metadataBlocks,
-        DiagnosticFormatter formatter,
-        CreateContextDelegate createContext,
-        CompileDelegate<TResult> compile,
-        DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
-        [NotNullWhen(true)] out TResult? compileResult,
-        [NotNullWhen(false)] out string? errorMessage)
-    {
-        PooledHashSet<AssemblyIdentity>? assembliesLoadedInRetryLoop = null;
-        bool tryAgain;
-        var linqLibrary = EvaluationContextBase.SystemLinqIdentity;
-        do
-        {
-            EvaluationContextBase context;
             try
             {
-                context = createContext(metadataBlocks, useReferencedModulesOnly: false);
-            }
-            catch (BadMetadataModuleException e)
-            {
-                compileResult = default;
-                errorMessage = e.Message;
-                return false;
-            }
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var aliases = argumentsOnly
+                    ? ImmutableArray<Alias>.Empty
+                    : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
 
-            errorMessage = null;
-
-            var diagnostics = DiagnosticBag.GetInstance();
-            compileResult = compile(context, diagnostics);
-            tryAgain = false;
-            if (diagnostics.HasAnyErrors())
-            {
-                errorMessage = context.GetErrorMessageAndMissingAssemblyIdentities(
-                    diagnostics,
-                    formatter,
-                    preferredUICulture: null,
-                    linqLibrary: linqLibrary,
-                    useReferencedModulesOnly: out var useReferencedModulesOnly,
-                    missingAssemblyIdentities: out var missingAssemblyIdentities);
-
-                // If there were LINQ-related errors, we'll initially add System.Linq (set above).
-                // If that doesn't work, we'll fall back to System.Core for subsequent retries.
-                linqLibrary = EvaluationContextBase.SystemCoreIdentity;
-
-                // Can we remove the `useReferencedModulesOnly` attempt if we're only using
-                // modules reachable from the current module? In short, can we avoid retrying?
-                if (useReferencedModulesOnly)
-                {
-                    Debug.Assert(missingAssemblyIdentities.IsEmpty);
-                    var otherContext = createContext(metadataBlocks, useReferencedModulesOnly: true);
-                    var otherDiagnostics = DiagnosticBag.GetInstance();
-                    var otherResult = compile(otherContext, otherDiagnostics);
-                    if (!otherDiagnostics.HasAnyErrors())
+                if (TryCompileWithRetry(
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
                     {
-                        errorMessage = null;
-                        compileResult = otherResult;
-                    }
-                    otherDiagnostics.Free();
+                        var builder = ArrayBuilder<LocalAndMethod>.GetInstance();
+                        var assembly = context.CompileGetLocals(
+                            builder,
+                            argumentsOnly,
+                            aliases,
+                            diagnostics,
+                            out var typeName,
+                            testData: null);
+                        Debug.Assert((builder.Count == 0) == (assembly.Count == 0));
+                        var locals = new ReadOnlyCollection<DkmClrLocalVariableInfo>(builder.SelectAsArray(ToLocalVariableInfo));
+                        builder.Free();
+                        return new GetLocalsResult(typeName, locals, assembly);
+                    },
+                    out var result,
+                    out var error))
+                {
+                    return DkmCompiledClrLocalsQuery.Create(runtimeInstance, null, CompilerId, result.Assembly, result.TypeName, result.Locals);
+                }
+
+                // TODO: better error reporting to the debugger (https://github.com/dotnet/roslyn/issues/76887)
+                throw new BadImageFormatException(error);
+            }
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private static ImmutableArray<Alias> GetAliases(DkmClrRuntimeInstance runtimeInstance, DkmInspectionContext? inspectionContext)
+        {
+            var dkmAliases = runtimeInstance.GetAliases(inspectionContext);
+            if (dkmAliases == null)
+            {
+                return ImmutableArray<Alias>.Empty;
+            }
+
+            var builder = ArrayBuilder<Alias>.GetInstance(dkmAliases.Count);
+            foreach (var dkmAlias in dkmAliases)
+            {
+                builder.Add(new Alias(
+                    dkmAlias.Kind,
+                    dkmAlias.Name,
+                    dkmAlias.FullName,
+                    dkmAlias.Type,
+                    dkmAlias.CustomTypeInfoPayloadTypeId,
+                    dkmAlias.CustomTypeInfoPayload));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        void IDkmClrExpressionCompiler.CompileExpression(
+            DkmLanguageExpression expression,
+            DkmClrInstructionAddress instructionAddress,
+            DkmInspectionContext? inspectionContext,
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
+        {
+            try
+            {
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var aliases = GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
+
+                if (TryCompileWithRetry(
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
+                    {
+                        var compileResult = context.CompileExpression(
+                            expression.Text,
+                            expression.CompilationFlags,
+                            aliases,
+                            diagnostics,
+                            out var resultProperties,
+                            testData: null);
+                        return new CompileExpressionResult(compileResult, resultProperties);
+                    },
+                    out var r,
+                    out error))
+                {
+                    result = r.CompileResult?.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
                 }
                 else
                 {
-                    if (!missingAssemblyIdentities.IsEmpty)
+                    result = null;
+                }
+            }
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        void IDkmClrExpressionCompiler.CompileAssignment(
+            DkmLanguageExpression expression,
+            DkmClrInstructionAddress instructionAddress,
+            DkmEvaluationResult lValue,
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
+        {
+            try
+            {
+                var moduleInstance = instructionAddress.ModuleInstance;
+                var runtimeInstance = instructionAddress.RuntimeInstance;
+                var aliases = GetAliases(runtimeInstance, lValue.InspectionContext); // NB: Not affected by retrying.
+
+                if (TryCompileWithRetry(
+                    moduleInstance.AppDomain,
+                    runtimeInstance,
+                    (blocks, useReferencedModulesOnly) => CreateMethodContext(instructionAddress, blocks, useReferencedModulesOnly),
+                    (context, diagnostics) =>
                     {
-                        assembliesLoadedInRetryLoop ??= PooledHashSet<AssemblyIdentity>.GetInstance();
-                        // If any identities failed to add (they were already in the list), then don't retry. 
-                        if (assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities))
+                        // Concord marks this as nullable but it should always have a value in our scenario.
+                        RoslynDebug.AssertNotNull(lValue.FullName);
+
+                        var compileResult = context.CompileAssignment(
+                            lValue.FullName,
+                            expression.Text,
+                            aliases,
+                            diagnostics,
+                            out var resultProperties,
+                            testData: null);
+                        return new CompileExpressionResult(compileResult, resultProperties);
+                    },
+                    out var r,
+                    out error))
+                {
+                    Debug.Assert(
+                        r.CompileResult == null && r.ResultProperties.Flags == default ||
+                        (r.ResultProperties.Flags & DkmClrCompilationResultFlags.PotentialSideEffect) == DkmClrCompilationResultFlags.PotentialSideEffect);
+
+                    result = r.CompileResult?.ToQueryResult(CompilerId, r.ResultProperties, runtimeInstance);
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        void IDkmClrExpressionCompilerCallback.CompileDisplayAttribute(
+            DkmLanguageExpression expression,
+            DkmClrModuleInstance moduleInstance,
+            int token,
+            out string? error,
+            out DkmCompiledClrInspectionQuery? result)
+        {
+            try
+            {
+                var runtimeInstance = moduleInstance.RuntimeInstance;
+                var appDomain = moduleInstance.AppDomain;
+
+                if (TryCompileWithRetry(
+                    appDomain,
+                    runtimeInstance,
+                    createContext: (blocks, useReferencedModulesOnly) => CreateTypeContext(appDomain, blocks, moduleInstance.GetModuleId(), token, useReferencedModulesOnly),
+                    compile: (context, diagnostics) =>
+                    {
+                        return context.CompileExpression(
+                            expression.Text,
+                            DkmEvaluationFlags.TreatAsExpression,
+                            ImmutableArray<Alias>.Empty,
+                            diagnostics,
+                            out var unusedResultProperties,
+                            testData: null);
+                    },
+                    out var r,
+                    out error))
+                {
+                    result = r.ToQueryResult(CompilerId, resultProperties: default, runtimeInstance);
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            catch (Exception e) when (ExpressionEvaluatorFatalError.CrashIfFailFastEnabled(e))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        internal static bool GetUseReferencedAssembliesOnlySetting()
+        {
+            return RegistryHelpers.GetBoolRegistryValue("UseReferencedAssembliesOnly");
+        }
+
+        internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind(bool useReferencedModulesOnly)
+        {
+            if (useReferencedModulesOnly)
+            {
+                return MakeAssemblyReferencesKind.DirectReferencesOnly;
+            }
+            return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
+        }
+
+        /// <remarks>
+        /// Internal for testing.
+        /// </remarks>
+        internal static bool ShouldTryAgainWithMoreMetadataBlocks(DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtrFunction, ImmutableArray<AssemblyIdentity> missingAssemblyIdentities, ref ImmutableArray<MetadataBlock> references)
+        {
+            var newReferences = DkmUtilities.GetMetadataBlocks(getMetaDataBytesPtrFunction, missingAssemblyIdentities);
+            if (newReferences.Length > 0)
+            {
+                references = references.AddRange(newReferences);
+                return true;
+            }
+
+            return false;
+        }
+
+        void IDkmMetaDataPointerInvalidatedNotification.OnMetaDataPointerInvalidated(DkmClrModuleInstance moduleInstance)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        #region IDkmLanguageFrameDecoder, IDkmLanguageInstructionDecoder
+
+        void IDkmLanguageFrameDecoder.GetFrameName(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmVariableInfoFlags argumentFlags, DkmCompletionRoutine<DkmGetFrameNameAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameName(inspectionContext, workList, frame, argumentFlags, completionRoutine);
+        }
+
+        void IDkmLanguageFrameDecoder.GetFrameReturnType(DkmInspectionContext inspectionContext, DkmWorkList workList, DkmStackWalkFrame frame, DkmCompletionRoutine<DkmGetFrameReturnTypeAsyncResult> completionRoutine)
+        {
+            _languageFrameDecoder.GetFrameReturnType(inspectionContext, workList, frame, completionRoutine);
+        }
+
+        string IDkmLanguageInstructionDecoder.GetMethodName(DkmLanguageInstructionAddress languageInstructionAddress, DkmVariableInfoFlags argumentFlags)
+        {
+            return _languageInstructionDecoder.GetMethodName(languageInstructionAddress, argumentFlags);
+        }
+
+        #endregion
+
+        private void RemoveDataItemIfNecessary(DkmModuleInstance moduleInstance)
+        {
+            // If the module is not a managed module, the module change has no effect.
+            var module = moduleInstance as DkmClrModuleInstance;
+            if (module == null)
+            {
+                return;
+            }
+            // Drop any context cached on the AppDomain.
+            var appDomain = module.AppDomain;
+            RemoveDataItem(appDomain);
+        }
+
+        internal abstract DiagnosticFormatter DiagnosticFormatter { get; }
+
+        internal abstract DkmCompilerId CompilerId { get; }
+
+        internal abstract EvaluationContextBase CreateTypeContext(
+            DkmClrAppDomain appDomain,
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            ModuleId moduleId,
+            int typeToken,
+            bool useReferencedModulesOnly);
+
+        internal abstract EvaluationContextBase CreateMethodContext(
+            DkmClrAppDomain appDomain,
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            Lazy<ImmutableArray<AssemblyReaders>> lazyAssemblyReaders,
+            object? symReader,
+            ModuleId moduleId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken,
+            bool useReferencedModulesOnly);
+
+        internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
+
+        internal abstract ImmutableArray<MetadataBlock> GetMetadataBlocks(
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance);
+
+        private EvaluationContextBase CreateMethodContext(
+            DkmClrInstructionAddress instructionAddress,
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            bool useReferencedModulesOnly)
+        {
+            var moduleInstance = instructionAddress.ModuleInstance;
+            var methodToken = instructionAddress.MethodId.Token;
+            int localSignatureToken;
+            try
+            {
+                localSignatureToken = moduleInstance.GetLocalSignatureToken(methodToken);
+            }
+            catch (InvalidOperationException)
+            {
+                // No local signature. May occur when debugging .dmp.
+                localSignatureToken = 0;
+            }
+            catch (FileNotFoundException)
+            {
+                // No local signature. May occur when debugging heapless dumps.
+                localSignatureToken = 0;
+            }
+            return CreateMethodContext(
+                moduleInstance.AppDomain,
+                metadataBlocks,
+                new Lazy<ImmutableArray<AssemblyReaders>>(instructionAddress.MakeAssemblyReaders, LazyThreadSafetyMode.None),
+                symReader: moduleInstance.GetSymReader(),
+                moduleId: moduleInstance.GetModuleId(),
+                methodToken: methodToken,
+                methodVersion: (int)instructionAddress.MethodId.Version,
+                ilOffset: instructionAddress.ILOffset,
+                localSignatureToken: localSignatureToken,
+                useReferencedModulesOnly: useReferencedModulesOnly);
+        }
+
+        internal delegate EvaluationContextBase CreateContextDelegate(ImmutableArray<MetadataBlock> metadataBlocks, bool useReferencedModulesOnly);
+        internal delegate TResult CompileDelegate<TResult>(EvaluationContextBase context, DiagnosticBag diagnostics);
+
+        private bool TryCompileWithRetry<TResult>(
+            DkmClrAppDomain appDomain,
+            DkmClrRuntimeInstance runtimeInstance,
+            CreateContextDelegate createContext,
+            CompileDelegate<TResult> compile,
+            [NotNullWhen(true)] out TResult? result,
+            [NotNullWhen(false)] out string? errorMessage)
+        {
+            var metadataBlocks = GetMetadataBlocks(appDomain, runtimeInstance);
+            return TryCompileWithRetry(
+                metadataBlocks,
+                DiagnosticFormatter,
+                createContext,
+                compile,
+                (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
+                out result,
+                out errorMessage);
+        }
+
+        internal static bool TryCompileWithRetry<TResult>(
+            ImmutableArray<MetadataBlock> metadataBlocks,
+            DiagnosticFormatter formatter,
+            CreateContextDelegate createContext,
+            CompileDelegate<TResult> compile,
+            DkmUtilities.GetMetadataBytesPtrFunction getMetaDataBytesPtr,
+            [NotNullWhen(true)] out TResult? compileResult,
+            [NotNullWhen(false)] out string? errorMessage)
+        {
+            PooledHashSet<AssemblyIdentity>? assembliesLoadedInRetryLoop = null;
+            bool tryAgain;
+            var linqLibrary = EvaluationContextBase.SystemLinqIdentity;
+            do
+            {
+                EvaluationContextBase context;
+                try
+                {
+                    context = createContext(metadataBlocks, useReferencedModulesOnly: false);
+                }
+                catch (BadMetadataModuleException e)
+                {
+                    compileResult = default;
+                    errorMessage = e.Message;
+                    return false;
+                }
+
+                errorMessage = null;
+
+                var diagnostics = DiagnosticBag.GetInstance();
+                compileResult = compile(context, diagnostics);
+                tryAgain = false;
+                if (diagnostics.HasAnyErrors())
+                {
+                    errorMessage = context.GetErrorMessageAndMissingAssemblyIdentities(
+                        diagnostics,
+                        formatter,
+                        preferredUICulture: null,
+                        linqLibrary: linqLibrary,
+                        useReferencedModulesOnly: out var useReferencedModulesOnly,
+                        missingAssemblyIdentities: out var missingAssemblyIdentities);
+
+                    // If there were LINQ-related errors, we'll initially add System.Linq (set above).
+                    // If that doesn't work, we'll fall back to System.Core for subsequent retries.
+                    linqLibrary = EvaluationContextBase.SystemCoreIdentity;
+
+                    // Can we remove the `useReferencedModulesOnly` attempt if we're only using
+                    // modules reachable from the current module? In short, can we avoid retrying?
+                    if (useReferencedModulesOnly)
+                    {
+                        Debug.Assert(missingAssemblyIdentities.IsEmpty);
+                        var otherContext = createContext(metadataBlocks, useReferencedModulesOnly: true);
+                        var otherDiagnostics = DiagnosticBag.GetInstance();
+                        var otherResult = compile(otherContext, otherDiagnostics);
+                        if (!otherDiagnostics.HasAnyErrors())
                         {
-                            tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                            errorMessage = null;
+                            compileResult = otherResult;
+                        }
+                        otherDiagnostics.Free();
+                    }
+                    else
+                    {
+                        if (!missingAssemblyIdentities.IsEmpty)
+                        {
+                            assembliesLoadedInRetryLoop ??= PooledHashSet<AssemblyIdentity>.GetInstance();
+                            // If any identities failed to add (they were already in the list), then don't retry. 
+                            if (assembliesLoadedInRetryLoop.AddAll(missingAssemblyIdentities))
+                            {
+                                tryAgain = ShouldTryAgainWithMoreMetadataBlocks(getMetaDataBytesPtr, missingAssemblyIdentities, ref metadataBlocks);
+                            }
                         }
                     }
                 }
-            }
-            diagnostics.Free();
-        } while (tryAgain);
-        assembliesLoadedInRetryLoop?.Free();
+                diagnostics.Free();
+            } while (tryAgain);
+            assembliesLoadedInRetryLoop?.Free();
 
-        return errorMessage == null;
-    }
-
-    private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
-    {
-        ReadOnlyCollection<byte>? customTypeInfo;
-        Guid customTypeInfoId = local.GetCustomTypeInfo(out customTypeInfo);
-        return DkmClrLocalVariableInfo.Create(
-            local.LocalDisplayName,
-            local.LocalName,
-            local.MethodName,
-            local.Flags,
-            DkmEvaluationResultCategory.Data,
-            customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
-    }
-
-    private readonly struct GetLocalsResult
-    {
-        internal readonly string TypeName;
-        internal readonly ReadOnlyCollection<DkmClrLocalVariableInfo> Locals;
-        internal readonly ReadOnlyCollection<byte> Assembly;
-
-        internal GetLocalsResult(string typeName, ReadOnlyCollection<DkmClrLocalVariableInfo> locals, ReadOnlyCollection<byte> assembly)
-        {
-            TypeName = typeName;
-            Locals = locals;
-            Assembly = assembly;
+            return errorMessage == null;
         }
-    }
 
-    private readonly struct CompileExpressionResult
-    {
-        internal readonly CompileResult? CompileResult;
-        internal readonly ResultProperties ResultProperties;
-
-        internal CompileExpressionResult(CompileResult? compileResult, ResultProperties resultProperties)
+        private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
-            CompileResult = compileResult;
-            ResultProperties = resultProperties;
+            ReadOnlyCollection<byte>? customTypeInfo;
+            Guid customTypeInfoId = local.GetCustomTypeInfo(out customTypeInfo);
+            return DkmClrLocalVariableInfo.Create(
+                local.LocalDisplayName,
+                local.LocalName,
+                local.MethodName,
+                local.Flags,
+                DkmEvaluationResultCategory.Data,
+                customTypeInfo.ToCustomTypeInfo(customTypeInfoId));
+        }
+
+        private readonly struct GetLocalsResult
+        {
+            internal readonly string TypeName;
+            internal readonly ReadOnlyCollection<DkmClrLocalVariableInfo> Locals;
+            internal readonly ReadOnlyCollection<byte> Assembly;
+
+            internal GetLocalsResult(string typeName, ReadOnlyCollection<DkmClrLocalVariableInfo> locals, ReadOnlyCollection<byte> assembly)
+            {
+                TypeName = typeName;
+                Locals = locals;
+                Assembly = assembly;
+            }
+        }
+
+        private readonly struct CompileExpressionResult
+        {
+            internal readonly CompileResult? CompileResult;
+            internal readonly ResultProperties ResultProperties;
+
+            internal CompileExpressionResult(CompileResult? compileResult, ResultProperties resultProperties)
+            {
+                CompileResult = compileResult;
+                ResultProperties = resultProperties;
+            }
         }
     }
 }

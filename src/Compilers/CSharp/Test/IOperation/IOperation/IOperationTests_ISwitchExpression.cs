@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_ISwitchExpression : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_NonExhaustive()
+    public class IOperationTests_ISwitchExpression : SemanticModelTestBase
     {
-        //null case is not handled -> not exhaustive
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NonExhaustive()
+        {
+            //null case is not handled -> not exhaustive
+            string source = @"
 namespace Tests
 {
     public class Prog
@@ -37,7 +37,7 @@ namespace Tests
     }
 }
 ";
-        string expectedOperationTree = @"ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'point switc ... }')
+            string expectedOperationTree = @"ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'point switc ... }')
   Value: 
     IParameterReferenceOperation: point (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'point')
   Arms(2):
@@ -72,16 +72,16 @@ namespace Tests
             PropertySubpatterns (0)
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_Basic()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_Basic()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -91,7 +91,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 4, _ => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -116,16 +116,16 @@ ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_NoArms()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NoArms()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -135,25 +135,25 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (0 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch { }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
   Arms(0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-            //         y = /*<bind>*/x switch { }/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 25)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,25): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         y = /*<bind>*/x switch { }/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(7, 25)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_MissingPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_MissingPattern()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -163,7 +163,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -177,19 +177,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchEx
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,34): error CS8504: Pattern missing
-            //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(7, 34)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,34): error CS8504: Pattern missing
+                //         y = /*<bind>*/x switch { => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(7, 34)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_BadInput_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_BadInput_01()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -199,7 +199,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 4, _ => 5 }')
   Value: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'x')
@@ -225,19 +225,19 @@ ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,23): error CS0103: The name 'x' does not exist in the current context
-            //         y = /*<bind>*/x switch { 1 => 2, 3 => 4, _ => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 23)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,23): error CS0103: The name 'x' does not exist in the current context
+                //         y = /*<bind>*/x switch { 1 => 2, 3 => 4, _ => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 23)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_NoCommonType_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NoCommonType_01()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -247,7 +247,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Object) (Syntax: 'x switch {  ...  _ => ""Z"" }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -271,15 +271,15 @@ ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExp
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] { };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new DiagnosticDescription[] { };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_NoCommonType_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_NoCommonType_02()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -289,7 +289,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
     ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  _ => ""Z"" }')
       Value: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -313,19 +313,19 @@ class X
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Z"") (Syntax: '""Z""')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(7,29): error CS8506: No best type was found for the switch expression.
-            //         var z = /*<bind>*/x switch { 1 => 2, _ => "Z" }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 29)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,29): error CS8506: No best type was found for the switch expression.
+                //         var z = /*<bind>*/x switch { 1 => 2, _ => "Z" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(7, 29)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_MissingArrow()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_MissingArrow()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -335,7 +335,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch { _ /*=>*/ 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -346,19 +346,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5, IsInvalid) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,43): error CS1003: Syntax error, '=>' expected
-            //         y = /*<bind>*/x switch { _ /*=>*/ 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>").WithLocation(7, 43)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,43): error CS1003: Syntax error, '=>' expected
+                //         y = /*<bind>*/x switch { _ /*=>*/ 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>").WithLocation(7, 43)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_MissingExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_MissingExpression()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -368,7 +368,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch { _ => /*5*/ }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -380,19 +380,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExp
           IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
             Children(0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,45): error CS1525: Invalid expression term '}'
-            //         y = /*<bind>*/x switch { _ => /*5*/ }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(7, 45)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,45): error CS1525: Invalid expression term '}'
+                //         y = /*<bind>*/x switch { _ => /*5*/ }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(7, 45)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_BadPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_BadPattern()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -402,7 +402,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -419,19 +419,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchEx
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,34): error CS0103: The name 'NotFound' does not exist in the current context
-            //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 34)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,34): error CS0103: The name 'NotFound' does not exist in the current context
+                //         y = /*<bind>*/x switch { NotFound => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 34)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_BadArmExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_BadArmExpression()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -441,7 +441,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: 'x switch {  ...  NotFound }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -453,19 +453,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExp
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'NotFound')
             Children(0)
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,39): error CS0103: The name 'NotFound' does not exist in the current context
-            //         y = /*<bind>*/x switch { _ => NotFound }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 39)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,39): error CS0103: The name 'NotFound' does not exist in the current context
+                //         y = /*<bind>*/x switch { _ => NotFound }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 39)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_SubsumedArm()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_SubsumedArm()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -475,7 +475,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... 5, 1 => 2 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -493,19 +493,19 @@ ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,42): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-            //         y = /*<bind>*/x switch { _ => 5, 1 => 2 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(7, 42)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,42): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //         y = /*<bind>*/x switch { _ => 5, 1 => 2 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "1").WithLocation(7, 42)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_BasicGuard()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_BasicGuard()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -515,7 +515,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... 2, _ => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -535,15 +535,15 @@ ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_FalseGuard()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_FalseGuard()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -553,7 +553,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... alse => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -573,19 +573,19 @@ ISwitchExpressionOperation (2 arms, IsExhaustive: False) (OperationKind.SwitchEx
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
-            //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(7, 25)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,25): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                //         y = /*<bind>*/x switch { 1 => 2, _ when false => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("0").WithLocation(7, 25)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_TrueGuard()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_TrueGuard()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -595,7 +595,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: 'x switch {  ... true => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -615,15 +615,15 @@ ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExp
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_BadGuard()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_BadGuard()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -633,7 +633,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... ound => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -650,19 +650,19 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchEx
         Value: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,41): error CS0103: The name 'NotFound' does not exist in the current context
-            //         y = /*<bind>*/x switch { _ when NotFound => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 41)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,41): error CS0103: The name 'NotFound' does not exist in the current context
+                //         y = /*<bind>*/x switch { _ when NotFound => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 41)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
-    [Fact]
-    public void SwitchExpression_LocalsClash()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
+        [Fact]
+        public void SwitchExpression_LocalsClash()
+        {
+            string source = @"
 using System;
 class X
 {
@@ -672,7 +672,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'x switch {  ... nt z => 5 }')
   Value: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
@@ -694,23 +694,23 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: False) (OperationKind.SwitchEx
         Locals: Local_1: System.Int32 z
           Local_2: System.Int32 z
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,54): error CS0128: A local variable or function named 'z' is already defined in this scope
-            //         y = /*<bind>*/x switch { int z when x is int z => 5 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_LocalDuplicate, "z").WithArguments("z").WithLocation(7, 54)
-        };
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = new[] {
+                // file.cs(7,54): error CS0128: A local variable or function named 'z' is already defined in this scope
+                //         y = /*<bind>*/x switch { int z when x is int z => 5 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "z").WithArguments("z").WithLocation(7, 54)
+            };
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TargetTypedSwitchExpression_ImplicitCast()
-    {
-        var source = @"
+        [Fact]
+        public void TargetTypedSwitchExpression_ImplicitCast()
+        {
+            var source = @"
 using System;
 bool b = true;
 /*<bind>*/Action<string> a = b switch { true => arg => {}, false => arg => {} };/*</bind>*/";
 
-        var expectedOperationTree = @"
+            var expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ... rg => {} };')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<stri ... arg => {} }')
     Declarators:
@@ -754,20 +754,20 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
 
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TargetTypedSwitchExpression_ExplicitCast()
-    {
-        var source = @"
+        [Fact]
+        public void TargetTypedSwitchExpression_ExplicitCast()
+        {
+            var source = @"
 using System;
 bool b = true;
 /*<bind>*/var a = (Action<string>)(b switch { true => arg => {}, false => arg => {} });/*</bind>*/";
 
-        var expectedOperationTree = @"
+            var expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var a = (Ac ... g => {} });')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var a = (Ac ... rg => {} })')
     Declarators:
@@ -811,16 +811,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
 
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void SwitchExpression_BasicFlow()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchExpression_BasicFlow()
+        {
+            string source = @"
 public sealed class MyClass
 {
     void M(bool result, int input)
@@ -833,8 +833,8 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -932,14 +932,14 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
-    public void SwitchExpression_CompoundGuard()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        public void SwitchExpression_CompoundGuard()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -952,8 +952,8 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1047,14 +1047,14 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
-    public void SwitchExpression_CompoundInput()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        public void SwitchExpression_CompoundInput()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -1067,8 +1067,8 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1165,14 +1165,14 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
-    public void SwitchExpression_BadInput_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        public void SwitchExpression_BadInput_02()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -1185,12 +1185,12 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = new[] {
-            // file.cs(7,18): error CS0103: The name 'NotFound' does not exist in the current context
-            //         result = NotFound switch
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 18)
-            };
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = new[] {
+                // file.cs(7,18): error CS0103: The name 'NotFound' does not exist in the current context
+                //         result = NotFound switch
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "NotFound").WithArguments("NotFound").WithLocation(7, 18)
+                };
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1269,14 +1269,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
-    public void SwitchExpression_CompoundConsequence()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        public void SwitchExpression_CompoundConsequence()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -1289,8 +1289,8 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1384,14 +1384,14 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
-    public void SwitchExpression_CompoundPattern()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact, WorkItem(32216, "https://github.com/dotnet/roslyn/issues/32216")]
+        public void SwitchExpression_CompoundPattern()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -1404,12 +1404,12 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = new[] {
-            // (9,18): error CS9133: A constant value of type 'int' is expected
-            //                 (a ? input1 : input2) => true
-            Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a ? input1 : input2").WithArguments("int").WithLocation(9, 18)
-        };
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = new[] {
+                // (9,18): error CS9133: A constant value of type 'int' is expected
+                //                 (a ? input1 : input2) => true
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "a ? input1 : input2").WithArguments("int").WithLocation(9, 18)
+            };
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1522,14 +1522,14 @@ Block[B10] - Exit
     Predecessors: [B9]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void SwitchExpression_Combinators()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchExpression_Combinators()
+        {
+            string source = @"
 #pragma warning disable CS8509
 public sealed class MyClass
 {
@@ -1545,9 +1545,9 @@ public sealed class MyClass
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            };
-        string expectedFlowGraph = @"
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                };
+            string expectedFlowGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -1686,6 +1686,7 @@ public sealed class MyClass
         Predecessors: [B10]
         Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularWithPatternCombinators);
+        }
     }
 }

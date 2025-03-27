@@ -6,45 +6,46 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <summary>
-/// DiagnosticAnalyzer for compiler's syntax/semantic/compilation diagnostics.
-/// </summary>
-internal abstract partial class CompilerDiagnosticAnalyzer : DiagnosticAnalyzer
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
-
-    protected abstract CommonMessageProvider MessageProvider { get; }
-
-    // internal as this is called from tests
-    internal abstract ImmutableArray<int> GetSupportedErrorCodes();
-
-    public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        => InterlockedOperations.Initialize(
-            ref _supportedDiagnostics,
-            static @this =>
-            {
-                var messageProvider = @this.MessageProvider;
-                var errorCodes = @this.GetSupportedErrorCodes();
-                var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance(errorCodes.Length);
-                foreach (var errorCode in errorCodes)
-                    builder.Add(DiagnosticInfo.GetDescriptor(errorCode, messageProvider));
-
-                builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
-                return builder.ToImmutableAndFree();
-            }, this);
-
-    public sealed override void Initialize(AnalysisContext context)
+    /// <summary>
+    /// DiagnosticAnalyzer for compiler's syntax/semantic/compilation diagnostics.
+    /// </summary>
+    internal abstract partial class CompilerDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        context.EnableConcurrentExecution();
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
 
-        context.RegisterCompilationStartAction(c =>
+        protected abstract CommonMessageProvider MessageProvider { get; }
+
+        // internal as this is called from tests
+        internal abstract ImmutableArray<int> GetSupportedErrorCodes();
+
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => InterlockedOperations.Initialize(
+                ref _supportedDiagnostics,
+                static @this =>
+                {
+                    var messageProvider = @this.MessageProvider;
+                    var errorCodes = @this.GetSupportedErrorCodes();
+                    var builder = ArrayBuilder<DiagnosticDescriptor>.GetInstance(errorCodes.Length);
+                    foreach (var errorCode in errorCodes)
+                        builder.Add(DiagnosticInfo.GetDescriptor(errorCode, messageProvider));
+
+                    builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
+                    return builder.ToImmutableAndFree();
+                }, this);
+
+        public sealed override void Initialize(AnalysisContext context)
         {
-            var analyzer = new CompilationAnalyzer(c.Compilation);
-            c.RegisterSyntaxTreeAction(analyzer.AnalyzeSyntaxTree);
-            c.RegisterSemanticModelAction(CompilationAnalyzer.AnalyzeSemanticModel);
-        });
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
+            context.RegisterCompilationStartAction(c =>
+            {
+                var analyzer = new CompilationAnalyzer(c.Compilation);
+                c.RegisterSyntaxTreeAction(analyzer.AnalyzeSyntaxTree);
+                c.RegisterSemanticModelAction(CompilationAnalyzer.AnalyzeSemanticModel);
+            });
+        }
     }
 }

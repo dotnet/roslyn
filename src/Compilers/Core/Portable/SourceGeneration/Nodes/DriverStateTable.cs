@@ -11,67 +11,68 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class DriverStateTable
+namespace Microsoft.CodeAnalysis
 {
-    private readonly StateTableStore _tables;
-
-    internal static DriverStateTable Empty { get; } = new DriverStateTable(StateTableStore.Empty);
-
-    private DriverStateTable(StateTableStore tables)
+    internal sealed class DriverStateTable
     {
-        _tables = tables;
-    }
+        private readonly StateTableStore _tables;
 
-    public sealed class Builder
-    {
-        private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
-        private readonly DriverStateTable _previousTable;
-        private readonly CancellationToken _cancellationToken;
+        internal static DriverStateTable Empty { get; } = new DriverStateTable(StateTableStore.Empty);
 
-        internal GeneratorDriverState DriverState { get; }
-
-        public Compilation Compilation { get; }
-
-        internal SyntaxStore.Builder SyntaxStore { get; }
-
-        public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
+        private DriverStateTable(StateTableStore tables)
         {
-            Compilation = compilation;
-            DriverState = driverState;
-            _previousTable = driverState.StateTable;
-            _cancellationToken = cancellationToken;
-            SyntaxStore = syntaxStore;
+            _tables = tables;
         }
 
-        public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
+        public sealed class Builder
         {
-            // if we've already evaluated a node during this build, we can just return the existing result
-            if (_stateTableBuilder.TryGetTable(source, out var table))
+            private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
+            private readonly DriverStateTable _previousTable;
+            private readonly CancellationToken _cancellationToken;
+
+            internal GeneratorDriverState DriverState { get; }
+
+            public Compilation Compilation { get; }
+
+            internal SyntaxStore.Builder SyntaxStore { get; }
+
+            public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
             {
-                return (NodeStateTable<T>)table;
+                Compilation = compilation;
+                DriverState = driverState;
+                _previousTable = driverState.StateTable;
+                _cancellationToken = cancellationToken;
+                SyntaxStore = syntaxStore;
             }
 
-            // get the previous table, if there was one for this node
-            NodeStateTable<T>? previousTable = _previousTable._tables.GetStateTable<T>(source);
+            public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
+            {
+                // if we've already evaluated a node during this build, we can just return the existing result
+                if (_stateTableBuilder.TryGetTable(source, out var table))
+                {
+                    return (NodeStateTable<T>)table;
+                }
 
-            // request the node update its state based on the current driver table and store the new result
-            var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
-            _stateTableBuilder.SetTable(source, newTable);
-            return newTable;
-        }
+                // get the previous table, if there was one for this node
+                NodeStateTable<T>? previousTable = _previousTable._tables.GetStateTable<T>(source);
 
-        public NodeStateTable<T>.Builder CreateTableBuilder<T>(
-            NodeStateTable<T>? previousTable, string? stepName, IEqualityComparer<T>? equalityComparer, int? tableCapacity = null)
-        {
-            previousTable ??= NodeStateTable<T>.Empty;
-            return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer, tableCapacity);
-        }
+                // request the node update its state based on the current driver table and store the new result
+                var newTable = source.UpdateStateTable(this, previousTable, _cancellationToken);
+                _stateTableBuilder.SetTable(source, newTable);
+                return newTable;
+            }
 
-        public DriverStateTable ToImmutable()
-        {
-            return new DriverStateTable(_stateTableBuilder.ToImmutable());
+            public NodeStateTable<T>.Builder CreateTableBuilder<T>(
+                NodeStateTable<T>? previousTable, string? stepName, IEqualityComparer<T>? equalityComparer, int? tableCapacity = null)
+            {
+                previousTable ??= NodeStateTable<T>.Empty;
+                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps, equalityComparer, tableCapacity);
+            }
+
+            public DriverStateTable ToImmutable()
+            {
+                return new DriverStateTable(_stateTableBuilder.ToImmutable());
+            }
         }
     }
 }

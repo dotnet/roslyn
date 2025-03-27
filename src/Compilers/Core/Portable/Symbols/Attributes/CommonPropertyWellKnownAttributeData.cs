@@ -7,48 +7,49 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Information decoded from well-known custom attributes applied on a property.
-/// </summary>
-internal class CommonPropertyWellKnownAttributeData : WellKnownAttributeData
+namespace Microsoft.CodeAnalysis
 {
-    #region SpecialNameAttribute
-    private bool _hasSpecialNameAttribute;
-    public bool HasSpecialNameAttribute
+    /// <summary>
+    /// Information decoded from well-known custom attributes applied on a property.
+    /// </summary>
+    internal class CommonPropertyWellKnownAttributeData : WellKnownAttributeData
     {
-        get
+        #region SpecialNameAttribute
+        private bool _hasSpecialNameAttribute;
+        public bool HasSpecialNameAttribute
         {
-            VerifySealed(expected: true);
-            return _hasSpecialNameAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSpecialNameAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSpecialNameAttribute = value;
+                SetDataStored();
+            }
         }
-        set
+        #endregion
+
+        #region ExcludeFromCodeCoverageAttribute
+
+        private bool _hasExcludeFromCodeCoverageAttribute;
+        public bool HasExcludeFromCodeCoverageAttribute
         {
-            VerifySealed(expected: false);
-            _hasSpecialNameAttribute = value;
-            SetDataStored();
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasExcludeFromCodeCoverageAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasExcludeFromCodeCoverageAttribute = value;
+                SetDataStored();
+            }
         }
+
+        #endregion
     }
-    #endregion
-
-    #region ExcludeFromCodeCoverageAttribute
-
-    private bool _hasExcludeFromCodeCoverageAttribute;
-    public bool HasExcludeFromCodeCoverageAttribute
-    {
-        get
-        {
-            VerifySealed(expected: true);
-            return _hasExcludeFromCodeCoverageAttribute;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasExcludeFromCodeCoverageAttribute = value;
-            SetDataStored();
-        }
-    }
-
-    #endregion
 }

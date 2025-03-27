@@ -5,33 +5,34 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Collections;
-
-internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
+namespace Microsoft.CodeAnalysis.Collections
 {
-    public partial struct ValueCollection
+    internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue>
     {
-        public struct Enumerator : IEnumerator<TValue>
+        public partial struct ValueCollection
         {
-            private ImmutableSegmentedDictionary<TKey, TValue>.Enumerator _enumerator;
-
-            internal Enumerator(ImmutableSegmentedDictionary<TKey, TValue>.Enumerator enumerator)
+            public struct Enumerator : IEnumerator<TValue>
             {
-                _enumerator = enumerator;
+                private ImmutableSegmentedDictionary<TKey, TValue>.Enumerator _enumerator;
+
+                internal Enumerator(ImmutableSegmentedDictionary<TKey, TValue>.Enumerator enumerator)
+                {
+                    _enumerator = enumerator;
+                }
+
+                public readonly TValue Current => _enumerator.Current.Value;
+
+                readonly object? IEnumerator.Current => Current;
+
+                public readonly void Dispose()
+                    => _enumerator.Dispose();
+
+                public bool MoveNext()
+                    => _enumerator.MoveNext();
+
+                public void Reset()
+                    => _enumerator.Reset();
             }
-
-            public readonly TValue Current => _enumerator.Current.Value;
-
-            readonly object? IEnumerator.Current => Current;
-
-            public readonly void Dispose()
-                => _enumerator.Dispose();
-
-            public bool MoveNext()
-                => _enumerator.MoveNext();
-
-            public void Reset()
-                => _enumerator.Reset();
         }
     }
 }

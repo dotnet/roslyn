@@ -6,67 +6,68 @@ using System;
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode, ICompilationUnitSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    /// <summary>
-    /// Returns #r directives specified in the compilation.
-    /// </summary>
-    public IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives()
+    public sealed partial class CompilationUnitSyntax : CSharpSyntaxNode, ICompilationUnitSyntax
     {
-        return GetReferenceDirectives(null);
-    }
-
-    internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool>? filter)
-    {
-        if (!this.ContainsDirectives)
-            return SpecializedCollections.EmptyList<ReferenceDirectiveTriviaSyntax>();
-
-        // #r directives are always on the first token of the compilation unit.
-        var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
-        return firstToken.GetDirectives(filter);
-    }
-
-    /// <summary>
-    /// Returns #load directives specified in the compilation.
-    /// </summary>
-    public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
-    {
-        if (!this.ContainsDirectives)
-            return SpecializedCollections.EmptyList<LoadDirectiveTriviaSyntax>();
-
-        // #load directives are always on the first token of the compilation unit.
-        var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
-        return firstToken.GetDirectives<LoadDirectiveTriviaSyntax>(filter: null);
-    }
-
-    internal bool HasReferenceDirectives
-        // #r and #load directives are always on the first token of the compilation unit.
-        => HasFirstTokenDirective(static n => n is ReferenceDirectiveTriviaSyntax);
-
-    internal bool HasLoadDirectives
-        // #r and #load directives are always on the first token of the compilation unit.
-        => HasFirstTokenDirective(static n => n is LoadDirectiveTriviaSyntax);
-
-    private bool HasFirstTokenDirective(Func<SyntaxNode, bool> predicate)
-    {
-        if (this.ContainsDirectives)
+        /// <summary>
+        /// Returns #r directives specified in the compilation.
+        /// </summary>
+        public IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives()
         {
-            var firstToken = this.GetFirstToken(includeZeroWidth: true);
-            if (firstToken.ContainsDirectives)
+            return GetReferenceDirectives(null);
+        }
+
+        internal IList<ReferenceDirectiveTriviaSyntax> GetReferenceDirectives(Func<ReferenceDirectiveTriviaSyntax, bool>? filter)
+        {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<ReferenceDirectiveTriviaSyntax>();
+
+            // #r directives are always on the first token of the compilation unit.
+            var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
+            return firstToken.GetDirectives(filter);
+        }
+
+        /// <summary>
+        /// Returns #load directives specified in the compilation.
+        /// </summary>
+        public IList<LoadDirectiveTriviaSyntax> GetLoadDirectives()
+        {
+            if (!this.ContainsDirectives)
+                return SpecializedCollections.EmptyList<LoadDirectiveTriviaSyntax>();
+
+            // #load directives are always on the first token of the compilation unit.
+            var firstToken = (SyntaxNodeOrToken)this.GetFirstToken(includeZeroWidth: true);
+            return firstToken.GetDirectives<LoadDirectiveTriviaSyntax>(filter: null);
+        }
+
+        internal bool HasReferenceDirectives
+            // #r and #load directives are always on the first token of the compilation unit.
+            => HasFirstTokenDirective(static n => n is ReferenceDirectiveTriviaSyntax);
+
+        internal bool HasLoadDirectives
+            // #r and #load directives are always on the first token of the compilation unit.
+            => HasFirstTokenDirective(static n => n is LoadDirectiveTriviaSyntax);
+
+        private bool HasFirstTokenDirective(Func<SyntaxNode, bool> predicate)
+        {
+            if (this.ContainsDirectives)
             {
-                foreach (var trivia in firstToken.LeadingTrivia)
+                var firstToken = this.GetFirstToken(includeZeroWidth: true);
+                if (firstToken.ContainsDirectives)
                 {
-                    if (trivia.GetStructure() is { } structure &&
-                        predicate(structure))
+                    foreach (var trivia in firstToken.LeadingTrivia)
                     {
-                        return true;
+                        if (trivia.GetStructure() is { } structure &&
+                            predicate(structure))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 }

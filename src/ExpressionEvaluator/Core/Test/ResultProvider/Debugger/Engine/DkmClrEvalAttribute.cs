@@ -9,14 +9,15 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-
-public abstract class DkmClrEvalAttribute
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
-    internal DkmClrEvalAttribute(string targetMember)
+    public abstract class DkmClrEvalAttribute
     {
-        this.TargetMember = targetMember;
-    }
+        internal DkmClrEvalAttribute(string targetMember)
+        {
+            this.TargetMember = targetMember;
+        }
 
-    public readonly string TargetMember;
+        public readonly string TargetMember;
+    }
 }

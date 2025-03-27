@@ -10,18 +10,18 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-/// <summary>
-/// this place is dedicated to binding related error tests
-/// </summary>
-[CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-public class SpanStackSafetyTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void SpanAssignmentExpression()
+    /// <summary>
+    /// this place is dedicated to binding related error tests
+    /// </summary>
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public class SpanStackSafetyTests : CompilingTestBase
     {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanAssignmentExpression()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -34,16 +34,16 @@ class C
         s2 = (s1 = s2);
     }
 }");
-        comp.VerifyDiagnostics(
-            // (11,15): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
-            //         s2 = (s1 = s2);
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
-    }
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         s2 = (s1 = s2);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
+        }
 
-    [Fact]
-    public void SpanToSpanSwitch()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToSpanSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -56,13 +56,13 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics();
-    }
+            comp.VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void SpanToObjectPatternSwitch()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToObjectPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class C
@@ -78,17 +78,17 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
-            //             case Span<int> span:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(10, 18)
+                );
+        }
 
-    [Fact]
-    public void SpanToGenericPatternSwitch()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToGenericPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -103,17 +103,17 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
-            //             case Span<int> span:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
+        }
 
-    [Fact]
-    public void SpanToGenericPatternSwitch2()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToGenericPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -128,17 +128,17 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
-            //             case Span<int> span:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //             case Span<int> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18)
+                );
+        }
 
-    [Fact]
-    public void ObjectToSpanPatternSwitch()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void ObjectToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -153,20 +153,20 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'Span<object>'.
-            //             case Span<object> span:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
-            // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
-            //             case object o:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'Span<object>'.
+                //             case Span<object> span:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<object>").WithArguments("System.Span<string>", "System.Span<object>").WithLocation(9, 18),
+                // (11,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'object'.
+                //             case object o:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<string>", "object").WithLocation(11, 18)
+                );
+        }
 
-    [Fact]
-    public void GenericToSpanPatternSwitch()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void GenericToSpanPatternSwitch()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -179,17 +179,17 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
-            //             case T t:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
+        }
 
-    [Fact]
-    public void GenericToSpanPatternSwitch2()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void GenericToSpanPatternSwitch2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -202,32 +202,32 @@ class C
         }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
-            //             case T t:
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8121: An expression of type 'Span<string>' cannot be handled by a pattern of type 'T'.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<string>", "T").WithLocation(9, 18)
+                );
+        }
 
-    [Fact]
-    public void SpanToSpanIsExpr()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
 }");
-        comp.VerifyDiagnostics(
-            // (5,31): warning CS0183: The given expression is always of the provided ('Span<string>') type
-            //     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
-            Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is Span<string>").WithArguments("System.Span<string>").WithLocation(5, 31));
-    }
+            comp.VerifyDiagnostics(
+                // (5,31): warning CS0183: The given expression is always of the provided ('Span<string>') type
+                //     bool M(Span<string> s) => s is Span<string> && s is Span<string> span;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is Span<string>").WithArguments("System.Span<string>").WithLocation(5, 31));
+        }
 
-    [Fact]
-    public void ObjectToSpanIsExpr()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void ObjectToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -239,19 +239,19 @@ class C
         { }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
-            //         if (o is Span<int>)
-            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "o is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
-            // (9,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
-            //         if (o is Span<int> s)
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(9, 18));
-    }
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (o is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "o is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'object' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (o is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("object", "System.Span<int>").WithLocation(9, 18));
+        }
 
-    [Fact]
-    public void GenericToSpanIsExpr()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void GenericToSpanIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -263,19 +263,19 @@ class C
         { }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
-            //         if (t is Span<int>)
-            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
-            // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
-            //         if (t is Span<int> s)
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
-    }
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                //         if (t is Span<int>)
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
+                //         if (t is Span<int> s)
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
+        }
 
-    [Fact]
-    public void SpanToObjectIsExpr()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToObjectIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -285,19 +285,19 @@ class C
         if (s is object o) { }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (7,13): warning CS0184: The given expression is never of the provided ('object') type
-            //         if (s is object) { }
-            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is object").WithArguments("object").WithLocation(7, 13),
-            // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'object'.
-            //         if (s is object o) { }
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<int>", "object").WithLocation(8, 18));
-    }
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('object') type
+                //         if (s is object) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is object").WithArguments("object").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'object'.
+                //         if (s is object o) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.Span<int>", "object").WithLocation(8, 18));
+        }
 
-    [Fact]
-    public void SpanToGenericIsExpr()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToGenericIsExpr()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -307,19 +307,19 @@ class C
         if (s is T t) { }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (7,13): warning CS0184: The given expression is never of the provided ('T') type
-            //         if (s is T) { }
-            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
-            // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
-            //         if (s is T t) { }
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
-    }
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
 
-    [Fact]
-    public void SpanToGenericIsExpr2()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        public void SpanToGenericIsExpr2()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -329,19 +329,19 @@ class C
         if (s is T t) { }
     }
 }");
-        comp.VerifyDiagnostics(
-            // (7,13): warning CS0184: The given expression is never of the provided ('T') type
-            //         if (s is T) { }
-            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
-            // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
-            //         if (s is T t) { }
-            Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
-    }
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                //         if (s is T) { }
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
+                //         if (s is T t) { }
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
+        }
 
-    [Fact]
-    public void TrivialBoxing()
-    {
-        var text = @"
+        [Fact]
+        public void TrivialBoxing()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -355,39 +355,39 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-            //         object x = new Span<int>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-            // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
-            //         object y = new ReadOnlySpan<byte>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
-            // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
-            //         object z = new SpanLike<int>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
-        );
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         object x = new Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
+                // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
+                //         object z = new SpanLike<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
+            );
 
-        comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
-        comp.VerifyDiagnostics(
-            // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-            //         object x = new Span<int>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-            // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
-            //         object y = new ReadOnlySpan<byte>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
-            // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
-            //         object z = new SpanLike<int>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         object x = new Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
+                // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
+                //         object z = new SpanLike<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
+            );
+        }
 
-    [Fact]
-    public void LambdaCapturing()
-    {
-        var text = @"
+        [Fact]
+        public void LambdaCapturing()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -408,19 +408,19 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (17,29): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
-            //         Func<int> f = () => x[1];
-            Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(17, 29)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (17,29): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
+                //         Func<int> f = () => x[1];
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(17, 29)
+            );
+        }
 
-    [Fact]
-    public void GenericArgsAndConstraints()
-    {
-        var text = @"
+        [Fact]
+        public void GenericArgsAndConstraints()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -438,25 +438,25 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
-            //     class C1<T> where T: Span<int>
-            Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
-            // (10,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
-            //         Func<Span<int>> d = ()=>x;
-            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Func<TResult>", "TResult", "System.Span<int>").WithLocation(10, 14),
-            // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
-            //         Func<Span<int>> d = ()=>x;
-            Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 33)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     class C1<T> where T: Span<int>
+                Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
+                // (10,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
+                //         Func<Span<int>> d = ()=>x;
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Func<TResult>", "TResult", "System.Span<int>").WithLocation(10, 14),
+                // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
+                //         Func<Span<int>> d = ()=>x;
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 33)
+            );
+        }
 
-    [Fact]
-    public void Arrays()
-    {
-        var text = @"
+        [Fact]
+        public void Arrays()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -470,22 +470,22 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (8,21): error CS0611: Array elements cannot be of type 'Span<int>'
-            //         var x = new Span<int>[1];
-            Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
-            // (10,21): error CS0611: Array elements cannot be of type 'SpanLike<int>'
-            //         var y = new SpanLike<int>[1,2];
-            Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(10, 21)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0611: Array elements cannot be of type 'Span<int>'
+                //         var x = new Span<int>[1];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                // (10,21): error CS0611: Array elements cannot be of type 'SpanLike<int>'
+                //         var y = new SpanLike<int>[1,2];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(10, 21)
+            );
+        }
 
-    [Fact]
-    public void ByrefParam()
-    {
-        var text = @"using System;
+        [Fact]
+        public void ByrefParam()
+        {
+            var text = @"using System;
 
 class Program
 {
@@ -526,40 +526,40 @@ class Program
 }
 ";
 
-        var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
-        comp.VerifyDiagnostics(
-            // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-            //     static void M1(scoped ref Span<string> ss)
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
-            // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
-            //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-            Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
-            // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
-            //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-            Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
-            // (21,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-            //     static void M3(scoped in Span<string> ss)
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(21, 20),
-            // (26,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-            //     static void M3l(scoped in SpanLike<string> ss)
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(26, 21)
-        );
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M1(scoped ref Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
+                // (21,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3(scoped in Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(21, 20),
+                // (26,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3l(scoped in SpanLike<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(26, 21)
+            );
 
-        comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
-        comp.VerifyDiagnostics(
-            // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
-            //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-            Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
-            // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
-            //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-            Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
-        );
-    }
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
+            );
+        }
 
-    [Fact]
-    public void FieldsSpan()
-    {
-        var text = @"
+        [Fact]
+        public void FieldsSpan()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -585,51 +585,51 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
-            //         public Span<int> fi2; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
-            // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //         public static Span<byte> fs2;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
-            // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //     public static Span<byte> fs;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
-            // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
-            //     public Span<int> fi; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
-            // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //         public static Span<byte> fs1;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
-        );
+            comp.VerifyDiagnostics(
+                // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                //         public Span<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //         public static Span<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
+                // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public static Span<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
+                // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                //     public Span<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
+                // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
+            );
 
-        comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
-        comp.VerifyDiagnostics(
-            // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
-            //         public Span<int> fi2; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
-            // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //         public static Span<byte> fs2;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
-            // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //     public static Span<byte> fs;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
-            // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
-            //     public Span<int> fi; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
-            // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //         public static Span<byte> fs1;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                //         public Span<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //         public static Span<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
+                // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public static Span<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
+                // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                //     public Span<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
+                // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //         public static Span<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
+            );
+        }
 
-    [Fact]
-    public void FieldsSpanLike()
-    {
-        var text = @"
+        [Fact]
+        public void FieldsSpanLike()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -655,52 +655,52 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
-            //         public SpanLike<int> fi2; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
-            // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //         public static SpanLike<byte> fs2;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
-            // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //     public static SpanLike<byte> fs;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
-            // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
-            //     public SpanLike<int> fi; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
-            // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //         public static SpanLike<byte> fs1;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
-        );
+            comp.VerifyDiagnostics(
+                // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
+                //         public SpanLike<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //         public static SpanLike<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //     public static SpanLike<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
+                //     public SpanLike<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //         public static SpanLike<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
+            );
 
-        comp = CreateCompilationWithMscorlibAndSpanSrc(text);
+            comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
-        comp.VerifyDiagnostics(
-            // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
-            //         public SpanLike<int> fi2; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
-            // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //         public static SpanLike<byte> fs2;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
-            // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //     public static SpanLike<byte> fs;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
-            // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
-            //     public SpanLike<int> fi; 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
-            // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
-            //         public static SpanLike<byte> fs1;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (22,16): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
+                //         public SpanLike<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //         public static SpanLike<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //     public static SpanLike<byte> fs;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
+                //     public SpanLike<int> fi; 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS8345: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
+                //         public static SpanLike<byte> fs1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
+            );
+        }
 
-    [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
-    [Fact]
-    public void InterfaceImpl_01()
-    {
-        var text = @"
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void InterfaceImpl_01()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -725,11 +725,11 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.Main",
+            verifier.VerifyIL("Program.Main",
 @"
 {
   // Code size       31 (0x1f)
@@ -754,12 +754,12 @@ public class Program
   IL_001e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InterfaceImpl_02()
-    {
-        var text = @"
+        [Fact]
+        public void InterfaceImpl_02()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -789,13 +789,13 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: @"1223").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1223").VerifyDiagnostics();
 
-        // We prioritize pattern over an interface according to https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#using-statement 
+            // We prioritize pattern over an interface according to https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#using-statement 
 
-        verifier.VerifyIL("Program.Main",
+            verifier.VerifyIL("Program.Main",
 @"
 {
   // Code size       31 (0x1f)
@@ -820,12 +820,12 @@ public class Program
   IL_001e:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void InterfaceImpl_03()
-    {
-        var text = @"
+        [Fact]
+        public void InterfaceImpl_03()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -850,11 +850,11 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.Main",
+            verifier.VerifyIL("Program.Main",
 @"
 {
   // Code size       37 (0x25)
@@ -880,12 +880,12 @@ public class Program
   IL_0024:  ret
 }
 ");
-    }
+        }
 
-    [Fact]
-    public void NoInterfaceImp()
-    {
-        var text = @"
+        [Fact]
+        public void NoInterfaceImp()
+        {
+            var text = @"
 public class Program
 {
     static void Main(string[] args)
@@ -908,11 +908,11 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-        var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
 
-        verifier.VerifyIL("Program.Main",
+            verifier.VerifyIL("Program.Main",
 @"
 {
   // Code size       31 (0x1f)
@@ -937,13 +937,13 @@ public class Program
   IL_001e:  ret
 }
 ");
-    }
+        }
 
-    [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
-    [Fact]
-    public void RefIteratorInAsync_01()
-    {
-        var text = @"
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void RefIteratorInAsync_01()
+        {
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -987,30 +987,30 @@ class C1
 
 ";
 
-        CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (15,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         foreach (var i in obj)
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 9));
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 9));
 
-        var expectedDiagnostics = new[]
-        {
-            // (15,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
-            //         foreach (var i in obj)
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in obj)
+            var expectedDiagnostics = new[]
+            {
+                // (15,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in obj)
         {
             await Task.Yield();
             System.Console.WriteLine(i);
         }").WithArguments("C1.S1").WithLocation(15, 9)
-        };
+            };
 
-        CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
-    }
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74793")]
-    public void RefIteratorInAsync_02()
-    {
-        var text = @"
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74793")]
+        public void RefIteratorInAsync_02()
+        {
+            var text = @"
 using System.Threading.Tasks;
 
 class Program
@@ -1051,25 +1051,25 @@ class C1
 
 ";
 
-        CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         foreach (var i in obj)
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9));
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9));
 
-        var expectedOutput = "12-1";
+            var expectedOutput = "12-1";
 
-        var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
-        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-        comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
-    }
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
 
-    [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
-    [Fact]
-    public void RefIteratorInIterator_01()
-    {
-        var text = @"
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void RefIteratorInIterator_01()
+        {
+            var text = @"
 using System;
 using System.Collections.Generic;
 
@@ -1129,29 +1129,29 @@ class C1
 }
 ";
 
-        CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (33,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         foreach (var i in new C1())
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 9));
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (33,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 9));
 
-        var expectedDiagnostics = new[]
-        {
-            // (33,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
-            //         foreach (var i in new C1())
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in new C1())
+            var expectedDiagnostics = new[]
+            {
+                // (33,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in new C1())
         {
             yield return 0;
         }").WithArguments("C1.S1").WithLocation(33, 9)
-        };
+            };
 
-        CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
-    }
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
 
-    [Fact]
-    public void RefIteratorInIterator_02()
-    {
-        var text = @"
+        [Fact]
+        public void RefIteratorInIterator_02()
+        {
+            var text = @"
 using System;
 using System.Collections.Generic;
 
@@ -1198,24 +1198,24 @@ class C1
 }
 ";
 
-        CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12).VerifyDiagnostics(
-            // (17,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-            //         foreach (var i in new C1())
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(17, 9));
+            CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12).VerifyDiagnostics(
+                // (17,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(17, 9));
 
-        var expectedOutput = "12-1-2";
+            var expectedOutput = "12-1-2";
 
-        var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
-        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
-        comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
-    }
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void Properties()
-    {
-        var text = @"
+        [Fact]
+        public void Properties()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -1236,22 +1236,22 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (17,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
-            //     public static Span<byte> aps {get;}
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(17, 19),
-            // (18,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
-            //     public Span<int> api {get; set;} 
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(18, 12)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (17,19): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                //     public static Span<byte> aps {get;}
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(17, 19),
+                // (18,12): error CS8345: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
+                //     public Span<int> api {get; set;} 
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(18, 12)
+            );
+        }
 
-    [Fact]
-    public void Operators()
-    {
-        var text = @"
+        [Fact]
+        public void Operators()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -1269,19 +1269,19 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (14,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
-            //     public static TypedReference operator +(Span<int> x, Program y) => default(TypedReference);
-            Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(14, 19)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (14,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public static TypedReference operator +(Span<int> x, Program y) => default(TypedReference);
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(14, 19)
+            );
+        }
 
-    [Fact]
-    public void AsyncParams()
-    {
-        var text = @"
+        [Fact]
+        public void AsyncParams()
+        {
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1299,19 +1299,19 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (11,48): error CS4012: Parameters of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-            //     public static async Task<int> M1(Span<int> arg)
-            Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (11,48): error CS4012: Parameters of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+                //     public static async Task<int> M1(Span<int> arg)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
+            );
+        }
 
-    [Fact]
-    public void AsyncLocals()
-    {
-        var text = @"
+        [Fact]
+        public void AsyncLocals()
+        {
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1359,47 +1359,47 @@ public class Program
 }
 ";
 
-        var expectedDiagnostics = new[]
+            var expectedDiagnostics = new[]
+            {
+                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
+                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13),
+                // (23,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(23, 13),
+                // (26,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(26, 16),
+                // (31,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(31, 19),
+                // (35,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(35, 16),
+                // (44,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(44, 16),
+                // (44,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(44, 32)
+            };
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AsyncLocals_OutVar()
         {
-            // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
-            //         Span<int> local1 = default(Span<int>);
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
-            // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
-            //         var local2 = default(Span<int>);
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13),
-            // (23,13): warning CS0219: The variable 'local2' is assigned but its value is never used
-            //         var local2 = default(Span<int>);
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(23, 13),
-            // (26,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local1.Length; // 1
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(26, 16),
-            // (31,19): warning CS0219: The variable 'local1' is assigned but its value is never used
-            //         Span<int> local1 = default(Span<int>);
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(31, 19),
-            // (35,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local2.Length; // 2
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(35, 16),
-            // (44,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local1.Length + local2.Length; // 3, 4
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(44, 16),
-            // (44,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local1.Length + local2.Length; // 3, 4
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(44, 32)
-        };
-
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-
-        comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-    }
-
-    [Fact]
-    public void AsyncLocals_OutVar()
-    {
-        var text = @"
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1436,21 +1436,21 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyEmitDiagnostics(
-            // (22,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local1.Length; // 1
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(22, 16),
-            // (31,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         return local2.Length; // 2
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(31, 16));
-    }
+            comp.VerifyEmitDiagnostics(
+                // (22,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (31,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(31, 16));
+        }
 
-    [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
-    public void AsyncLocals_Foreach()
-    {
-        var src = @"
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Foreach()
+        {
+            var src = @"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -1494,20 +1494,20 @@ public class Program
 }
 ";
 
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (28,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
-            //             _ = c1.Length; // 1
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c1").WithArguments("System.ReadOnlySpan<char>").WithLocation(28, 17),
-            // (36,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
-            //             _ = c2.Length; // 2
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c2").WithArguments("System.ReadOnlySpan<char>").WithLocation(36, 17));
-    }
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (28,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c1").WithArguments("System.ReadOnlySpan<char>").WithLocation(28, 17),
+                // (36,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c2").WithArguments("System.ReadOnlySpan<char>").WithLocation(36, 17));
+        }
 
-    [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
-    public void AsyncLocals_Deconstruction()
-    {
-        var src = @"
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Deconstruction()
+        {
+            var src = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1538,23 +1538,23 @@ public class Program
     void Deconstruct(out Span<int> s1, out Span<int> s2) => throw null;
 }
 ";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (25,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(25, 13),
-            // (25,25): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("System.Span<int>").WithLocation(25, 25),
-            // (25,37): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s5").WithArguments("System.Span<int>").WithLocation(25, 37));
-    }
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (25,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(25, 13),
+                // (25,25): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("System.Span<int>").WithLocation(25, 25),
+                // (25,37): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s5").WithArguments("System.Span<int>").WithLocation(25, 37));
+        }
 
-    [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
-    public void AsyncLocals_Using()
-    {
-        var src = @"
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Using()
+        {
+            var src = @"
 using System.Threading.Tasks;
 
 public class Program
@@ -1592,32 +1592,32 @@ public ref struct RS
     public void Dispose() { }
 }
 ";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (11,18): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //         using RS s3 = default(RS); // 1
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(11, 18),
-            // (12,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //         using var s4 = default(RS); // 2
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4 = default(RS)").WithArguments("RS").WithLocation(12, 19),
-            // (20,16): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //         using (default(RS)) { await Task.Yield(); } // 3
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(RS)").WithArguments("RS").WithLocation(20, 16),
-            // (21,20): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //         using (var s1 = default(RS)) { await Task.Yield(); } // 4
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1 = default(RS)").WithArguments("RS").WithLocation(21, 20),
-            // (22,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //         using (RS s2 = default(RS)) { await Task.Yield(); } // 5
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2 = default(RS)").WithArguments("RS").WithLocation(22, 19),
-            // (24,22): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
-            //             using RS s3 = default(RS); // 6
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(24, 22));
-    }
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (11,18): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using RS s3 = default(RS); // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(11, 18),
+                // (12,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using var s4 = default(RS); // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4 = default(RS)").WithArguments("RS").WithLocation(12, 19),
+                // (20,16): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (default(RS)) { await Task.Yield(); } // 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(RS)").WithArguments("RS").WithLocation(20, 16),
+                // (21,20): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (var s1 = default(RS)) { await Task.Yield(); } // 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1 = default(RS)").WithArguments("RS").WithLocation(21, 20),
+                // (22,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (RS s2 = default(RS)) { await Task.Yield(); } // 5
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2 = default(RS)").WithArguments("RS").WithLocation(22, 19),
+                // (24,22): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //             using RS s3 = default(RS); // 6
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(24, 22));
+        }
 
-    [Fact]
-    public void AsyncLocals_PatternDeclaration()
-    {
-        var src = @"
+        [Fact]
+        public void AsyncLocals_PatternDeclaration()
+        {
+            var src = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1654,53 +1654,53 @@ public class Program
     static Span<int> M2() => throw null;
 }
 ";
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        comp.VerifyEmitDiagnostics(
-            // (23,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //             _ = s1.Length;
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(23, 17),
-            // (28,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //             _ = s2.Length;
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("System.Span<int>").WithLocation(28, 17));
-    }
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (23,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s1.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(23, 17),
+                // (28,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s2.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("System.Span<int>").WithLocation(28, 17));
+        }
 
-    [Fact]
-    public void AsyncLocals_Reassignment()
-    {
-        var code = """
-            using System;
-            using System.Threading.Tasks;
-            class C
-            {
-                async Task M1()
+        [Fact]
+        public void AsyncLocals_Reassignment()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+                class C
                 {
-                    int x = 42;
-                    Span<int> y = new(ref x);
-                    y.ToString();
-                    await Task.Yield();
-                    y.ToString(); // 1
+                    async Task M1()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y.ToString(); // 1
+                    }
+                    async Task M2()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y = new(ref x);
+                        y.ToString();
+                    }
                 }
-                async Task M2()
-                {
-                    int x = 42;
-                    Span<int> y = new(ref x);
-                    y.ToString();
-                    await Task.Yield();
-                    y = new(ref x);
-                    y.ToString();
-                }
-            }
-            """;
-        CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
-            // (11,9): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         y.ToString(); // 1
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(11, 9));
-    }
+                """;
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (11,9): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(11, 9));
+        }
 
-    [Fact]
-    public void AsyncSpilling()
-    {
-        var text = @"
+        [Fact]
+        public void AsyncSpilling()
+        {
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1741,26 +1741,26 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        var expectedDiagnostics = new[]
+            var expectedDiagnostics = new[]
+            {
+                // (17,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         TakesSpan(default(Span<int>), await I1());
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(17, 19)
+            };
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AsyncSpillTemp()
         {
-            // (17,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         TakesSpan(default(Span<int>), await I1());
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(17, 19)
-        };
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-
-        comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-    }
-
-    [Fact]
-    public void AsyncSpillTemp()
-    {
-        var text = @"
+            var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1791,57 +1791,57 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        var expectedDiagnostics = new[]
-        {
-            // (14,22): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
-            //         TakesSpan(s: default(Span<int>), i: await I1());
-            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(14, 22)
-        };
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-
-        comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
-
-        comp.VerifyEmitDiagnostics(expectedDiagnostics);
-    }
-
-    [Fact]
-    public void AwaitAssignSpan()
-    {
-        var source = """
-            using System;
-            using System.Threading.Tasks;
-
-            ReadOnlySpan<int> r = await M();
-            Console.Write(r[1]);
-
-            async Task<int[]> M()
+            var expectedDiagnostics = new[]
             {
-                await Task.Yield();
-                return new[] { 4, 5, 6 };
-            }
-            """;
+                // (14,22): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         TakesSpan(s: default(Span<int>), i: await I1());
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(14, 22)
+            };
 
-        CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-            // (4,1): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-            // ReadOnlySpan<int> r = await M();
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 1));
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
-        var expectedOutput = "5";
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-        var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular13);
-        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
 
-        comp = CreateCompilationWithSpan(source);
-        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-    }
+        [Fact]
+        public void AwaitAssignSpan()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
 
-    [Fact]
-    public void BaseMethods()
-    {
-        var text = @"
+                ReadOnlySpan<int> r = await M();
+                Console.Write(r[1]);
+
+                async Task<int[]> M()
+                {
+                    await Task.Yield();
+                    return new[] { 4, 5, 6 };
+                }
+                """;
+
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,1): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                // ReadOnlySpan<int> r = await M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 1));
+
+            var expectedOutput = "5";
+
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithSpan(source);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BaseMethods()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -1860,23 +1860,23 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyDiagnostics(
-            // (12,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-            //         default(Span<int>).GetType();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "object").WithLocation(12, 9),
-            // (15,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'System.ValueType'
-            //         default(Span<int>).ToString();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "System.ValueType").WithLocation(15, 9)
-        );
-    }
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         default(Span<int>).GetType();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "object").WithLocation(12, 9),
+                // (15,9): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'System.ValueType'
+                //         default(Span<int>).ToString();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "default(Span<int>)").WithArguments("System.Span<int>", "System.ValueType").WithLocation(15, 9)
+            );
+        }
 
-    [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
-    [Fact]
-    public void MethodConversion()
-    {
-        var text = @"
+        [WorkItem(21979, "https://github.com/dotnet/roslyn/issues/21979")]
+        [Fact]
+        public void MethodConversion()
+        {
+            var text = @"
 using System;
 
 public class Program
@@ -1897,41 +1897,41 @@ public class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-        comp.VerifyEmitDiagnostics(
-            // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
-            //         Func<int> d0 = default(TypedReference).GetHashCode;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
-            // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
-            //         Func<int> d1 = default(Span<int>).GetHashCode;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),
-            // (15,48): error CS0123: No overload for 'GetType' matches delegate 'Func<Type>'
-            //         Func<Type> d2 = default(SpanLike<int>).GetType;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetType").WithArguments("GetType", "System.Func<System.Type>").WithLocation(15, 48),
-            // (17,46): error CS0123: No overload for 'ToString' matches delegate 'Func<string>'
-            //         Func<string> d3 = default(Span<int>).ToString;
-            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>").WithLocation(17, 46)
-        );
-    }
+            comp.VerifyEmitDiagnostics(
+                // (10,48): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d0 = default(TypedReference).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(10, 48),
+                // (13,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
+                //         Func<int> d1 = default(Span<int>).GetHashCode;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(13, 43),
+                // (15,48): error CS0123: No overload for 'GetType' matches delegate 'Func<Type>'
+                //         Func<Type> d2 = default(SpanLike<int>).GetType;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetType").WithArguments("GetType", "System.Func<System.Type>").WithLocation(15, 48),
+                // (17,46): error CS0123: No overload for 'ToString' matches delegate 'Func<string>'
+                //         Func<string> d3 = default(Span<int>).ToString;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>").WithLocation(17, 46)
+            );
+        }
 
-    [Fact]
-    public void RefSpanDetectBoxing_NoRef()
-    {
-        string spanSource = @"
+        [Fact]
+        public void RefSpanDetectBoxing_NoRef()
+        {
+            string spanSource = @"
 namespace System
 {
     public struct Span<T> { }
     public struct ReadOnlySpan<T> { }
 }";
-        var reference = CreateEmptyCompilation(
-            spanSource,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-            options: TestOptions.ReleaseDll);
+            var reference = CreateEmptyCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll);
 
-        reference.VerifyDiagnostics();
+            reference.VerifyDiagnostics();
 
-        var text = @"
+            var text = @"
 class Program
 {
     static void Main()
@@ -1941,31 +1941,31 @@ class Program
     }
 }
 ";
-        var comp = CreateEmptyCompilation(
-            text,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-            options: TestOptions.ReleaseExe);
+            var comp = CreateEmptyCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        comp.VerifyDiagnostics();
-    }
+            comp.VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void RefSpanDetectBoxing_Ref()
-    {
-        string spanSource = @"
+        [Fact]
+        public void RefSpanDetectBoxing_Ref()
+        {
+            string spanSource = @"
 namespace System
 {
     public ref struct Span<T> { }
     public ref struct ReadOnlySpan<T> { }
 }";
-        var reference = CreateEmptyCompilation(
-            spanSource,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-            options: TestOptions.ReleaseDll);
+            var reference = CreateEmptyCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll);
 
-        reference.VerifyDiagnostics();
+            reference.VerifyDiagnostics();
 
-        var text = @"
+            var text = @"
 class Program
 {
     static void Main()
@@ -1975,24 +1975,24 @@ class Program
     }
 }
 ";
-        var comp = CreateEmptyCompilation(
-            text,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-            options: TestOptions.ReleaseExe);
+            var comp = CreateEmptyCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        comp.VerifyDiagnostics(
-            // (6,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-            //         object x = new System.Span<int>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(6, 20),
-            // (7,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
-            //         object y = new System.ReadOnlySpan<byte>();
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(7, 20));
-    }
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         object x = new System.Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(6, 20),
+                // (7,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new System.ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(7, 20));
+        }
 
-    [Fact]
-    public void CannotUseNonRefSpan()
-    {
-        string spanSource = @"
+        [Fact]
+        public void CannotUseNonRefSpan()
+        {
+            string spanSource = @"
 namespace System
 {
     public struct Span<T> 
@@ -2002,14 +2002,14 @@ namespace System
         }
     }
 }";
-        var reference = CreateEmptyCompilation(
-            spanSource,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-            options: TestOptions.UnsafeReleaseDll);
+            var reference = CreateEmptyCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
 
-        reference.VerifyDiagnostics();
+            reference.VerifyDiagnostics();
 
-        var text = @"
+            var text = @"
 using System;
 class Program
 {
@@ -2019,21 +2019,21 @@ class Program
     }
 }
 ";
-        var comp = CreateEmptyCompilation(
-            text,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-            options: TestOptions.ReleaseExe);
+            var comp = CreateEmptyCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        comp.VerifyDiagnostics(
-            // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
-            //         Span<int> x = stackalloc int [10];
-            Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
-    }
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
 
-    [Fact]
-    public void CannotUseNonStructSpan()
-    {
-        string spanSource = @"
+        [Fact]
+        public void CannotUseNonStructSpan()
+        {
+            string spanSource = @"
 namespace System
 {
     public class Span<T> 
@@ -2043,14 +2043,14 @@ namespace System
         }
     }
 }";
-        var reference = CreateEmptyCompilation(
-            spanSource,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-            options: TestOptions.UnsafeReleaseDll);
+            var reference = CreateEmptyCompilation(
+                spanSource,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.UnsafeReleaseDll);
 
-        reference.VerifyDiagnostics();
+            reference.VerifyDiagnostics();
 
-        var text = @"
+            var text = @"
 using System;
 class Program
 {
@@ -2060,22 +2060,22 @@ class Program
     }
 }
 ";
-        var comp = CreateEmptyCompilation(
-            text,
-            references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
-            options: TestOptions.ReleaseExe);
+            var comp = CreateEmptyCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
 
-        comp.VerifyDiagnostics(
-            // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
-            //         Span<int> x = stackalloc int [10];
-            Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
-    }
+            comp.VerifyDiagnostics(
+                // (7,23): error CS8346: Conversion of a stackalloc expression of type 'int' to type 'Span<int>' is not possible.
+                //         Span<int> x = stackalloc int [10];
+                Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int [10]").WithArguments("int", "System.Span<int>").WithLocation(7, 23));
+        }
 
-    [Fact]
-    [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
-    public void CreateVariableFromRefStructFieldInNonRefStruct()
-    {
-        var code = @"
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInNonRefStruct()
+        {
+            var code = @"
 public ref struct Point
 {
 }
@@ -2091,20 +2091,20 @@ class Program
     }
 }";
 
-        CreateCompilation(code).VerifyDiagnostics(
-            // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
-            //     public static Point field2 = new Point();
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
-            // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
-            //     public Point field1 = new Point();
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 12));
-    }
+            CreateCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public Point field1 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 12));
+        }
 
-    [Fact]
-    [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
-    public void CreateVariableFromRefStructFieldInRefStruct()
-    {
-        var code = @"
+        [Fact]
+        [WorkItem(23627, "https://github.com/dotnet/roslyn/issues/23627")]
+        public void CreateVariableFromRefStructFieldInRefStruct()
+        {
+            var code = @"
 public ref struct Point
 {
 }
@@ -2125,20 +2125,20 @@ ref struct Program
     }
 }";
 
-        CreateCompilation(code).VerifyDiagnostics(
-            // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
-            //     public static Point field2 = new Point();
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
-            // (7,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
-            //     public static Point field1;
-            Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 19));
-    }
+            CreateCompilation(code).VerifyDiagnostics(
+                // (8,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field2 = new Point();
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(8, 19),
+                // (7,19): error CS8345: Field or auto-implemented property cannot be of type 'Point' unless it is an instance member of a ref struct.
+                //     public static Point field1;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Point").WithArguments("Point").WithLocation(7, 19));
+        }
 
-    [Fact]
-    [WorkItem(24627, "https://github.com/dotnet/roslyn/issues/24627")]
-    public void ArgMixingBogusInstanceCall()
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        [WorkItem(24627, "https://github.com/dotnet/roslyn/issues/24627")]
+        public void ArgMixingBogusInstanceCall()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 class Program
 {
     ref struct S1
@@ -2157,26 +2157,26 @@ class Program
     }
 }");
 
-        comp.VerifyDiagnostics(
-            // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
-            //         S1.Test(1);
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "S1.Test").WithArguments("Program.S1.Test(int)").WithLocation(14, 9),
-            // (15,17): error CS0119: 'Program.S1' is a type, which is not valid in the given context
-            //         var x = S1[1];       
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(15, 17),
-            // (16,24): error CS0119: 'Program.S1' is a type, which is not valid in the given context
-            //         var y = new S1(S1, 1);
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(16, 24)
-            );
-    }
+            comp.VerifyDiagnostics(
+                // (14,9): error CS0120: An object reference is required for the non-static field, method, or property 'Program.S1.Test(int)'
+                //         S1.Test(1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "S1.Test").WithArguments("Program.S1.Test(int)").WithLocation(14, 9),
+                // (15,17): error CS0119: 'Program.S1' is a type, which is not valid in the given context
+                //         var x = S1[1];       
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(15, 17),
+                // (16,24): error CS0119: 'Program.S1' is a type, which is not valid in the given context
+                //         var y = new S1(S1, 1);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "S1").WithArguments("Program.S1", "type").WithLocation(16, 24)
+                );
+        }
 
-    [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-    [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
-    public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
-    {
-        var source = @"using System;
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
+        {
+            var source = @"using System;
 class C
 {
     static void Main()
@@ -2199,19 +2199,19 @@ class C
     }
 }";
 
-        var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
-    }
+        }
 
-    [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-    [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
-    public void PassingSpansToLocals_EscapeScope_02(LanguageVersion languageVersion)
-    {
-        var source = @"using System;
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_02(LanguageVersion languageVersion)
+        {
+            var source = @"using System;
 
 class C
 {
@@ -2235,17 +2235,17 @@ class C
     }
 }";
 
-        var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
-    }
+        }
 
-    [Fact]
-    [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-    public void PassingSpansToInParameters_Methods()
-    {
-        CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Methods()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -2285,13 +2285,13 @@ class C
 2 - 1
 1 - 2
 2 - 1");
-    }
+        }
 
-    [Fact]
-    [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-    public void PassingSpansToInParameters_Indexers()
-    {
-        CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToInParameters_Indexers()
+        {
+            CompileAndVerify(CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -2329,15 +2329,15 @@ class C
 2 - 1
 1 - 2
 2 - 1");
-    }
+        }
 
-    [Theory]
-    [InlineData(LanguageVersion.CSharp10)]
-    [InlineData(LanguageVersion.CSharp11)]
-    [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-    public void PassingSpansToParameters_Errors(LanguageVersion languageVersion)
-    {
-        var comp = CreateCompilationWithMscorlibAndSpan(@"
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToParameters_Errors(LanguageVersion languageVersion)
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -2371,80 +2371,80 @@ class C
     }
 }", parseOptions: TestOptions.RegularDefault.WithLanguageVersion(languageVersion));
 
-        if (languageVersion == LanguageVersion.CSharp10)
-        {
-            // In C# 7.2 the input to an `out` parameter can escape which means several 
-            // of the tests are errors due to stack copying to escape
-            comp.VerifyDiagnostics(
-                // (16,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
-                // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
-                // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
-                // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
-                // (19,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
-                // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
-                // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
-                // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
-                // (22,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
-                // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
-                // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
-                // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
-                // (29,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                //     static void M2(scoped ref Span<int> x, out Span<int> y)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(29, 20));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                // In C# 7.2 the input to an `out` parameter can escape which means several 
+                // of the tests are errors due to stack copying to escape
+                comp.VerifyDiagnostics(
+                    // (16,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
+                    // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (19,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
+                    // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (22,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
+                    // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
+                    // (29,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static void M2(scoped ref Span<int> x, out Span<int> y)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(29, 20));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30));
+            }
         }
-        else
-        {
-            comp.VerifyDiagnostics(
-                // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
-                // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
-                // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
-                // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
-                // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
-                // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30));
-        }
-    }
 
-    [Fact]
-    [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-    public void PassingSpansToParameters_Errors_Arglist()
-    {
-        CreateCompilationWithMscorlibAndSpan(@"
+        [Fact]
+        [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
+        public void PassingSpansToParameters_Errors_Arglist()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -2467,25 +2467,25 @@ class C
     {
     }
 }").VerifyDiagnostics(
-            // (16,34): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(__arglist(ref s1, ref s2));  // one
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 34),
-            // (16,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-            //         M2(__arglist(ref s1, ref s2));  // one
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s1, ref s2))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(16, 9),
-            // (17,26): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(__arglist(ref s2, ref s1));  // two
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 26),
-            // (17,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-            //         M2(__arglist(ref s2, ref s1));  // two
-            Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s2, ref s1))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(17, 9));
-    }
+                // (16,34): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(__arglist(ref s1, ref s2));  // one
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 34),
+                // (16,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         M2(__arglist(ref s1, ref s2));  // one
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s1, ref s2))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(16, 9),
+                // (17,26): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(__arglist(ref s2, ref s1));  // two
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 26),
+                // (17,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //         M2(__arglist(ref s2, ref s1));  // two
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s2, ref s1))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(17, 9));
+        }
 
-    [Fact]
-    [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
-    public void SwitchDefaultLocalInitialization_01()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        public void SwitchDefaultLocalInitialization_01()
+        {
+            var source = @"
 using System;
 
 struct Struct2
@@ -2530,15 +2530,15 @@ struct Struct2
         return span;
     }
 }";
-        CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
-            );
-    }
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                );
+        }
 
-    [Fact]
-    [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
-    public void SwitchDefaultLocalInitialization_02()
-    {
-        var source = @"
+        [Fact]
+        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        public void SwitchDefaultLocalInitialization_02()
+        {
+            var source = @"
 using System;
 
 struct Struct2
@@ -2583,27 +2583,27 @@ struct Struct2
         return span; // 4
     }
 }";
-        CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
-            // (10,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-            //             0 => stackalloc byte[10], // 1
-            Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(10, 18),
-            // (21,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
-            //             0 => stackalloc byte[10], // 2
-            Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(21, 18),
-            // (36,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
-            //         return span; // 3
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(36, 16),
-            // (43,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
-            //         return span; // 4
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(43, 16)
-            );
-    }
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (10,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //             0 => stackalloc byte[10], // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(10, 18),
+                // (21,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //             0 => stackalloc byte[10], // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(21, 18),
+                // (36,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return span; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(36, 16),
+                // (43,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return span; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(43, 16)
+                );
+        }
 
-    [Fact]
-    [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
-    public void AssignToDiscard_01()
-    {
-        var text = @"
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_01()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -2618,15 +2618,15 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
-    }
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
-    public void AssignToDiscard_02()
-    {
-        var text = @"
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_02()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -2643,16 +2643,16 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-        // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-        CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.FailsILVerify).VerifyDiagnostics();
-    }
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
-    public void AssignToDiscard_03()
-    {
-        var text = @"
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_03()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -2668,15 +2668,15 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
-    }
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
-    public void AssignToDiscard_04()
-    {
-        var text = @"
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_04()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -2698,15 +2698,15 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
-    }
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
 
-    [Fact]
-    [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
-    public void AssignToDiscard_05()
-    {
-        var text = @"
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_05()
+        {
+            var text = @"
 using System;
 
 class Program
@@ -2721,7 +2721,8 @@ class Program
 }
 ";
 
-        CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
-        CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
     }
 }

@@ -6,28 +6,29 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Substitutes all occurrences of dynamic type with Object type.
-/// </summary>
-internal sealed class DynamicTypeEraser : AbstractTypeMap
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly TypeSymbol _objectType;
-
-    public DynamicTypeEraser(TypeSymbol objectType)
+    /// <summary>
+    /// Substitutes all occurrences of dynamic type with Object type.
+    /// </summary>
+    internal sealed class DynamicTypeEraser : AbstractTypeMap
     {
-        Debug.Assert((object)objectType != null);
-        _objectType = objectType;
-    }
+        private readonly TypeSymbol _objectType;
 
-    public TypeSymbol EraseDynamic(TypeSymbol type)
-    {
-        return SubstituteType(type).AsTypeSymbolOnly();
-    }
+        public DynamicTypeEraser(TypeSymbol objectType)
+        {
+            Debug.Assert((object)objectType != null);
+            _objectType = objectType;
+        }
 
-    protected override TypeSymbol SubstituteDynamicType()
-    {
-        return _objectType;
+        public TypeSymbol EraseDynamic(TypeSymbol type)
+        {
+            return SubstituteType(type).AsTypeSymbolOnly();
+        }
+
+        protected override TypeSymbol SubstituteDynamicType()
+        {
+            return _objectType;
+        }
     }
 }

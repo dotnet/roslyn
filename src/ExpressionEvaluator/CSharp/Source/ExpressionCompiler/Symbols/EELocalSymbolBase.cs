@@ -11,88 +11,89 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
-
-internal static class LocalSymbolExtensions
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal static LocalSymbol ToOtherMethod(this LocalSymbol local, MethodSymbol method, TypeMap typeMap)
+    internal static class LocalSymbolExtensions
     {
-        var l = local as EELocalSymbolBase;
-        if ((object)l != null)
+        internal static LocalSymbol ToOtherMethod(this LocalSymbol local, MethodSymbol method, TypeMap typeMap)
         {
-            return l.ToOtherMethod(method, typeMap);
+            var l = local as EELocalSymbolBase;
+            if ((object)l != null)
+            {
+                return l.ToOtherMethod(method, typeMap);
+            }
+            var type = typeMap.SubstituteType(local.TypeWithAnnotations);
+            return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
         }
-        var type = typeMap.SubstituteType(local.TypeWithAnnotations);
-        return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
     }
-}
 
-internal abstract class EELocalSymbolBase : LocalSymbol
-{
-    internal static readonly ImmutableArray<Location> NoLocations = ImmutableArray.Create(NoLocation.Singleton);
-
-    internal abstract EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap);
-
-    internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+    internal abstract class EELocalSymbolBase : LocalSymbol
     {
-        return null;
-    }
+        internal static readonly ImmutableArray<Location> NoLocations = ImmutableArray.Create(NoLocation.Singleton);
 
-    internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
-    {
-        return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
-    }
+        internal abstract EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap);
 
-    internal sealed override SynthesizedLocalKind SynthesizedKind
-    {
-        get { return SynthesizedLocalKind.UserDefined; }
-    }
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
+        {
+            return null;
+        }
 
-    internal override SyntaxNode ScopeDesignatorOpt
-    {
-        get { return null; }
-    }
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        {
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
+        }
 
-    internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
-        SynthesizedLocalKind kind, SyntaxNode syntax
+        internal sealed override SynthesizedLocalKind SynthesizedKind
+        {
+            get { return SynthesizedLocalKind.UserDefined; }
+        }
+
+        internal override SyntaxNode ScopeDesignatorOpt
+        {
+            get { return null; }
+        }
+
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
 #if DEBUG
-        ,
-        [CallerLineNumber] int createdAtLineNumber = 0,
-        [CallerFilePath] string createdAtFilePath = null
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
 #endif
-        )
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal sealed override bool IsImportedFromMetadata
-    {
-        get { return true; }
-    }
-
-    internal override SyntaxNode GetDeclaratorSyntax()
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override bool HasSourceLocation => false;
-
-    internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
-    {
-        var type = this.TypeWithAnnotations;
-        UseSiteInfo<AssemblySymbol> result = default;
-        if (!DeriveUseSiteInfoFromType(ref result, type, AllowedRequiredModifierType.None) && this.ContainingModule.HasUnifiedReferences)
+            )
         {
-            // If the member is in an assembly with unified references, 
-            // we check if its definition depends on a type from a unified reference.
-            HashSet<TypeSymbol> unificationCheckedTypes = null;
-            var diagnosticInfo = result.DiagnosticInfo;
-            type.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes);
-            result = result.AdjustDiagnosticInfo(diagnosticInfo);
+            throw ExceptionUtilities.Unreachable();
         }
 
-        return result;
-    }
+        internal sealed override bool IsImportedFromMetadata
+        {
+            get { return true; }
+        }
 
-    internal override ScopedKind Scope => ScopedKind.None;
+        internal override SyntaxNode GetDeclaratorSyntax()
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override bool HasSourceLocation => false;
+
+        internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        {
+            var type = this.TypeWithAnnotations;
+            UseSiteInfo<AssemblySymbol> result = default;
+            if (!DeriveUseSiteInfoFromType(ref result, type, AllowedRequiredModifierType.None) && this.ContainingModule.HasUnifiedReferences)
+            {
+                // If the member is in an assembly with unified references, 
+                // we check if its definition depends on a type from a unified reference.
+                HashSet<TypeSymbol> unificationCheckedTypes = null;
+                var diagnosticInfo = result.DiagnosticInfo;
+                type.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes);
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
+            }
+
+            return result;
+        }
+
+        internal override ScopedKind Scope => ScopedKind.None;
+    }
 }

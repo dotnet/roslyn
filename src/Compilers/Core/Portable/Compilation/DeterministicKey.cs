@@ -9,96 +9,97 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis;
-
-internal abstract class SyntaxTreeKey
+namespace Microsoft.CodeAnalysis
 {
-    public abstract string FilePath { get; }
-    public abstract ParseOptions Options { get; }
-
-    protected SyntaxTreeKey()
+    internal abstract class SyntaxTreeKey
     {
-    }
+        public abstract string FilePath { get; }
+        public abstract ParseOptions Options { get; }
 
-    public abstract SourceText GetText(CancellationToken cancellationToken = default);
-
-    public static SyntaxTreeKey Create(SyntaxTree tree)
-        => new DefaultSyntaxTreeKey(tree);
-
-    private sealed class DefaultSyntaxTreeKey : SyntaxTreeKey
-    {
-        private readonly SyntaxTree _tree;
-
-        public DefaultSyntaxTreeKey(SyntaxTree tree)
+        protected SyntaxTreeKey()
         {
-            _tree = tree;
         }
 
-        public override string FilePath
-            => _tree.FilePath;
+        public abstract SourceText GetText(CancellationToken cancellationToken = default);
 
-        public override ParseOptions Options
-            => _tree.Options;
+        public static SyntaxTreeKey Create(SyntaxTree tree)
+            => new DefaultSyntaxTreeKey(tree);
 
-        public override SourceText GetText(CancellationToken cancellationToken = default)
-            => _tree.GetText(cancellationToken);
-    }
-}
+        private sealed class DefaultSyntaxTreeKey : SyntaxTreeKey
+        {
+            private readonly SyntaxTree _tree;
 
-internal static class DeterministicKey
-{
-    public static string GetDeterministicKey(
-        CompilationOptions compilationOptions,
-        ImmutableArray<SyntaxTree> syntaxTrees,
-        ImmutableArray<MetadataReference> references,
-        ImmutableArray<byte> publicKey = default,
-        ImmutableArray<AdditionalText> additionalTexts = default,
-        ImmutableArray<DiagnosticAnalyzer> analyzers = default,
-        ImmutableArray<ISourceGenerator> generators = default,
-        ImmutableArray<KeyValuePair<string, string>> pathMap = default,
-        EmitOptions? emitOptions = null,
-        DeterministicKeyOptions options = DeterministicKeyOptions.Default,
-        CancellationToken cancellationToken = default)
-    {
-        return GetDeterministicKey(
-            compilationOptions,
-            syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
-            references,
-            publicKey,
-            additionalTexts,
-            analyzers,
-            generators,
-            pathMap,
-            emitOptions,
-            options,
-            cancellationToken);
+            public DefaultSyntaxTreeKey(SyntaxTree tree)
+            {
+                _tree = tree;
+            }
+
+            public override string FilePath
+                => _tree.FilePath;
+
+            public override ParseOptions Options
+                => _tree.Options;
+
+            public override SourceText GetText(CancellationToken cancellationToken = default)
+                => _tree.GetText(cancellationToken);
+        }
     }
 
-    public static string GetDeterministicKey(
-        CompilationOptions compilationOptions,
-        ImmutableArray<SyntaxTreeKey> syntaxTrees,
-        ImmutableArray<MetadataReference> references,
-        ImmutableArray<byte> publicKey,
-        ImmutableArray<AdditionalText> additionalTexts = default,
-        ImmutableArray<DiagnosticAnalyzer> analyzers = default,
-        ImmutableArray<ISourceGenerator> generators = default,
-        ImmutableArray<KeyValuePair<string, string>> pathMap = default,
-        EmitOptions? emitOptions = null,
-        DeterministicKeyOptions options = DeterministicKeyOptions.Default,
-        CancellationToken cancellationToken = default)
+    internal static class DeterministicKey
     {
-        var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
-        return keyBuilder.GetKey(
-            compilationOptions,
-            syntaxTrees,
-            references,
-            publicKey,
-            additionalTexts.NullToEmpty(),
-            analyzers.NullToEmpty(),
-            generators.NullToEmpty(),
-            pathMap.NullToEmpty(),
-            emitOptions,
-            options,
-            cancellationToken);
+        public static string GetDeterministicKey(
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey = default,
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            CancellationToken cancellationToken = default)
+        {
+            return GetDeterministicKey(
+                compilationOptions,
+                syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
+                references,
+                publicKey,
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                options,
+                cancellationToken);
+        }
+
+        public static string GetDeterministicKey(
+            CompilationOptions compilationOptions,
+            ImmutableArray<SyntaxTreeKey> syntaxTrees,
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
+            ImmutableArray<AdditionalText> additionalTexts = default,
+            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
+            ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
+            EmitOptions? emitOptions = null,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            CancellationToken cancellationToken = default)
+        {
+            var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
+            return keyBuilder.GetKey(
+                compilationOptions,
+                syntaxTrees,
+                references,
+                publicKey,
+                additionalTexts.NullToEmpty(),
+                analyzers.NullToEmpty(),
+                generators.NullToEmpty(),
+                pathMap.NullToEmpty(),
+                emitOptions,
+                options,
+                cancellationToken);
+        }
     }
 }

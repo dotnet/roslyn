@@ -13,22 +13,22 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-/// <summary>
-/// Tests related to binding object and collection initializer expressions.
-/// </summary>
-public class ObjectAndCollectionInitializerTests : CompilingTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    #region "Functionality tests"
-
-    #region "Object Initializer"
-
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_ClassType()
+    /// <summary>
+    /// Tests related to binding object and collection initializer expressions.
+    /// </summary>
+    public class ObjectAndCollectionInitializerTests : CompilingTestBase
     {
-        string source = @"
+        #region "Functionality tests"
+
+        #region "Object Initializer"
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_ClassType()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -40,7 +40,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: 
@@ -61,18 +61,18 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_StructType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_StructType()
+        {
+            string source = @"
 struct MemberInitializerTest
 {
     public int x;
@@ -84,7 +84,7 @@ struct MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ...  0, y = 0 }')
   Arguments(0)
   Initializer: 
@@ -105,18 +105,18 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_TypeParameterType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_TypeParameterType()
+        {
+            string source = @"
 class Base
 {
     public Base() { }
@@ -136,7 +136,7 @@ class MemberInitializerTest<T> where T : Base, new()
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T() { x = 0, y = 0 }')
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: '{ x = 0, y = 0 }')
@@ -156,17 +156,17 @@ ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_EnumType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_EnumType()
+        {
+            string source = @"
 enum X { x = 0 }
 
 class MemberInitializerTest
@@ -177,24 +177,24 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation, Type: X) (Syntax: 'new X() { }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: X) (Syntax: '{ }')
       Initializers(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_PrimitiveType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_PrimitiveType()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public static void Main()
@@ -203,25 +203,25 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'new int() { }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32) (Syntax: '{ }')
       Initializers(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void ObjectInitializerTest_MemberAccess_DynamicType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ObjectInitializerTest_MemberAccess_DynamicType()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public dynamic X;
@@ -231,7 +231,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest) (Syntax: 'new MemberI ... t { X = 0 }')
   Arguments(0)
   Initializer: 
@@ -248,18 +248,18 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Operand: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        // TODO: This should produce no diagnostics.
-        CreateCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
-    }
+            // TODO: This should produce no diagnostics.
+            CreateCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
+        }
 
-    [Fact]
-    public void ObjectInitializerTest_DefAssignment()
-    {
-        var source = @"
+        [Fact]
+        public void ObjectInitializerTest_DefAssignment()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 
@@ -299,18 +299,18 @@ class MyList : List<int>
     public MyList(List<int> list){}    
 }
 ";
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    #endregion
+        #endregion
 
-    #region "Collection Initializer"
+        #region "Collection Initializer"
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_Empty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_Empty()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 class MemberInitializerTest
@@ -324,7 +324,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Collections.Generic.List<System.Int32> i
     Local_2: MemberInitializerTest j
@@ -377,18 +377,18 @@ IBlockOperation (3 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, expectedOutput: "");
-    }
+            CompileAndVerify(source, expectedOutput: "");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_DynamicType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_DynamicType()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 
@@ -412,7 +412,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreation, Type: Test) (Syntax: 'new Test()  ... t = { 1 } }')
   Arguments(0)
   Initializer: 
@@ -437,19 +437,19 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                       ArgumentNames(0)
                       ArgumentRefKinds(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
-            VerifyDiagnostics();
-    }
+            CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
+                VerifyDiagnostics();
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -488,7 +488,7 @@ class B : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B { 1, 2, 3, 4, 5 }')
   Arguments(0)
   Initializer: 
@@ -550,23 +550,23 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 2
 3
 4
 5";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable_Of_T()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_ExplicitInterfaceImplementation_IEnumerable_Of_T()
+        {
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -611,7 +611,7 @@ class B<T> : IEnumerable<T>
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: B<System.Int64>..ctor()) (OperationKind.ObjectCreation, Type: B<System.Int64>) (Syntax: 'new B<long> ... , 3, 4, 5 }')
   Arguments(0)
   Initializer: 
@@ -673,25 +673,25 @@ IObjectCreationOperation (Constructor: B<System.Int64>..ctor()) (OperationKind.O
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        string expectedOutput = @"1
+            string expectedOutput = @"1
 2
 3
 4
 5";
-        CompileAndVerify(source, expectedOutput: expectedOutput);
-    }
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_ExplicitImplOfAdd_And_ImplicitImplOfAdd()
-    {
-        // Explicit interface member implementation of Add(T) is ignored and implicit implementation is called if both are defined.
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_ExplicitImplOfAdd_And_ImplicitImplOfAdd()
+        {
+            // Explicit interface member implementation of Add(T) is ignored and implicit implementation is called if both are defined.
 
-        string source = @"
+            string source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -772,7 +772,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreation, Type: MyList<System.String>) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: 
@@ -787,20 +787,20 @@ IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (Operation
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
-        CompileAndVerify(source, expectedOutput: "str");
-    }
+            CompileAndVerify(source, expectedOutput: "str");
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_ExplicitImplOfAdd_NoImplicitImpl()
-    {
-        // Explicit interface member implementation of Add(T) will cause a compile-time error.
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_ExplicitImplOfAdd_NoImplicitImpl()
+        {
+            // Explicit interface member implementation of Add(T) will cause a compile-time error.
 
-        string source = @"
+            string source = @"
 using System.Collections.Generic;
 class MemberInitializerTest
 {
@@ -873,7 +873,7 @@ class MyList<T> : ICollection<T>
     #endregion
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (OperationKind.ObjectCreation, Type: MyList<System.String>, IsInvalid) (Syntax: 'new MyList< ... > { ""str"" }')
   Arguments(0)
   Initializer: 
@@ -883,27 +883,27 @@ IObjectCreationOperation (Constructor: MyList<System.String>..ctor()) (Operation
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""str"", IsInvalid) (Syntax: '""str""')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1061: 'MyList<string>' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'MyList<string>' could be found (are you missing a using directive or an assembly reference?)
-            //         var coll = /*<bind>*/new MyList<string> { "str" }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"""str""").WithArguments("MyList<string>", "Add").WithLocation(7, 51)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'MyList<string>' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'MyList<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         var coll = /*<bind>*/new MyList<string> { "str" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"""str""").WithArguments("MyList<string>", "Add").WithLocation(7, 51)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    #endregion
+        #endregion
 
-    #endregion
+        #endregion
 
-    #region "Error Tests"
+        #region "Error Tests"
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
-    public void AddFieldUsedLikeMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        public void AddFieldUsedLikeMethod()
+        {
+            string source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -921,7 +921,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: 
@@ -932,24 +932,24 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'A')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0118: 'Add' is a field but is used like a method
-            //         /*<bind>*/new A { "" }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "field", "method").WithLocation(12, 27),
-            // CS0649: Field 'A.Add' is never assigned to, and will always have its default value null
-            //     public Action<string> Add;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Add").WithArguments("A.Add", "null").WithLocation(8, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0118: 'Add' is a field but is used like a method
+                //         /*<bind>*/new A { "" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "field", "method").WithLocation(12, 27),
+                // CS0649: Field 'A.Add' is never assigned to, and will always have its default value null
+                //     public Action<string> Add;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Add").WithArguments("A.Add", "null").WithLocation(8, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
-    public void AddPropertyUsedLikeMethod()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(629368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/629368")]
+        public void AddPropertyUsedLikeMethod()
+        {
+            string source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -967,7 +967,7 @@ class A : IEnumerable<int>
     IEnumerator IEnumerable.GetEnumerator() { return null; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A { """" }')
   Arguments(0)
   Initializer: 
@@ -978,20 +978,20 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsInvalid) (Syntax: '""""')
                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: 'A')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0118: 'Add' is a property but is used like a method
-            //         /*<bind>*/new A { "" }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "property", "method").WithLocation(12, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0118: 'Add' is a property but is used like a method
+                //         /*<bind>*/new A { "" }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKknown, @"""""").WithArguments("Add", "property", "method").WithLocation(12, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0070ERR_BadEventUsage()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0070ERR_BadEventUsage()
+        {
+            string source = @"
 delegate void D();
 struct MemberInitializerTest
 {
@@ -1005,7 +1005,7 @@ class X
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
   IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  z = null }')
   Arguments(0)
   Initializer:
@@ -1022,23 +1022,23 @@ class X
                 Operand:
                   ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
-            //         var i = /*<bind>*/new MemberInitializerTest() { z = null }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadEventUsage, "z").WithArguments("MemberInitializerTest.z", "MemberInitializerTest").WithLocation(11, 57),
-            // CS0067: The event 'MemberInitializerTest.z' is never used
-            //     public event D z;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "z").WithArguments("MemberInitializerTest.z").WithLocation(5, 20)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0070: The event 'MemberInitializerTest.z' can only appear on the left hand side of += or -= (except when used from within the type 'MemberInitializerTest')
+                //         var i = /*<bind>*/new MemberInitializerTest() { z = null }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "z").WithArguments("MemberInitializerTest.z", "MemberInitializerTest").WithLocation(11, 57),
+                // CS0067: The event 'MemberInitializerTest.z' is never used
+                //     public event D z;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "z").WithArguments("MemberInitializerTest.z").WithLocation(5, 20)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0117ERR_NoSuchMember()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0117ERR_NoSuchMember()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public static void Main()
@@ -1047,7 +1047,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'new int() { x = 0 }')
   Arguments(0)
   Initializer: 
@@ -1063,20 +1063,20 @@ IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.Obje
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0117: 'int' does not contain a definition for 'x'
-            //         var i = /*<bind>*/new int() { x = 0 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("int", "x").WithLocation(6, 39)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0117: 'int' does not contain a definition for 'x'
+                //         var i = /*<bind>*/new int() { x = 0 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("int", "x").WithLocation(6, 39)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0120_ERR_ObjectRequired()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0120_ERR_ObjectRequired()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1087,7 +1087,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, y = x }')
   Arguments(0)
   Initializer: 
@@ -1110,20 +1110,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'x')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.x'
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = x }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("MemberInitializerTest.x").WithLocation(8, 68)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.x'
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "x").WithArguments("MemberInitializerTest.x").WithLocation(8, 68)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0122_ERR_BadAccess()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0122_ERR_BadAccess()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     protected int x;
@@ -1139,7 +1139,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  2, z = 3 }')
   Arguments(0)
   Initializer: 
@@ -1167,26 +1167,26 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0122: 'MemberInitializerTest.x' is inaccessible due to its protection level
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = 2, z = 3 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadAccess, "x").WithArguments("MemberInitializerTest.x").WithLocation(13, 57),
-            // CS0122: 'MemberInitializerTest.y' is inaccessible due to its protection level
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = 2, z = 3 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadAccess, "y").WithArguments("MemberInitializerTest.y").WithLocation(13, 64),
-            // CS0649: Field 'MemberInitializerTest.x' is never assigned to, and will always have its default value 0
-            //     protected int x;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("MemberInitializerTest.x", "0").WithLocation(4, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0122: 'MemberInitializerTest.x' is inaccessible due to its protection level
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = 2, z = 3 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadAccess, "x").WithArguments("MemberInitializerTest.x").WithLocation(13, 57),
+                // CS0122: 'MemberInitializerTest.y' is inaccessible due to its protection level
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, y = 2, z = 3 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadAccess, "y").WithArguments("MemberInitializerTest.y").WithLocation(13, 64),
+                // CS0649: Field 'MemberInitializerTest.x' is never assigned to, and will always have its default value 0
+                //     protected int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("MemberInitializerTest.x", "0").WithLocation(4, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0144_ERR_NoNewAbstract()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0144_ERR_NoNewAbstract()
+        {
+            string source = @"
 interface I { }
 class MemberInitializerTest
 {
@@ -1196,26 +1196,26 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
     IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I() { }')
       Children(1):
           IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: I, IsInvalid) (Syntax: '{ }')
             Initializers(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0144: Cannot create an instance of the abstract type or interface 'I'
-            //         var i = /*<bind>*/new I() { }/*</bind>*/; // CS0144
-            Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0144: Cannot create an instance of the abstract type or interface 'I'
+                //         var i = /*<bind>*/new I() { }/*</bind>*/; // CS0144
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0154_ERR_PropertyLacksGet()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0154_ERR_PropertyLacksGet()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1233,7 +1233,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreation, Type: Test, IsInvalid) (Syntax: 'new Test()  ... , y = 2 } }')
   Arguments(0)
   Initializer: 
@@ -1262,20 +1262,20 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0154: The property or indexer 'Test.Prop' cannot be used in this context because it lacks the get accessor
-            //         var i = /*<bind>*/new Test() { Prop = { x = 1, y = 2 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Prop").WithArguments("Test.Prop").WithLocation(15, 40)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0154: The property or indexer 'Test.Prop' cannot be used in this context because it lacks the get accessor
+                //         var i = /*<bind>*/new Test() { Prop = { x = 1, y = 2 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Prop").WithArguments("Test.Prop").WithLocation(15, 40)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0165_ERR_UseDefViolation()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0165_ERR_UseDefViolation()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1285,7 +1285,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = m.x }')
   Arguments(0)
   Initializer: 
@@ -1301,20 +1301,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Instance Receiver: 
                   ILocalReferenceOperation: m (OperationKind.LocalReference, Type: MemberInitializerTest, IsInvalid) (Syntax: 'm')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0165: Use of unassigned local variable 'm'
-            //         MemberInitializerTest m = /*<bind>*/new MemberInitializerTest() { x = m.x }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m").WithLocation(7, 79)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0165: Use of unassigned local variable 'm'
+                //         MemberInitializerTest m = /*<bind>*/new MemberInitializerTest() { x = m.x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m").WithLocation(7, 79)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0191_ERR_AssgReadonly()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0191_ERR_AssgReadonly()
+        {
+            string source = @"
 struct MemberInitializerTest
 {
     public readonly int x;
@@ -1329,7 +1329,7 @@ struct Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { x = 1 }')
   Arguments(0)
   Initializer: 
@@ -1343,20 +1343,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(12, 57)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "x").WithLocation(12, 57)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0200_ERR_AssgReadonlyProp()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0200_ERR_AssgReadonlyProp()
+        {
+            string source = @"
 struct MemberInitializerTest
 {
     public readonly int x;
@@ -1371,7 +1371,7 @@ struct Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... ) { y = 2 }')
   Arguments(0)
   Initializer: 
@@ -1385,23 +1385,23 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0200: Property or indexer 'MemberInitializerTest.y' cannot be assigned to -- it is read only
-            //         var i = /*<bind>*/new MemberInitializerTest() { y = 2 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "y").WithArguments("MemberInitializerTest.y").WithLocation(12, 57),
-            // CS0649: Field 'MemberInitializerTest.x' is never assigned to, and will always have its default value 0
-            //     public readonly int x;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("MemberInitializerTest.x", "0").WithLocation(4, 25)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0200: Property or indexer 'MemberInitializerTest.y' cannot be assigned to -- it is read only
+                //         var i = /*<bind>*/new MemberInitializerTest() { y = 2 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "y").WithArguments("MemberInitializerTest.y").WithLocation(12, 57),
+                // CS0649: Field 'MemberInitializerTest.x' is never assigned to, and will always have its default value 0
+                //     public readonly int x;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("MemberInitializerTest.x", "0").WithLocation(4, 25)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0246_ERR_SingleTypeNameNotFound()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0246_ERR_SingleTypeNameNotFound()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public static void Main()
@@ -1410,7 +1410,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: X) (Syntax: '{ x = 0 }')
@@ -1425,21 +1425,21 @@ IInvalidOperation (OperationKind.Invalid, Type: X, IsInvalid) (Syntax: 'new X() 
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-            //         var i = /*<bind>*/new X() { x = 0 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 31)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                //         var i = /*<bind>*/new X() { x = 0 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 31)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
-    [Fact]
-    public void CS0246_ERR_SingleTypeNameNotFound_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(543936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543936")]
+        [Fact]
+        public void CS0246_ERR_SingleTypeNameNotFound_02()
+        {
+            string source = @"
 static class Ext
 {
     static int Width(this Goo f) { return 0; }
@@ -1453,7 +1453,7 @@ class Goo
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: Bar, IsInvalid) (Syntax: 'new Bar() { Width = 16 }')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Bar) (Syntax: '{ Width = 16 }')
@@ -1468,20 +1468,20 @@ IInvalidOperation (OperationKind.Invalid, Type: Bar, IsInvalid) (Syntax: 'new Ba
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 16) (Syntax: '16')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0246: The type or namespace name 'Bar' could not be found (are you missing a using directive or an assembly reference?)
-            //         var x = /*<bind>*/new Bar() { Width = 16 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Bar").WithArguments("Bar").WithLocation(11, 31)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0246: The type or namespace name 'Bar' could not be found (are you missing a using directive or an assembly reference?)
+                //         var x = /*<bind>*/new Bar() { Width = 16 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Bar").WithArguments("Bar").WithLocation(11, 31)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0304_ERR_NoNewTyvar()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0304_ERR_NoNewTyvar()
+        {
+            string source = @"
 class MemberInitializerTest<T>
 {
     public static void Main()
@@ -1490,7 +1490,7 @@ class MemberInitializerTest<T>
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T() { x = 0 }')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: '{ x = 0 }')
@@ -1505,23 +1505,23 @@ IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T() 
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0117: 'T' does not contain a definition for 'x'
-            //         var i = /*<bind>*/new T() { x = 0 }/*</bind>*/; // CS0304
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("T", "x").WithLocation(6, 37),
-            // CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
-            //         var i = /*<bind>*/new T() { x = 0 }/*</bind>*/; // CS0304
-            Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T() { x = 0 }").WithArguments("T").WithLocation(6, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0117: 'T' does not contain a definition for 'x'
+                //         var i = /*<bind>*/new T() { x = 0 }/*</bind>*/; // CS0304
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "x").WithArguments("T", "x").WithLocation(6, 37),
+                // CS0304: Cannot create an instance of the variable type 'T' because it does not have the new() constraint
+                //         var i = /*<bind>*/new T() { x = 0 }/*</bind>*/; // CS0304
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T() { x = 0 }").WithArguments("T").WithLocation(6, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0411_ERR_CantInferMethTypeArgs()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0411_ERR_CantInferMethTypeArgs()
+        {
+            string source = @"
 using System.Collections.Generic;
 using System.Collections;
 
@@ -1545,7 +1545,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Gen<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: Gen<System.Int32>, IsInvalid) (Syntax: 'new Gen<int> { 1 }')
   Arguments(0)
   Initializer: 
@@ -1555,20 +1555,20 @@ IObjectCreationOperation (Constructor: Gen<System.Int32>..ctor()) (OperationKind
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0411: The type arguments for method 'Gen<int>.Add<U>(int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-            //         var coll = /*<bind>*/new Gen<int> { 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Gen<int>.Add<U>(int)").WithLocation(21, 45)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0411: The type arguments for method 'Gen<int>.Add<U>(int)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var coll = /*<bind>*/new Gen<int> { 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "1").WithArguments("Gen<int>.Add<U>(int)").WithLocation(21, 45)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0747_ERR_InvalidInitializerElementInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0747_ERR_InvalidInitializerElementInitializer()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x, y;
@@ -1578,7 +1578,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  = 0, y++ }')
   Arguments(0)
   Initializer: 
@@ -1597,23 +1597,23 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'y')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
-            //         var i = /*<bind>*/new MemberInitializerTest { x = 0, y++ }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 62),
-            // CS0747: Invalid initializer member declarator
-            //         var i = /*<bind>*/new MemberInitializerTest { x = 0, y++ }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 62)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
+                //         var i = /*<bind>*/new MemberInitializerTest { x = 0, y++ }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 62),
+                // CS0747: Invalid initializer member declarator
+                //         var i = /*<bind>*/new MemberInitializerTest { x = 0, y++ }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 62)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0747_ERR_InvalidInitializerElementInitializer_MethodCall()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0747_ERR_InvalidInitializerElementInitializer_MethodCall()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1624,7 +1624,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: 
@@ -1647,23 +1647,23 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Initializer: 
                   null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(8, 64),
-            // CS0747: Invalid initializer member declarator
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(8, 64)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(8, 64),
+                // CS0747: Invalid initializer member declarator
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 0, Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(8, 64)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS0747_ERR_InvalidInitializerElementInitializer_AssignmentExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS0747_ERR_InvalidInitializerElementInitializer_AssignmentExpression()
+        {
+            string source = @"
 using System.Collections.Generic;
 class MemberInitializerTest
 {
@@ -1676,7 +1676,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... o().x = 1 }')
   Arguments(0)
   Initializer: 
@@ -1708,20 +1708,20 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0747: Invalid initializer member declarator
-            //         var i = /*<bind>*/new List<int> { 1, Goo().x = 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo().x = 1").WithLocation(10, 46)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0747: Invalid initializer member declarator
+                //         var i = /*<bind>*/new List<int> { 1, Goo().x = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo().x = 1").WithLocation(10, 46)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1912ERR_MemberAlreadyInitialized()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1912ERR_MemberAlreadyInitialized()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1731,7 +1731,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  1, x = 2 }')
   Arguments(0)
   Initializer: 
@@ -1752,20 +1752,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1912: Duplicate initialization of member 'x'
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, x = 2 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "x").WithArguments("x").WithLocation(7, 64)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1912: Duplicate initialization of member 'x'
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, x = 2 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "x").WithArguments("x").WithLocation(7, 64)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1913ERR_MemberCannotBeInitialized()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1913ERR_MemberCannotBeInitialized()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
@@ -1775,7 +1775,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: 
@@ -1794,20 +1794,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                 Initializer: 
                   null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1913: Member 'Goo' cannot be initialized. It is not a field or property.
-            //         var i = /*<bind>*/new MemberInitializerTest() { Goo = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Goo").WithArguments("Goo").WithLocation(7, 57)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1913: Member 'Goo' cannot be initialized. It is not a field or property.
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_MemberCannotBeInitialized, "Goo").WithArguments("Goo").WithLocation(7, 57)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    [CompilerTrait(CompilerFeature.IOperation)]
-    public void CS1914ERR_StaticMemberInObjectInitializer_EnumTypeMember()
-    {
-        string source = @"
+        [Fact]
+        [CompilerTrait(CompilerFeature.IOperation)]
+        public void CS1914ERR_StaticMemberInObjectInitializer_EnumTypeMember()
+        {
+            string source = @"
 enum X { x = 0 }
 
 class MemberInitializerTest
@@ -1818,7 +1818,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation, Type: X, IsInvalid) (Syntax: 'new X() { x = 0 }')
   Arguments(0)
   Initializer:
@@ -1835,20 +1835,20 @@ IObjectCreationOperation (Constructor: X..ctor()) (OperationKind.ObjectCreation,
                 Operand:
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
-            //         var i = /*<bind>*/new X() { x = 0 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("X.x").WithLocation(8, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1914: Static field or property 'X.x' cannot be assigned in an object initializer
+                //         var i = /*<bind>*/new X() { x = 0 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("X.x").WithLocation(8, 37)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1914ERR_StaticMemberInObjectInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1914ERR_StaticMemberInObjectInitializer()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public static int x;
@@ -1860,7 +1860,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  Prop = 1 }')
   Arguments(0)
   Initializer:
@@ -1881,23 +1881,23 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Right:
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1914: Static field or property 'MemberInitializerTest.x' cannot be assigned in an object initializer
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("MemberInitializerTest.x").WithLocation(9, 57),
-            // CS1914: Static field or property 'MemberInitializerTest.Prop' cannot be assigned in an object initializer
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "Prop").WithArguments("MemberInitializerTest.Prop").WithLocation(9, 64)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1914: Static field or property 'MemberInitializerTest.x' cannot be assigned in an object initializer
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "x").WithArguments("MemberInitializerTest.x").WithLocation(9, 57),
+                // CS1914: Static field or property 'MemberInitializerTest.Prop' cannot be assigned in an object initializer
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "Prop").WithArguments("MemberInitializerTest.Prop").WithLocation(9, 64)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1917ERR_ReadonlyValueTypeInObjectInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1917ERR_ReadonlyValueTypeInObjectInitializer()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public readonly MemberInitializerTest2 x;
@@ -1913,7 +1913,7 @@ struct MemberInitializerTest2
     public int y;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { y = 1 } }')
   Arguments(0)
   Initializer: 
@@ -1935,20 +1935,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1917: Members of readonly field 'MemberInitializerTest.x' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = { y = 1 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "x").WithArguments("MemberInitializerTest.x", "MemberInitializerTest2").WithLocation(8, 57)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1917: Members of readonly field 'MemberInitializerTest.x' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = { y = 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "x").WithArguments("MemberInitializerTest.x", "MemberInitializerTest2").WithLocation(8, 57)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1918ERR_ValueTypePropertyInObjectInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1918ERR_ValueTypePropertyInObjectInitializer()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int x;
@@ -1965,7 +1965,7 @@ struct MemberInitializerTest2
     public int x;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... { x = 1 } }')
   Arguments(0)
   Initializer: 
@@ -1994,20 +1994,20 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                       Right: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1918: Members of property 'MemberInitializerTest.Prop' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
-            //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = { x = 1 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Prop").WithArguments("MemberInitializerTest.Prop", "MemberInitializerTest2").WithLocation(9, 64)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1918: Members of property 'MemberInitializerTest.Prop' of type 'MemberInitializerTest2' cannot be assigned with an object initializer because it is of a value type
+                //         var i = /*<bind>*/new MemberInitializerTest() { x = 1, Prop = { x = 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Prop").WithArguments("MemberInitializerTest.Prop", "MemberInitializerTest2").WithLocation(9, 64)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1920ERR_EmptyElementInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1920ERR_EmptyElementInitializer()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 class MemberInitializerTest
@@ -2022,7 +2022,7 @@ class MemberInitializerTest
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: MemberInitializerTest i
     Local_2: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>> collection
@@ -2106,23 +2106,23 @@ IBlockOperation (4 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1920: Element initializer cannot be empty
-            //         i = new MemberInitializerTest { y = { { } } };  // CS1920
-            Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ }").WithLocation(11, 47),
-            // CS1920: Element initializer cannot be empty
-            //         List<List<int>> collection = new List<List<int>>() { { } }; // CS1920
-            Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ }").WithLocation(12, 62)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1920: Element initializer cannot be empty
+                //         i = new MemberInitializerTest { y = { { } } };  // CS1920
+                Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ }").WithLocation(11, 47),
+                // CS1920: Element initializer cannot be empty
+                //         List<List<int>> collection = new List<List<int>>() { { } }; // CS1920
+                Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ }").WithLocation(12, 62)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1921ERR_InitializerAddHasWrongSignature()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1921ERR_InitializerAddHasWrongSignature()
+        {
+            string source = @"
 using System.Collections.Generic;
 using System.Collections;
 
@@ -2143,7 +2143,7 @@ class Test : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreation, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: 
@@ -2153,20 +2153,20 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1921: The best overloaded method match for 'Test.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
-            //         var coll = /*<bind>*/new Test() { 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "1").WithArguments("Test.Add(int)").WithLocation(11, 43)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1921: The best overloaded method match for 'Test.Add(int)' has wrong signature for the initializer element. The initializable Add must be an accessible instance method.
+                //         var coll = /*<bind>*/new Test() { 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InitializerAddHasWrongSignature, "1").WithArguments("Test.Add(int)").WithLocation(11, 43)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1922ERR_CollectionInitRequiresIEnumerable()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1922ERR_CollectionInitRequiresIEnumerable()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public static int Main()
@@ -2189,7 +2189,7 @@ class A
     public string Prop2 { get; set; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll
     Local_2: A tc
@@ -2232,23 +2232,23 @@ IBlockOperation (3 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
     ReturnedValue: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-            //         B coll = new B { 1 };           // CS1922
-            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(6, 24),
-            // CS1922: Cannot initialize type 'A' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-            //         var tc = new A { 1, "hello" }; // CS1922
-            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ 1, ""hello"" }").WithArguments("A").WithLocation(7, 24)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         B coll = new B { 1 };           // CS1922
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(6, 24),
+                // CS1922: Cannot initialize type 'A' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         var tc = new A { 1, "hello" }; // CS1922
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ 1, ""hello"" }").WithArguments("A").WithLocation(7, 24)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1922ERR_CollectionInitRequiresIEnumerable_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1922ERR_CollectionInitRequiresIEnumerable_02()
+        {
+            string source = @"
 using System.Collections;
 using System.Collections.Generic;
 class MemberInitializerTest
@@ -2276,7 +2276,7 @@ class B
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B { 1 }')
   Arguments(0)
   Initializer: 
@@ -2286,20 +2286,20 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-            //         B coll = /*<bind>*/new B { 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(8, 34)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1922: Cannot initialize type 'B' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         B coll = /*<bind>*/new B { 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1 }").WithArguments("B").WithLocation(8, 34)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1922ERR_CollectionInitRequiresIEnumerable_InvalidInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1922ERR_CollectionInitRequiresIEnumerable_InvalidInitializer()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public int y;
@@ -2309,7 +2309,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... est { y++ }')
   Arguments(0)
   Initializer: 
@@ -2323,23 +2323,23 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                       Instance Receiver: 
                         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'y')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-            //         var i = /*<bind>*/new MemberInitializerTest { y++ }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ y++ }").WithArguments("MemberInitializerTest").WithLocation(7, 53),
-            // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
-            //         var i = /*<bind>*/new MemberInitializerTest { y++ }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 55)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         var i = /*<bind>*/new MemberInitializerTest { y++ }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ y++ }").WithArguments("MemberInitializerTest").WithLocation(7, 53),
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
+                //         var i = /*<bind>*/new MemberInitializerTest { y++ }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 55)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1922ERR_CollectionInitRequiresIEnumerable_MethodCall()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1922ERR_CollectionInitRequiresIEnumerable_MethodCall()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     public MemberInitializerTest Goo() { return new MemberInitializerTest(); }
@@ -2349,7 +2349,7 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... zerTest() }')
   Arguments(0)
   Initializer: 
@@ -2367,26 +2367,26 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
                       Initializer: 
                         null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-            //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Goo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 55),
-            // CS0747: Invalid initializer member declarator
-            //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(7, 57),
-            // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
-            //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(7, 57)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1922: Cannot initialize type 'MemberInitializerTest' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ Goo() = new MemberInitializerTest() }").WithArguments("MemberInitializerTest").WithLocation(7, 55),
+                // CS0747: Invalid initializer member declarator
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Goo() = new MemberInitializerTest()").WithLocation(7, 57),
+                // CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.Goo()'
+                //         var i = /*<bind>*/new MemberInitializerTest() { Goo() = new MemberInitializerTest() }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Goo").WithArguments("MemberInitializerTest.Goo()").WithLocation(7, 57)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1950ERR_BadArgTypesForCollectionAdd()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1950ERR_BadArgTypesForCollectionAdd()
+        {
+            string source = @"
 using System.Collections;
 class TestClass : CollectionBase
 {
@@ -2403,7 +2403,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: TestClass..ctor()) (OperationKind.ObjectCreation, Type: TestClass, IsInvalid) (Syntax: 'new TestClass { ""hi"" }')
   Arguments(0)
   Initializer: 
@@ -2413,23 +2413,23 @@ IObjectCreationOperation (Constructor: TestClass..ctor()) (OperationKind.ObjectC
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""hi"", IsInvalid) (Syntax: '""hi""')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1950: The best overloaded Add method 'TestClass.Add(int)' for the collection initializer has some invalid arguments
-            //         TestClass t = /*<bind>*/new TestClass { "hi" }/*</bind>*/; // CS1950
-            Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, @"""hi""").WithArguments("TestClass.Add(int)").WithLocation(14, 49),
-            // CS1503: Argument 1: cannot convert from 'string' to 'int'
-            //         TestClass t = /*<bind>*/new TestClass { "hi" }/*</bind>*/; // CS1950
-            Diagnostic(ErrorCode.ERR_BadArgType, @"""hi""").WithArguments("1", "string", "int").WithLocation(14, 49)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1950: The best overloaded Add method 'TestClass.Add(int)' for the collection initializer has some invalid arguments
+                //         TestClass t = /*<bind>*/new TestClass { "hi" }/*</bind>*/; // CS1950
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, @"""hi""").WithArguments("TestClass.Add(int)").WithLocation(14, 49),
+                // CS1503: Argument 1: cannot convert from 'string' to 'int'
+                //         TestClass t = /*<bind>*/new TestClass { "hi" }/*</bind>*/; // CS1950
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""hi""").WithArguments("1", "string", "int").WithLocation(14, 49)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1954ERR_InitializerAddHasParamModifiers()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1954ERR_InitializerAddHasParamModifiers()
+        {
+            string source = @"
 using System.Collections.Generic;
 using System.Collections;
 
@@ -2450,7 +2450,7 @@ class Test : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreation, Type: Test, IsInvalid) (Syntax: 'new Test() { 1 }')
   Arguments(0)
   Initializer: 
@@ -2460,20 +2460,20 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
             Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1954: The best overloaded method match 'Test.Add(ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
-            //         var coll = /*<bind>*/new Test() { 1 }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("Test.Add(ref int)").WithLocation(11, 43)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1954: The best overloaded method match 'Test.Add(ref int)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         var coll = /*<bind>*/new Test() { 1 }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, "1").WithArguments("Test.Add(ref int)").WithLocation(11, 43)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1954ERR_InitializerAddHasParamModifiers02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1954ERR_InitializerAddHasParamModifiers02()
+        {
+            string source = @"
 using System.Collections.Generic;
 class MyList<T> : IEnumerable<T>
 {
@@ -2511,7 +2511,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: MyList<MyClass>..ctor()) (OperationKind.ObjectCreation, Type: MyList<MyClass>, IsInvalid) (Syntax: 'new MyList< ... ""maple"" } }')
   Arguments(0)
   Initializer: 
@@ -2532,23 +2532,23 @@ IObjectCreationOperation (Constructor: MyList<MyClass>..ctor()) (OperationKind.O
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""maple"", IsInvalid) (Syntax: '""maple""')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1954: The best overloaded method match 'MyList<MyClass>.Add(ref MyClass)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
-            //         MyList<MyClass> myList = /*<bind>*/new MyList<MyClass> { new MyClass { tree = "maple" } }/*</bind>*/; // CS1954
-            Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"new MyClass { tree = ""maple"" }").WithArguments("MyList<MyClass>.Add(ref MyClass)").WithLocation(35, 66),
-            // CS0649: Field 'MyList<T>._list' is never assigned to, and will always have its default value null
-            //     List<T> _list;
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_list").WithArguments("MyList<T>._list", "null").WithLocation(5, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1954: The best overloaded method match 'MyList<MyClass>.Add(ref MyClass)' for the collection initializer element cannot be used. Collection initializer 'Add' methods cannot have ref or out parameters.
+                //         MyList<MyClass> myList = /*<bind>*/new MyList<MyClass> { new MyClass { tree = "maple" } }/*</bind>*/; // CS1954
+                Diagnostic(ErrorCode.ERR_InitializerAddHasParamModifiers, @"new MyClass { tree = ""maple"" }").WithArguments("MyList<MyClass>.Add(ref MyClass)").WithLocation(35, 66),
+                // CS0649: Field 'MyList<T>._list' is never assigned to, and will always have its default value null
+                //     List<T> _list;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_list").WithArguments("MyList<T>._list", "null").WithLocation(5, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1958ERR_ObjectOrCollectionInitializerWithDelegateCreation()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1958ERR_ObjectOrCollectionInitializerWithDelegateCreation()
+        {
+            string source = @"
 class MemberInitializerTest
 {
     delegate void D<T>();
@@ -2559,27 +2559,27 @@ class MemberInitializerTest
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: MemberInitializerTest.D<System.Int32>, IsInvalid) (Syntax: 'new D<int>( ... d<int>) { }')
   Children(1):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'GenericMethod<int>')
         Children(1):
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'GenericMethod<int>')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1958: Object and collection initializer expressions may not be applied to a delegate creation expression
-            //         D<int> genD = /*<bind>*/new D<int>(GenericMethod<int>) { }/*</bind>*/; // CS1958
-            Diagnostic(ErrorCode.ERR_ObjectOrCollectionInitializerWithDelegateCreation, "new D<int>(GenericMethod<int>) { }").WithLocation(8, 33)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1958: Object and collection initializer expressions may not be applied to a delegate creation expression
+                //         D<int> genD = /*<bind>*/new D<int>(GenericMethod<int>) { }/*</bind>*/; // CS1958
+                Diagnostic(ErrorCode.ERR_ObjectOrCollectionInitializerWithDelegateCreation, "new D<int>(GenericMethod<int>) { }").WithLocation(8, 33)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CollectionInitializerTest_AddMethod_OverloadResolutionFailures()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CollectionInitializerTest_AddMethod_OverloadResolutionFailures()
+        {
+            string source = @"
 using System.Collections.Generic;
 using System.Collections;
 
@@ -2667,7 +2667,7 @@ class E : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: B coll1
     Local_2: C coll2
@@ -2742,33 +2742,33 @@ IBlockOperation (5 statements, 4 locals) (OperationKind.Block, Type: null, IsInv
     ReturnedValue: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1061: 'B' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
-            //         B coll1 = new B { 1 };
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("B", "Add").WithLocation(9, 27),
-            // CS1950: The best overloaded Add method 'C.Add(string)' for the collection initializer has some invalid arguments
-            //         C coll2 = new C { 1 };
-            Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "1").WithArguments("C.Add(string)").WithLocation(10, 27),
-            // CS1503: Argument 1: cannot convert from 'int' to 'string'
-            //         C coll2 = new C { 1 };
-            Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(10, 27),
-            // CS0121: The call is ambiguous between the following methods or properties: 'D.Add(int, float)' and 'D.Add(float, int)'
-            //         D coll3 = new D { { 1, 2 } };
-            Diagnostic(ErrorCode.ERR_AmbigCall, "{ 1, 2 }").WithArguments("D.Add(int, float)", "D.Add(float, int)").WithLocation(11, 27),
-            // CS0122: 'E.Add(int)' is inaccessible due to its protection level
-            //         E coll4 = new E { 1 };
-            Diagnostic(ErrorCode.ERR_BadAccess, "1").WithArguments("E.Add(int)").WithLocation(12, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1061: 'B' does not contain a definition for 'Add' and no extension method 'Add' accepting a first argument of type 'B' could be found (are you missing a using directive or an assembly reference?)
+                //         B coll1 = new B { 1 };
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("B", "Add").WithLocation(9, 27),
+                // CS1950: The best overloaded Add method 'C.Add(string)' for the collection initializer has some invalid arguments
+                //         C coll2 = new C { 1 };
+                Diagnostic(ErrorCode.ERR_BadArgTypesForCollectionAdd, "1").WithArguments("C.Add(string)").WithLocation(10, 27),
+                // CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         C coll2 = new C { 1 };
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(10, 27),
+                // CS0121: The call is ambiguous between the following methods or properties: 'D.Add(int, float)' and 'D.Add(float, int)'
+                //         D coll3 = new D { { 1, 2 } };
+                Diagnostic(ErrorCode.ERR_AmbigCall, "{ 1, 2 }").WithArguments("D.Add(int, float)", "D.Add(float, int)").WithLocation(11, 27),
+                // CS0122: 'E.Add(int)' is inaccessible due to its protection level
+                //         E coll4 = new E { 1 };
+                Diagnostic(ErrorCode.ERR_BadAccess, "1").WithArguments("E.Add(int)").WithLocation(12, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
-    [Fact]
-    public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
+        [Fact]
+        public void ObjectInitializerTest_InvalidComplexElementInitializerExpression()
+        {
+            string source = @"
 class Test
 {
     public int x;
@@ -2781,7 +2781,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreation, Type: Test, IsInvalid) (Syntax: 'new Test()  ... { x = 1 } }')
   Arguments(0)
   Initializer: 
@@ -2806,27 +2806,27 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0747: Invalid initializer member declarator
-            //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ 1 }").WithLocation(10, 47),
-            // CS0103: The name 'x' does not exist in the current context
-            //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 56),
-            // CS0747: Invalid initializer member declarator
-            //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ x = 1 }").WithLocation(10, 54)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0747: Invalid initializer member declarator
+                //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ 1 }").WithLocation(10, 47),
+                // CS0103: The name 'x' does not exist in the current context
+                //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 56),
+                // CS0747: Invalid initializer member declarator
+                //         var p = /*<bind>*/new Test() { x = 1, { 1 }, { x = 1 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "{ x = 1 }").WithLocation(10, 54)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
-    [Fact]
-    public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(543933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543933")]
+        [Fact]
+        public void ObjectInitializerTest_IncompleteComplexElementInitializerExpression()
+        {
+            string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2838,7 +2838,7 @@ class Program
     }/*</bind>*/
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: 'new Diction ... }')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Dictionary<System.Object, System.Object>, IsInvalid) (Syntax: '{ ... }')
@@ -2867,39 +2867,39 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
               Right:
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // (9,13): error CS1003: Syntax error, ',' expected
-            //         var x = 1;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
-            // (9,18): error CS1003: Syntax error, ',' expected
-            //         var x = 1;
-            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(9, 18),
-            // (10,6): error CS1002: ; expected
-            //     }/*</bind>*/
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 6),
-            // (11,2): error CS1513: } expected
-            // }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2),
-            // (6,31): error CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
-            //         var d = /*<bind>*/new Dictionary<object, object>()
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<,>").WithLocation(6, 31),
-            // (8,13): error CS0747: Invalid initializer member declarator
-            //             {"s", 1 },
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-            // (9,9): error CS0747: Invalid initializer member declarator
-            //         var x = 1;
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (9,13): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
+                // (9,18): error CS1003: Syntax error, ',' expected
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(9, 18),
+                // (10,6): error CS1002: ; expected
+                //     }/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 6),
+                // (11,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2),
+                // (6,31): error CS0246: The type or namespace name 'Dictionary<,>' could not be found (are you missing a using directive or an assembly reference?)
+                //         var d = /*<bind>*/new Dictionary<object, object>()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Dictionary<object, object>").WithArguments("Dictionary<,>").WithLocation(6, 31),
+                // (8,13): error CS0747: Invalid initializer member declarator
+                //             {"s", 1 },
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
+                // (9,9): error CS0747: Invalid initializer member declarator
+                //         var x = 1;
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
-    [Fact]
-    public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(543961, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543961")]
+        [Fact]
+        public void CollectionInitializerTest_InvalidComplexElementInitializerSyntax()
+        {
+            string source = @"
 class Test
 {
     public static void Main()
@@ -2908,7 +2908,7 @@ class Test
 }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... { { { 1 } }')
   Children(1):
       IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: List<System.Int32>, IsInvalid) (Syntax: '{ { { 1 } }')
@@ -2919,66 +2919,66 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
               Children(1):
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1513: } expected
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
-            // CS1003: Syntax error, ',' expected
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
-            // CS1002: ; expected
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
-            // CS1597: Semicolon after method or accessor block is not valid
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 59),
-            // CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-            // CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(6, 23),
-            // CS1920: Element initializer cannot be empty
-            //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-            Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ ").WithLocation(6, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1513: } expected
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
+                // CS1003: Syntax error, ',' expected
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
+                // CS1002: ; expected
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
+                // CS1597: Semicolon after method or accessor block is not valid
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(6, 59),
+                // CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // CS0246: The type or namespace name 'List<>' could not be found (are you missing a using directive or an assembly reference?)
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "List<int>").WithArguments("List<>").WithLocation(6, 23),
+                // CS1920: Element initializer cannot be empty
+                //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
+                Diagnostic(ErrorCode.ERR_EmptyElementInitializer, "{ ").WithLocation(6, 37)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
-    [Fact]
-    public void EmptyCollectionInitPredefinedType()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(544484, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544484")]
+        [Fact]
+        public void EmptyCollectionInitPredefinedType()
+        {
+            string source = @"
 class Program
 {
     const int value = /*<bind>*/new int { }/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'new int { }')
   Arguments(0)
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32, IsInvalid) (Syntax: '{ }')
       Initializers(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0133: The expression being assigned to 'Program.value' must be constant
-            //     const int value = /*<bind>*/new int { }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NotConstantExpression, "new int { }").WithArguments("Program.value").WithLocation(4, 33)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0133: The expression being assigned to 'Program.value' must be constant
+                //     const int value = /*<bind>*/new int { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "new int { }").WithArguments("Program.value").WithLocation(4, 33)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
-    [Fact]
-    public void CollectionInitializerTest_Bug_12635()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
+        [Fact]
+        public void CollectionInitializerTest_Bug_12635()
+        {
+            string source = @"
 using System.Collections.Generic;
 
 class A
@@ -2989,7 +2989,7 @@ class A
     }
 
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreation, Type: System.Collections.Generic.List<System.Int32>, IsInvalid) (Syntax: 'new List<in ... unt = { } }')
   Arguments(0)
   Initializer: 
@@ -3004,24 +3004,24 @@ IObjectCreationOperation (Constructor: System.Collections.Generic.List<System.In
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: System.Int32) (Syntax: '{ }')
                 Initializers(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1513: } expected
-            //     }
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 6),
-            // CS1918: Members of property 'List<int>.Count' of type 'int' cannot be assigned with an object initializer because it is of a value type
-            //         var x = /*<bind>*/new List<int> { Count = { } }/*</bind>*/;      // CS1918
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Count").WithArguments("System.Collections.Generic.List<int>.Count", "int").WithLocation(8, 43)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 6),
+                // CS1918: Members of property 'List<int>.Count' of type 'int' cannot be assigned with an object initializer because it is of a value type
+                //         var x = /*<bind>*/new List<int> { Count = { } }/*</bind>*/;      // CS1918
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Count").WithArguments("System.Collections.Generic.List<int>.Count", "int").WithLocation(8, 43)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
-    [Fact]
-    public void CollectionInitializerTest_Bug_12635_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(544349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544349")]
+        [Fact]
+        public void CollectionInitializerTest_Bug_12635_02()
+        {
+            string source = @"
 namespace N
 {
     struct Struct { public int x; }
@@ -3048,7 +3048,7 @@ namespace N
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: N.C..ctor()) (OperationKind.ObjectCreation, Type: N.C, IsInvalid) (Syntax: 'new C() ... }')
   Arguments(0)
   Initializer: 
@@ -3087,30 +3087,30 @@ IObjectCreationOperation (Constructor: N.C..ctor()) (OperationKind.ObjectCreatio
               IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: N.Class) (Syntax: '{ }')
                 Initializers(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1917: Members of readonly field 'C.StructField' of type 'Struct' cannot be assigned with an object initializer because it is of a value type
-            //                 StructField = { },      // CS1917
-            Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "StructField").WithArguments("N.C.StructField", "N.Struct").WithLocation(19, 17),
-            // CS1918: Members of property 'C.StructProp' of type 'Struct' cannot be assigned with an object initializer because it is of a value type
-            //                 StructProp = { },       // CS1918
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "StructProp").WithArguments("N.C.StructProp", "N.Struct").WithLocation(20, 17),
-            // CS0649: Field 'Struct.x' is never assigned to, and will always have its default value 0
-            //     struct Struct { public int x; }
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("N.Struct.x", "0").WithLocation(4, 32),
-            // CS0649: Field 'Class.x' is never assigned to, and will always have its default value 0
-            //     class Class { public int x; }
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("N.Class.x", "0").WithLocation(5, 30)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1917: Members of readonly field 'C.StructField' of type 'Struct' cannot be assigned with an object initializer because it is of a value type
+                //                 StructField = { },      // CS1917
+                Diagnostic(ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, "StructField").WithArguments("N.C.StructField", "N.Struct").WithLocation(19, 17),
+                // CS1918: Members of property 'C.StructProp' of type 'Struct' cannot be assigned with an object initializer because it is of a value type
+                //                 StructProp = { },       // CS1918
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "StructProp").WithArguments("N.C.StructProp", "N.Struct").WithLocation(20, 17),
+                // CS0649: Field 'Struct.x' is never assigned to, and will always have its default value 0
+                //     struct Struct { public int x; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("N.Struct.x", "0").WithLocation(4, 32),
+                // CS0649: Field 'Class.x' is never assigned to, and will always have its default value 0
+                //     class Class { public int x; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("N.Class.x", "0").WithLocation(5, 30)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
-    [Fact]
-    public void CollectionInitializerTest_Bug_12977()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [WorkItem(544570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544570")]
+        [Fact]
+        public void CollectionInitializerTest_Bug_12977()
+        {
+            string source = @"
 using System.Collections.Generic;
 using System.Collections;
 
@@ -3140,7 +3140,7 @@ class A : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A, IsInvalid) (Syntax: 'new A { 5,  ...  { 1, 2 } }')
   Arguments(0)
   Initializer: 
@@ -3173,41 +3173,41 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1525: Invalid expression term '{'
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(9, 46),
-            // CS1513: } expected
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 46),
-            // CS1003: Syntax error, ',' expected
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
-            // CS1001: Identifier expected
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),
-            // CS1002: ; expected
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(9, 69),
-            // CS1002: ; expected
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 71),
-            // CS1597: Semicolon after method or accessor block is not valid
-            //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-            Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(9, 72),
-            // CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term '{'
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(9, 46),
+                // CS1513: } expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 46),
+                // CS1003: Syntax error, ',' expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
+                // CS1001: Identifier expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),
+                // CS1002: ; expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "3").WithLocation(9, 69),
+                // CS1002: ; expected
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(9, 71),
+                // CS1597: Semicolon after method or accessor block is not valid
+                //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(9, 72),
+                // CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(11, 1)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
-    [Fact]
-    public void VoidElementType_Bug_13402()
-    {
-        var source = @"
+        [WorkItem(545123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545123")]
+        [Fact]
+        public void VoidElementType_Bug_13402()
+        {
+            var source = @"
 class C
 {
     static void Main()
@@ -3218,17 +3218,17 @@ class C
         }
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (6,21): error CS0826: No best type found for implicitly-typed array
-            //         var array = new[] { Main() };
-            Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,21): error CS0826: No best type found for implicitly-typed array
+                //         var array = new[] { Main() };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void AssignmentInOmittedCollectionElementInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void AssignmentInOmittedCollectionElementInitializer()
+        {
+            string source = @"
 using System.Collections;
 
 partial class C : IEnumerable
@@ -3251,7 +3251,7 @@ partial class C : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { (i = 1) }')
   Arguments(0)
   Initializer: 
@@ -3270,23 +3270,23 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0165: Use of unassigned local variable 'i'
-            //         k = i;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(16, 13),
-            // CS0165: Use of unassigned local variable 'j'
-            //         k = j;
-            Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(20, 13)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0165: Use of unassigned local variable 'i'
+                //         k = i;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(16, 13),
+                // CS0165: Use of unassigned local variable 'j'
+                //         k = j;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "j").WithArguments("j").WithLocation(20, 13)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void OmittedCollectionElementInitializerInExpressionTree()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void OmittedCollectionElementInitializerInExpressionTree()
+        {
+            string source = @"
 using System;
 using System.Collections;
 using System.Linq.Expressions;
@@ -3305,7 +3305,7 @@ partial class C : IEnumerable
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C { 1 }')
   Arguments(0)
   Initializer: 
@@ -3320,30 +3320,30 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
-            //         Expression<Action> a = () => /*<bind>*/new C { 1 }/*</bind>*/; // Omitted element initializer.
-            Diagnostic(ErrorCode.ERR_PartialMethodInExpressionTree, "1").WithLocation(15, 56),
-            // CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
-            //         Expression<Action> b = () => new C().M(1); // Normal call, as reference.
-            Diagnostic(ErrorCode.ERR_PartialMethodInExpressionTree, "new C().M(1)").WithLocation(16, 38)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
+                //         Expression<Action> a = () => /*<bind>*/new C { 1 }/*</bind>*/; // Omitted element initializer.
+                Diagnostic(ErrorCode.ERR_PartialMethodInExpressionTree, "1").WithLocation(15, 56),
+                // CS0765: Partial methods with only a defining declaration or removed conditional methods cannot be used in expression trees
+                //         Expression<Action> b = () => new C().M(1); // Normal call, as reference.
+                Diagnostic(ErrorCode.ERR_PartialMethodInExpressionTree, "new C().M(1)").WithLocation(16, 38)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void CS1918ERR_ValueTypePropertyInObjectInitializer_NonSpec_Dev10_Error()
-    {
-        // SPEC:    Nested object initializers cannot be applied to properties with a value type, or to read-only fields with a value type.
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void CS1918ERR_ValueTypePropertyInObjectInitializer_NonSpec_Dev10_Error()
+        {
+            // SPEC:    Nested object initializers cannot be applied to properties with a value type, or to read-only fields with a value type.
 
-        // NOTE:    Dev10 compiler violates the specification here and applies this restriction to nested collection initializers as well.
-        // NOTE:    Roslyn goes even further and requires a reference type (rather than "not a value type").  The rationale is that Add methods
-        // NOTE:    nearly always manipulate the state of the collection, and those manipulations would be lost if the "this" argument was
-        // NOTE:    just a copy.
+            // NOTE:    Dev10 compiler violates the specification here and applies this restriction to nested collection initializers as well.
+            // NOTE:    Roslyn goes even further and requires a reference type (rather than "not a value type").  The rationale is that Add methods
+            // NOTE:    nearly always manipulate the state of the collection, and those manipulations would be lost if the "this" argument was
+            // NOTE:    just a copy.
 
-        string source = @"
+            string source = @"
 using System.Collections;
 
 struct A : IEnumerable
@@ -3394,7 +3394,7 @@ class Test
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B { A = ... 4, 5, 6 } }')
   Arguments(0)
   Initializer: 
@@ -3433,22 +3433,22 @@ IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation,
                             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1918: Members of property 'B.A' of type 'A' cannot be assigned with an object initializer because it is of a value type
-            //         b = /*<bind>*/new B { A = { 4, 5, 6 } }/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "A").WithArguments("B.A", "A").WithLocation(47, 31)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1918: Members of property 'B.A' of type 'A' cannot be assigned with an object initializer because it is of a value type
+                //         b = /*<bind>*/new B { A = { 4, 5, 6 } }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "A").WithArguments("B.A", "A").WithLocation(47, 31)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    #endregion
+        #endregion
 
-    [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_01()
-    {
-        var source = @"
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_01()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
  
@@ -3463,37 +3463,37 @@ class X : List<int>
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var nodes = (from node in tree.GetRoot().DescendantNodes()
-                     where node.IsKind(SyntaxKind.CollectionInitializerExpression)
-                     select (InitializerExpressionSyntax)node).Single().Expressions;
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
 
-        Assert.NotNull(symbolInfo.Symbol);
-        Assert.Equal("void X.Add(System.String x)", symbolInfo.Symbol.ToTestDisplayString());
-        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-        Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.String x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
 
-        symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[1]);
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[1]);
 
-        Assert.NotNull(symbolInfo.Symbol);
-        Assert.Equal("void X.Add(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
-        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-        Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
-    }
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
 
-    [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_02()
-    {
-        var source = @"
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_02()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -3511,32 +3511,32 @@ class X : Base
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var nodes = (from node in tree.GetRoot().DescendantNodes()
-                     where node.IsKind(SyntaxKind.CollectionInitializerExpression)
-                     select (InitializerExpressionSyntax)node).Single().Expressions;
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
 
-        Assert.Null(symbolInfo.Symbol);
-        Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-        Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
-        Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
-                      "void X.Add(X x)"},
-                      symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
-    }
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(new[] {"void X.Add(System.Collections.Generic.List<System.Byte> x)",
+                          "void X.Add(X x)"},
+                          symbolInfo.CandidateSymbols.Select(s => s.ToTestDisplayString()).Order().ToArray());
+        }
 
-    [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_03()
-    {
-        var source = @"
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_03()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -3556,117 +3556,117 @@ class Y
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        compilation.VerifyDiagnostics(
-// (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
-// class Base : IEnumerable<int>
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()").WithLocation(5, 14),
-// (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable.GetEnumerator()'
-// class Base : IEnumerable<int>
-Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.IEnumerable.GetEnumerator()").WithLocation(5, 14),
-// (17,32): error CS0122: 'X.Add(string)' is inaccessible due to its protection level
-//         var z = new X { String.Empty };
-Diagnostic(ErrorCode.ERR_BadAccess, "Empty").WithArguments("X.Add(string)").WithLocation(17, 32)
-            );
+            compilation.VerifyDiagnostics(
+    // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
+    // class Base : IEnumerable<int>
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.Generic.IEnumerable<int>.GetEnumerator()").WithLocation(5, 14),
+    // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable.GetEnumerator()'
+    // class Base : IEnumerable<int>
+    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IEnumerable<int>").WithArguments("Base", "System.Collections.IEnumerable.GetEnumerator()").WithLocation(5, 14),
+    // (17,32): error CS0122: 'X.Add(string)' is inaccessible due to its protection level
+    //         var z = new X { String.Empty };
+    Diagnostic(ErrorCode.ERR_BadAccess, "Empty").WithArguments("X.Add(string)").WithLocation(17, 32)
+                );
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var nodes = (from node in tree.GetRoot().DescendantNodes()
-                     where node.IsKind(SyntaxKind.CollectionInitializerExpression)
-                     select (InitializerExpressionSyntax)node).Single().Expressions;
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
-
-        Assert.Null(symbolInfo.Symbol);
-        Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
-        Assert.Equal("void X.Add(System.String x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
-    }
-
-    [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_04()
-    {
-        var source = @"
-using System;
-using System.Collections.Generic;
- 
-class X : List<int>
-{
-    void Add(string x, int y) {}
- 
-    static void Main()
-    {
-        var z = new X { {String.Empty, 12} };
-    }
-}
-";
-        var compilation = CreateCompilation(source);
-
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
-
-        var nodes = (from node in tree.GetRoot().DescendantNodes()
-                     where node.IsKind(SyntaxKind.CollectionInitializerExpression)
-                     select (InitializerExpressionSyntax)node).Single().Expressions;
-
-        SymbolInfo symbolInfo;
-
-        symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
-
-        Assert.NotNull(symbolInfo.Symbol);
-        Assert.Equal("void X.Add(System.String x, System.Int32 y)", symbolInfo.Symbol.ToTestDisplayString());
-        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-        Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
-    }
-
-    [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_05()
-    {
-        var source = @"
-using System;
-using System.Collections.Generic;
- 
-class X : List<int>
-{
-    void Add(string x, int y) {}
- 
-    static void Main()
-    {
-        var z = new X { {String.Empty, 12} };
-    }
-}
-";
-        var compilation = CreateCompilation(source);
-
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
-
-        var nodes = (from node in tree.GetRoot().DescendantNodes()
-                     where node.IsKind(SyntaxKind.CollectionInitializerExpression)
-                     select (InitializerExpressionSyntax)node).Single().Expressions;
-
-        SymbolInfo symbolInfo;
-
-        for (int i = 0; i < 2; i++)
-        {
-            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(((InitializerExpressionSyntax)nodes[0]).Expressions[i]);
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
 
             Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
+            Assert.Equal("void X.Add(System.String x)", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
+        }
+
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_04()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X : List<int>
+{
+    void Add(string x, int y) {}
+ 
+    static void Main()
+    {
+        var z = new X { {String.Empty, 12} };
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
+
+            SymbolInfo symbolInfo;
+
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.String x, System.Int32 y)", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
-    }
 
-    [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_01()
+        [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_05()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X : List<int>
+{
+    void Add(string x, int y) {}
+ 
+    static void Main()
     {
-        var source = @"
+        var z = new X { {String.Empty, 12} };
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
+
+            SymbolInfo symbolInfo;
+
+            for (int i = 0; i < 2; i++)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(((InitializerExpressionSyntax)nodes[0]).Expressions[i]);
+
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            }
+        }
+
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_01()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 class Test 
@@ -3682,34 +3682,34 @@ class Test
     };
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var root = tree.GetRoot();
-        var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
-        var listAssignment = (AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0];
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var listAssignment = (AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0];
 
-        Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
-        Assert.Equal("List", listAssignment.Left.ToString());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
+            Assert.Equal("List", listAssignment.Left.ToString());
 
-        var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        foreach (var expression in listInitializer.Expressions)
-        {
-            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
-            Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
         }
-    }
 
-    [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_02()
-    {
-        var source = @"
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_02()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 class Test 
@@ -3732,34 +3732,34 @@ class Test2
     public Test P { get; set; }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var root = tree.GetRoot();
-        var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
-        var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
-        Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
-        Assert.Equal("List", listAssignment.Left.ToString());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
+            Assert.Equal("List", listAssignment.Left.ToString());
 
-        var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        foreach (var expression in listInitializer.Expressions)
-        {
-            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
-            Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
         }
-    }
 
-    [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
-    {
-        var source = @"
+        [WorkItem(1084686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084686"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -3776,104 +3776,104 @@ class C : System.Collections.Generic.List<C>
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var root = tree.GetRoot();
-        var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
-        var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
-        Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
-        Assert.Equal("[0]", listAssignment.Left.ToString());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
+            Assert.Equal("[0]", listAssignment.Left.ToString());
 
-        var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        foreach (var expression in listInitializer.Expressions)
-        {
-            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
-            Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
         }
-    }
 
-    [Fact]
-    public void GetComplexCollectionInitializerConversionInfo_NoConversion()
-    {
-        var source = """
-            using System.Collections.Generic;
-            _ = new Dictionary<string, string> { { "a", "b" } };
-            """;
-
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
-        var syntax = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(syntax);
-        var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-        Assert.Equal(2, literals.Length);
-        foreach (var literal in literals)
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_NoConversion()
         {
-            var conversion = model.GetConversion(literal);
-            Assert.Equal(ConversionKind.Identity, conversion.Kind);
-            var typeInfo = model.GetTypeInfo(literal);
-            Assert.Same(typeInfo.Type, typeInfo.ConvertedType);
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<string, string> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Same(typeInfo.Type, typeInfo.ConvertedType);
+            }
         }
-    }
 
-    [Fact]
-    public void GetComplexCollectionInitializerConversionInfo_ImplicitReferenceConversion()
-    {
-        var source = """
-            using System.Collections.Generic;
-            _ = new Dictionary<object, object> { { "a", "b" } };
-            """;
-
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
-        var syntax = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(syntax);
-        var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-        Assert.Equal(2, literals.Length);
-        foreach (var literal in literals)
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitReferenceConversion()
         {
-            var conversion = model.GetConversion(literal);
-            Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
-            var typeInfo = model.GetTypeInfo(literal);
-            Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
-            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { "a", "b" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.ImplicitReference, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
         }
-    }
 
-    [Fact]
-    public void GetComplexCollectionInitializerConversionInfo_ImplicitBoxingConversion()
-    {
-        var source = """
-            using System.Collections.Generic;
-            _ = new Dictionary<object, object> { { 1, 2 } };
-            """;
-
-        var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics();
-        var syntax = comp.SyntaxTrees[0];
-        var model = comp.GetSemanticModel(syntax);
-        var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
-        Assert.Equal(2, literals.Length);
-        foreach (var literal in literals)
+        [Fact]
+        public void GetComplexCollectionInitializerConversionInfo_ImplicitBoxingConversion()
         {
-            var conversion = model.GetConversion(literal);
-            Assert.Equal(ConversionKind.Boxing, conversion.Kind);
-            var typeInfo = model.GetTypeInfo(literal);
-            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
-            Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
-        }
-    }
+            var source = """
+                using System.Collections.Generic;
+                _ = new Dictionary<object, object> { { 1, 2 } };
+                """;
 
-    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-    public void NestedIndexerInitializerArray()
-    {
-        var source = @"
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+            var literals = syntax.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            Assert.Equal(2, literals.Length);
+            foreach (var literal in literals)
+            {
+                var conversion = model.GetConversion(literal);
+                Assert.Equal(ConversionKind.Boxing, conversion.Kind);
+                var typeInfo = model.GetTypeInfo(literal);
+                Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
+            }
+        }
+
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        public void NestedIndexerInitializerArray()
+        {
+            var source = @"
 class C
 {
     int[] a;
@@ -3885,16 +3885,16 @@ class C
 }
 ";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
-            //     int[] a;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
+                //     int[] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
+        }
 
-    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-    public void NestedIndexerInitializerMDArray()
-    {
-        var source = @"
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        public void NestedIndexerInitializerMDArray()
+        {
+            var source = @"
 class C
 {
     int[,] a;
@@ -3906,16 +3906,16 @@ class C
 }
 ";
 
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
-            //     int[,] a;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
+                //     int[,] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
+        }
 
-    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-    public void NestedIndexerInitializerArraySemanticInfo()
-    {
-        var source = @"
+        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        public void NestedIndexerInitializerArraySemanticInfo()
+        {
+            var source = @"
 class C
 {
     int[] a;
@@ -3927,29 +3927,29 @@ class C
 }
 ";
 
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var nodes = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().Skip(1).Single().Expressions;
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().Skip(1).Single().Expressions;
 
-        SymbolInfo symbolInfo;
+            SymbolInfo symbolInfo;
 
-        for (int i = 0; i < 2; i++)
-        {
-            symbolInfo = semanticModel.GetSymbolInfo(((AssignmentExpressionSyntax)nodes[i]).Left);
+            for (int i = 0; i < 2; i++)
+            {
+                symbolInfo = semanticModel.GetSymbolInfo(((AssignmentExpressionSyntax)nodes[i]).Left);
 
-            Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            }
         }
-    }
 
-    [Fact, WorkItem(2046, "https://github.com/dotnet/roslyn/issues/2046")]
-    public void ObjectInitializerTest_DynamicPassedToConstructor()
-    {
-        var source = @"
+        [Fact, WorkItem(2046, "https://github.com/dotnet/roslyn/issues/2046")]
+        public void ObjectInitializerTest_DynamicPassedToConstructor()
+        {
+            var source = @"
 using System;
 
 class Program
@@ -3983,14 +3983,14 @@ public class Cc{
     }
 }
 ";
-        CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
-    }
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
+        }
 
-    [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
-    [Fact]
-    public void GetCollectionInitializerSymbolInfo_06()
-    {
-        var source = @"
+        [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_06()
+        {
+            var source = @"
 using System;
 using System.Collections.Generic;
  
@@ -4009,27 +4009,27 @@ class X
     }
 }
 ";
-        var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
 
-        var nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
-        Assert.Equal(6, nodes.Length);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().ToArray();
+            Assert.Equal(6, nodes.Length);
 
-        foreach (var name in nodes)
-        {
-            Assert.Equal("List<string>", name.ToString());
-            Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
-            Assert.Null(semanticModel.GetTypeInfo(name).Type);
+            foreach (var name in nodes)
+            {
+                Assert.Equal("List<string>", name.ToString());
+                Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
+                Assert.Null(semanticModel.GetTypeInfo(name).Type);
+            }
         }
-    }
 
-    [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
-    [Fact]
-    public void GetTypeInfoForBadExpression_01()
-    {
-        var source = @"
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_01()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 class C
@@ -4044,19 +4044,19 @@ interface I : IEnumerable<int>
 {
     void Add(int i);
 }";
-        var compilation = CreateCompilation(source);
-        compilation.VerifyDiagnostics(
-            // (8,15): error CS0144: Cannot create an instance of the abstract type or interface 'I'
-            //         I i = new I() { 1, 2 }
-            Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
-            // (8,31): error CS1002: ; expected
-            //         I i = new I() { 1, 2 }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 31)
-            );
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
-        var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,15): error CS0144: Cannot create an instance of the abstract type or interface 'I'
+                //         I i = new I() { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
+                // (8,31): error CS1002: ; expected
+                //         I i = new I() { 1, 2 }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 31)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'void M() ... }')
       BlockBody: 
@@ -4093,18 +4093,18 @@ interface I : IEnumerable<int>
       ExpressionBody: 
         null
 ");
-        var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
-        var node = nodes.First();
-        var typeInfo = semanticModel.GetTypeInfo(node);
-        Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
-        Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
-    }
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.ConvertedType.SpecialType);
+        }
 
-    [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
-    [Fact]
-    public void GetTypeInfoForBadExpression_02()
-    {
-        var source = @"
+        [WorkItem(27060, "https://github.com/dotnet/roslyn/issues/27060")]
+        [Fact]
+        public void GetTypeInfoForBadExpression_02()
+        {
+            var source = @"
 using System.Collections.Generic;
 
 class C
@@ -4119,22 +4119,22 @@ interface I : IEnumerable<int>
 {
     void Add(int i);
 }";
-        var compilation = CreateCompilation(source);
-        compilation.VerifyDiagnostics(
-            // (8,27): error CS0029: Cannot implicitly convert type 'int' to 'I'
-            //         var x = new I[] { 1, 2 }
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "I").WithLocation(8, 27),
-            // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'I'
-            //         var x = new I[] { 1, 2 }
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "I").WithLocation(8, 30),
-            // (8,33): error CS1002: ; expected
-            //         var x = new I[] { 1, 2 }
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 33)
-            );
-        var tree = compilation.SyntaxTrees.Single();
-        var semanticModel = compilation.GetSemanticModel(tree);
-        var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
-        compilation.VerifyOperationTree(node1, expectedOperationTree:
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS0029: Cannot implicitly convert type 'int' to 'I'
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "I").WithLocation(8, 27),
+                // (8,30): error CS0029: Cannot implicitly convert type 'int' to 'I'
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "I").WithLocation(8, 30),
+                // (8,33): error CS1002: ; expected
+                //         var x = new I[] { 1, 2 }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 33)
+                );
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var node1 = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
     IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'void M() ... }')
       BlockBody: 
@@ -4165,143 +4165,144 @@ interface I : IEnumerable<int>
       ExpressionBody: 
         null
 ");
-        var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
-        var node = nodes.First();
-        var typeInfo = semanticModel.GetTypeInfo(node);
-        Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
-        Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
-    }
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Where(n => n.ToString() == "2");
+            var node = nodes.First();
+            var typeInfo = semanticModel.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal("I", typeInfo.ConvertedType.ToDisplayString());
+        }
 
-    [Fact]
-    public void DynamicInvocationOnRefStructs()
-    {
-        var source = """
-            using System.Collections;
-            using System.Collections.Generic;
+        [Fact]
+        public void DynamicInvocationOnRefStructs()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
 
-            dynamic d = null;
-            S s = new S() { d };
+                dynamic d = null;
+                S s = new S() { d };
 
-            ref struct S : IEnumerable<int>
-            {
-                public IEnumerator<int> GetEnumerator() => throw null;
-                IEnumerator IEnumerable.GetEnumerator() => throw null;
-                public void Add<T>(T t) => throw null;
-            }
-            """;
-
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
-            // S s = new S() { d };
-            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
-        );
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
-    public void RefReturning_Indexer()
-    {
-        var source = """
-            public class C
-            {
-                public static void Main()
+                ref struct S : IEnumerable<int>
                 {
-                    var c = new C() { [1] = 2 };
-                    System.Console.WriteLine(c[1]);        
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add<T>(T t) => throw null;
                 }
+                """;
 
-                int _test1 = 0;    
-                ref int this[int x]
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,11): error CS9230: Cannot perform a dynamic invocation on an expression with type 'S'.
+                // S s = new S() { d };
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "S").WithArguments("S").WithLocation(5, 11)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Indexer()
+        {
+            var source = """
+                public class C
                 {
-                    get => ref _test1;
+                    public static void Main()
+                    {
+                        var c = new C() { [1] = 2 };
+                        System.Console.WriteLine(c[1]);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int this[int x]
+                    {
+                        get => ref _test1;
+                    }
                 }
-            }
-            """;
+                """;
 
-        var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
-        var symbolInfo = model.GetSymbolInfo(elementAccess);
-        AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
-        var typeInfo = model.GetTypeInfo(elementAccess);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            var elementAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().Single();
+            var symbolInfo = model.GetSymbolInfo(elementAccess);
+            AssertEx.Equal("ref System.Int32 C.this[System.Int32 x] { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(elementAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-        var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
-        AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
-        Assert.Equal(typeInfo.Type, propertyRef.Type);
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(elementAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
 
-        var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
-        typeInfo = model.GetTypeInfo(assignment);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            var assignment = (AssignmentExpressionSyntax)elementAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-        var operation = (IAssignmentOperation)model.GetOperation(assignment);
-        AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
 
-        var right = assignment.Right;
-        typeInfo = model.GetTypeInfo(right);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
-    }
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
-    public void RefReturning_Property()
-    {
-        var source = """
-            public class C
-            {
-                public static void Main()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72916")]
+        public void RefReturning_Property()
+        {
+            var source = """
+                public class C
                 {
-                    var c = new C() { P = 2 };
-                    System.Console.WriteLine(c.P);        
+                    public static void Main()
+                    {
+                        var c = new C() { P = 2 };
+                        System.Console.WriteLine(c.P);        
+                    }
+
+                    int _test1 = 0;    
+                    ref int P
+                    {
+                        get => ref _test1;
+                    }
                 }
+                """;
 
-                int _test1 = 0;    
-                ref int P
-                {
-                    get => ref _test1;
-                }
-            }
-            """;
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
 
-        var comp = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.StandardAndCSharp);
+            CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
 
-        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
 
-        var tree = comp.SyntaxTrees.Single();
-        var model = comp.GetSemanticModel(tree);
+            var propertyAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
+            var symbolInfo = model.GetSymbolInfo(propertyAccess);
+            AssertEx.Equal("ref System.Int32 C.P { get; }", symbolInfo.Symbol.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(propertyAccess);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-        var propertyAccess = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First().Left;
-        var symbolInfo = model.GetSymbolInfo(propertyAccess);
-        AssertEx.Equal("ref System.Int32 C.P { get; }", symbolInfo.Symbol.ToTestDisplayString());
-        var typeInfo = model.GetTypeInfo(propertyAccess);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            var propertyRef = (IPropertyReferenceOperation)model.GetOperation(propertyAccess);
+            AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
+            Assert.Equal(typeInfo.Type, propertyRef.Type);
 
-        var propertyRef = (IPropertyReferenceOperation)model.GetOperation(propertyAccess);
-        AssertEx.Equal(symbolInfo.Symbol.ToTestDisplayString(), propertyRef.Property.ToTestDisplayString());
-        Assert.Equal(typeInfo.Type, propertyRef.Type);
+            var assignment = (AssignmentExpressionSyntax)propertyAccess.Parent;
+            typeInfo = model.GetTypeInfo(assignment);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
 
-        var assignment = (AssignmentExpressionSyntax)propertyAccess.Parent;
-        typeInfo = model.GetTypeInfo(assignment);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            var operation = (IAssignmentOperation)model.GetOperation(assignment);
+            AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
 
-        var operation = (IAssignmentOperation)model.GetOperation(assignment);
-        AssertEx.Equal("System.Int32", operation.Target.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", operation.Value.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", operation.Type.ToTestDisplayString());
-
-        var right = assignment.Right;
-        typeInfo = model.GetTypeInfo(right);
-        AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
-        AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+            var right = assignment.Right;
+            typeInfo = model.GetTypeInfo(right);
+            AssertEx.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
+            AssertEx.Equal("System.Int32", typeInfo.ConvertedType.ToTestDisplayString());
+        }
     }
 }

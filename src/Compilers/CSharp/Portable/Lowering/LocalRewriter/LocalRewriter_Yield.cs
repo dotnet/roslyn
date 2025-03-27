@@ -6,34 +6,35 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
+    internal sealed partial class LocalRewriter
     {
-        var result = (BoundStatement)base.VisitYieldBreakStatement(node)!;
-
-        // We also add sequence points for the implicit "yield break" statement at the end of the method body
-        // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added "yield break" for async method 
-        // does not need sequence points added here since it would be done later (presumably during Async rewrite).
-        if (this.Instrument &&
-            (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false)))
+        public override BoundNode VisitYieldBreakStatement(BoundYieldBreakStatement node)
         {
-            result = Instrumenter.InstrumentYieldBreakStatement(node, result);
+            var result = (BoundStatement)base.VisitYieldBreakStatement(node)!;
+
+            // We also add sequence points for the implicit "yield break" statement at the end of the method body
+            // (added by FlowAnalysisPass.AppendImplicitReturn). Implicitly added "yield break" for async method 
+            // does not need sequence points added here since it would be done later (presumably during Async rewrite).
+            if (this.Instrument &&
+                (!node.WasCompilerGenerated || (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false)))
+            {
+                result = Instrumenter.InstrumentYieldBreakStatement(node, result);
+            }
+
+            return result;
         }
 
-        return result;
-    }
-
-    public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
-    {
-        var result = (BoundStatement)base.VisitYieldReturnStatement(node)!;
-        if (this.Instrument && !node.WasCompilerGenerated)
+        public override BoundNode VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
-            result = Instrumenter.InstrumentYieldReturnStatement(node, result);
-        }
+            var result = (BoundStatement)base.VisitYieldReturnStatement(node)!;
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = Instrumenter.InstrumentYieldReturnStatement(node, result);
+            }
 
-        return result;
+            return result;
+        }
     }
 }

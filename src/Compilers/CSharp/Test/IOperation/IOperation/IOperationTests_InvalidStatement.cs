@@ -11,15 +11,15 @@ using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_InvalidStatement : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidVariableDeclarationStatement()
+    public class IOperationTests_InvalidStatement : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidVariableDeclarationStatement()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -30,7 +30,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'int x, ( 1 );')
   IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int x, ( 1 ')
     Declarators:
@@ -45,32 +45,32 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1001: Identifier expected
-            //         /*<bind>*/int x, ( 1 );/*</bind>*/
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(8, 26),
-            // CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-            //         /*<bind>*/int x, ( 1 );/*</bind>*/
-            Diagnostic(ErrorCode.ERR_BadVarDecl, "( 1 ").WithLocation(8, 26),
-            // CS1003: Syntax error, '[' expected
-            //         /*<bind>*/int x, ( 1 );/*</bind>*/
-            Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 26),
-            // CS1003: Syntax error, ']' expected
-            //         /*<bind>*/int x, ( 1 );/*</bind>*/
-            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 30),
-            // CS0168: The variable 'x' is declared but never used
-            //         /*<bind>*/int x, ( 1 );/*</bind>*/
-            Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 23)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1001: Identifier expected
+                //         /*<bind>*/int x, ( 1 );/*</bind>*/
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(8, 26),
+                // CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                //         /*<bind>*/int x, ( 1 );/*</bind>*/
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "( 1 ").WithLocation(8, 26),
+                // CS1003: Syntax error, '[' expected
+                //         /*<bind>*/int x, ( 1 );/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 26),
+                // CS1003: Syntax error, ']' expected
+                //         /*<bind>*/int x, ( 1 );/*</bind>*/
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 30),
+                // CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int x, ( 1 );/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 23)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidSwitchStatementExpression()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidSwitchStatementExpression()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -85,7 +85,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (Pro ... }')
   Switch expression: 
     IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
@@ -105,23 +105,23 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(8,27): error CS0119: 'Program' is a type, which is not valid in the given context
-            //         /*<bind>*/switch (Program)
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(8, 27),
-            // file.cs(10,18): error CS0029: Cannot implicitly convert type 'int' to 'Program'
-            //             case 1:
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Program").WithLocation(10, 18)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,27): error CS0119: 'Program' is a type, which is not valid in the given context
+                //         /*<bind>*/switch (Program)
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(8, 27),
+                // file.cs(10,18): error CS0029: Cannot implicitly convert type 'int' to 'Program'
+                //             case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "Program").WithLocation(10, 18)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidSwitchStatementCaseLabel()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidSwitchStatementCaseLabel()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -137,7 +137,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: 
     IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
@@ -156,20 +156,20 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
           Body:
               IBranchOperation (BranchKind.Break, Label Id: 0) (OperationKind.Branch, Type: null) (Syntax: 'break;')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0029: Cannot implicitly convert type 'int' to 'string'
-            //             case 1:
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(11, 18)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'string'
+                //             case 1:
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(11, 18)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidIfStatement()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidIfStatement()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -183,7 +183,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if (x = nul ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = null')
@@ -202,20 +202,20 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
   WhenFalse: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0029: Cannot implicitly convert type 'Program' to 'bool'
-            //         /*<bind>*/if (x = null)
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x = null").WithArguments("Program", "bool").WithLocation(9, 23)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'Program' to 'bool'
+                //         /*<bind>*/if (x = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x = null").WithArguments("Program", "bool").WithLocation(9, 23)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidIfElseStatement()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidIfElseStatement()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -231,7 +231,7 @@ class Program
 /*</bind>*/    }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax: 'if () ... else')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -255,32 +255,32 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
             IInvalidOperation (OperationKind.Invalid, Type: null) (Syntax: '')
               Children(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1525: Invalid expression term ')'
-            //         /*<bind>*/if ()
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 23),
-            // CS1525: Invalid expression term '}'
-            //         else
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(13, 13),
-            // CS1002: ; expected
-            //         else
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(13, 13),
-            // CS0029: Cannot implicitly convert type 'Program' to 'bool'
-            //         else if (x) x;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("Program", "bool").WithLocation(12, 18),
-            // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-            //         else if (x) x;
-            Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(12, 21)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ')'
+                //         /*<bind>*/if ()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 23),
+                // CS1525: Invalid expression term '}'
+                //         else
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(13, 13),
+                // CS1002: ; expected
+                //         else
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(13, 13),
+                // CS0029: Cannot implicitly convert type 'Program' to 'bool'
+                //         else if (x) x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("Program", "bool").WithLocation(12, 18),
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         else if (x) x;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(12, 21)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidForStatement()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidForStatement()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -294,7 +294,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
@@ -310,26 +310,26 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
   Body: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0103: The name 'P' does not exist in the current context
-            //         /*<bind>*/for (P; x;)
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(9, 24),
-            // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-            //         /*<bind>*/for (P; x;)
-            Diagnostic(ErrorCode.ERR_IllegalStatement, "P").WithLocation(9, 24),
-            // CS0029: Cannot implicitly convert type 'Program' to 'bool'
-            //         /*<bind>*/for (P; x;)
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("Program", "bool").WithLocation(9, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0103: The name 'P' does not exist in the current context
+                //         /*<bind>*/for (P; x;)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(9, 24),
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         /*<bind>*/for (P; x;)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "P").WithLocation(9, 24),
+                // CS0029: Cannot implicitly convert type 'Program' to 'bool'
+                //         /*<bind>*/for (P; x;)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("Program", "bool").WithLocation(9, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidGotoCaseStatement_MissingLabel()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidGotoCaseStatement_MissingLabel()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -345,25 +345,25 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 1;')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0159: No such label 'case 1:' within the scope of the goto statement
-            //                 /*<bind>*/goto case 1;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(11, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0159: No such label 'case 1:' within the scope of the goto statement
+                //                 /*<bind>*/goto case 1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(11, 27)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
-    public void InvalidGotoCaseStatement_BadLabel()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(40714, "https://github.com/dotnet/roslyn/issues/40714")]
+        public void InvalidGotoCaseStatement_BadLabel()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -381,7 +381,7 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case a ... 1, var x2);')
   Children(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.String, System.String), IsInvalid, IsImplicit) (Syntax: 'args is (var x1, var x2)')
@@ -397,29 +397,29 @@ IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto 
                     IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x2') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x2, MatchesNull: True)
                 PropertySubpatterns (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
-            //             case (string s1, string s2) _:
-            Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (string s1, string s2) _:").WithArguments("case (string s1, string s2) _:").WithLocation(10, 13),
-            // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
-            //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
-            // file.cs(11,45): error CS1061: 'string[]' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
-            //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("string[]", "Deconstruct").WithLocation(11, 45),
-            // file.cs(11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
-            //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
-            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("string[]", "2").WithLocation(11, 45)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(10,13): error CS0163: Control cannot fall through from one case label ('case (string s1, string s2) _:') to another
+                //             case (string s1, string s2) _:
+                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (string s1, string s2) _:").WithArguments("case (string s1, string s2) _:").WithLocation(10, 13),
+                // file.cs(11,27): error CS0029: Cannot implicitly convert type 'bool' to '(string, string)'
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "goto case args is (var x1, var x2);").WithArguments("bool", "(string, string)").WithLocation(11, 27),
+                // file.cs(11,45): error CS1061: 'string[]' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(var x1, var x2)").WithArguments("string[]", "Deconstruct").WithLocation(11, 45),
+                // file.cs(11,45): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'string[]', with 2 out parameters and a void return type.
+                //                 /*<bind>*/goto case args is (var x1, var x2);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(var x1, var x2)").WithArguments("string[]", "2").WithLocation(11, 45)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidGotoCaseStatement_OutsideSwitchStatement()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidGotoCaseStatement_OutsideSwitchStatement()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -430,25 +430,25 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 1;')
   Children(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0153: A goto case is only valid inside a switch statement
-            //         /*<bind>*/goto case 1;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_InvalidGotoCase, "goto case 1;").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0153: A goto case is only valid inside a switch statement
+                //         /*<bind>*/goto case 1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_InvalidGotoCase, "goto case 1;").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidBreakStatement_OutsideLoopOrSwitch()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidBreakStatement_OutsideLoopOrSwitch()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -459,24 +459,24 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'break;')
   Children(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0139: No enclosing loop out of which to break or continue
-            //         /*<bind>*/break;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0139: No enclosing loop out of which to break or continue
+                //         /*<bind>*/break;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<BreakStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<BreakStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
-    public void InvalidContinueStatement_OutsideLoopOrSwitch()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
+        public void InvalidContinueStatement_OutsideLoopOrSwitch()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -487,24 +487,24 @@ class Program
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'continue;')
   Children(0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0139: No enclosing loop out of which to break or continue
-            //         /*<bind>*/continue;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0139: No enclosing loop out of which to break or continue
+                //         /*<bind>*/continue;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(8, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ContinueStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ContinueStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void InvalidStatementFlow_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void InvalidStatementFlow_01()
+        {
+            string source = @"
 using System;
 
 class Program
@@ -520,13 +520,13 @@ class Program
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(11,27): error CS0159: No such label 'case 1:' within the scope of the goto statement
-            //                 /*<bind>*/goto case 1;/*</bind>*/
-            Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(11, 27)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(11,27): error CS0159: No such label 'case 1:' within the scope of the goto statement
+                //                 /*<bind>*/goto case 1;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 1;").WithArguments("case 1:").WithLocation(11, 27)
+            };
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -569,6 +569,7 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

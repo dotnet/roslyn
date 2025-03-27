@@ -10,53 +10,54 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// Binder used to place the parameters of a method, property, indexer, or delegate
-/// in scope when binding &lt;param&gt; tags inside of XML documentation comments
-/// and `nameof` in certain attribute positions.
-/// </summary>
-internal sealed class WithParametersBinder : Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-    internal WithParametersBinder(ImmutableArray<ParameterSymbol> parameters, Binder next)
-        : base(next)
+    /// <summary>
+    /// Binder used to place the parameters of a method, property, indexer, or delegate
+    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments
+    /// and `nameof` in certain attribute positions.
+    /// </summary>
+    internal sealed class WithParametersBinder : Binder
     {
-        Debug.Assert(!parameters.IsDefaultOrEmpty);
-        _parameters = parameters;
-    }
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-    internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
-    {
-        if (options.CanConsiderLocals())
+        internal WithParametersBinder(ImmutableArray<ParameterSymbol> parameters, Binder next)
+            : base(next)
         {
-            foreach (var parameter in _parameters)
+            Debug.Assert(!parameters.IsDefaultOrEmpty);
+            _parameters = parameters;
+        }
+
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        {
+            if (options.CanConsiderLocals())
             {
-                if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
+                foreach (var parameter in _parameters)
                 {
-                    result.AddSymbol(parameter, parameter.Name, 0);
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
+                    {
+                        result.AddSymbol(parameter, parameter.Name, 0);
+                    }
                 }
             }
         }
-    }
 
-    internal override void LookupSymbolsInSingleBinder(
-        LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-    {
-        if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)
+        internal override void LookupSymbolsInSingleBinder(
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return;
-        }
-
-        Debug.Assert(result.IsClear);
-
-        foreach (ParameterSymbol parameter in _parameters)
-        {
-            if (parameter.Name == name)
+            if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)
             {
-                result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteInfo));
+                return;
+            }
+
+            Debug.Assert(result.IsClear);
+
+            foreach (ParameterSymbol parameter in _parameters)
+            {
+                if (parameter.Name == name)
+                {
+                    result.MergeEqual(originalBinder.CheckViability(parameter, arity, options, null, diagnose, ref useSiteInfo));
+                }
             }
         }
     }

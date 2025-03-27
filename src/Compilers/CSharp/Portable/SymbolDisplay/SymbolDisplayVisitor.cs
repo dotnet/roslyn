@@ -11,460 +11,461 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private static readonly ObjectPool<SymbolDisplayVisitor> s_visitorPool = new ObjectPool<SymbolDisplayVisitor>(pool => new SymbolDisplayVisitor(pool), 128);
-
-    private readonly ObjectPool<SymbolDisplayVisitor> _pool;
-
-    private bool _escapeKeywordIdentifiers;
-    private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? _lazyAliasMap;
-
-    private SymbolDisplayVisitor(ObjectPool<SymbolDisplayVisitor> pool)
+    internal partial class SymbolDisplayVisitor : AbstractSymbolDisplayVisitor
     {
-        _pool = pool;
-    }
+        private static readonly ObjectPool<SymbolDisplayVisitor> s_visitorPool = new ObjectPool<SymbolDisplayVisitor>(pool => new SymbolDisplayVisitor(pool), 128);
 
-    public static SymbolDisplayVisitor GetInstance(
-        ArrayBuilder<SymbolDisplayPart> builder,
-        SymbolDisplayFormat format,
-        SemanticModel? semanticModelOpt,
-        int positionOpt)
-    {
-        var instance = s_visitorPool.Allocate();
-        instance.Initialize(builder, format, isFirstSymbolVisited: true, semanticModelOpt, positionOpt, inNamespaceOrType: false);
-        return instance;
-    }
+        private readonly ObjectPool<SymbolDisplayVisitor> _pool;
 
-    private static SymbolDisplayVisitor GetInstance(
-        ArrayBuilder<SymbolDisplayPart> builder,
-        SymbolDisplayFormat format,
-        SemanticModel? semanticModelOpt,
-        int positionOpt,
-        bool escapeKeywordIdentifiers,
-        IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? aliasMap,
-        bool isFirstSymbolVisited,
-        bool inNamespaceOrType = false)
-    {
-        var instance = s_visitorPool.Allocate();
-        instance.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
-        instance._escapeKeywordIdentifiers = escapeKeywordIdentifiers;
-        instance._lazyAliasMap = aliasMap;
-        return instance;
-    }
+        private bool _escapeKeywordIdentifiers;
+        private IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? _lazyAliasMap;
 
-    protected new void Initialize(ArrayBuilder<SymbolDisplayPart> builder, SymbolDisplayFormat format, bool isFirstSymbolVisited, SemanticModel? semanticModelOpt, int positionOpt, bool inNamespaceOrType)
-    {
-        base.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
-
-        _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
-    }
-
-    public override void Free()
-    {
-        base.Free();
-
-        _escapeKeywordIdentifiers = false;
-        _lazyAliasMap = null;
-
-        _pool.Free(this);
-    }
-
-    protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
-    {
-        return GetInstance(
-            this.Builder,
-            this.Format,
-            this.SemanticModelOpt,
-            this.PositionOpt,
-            _escapeKeywordIdentifiers,
-            _lazyAliasMap,
-            isFirstSymbolVisited: false,
-            inNamespaceOrType: inNamespaceOrType);
-    }
-
-    protected override void FreeNotFirstVisitor(AbstractSymbolDisplayVisitor visitor)
-    {
-        Debug.Assert(visitor != this);
-        visitor.Free();
-    }
-
-    internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
-    {
-        if (text == null)
+        private SymbolDisplayVisitor(ObjectPool<SymbolDisplayVisitor> pool)
         {
-            return new SymbolDisplayPart(kind, symbol, "?");
+            _pool = pool;
         }
 
-        if (!_escapeKeywordIdentifiers)
+        public static SymbolDisplayVisitor GetInstance(
+            ArrayBuilder<SymbolDisplayPart> builder,
+            SymbolDisplayFormat format,
+            SemanticModel? semanticModelOpt,
+            int positionOpt)
         {
+            var instance = s_visitorPool.Allocate();
+            instance.Initialize(builder, format, isFirstSymbolVisited: true, semanticModelOpt, positionOpt, inNamespaceOrType: false);
+            return instance;
+        }
+
+        private static SymbolDisplayVisitor GetInstance(
+            ArrayBuilder<SymbolDisplayPart> builder,
+            SymbolDisplayFormat format,
+            SemanticModel? semanticModelOpt,
+            int positionOpt,
+            bool escapeKeywordIdentifiers,
+            IDictionary<INamespaceOrTypeSymbol, IAliasSymbol>? aliasMap,
+            bool isFirstSymbolVisited,
+            bool inNamespaceOrType = false)
+        {
+            var instance = s_visitorPool.Allocate();
+            instance.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
+            instance._escapeKeywordIdentifiers = escapeKeywordIdentifiers;
+            instance._lazyAliasMap = aliasMap;
+            return instance;
+        }
+
+        protected new void Initialize(ArrayBuilder<SymbolDisplayPart> builder, SymbolDisplayFormat format, bool isFirstSymbolVisited, SemanticModel? semanticModelOpt, int positionOpt, bool inNamespaceOrType)
+        {
+            base.Initialize(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType);
+
+            _escapeKeywordIdentifiers = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+        }
+
+        public override void Free()
+        {
+            base.Free();
+
+            _escapeKeywordIdentifiers = false;
+            _lazyAliasMap = null;
+
+            _pool.Free(this);
+        }
+
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
+        {
+            return GetInstance(
+                this.Builder,
+                this.Format,
+                this.SemanticModelOpt,
+                this.PositionOpt,
+                _escapeKeywordIdentifiers,
+                _lazyAliasMap,
+                isFirstSymbolVisited: false,
+                inNamespaceOrType: inNamespaceOrType);
+        }
+
+        protected override void FreeNotFirstVisitor(AbstractSymbolDisplayVisitor visitor)
+        {
+            Debug.Assert(visitor != this);
+            visitor.Free();
+        }
+
+        internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
+        {
+            if (text == null)
+            {
+                return new SymbolDisplayPart(kind, symbol, "?");
+            }
+
+            if (!_escapeKeywordIdentifiers)
+            {
+                return new SymbolDisplayPart(kind, symbol, text);
+            }
+
+            if (IsEscapable(kind))
+            {
+                text = EscapeIdentifier(text, symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias);
+            }
+
             return new SymbolDisplayPart(kind, symbol, text);
         }
 
-        if (IsEscapable(kind))
+        private static bool IsEscapable(SymbolDisplayPartKind kind)
         {
-            text = EscapeIdentifier(text, symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias);
-        }
-
-        return new SymbolDisplayPart(kind, symbol, text);
-    }
-
-    private static bool IsEscapable(SymbolDisplayPartKind kind)
-    {
-        switch (kind)
-        {
-            case SymbolDisplayPartKind.AliasName:
-            case SymbolDisplayPartKind.ClassName:
-            case SymbolDisplayPartKind.RecordClassName:
-            case SymbolDisplayPartKind.StructName:
-            case SymbolDisplayPartKind.RecordStructName:
-            case SymbolDisplayPartKind.InterfaceName:
-            case SymbolDisplayPartKind.EnumName:
-            case SymbolDisplayPartKind.DelegateName:
-            case SymbolDisplayPartKind.TypeParameterName:
-            case SymbolDisplayPartKind.MethodName:
-            case SymbolDisplayPartKind.PropertyName:
-            case SymbolDisplayPartKind.FieldName:
-            case SymbolDisplayPartKind.LocalName:
-            case SymbolDisplayPartKind.NamespaceName:
-            case SymbolDisplayPartKind.ParameterName:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    private static string EscapeIdentifier(string identifier, bool isNamedTypeOrAliasName)
-    {
-        SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
-
-        if (kind is SyntaxKind.None && isNamedTypeOrAliasName && StringComparer.Ordinal.Equals(identifier, "record"))
-        {
-            kind = SyntaxKind.RecordKeyword;
-        }
-
-        return kind == SyntaxKind.None ? identifier : $"@{identifier}";
-    }
-
-    public override void VisitAssembly(IAssemblySymbol symbol)
-    {
-        var text = Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameOnly
-            ? symbol.Identity.Name
-            : symbol.Identity.GetDisplayName();
-
-        Builder.Add(CreatePart(SymbolDisplayPartKind.AssemblyName, symbol, text));
-    }
-
-    public override void VisitModule(IModuleSymbol symbol)
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, symbol.Name));
-    }
-
-    public override void VisitNamespace(INamespaceSymbol symbol)
-    {
-        if (this.IsMinimizing)
-        {
-            if (TryAddAlias(symbol, Builder))
+            switch (kind)
             {
+                case SymbolDisplayPartKind.AliasName:
+                case SymbolDisplayPartKind.ClassName:
+                case SymbolDisplayPartKind.RecordClassName:
+                case SymbolDisplayPartKind.StructName:
+                case SymbolDisplayPartKind.RecordStructName:
+                case SymbolDisplayPartKind.InterfaceName:
+                case SymbolDisplayPartKind.EnumName:
+                case SymbolDisplayPartKind.DelegateName:
+                case SymbolDisplayPartKind.TypeParameterName:
+                case SymbolDisplayPartKind.MethodName:
+                case SymbolDisplayPartKind.PropertyName:
+                case SymbolDisplayPartKind.FieldName:
+                case SymbolDisplayPartKind.LocalName:
+                case SymbolDisplayPartKind.NamespaceName:
+                case SymbolDisplayPartKind.ParameterName:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static string EscapeIdentifier(string identifier, bool isNamedTypeOrAliasName)
+        {
+            SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
+
+            if (kind is SyntaxKind.None && isNamedTypeOrAliasName && StringComparer.Ordinal.Equals(identifier, "record"))
+            {
+                kind = SyntaxKind.RecordKeyword;
+            }
+
+            return kind == SyntaxKind.None ? identifier : $"@{identifier}";
+        }
+
+        public override void VisitAssembly(IAssemblySymbol symbol)
+        {
+            var text = Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameOnly
+                ? symbol.Identity.Name
+                : symbol.Identity.GetDisplayName();
+
+            Builder.Add(CreatePart(SymbolDisplayPartKind.AssemblyName, symbol, text));
+        }
+
+        public override void VisitModule(IModuleSymbol symbol)
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, symbol.Name));
+        }
+
+        public override void VisitNamespace(INamespaceSymbol symbol)
+        {
+            if (this.IsMinimizing)
+            {
+                if (TryAddAlias(symbol, Builder))
+                {
+                    return;
+                }
+
+                MinimallyQualify(symbol);
                 return;
             }
 
-            MinimallyQualify(symbol);
-            return;
-        }
-
-        if (IsFirstSymbolVisited && Format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword))
-        {
-            AddKeyword(SyntaxKind.NamespaceKeyword);
-            AddSpace();
-        }
-
-        if (Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
-        {
-            var containingNamespace = symbol.ContainingNamespace;
-            if (ShouldVisitNamespace(containingNamespace))
+            if (IsFirstSymbolVisited && Format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeNamespaceKeyword))
             {
-                containingNamespace.Accept(this.NotFirstVisitor);
-                AddPunctuation(containingNamespace.IsGlobalNamespace ? SyntaxKind.ColonColonToken : SyntaxKind.DotToken);
+                AddKeyword(SyntaxKind.NamespaceKeyword);
+                AddSpace();
+            }
+
+            if (Format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
+            {
+                var containingNamespace = symbol.ContainingNamespace;
+                if (ShouldVisitNamespace(containingNamespace))
+                {
+                    containingNamespace.Accept(this.NotFirstVisitor);
+                    AddPunctuation(containingNamespace.IsGlobalNamespace ? SyntaxKind.ColonColonToken : SyntaxKind.DotToken);
+                }
+            }
+
+            if (symbol.IsGlobalNamespace)
+            {
+                AddGlobalNamespace(symbol);
+            }
+            else
+            {
+                Builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, symbol.Name));
             }
         }
 
-        if (symbol.IsGlobalNamespace)
+        private void AddGlobalNamespace(INamespaceSymbol globalNamespace)
         {
-            AddGlobalNamespace(symbol);
-        }
-        else
-        {
-            Builder.Add(CreatePart(SymbolDisplayPartKind.NamespaceName, symbol, symbol.Name));
-        }
-    }
+            // Formerly, localized via MessageID.IDS_GlobalNamespace.
+            const string standaloneGlobalNamespaceString = "<global namespace>";
 
-    private void AddGlobalNamespace(INamespaceSymbol globalNamespace)
-    {
-        // Formerly, localized via MessageID.IDS_GlobalNamespace.
-        const string standaloneGlobalNamespaceString = "<global namespace>";
-
-        switch (Format.GlobalNamespaceStyle)
-        {
-            case SymbolDisplayGlobalNamespaceStyle.Omitted:
-                break;
-            case SymbolDisplayGlobalNamespaceStyle.Included:
-                if (this.IsFirstSymbolVisited)
-                {
+            switch (Format.GlobalNamespaceStyle)
+            {
+                case SymbolDisplayGlobalNamespaceStyle.Omitted:
+                    break;
+                case SymbolDisplayGlobalNamespaceStyle.Included:
+                    if (this.IsFirstSymbolVisited)
+                    {
+                        Builder.Add(CreatePart(
+                            SymbolDisplayPartKind.Text,
+                            globalNamespace,
+                            standaloneGlobalNamespaceString));
+                    }
+                    else
+                    {
+                        Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, globalNamespace,
+                            SyntaxFacts.GetText(SyntaxKind.GlobalKeyword)));
+                    }
+                    break;
+                case SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining:
+                    Debug.Assert(this.IsFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining");
                     Builder.Add(CreatePart(
                         SymbolDisplayPartKind.Text,
                         globalNamespace,
                         standaloneGlobalNamespaceString));
-                }
-                else
-                {
-                    Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, globalNamespace,
-                        SyntaxFacts.GetText(SyntaxKind.GlobalKeyword)));
-                }
-                break;
-            case SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining:
-                Debug.Assert(this.IsFirstSymbolVisited, "Don't call with IsFirstSymbolVisited = false if OmittedAsContaining");
-                Builder.Add(CreatePart(
-                    SymbolDisplayPartKind.Text,
-                    globalNamespace,
-                    standaloneGlobalNamespaceString));
-                break;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(Format.GlobalNamespaceStyle);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(Format.GlobalNamespaceStyle);
+            }
         }
-    }
 
-    public override void VisitLocal(ILocalSymbol symbol)
-    {
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
+        public override void VisitLocal(ILocalSymbol symbol)
         {
-            if (symbol.IsRef)
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
             {
-                if (symbol.ScopedKind == ScopedKind.ScopedRef)
+                if (symbol.IsRef)
+                {
+                    if (symbol.ScopedKind == ScopedKind.ScopedRef)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
+
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+
+                    if (symbol.RefKind == RefKind.RefReadOnly)
+                    {
+                        AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                        AddSpace();
+                    }
+                }
+                else if (symbol.ScopedKind == ScopedKind.ScopedValue)
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
                 }
-
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-
-                if (symbol.RefKind == RefKind.RefReadOnly)
-                {
-                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                    AddSpace();
-                }
             }
-            else if (symbol.ScopedKind == ScopedKind.ScopedValue)
+
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                AddKeyword(SyntaxKind.ScopedKeyword);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
-        }
 
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
-        {
-            symbol.Type.Accept(this.NotFirstVisitor);
-            AddSpace();
-        }
-
-        if (symbol.IsConst)
-        {
-            Builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
-        }
-        else
-        {
-            Builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
-        }
-
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
-            symbol.IsConst &&
-            symbol.HasConstantValue &&
-            CanAddConstant(symbol.Type, symbol.ConstantValue))
-        {
-            AddSpace();
-            AddPunctuation(SyntaxKind.EqualsToken);
-            AddSpace();
-
-            AddConstantValue(symbol.Type, symbol.ConstantValue);
-        }
-    }
-
-    public override void VisitDiscard(IDiscardSymbol symbol)
-    {
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
-        {
-            symbol.Type.Accept(this.NotFirstVisitor);
-            AddSpace();
-        }
-
-        Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "_"));
-    }
-
-    public override void VisitRangeVariable(IRangeVariableSymbol symbol)
-    {
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
-        {
-            ITypeSymbol? type = GetRangeVariableType(symbol);
-
-            if (type != null && type.TypeKind != TypeKind.Error)
+            if (symbol.IsConst)
             {
-                type.Accept(this);
+                Builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
             }
             else
             {
-                Builder.Add(CreatePart(SymbolDisplayPartKind.ErrorTypeName, type, "?"));
+                Builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            }
+
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
+                symbol.HasConstantValue &&
+                CanAddConstant(symbol.Type, symbol.ConstantValue))
+            {
+                AddSpace();
+                AddPunctuation(SyntaxKind.EqualsToken);
+                AddSpace();
+
+                AddConstantValue(symbol.Type, symbol.ConstantValue);
+            }
+        }
+
+        public override void VisitDiscard(IDiscardSymbol symbol)
+        {
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+            {
+                symbol.Type.Accept(this.NotFirstVisitor);
+                AddSpace();
+            }
+
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "_"));
+        }
+
+        public override void VisitRangeVariable(IRangeVariableSymbol symbol)
+        {
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+            {
+                ITypeSymbol? type = GetRangeVariableType(symbol);
+
+                if (type != null && type.TypeKind != TypeKind.Error)
+                {
+                    type.Accept(this);
+                }
+                else
+                {
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ErrorTypeName, type, "?"));
+                }
+
+                AddSpace();
+            }
+
+            Builder.Add(CreatePart(SymbolDisplayPartKind.RangeVariableName, symbol, symbol.Name));
+        }
+
+        public override void VisitLabel(ILabelSymbol symbol)
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.LabelName, symbol, symbol.Name));
+        }
+
+        public override void VisitAlias(IAliasSymbol symbol)
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, symbol, symbol.Name));
+
+            if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+            {
+                // ???
+                AddPunctuation(SyntaxKind.EqualsToken);
+                symbol.Target.Accept(this);
+            }
+        }
+
+        internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
+        {
+            // Currently using 'Text' part kind as there is no kind specific to preprocessing symbols.
+            var part = new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name);
+            Builder.Add(part);
+        }
+
+        protected override void AddSpace()
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Space, null, " "));
+        }
+
+        private void AddPunctuation(SyntaxKind punctuationKind)
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(punctuationKind)));
+        }
+
+        private void AddKeyword(SyntaxKind keywordKind)
+        {
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(keywordKind)));
+        }
+
+        private void AddAccessibilityIfNeeded(ISymbol symbol)
+        {
+            INamedTypeSymbol containingType = symbol.ContainingType;
+
+            // this method is only called for members and they should have a containingType or a containing symbol should be a TypeSymbol.
+            Debug.Assert((object)containingType != null || (symbol.ContainingSymbol is ITypeSymbol));
+
+            if (Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
+                (containingType == null ||
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
+            {
+                AddAccessibility(symbol);
+            }
+        }
+
+        private static bool IsLocalFunction(ISymbol symbol)
+        {
+            if (symbol.Kind != SymbolKind.Method)
+            {
+                return false;
+            }
+
+            return ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
+        }
+
+        private void AddAccessibility(ISymbol symbol)
+        {
+            switch (symbol.DeclaredAccessibility)
+            {
+                case Accessibility.Private:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    break;
+                case Accessibility.Internal:
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.ProtectedAndInternal:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.Protected:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
+                case Accessibility.ProtectedOrInternal:
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.InternalKeyword);
+                    break;
+                case Accessibility.Public:
+                    AddKeyword(SyntaxKind.PublicKeyword);
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
             }
 
             AddSpace();
         }
 
-        Builder.Add(CreatePart(SymbolDisplayPartKind.RangeVariableName, symbol, symbol.Name));
-    }
-
-    public override void VisitLabel(ILabelSymbol symbol)
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.LabelName, symbol, symbol.Name));
-    }
-
-    public override void VisitAlias(IAliasSymbol symbol)
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.AliasName, symbol, symbol.Name));
-
-        if (Format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
+        private bool ShouldVisitNamespace(ISymbol containingSymbol)
         {
-            // ???
-            AddPunctuation(SyntaxKind.EqualsToken);
-            symbol.Target.Accept(this);
-        }
-    }
+            var namespaceSymbol = containingSymbol as INamespaceSymbol;
+            if (namespaceSymbol == null)
+            {
+                return false;
+            }
 
-    internal override void VisitPreprocessing(IPreprocessingSymbol symbol)
-    {
-        // Currently using 'Text' part kind as there is no kind specific to preprocessing symbols.
-        var part = new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name);
-        Builder.Add(part);
-    }
+            if (Format.TypeQualificationStyle != SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
+            {
+                return false;
+            }
 
-    protected override void AddSpace()
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.Space, null, " "));
-    }
-
-    private void AddPunctuation(SyntaxKind punctuationKind)
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, null, SyntaxFacts.GetText(punctuationKind)));
-    }
-
-    private void AddKeyword(SyntaxKind keywordKind)
-    {
-        Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(keywordKind)));
-    }
-
-    private void AddAccessibilityIfNeeded(ISymbol symbol)
-    {
-        INamedTypeSymbol containingType = symbol.ContainingType;
-
-        // this method is only called for members and they should have a containingType or a containing symbol should be a TypeSymbol.
-        Debug.Assert((object)containingType != null || (symbol.ContainingSymbol is ITypeSymbol));
-
-        if (Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
-            (containingType == null ||
-             (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
-        {
-            AddAccessibility(symbol);
-        }
-    }
-
-    private static bool IsLocalFunction(ISymbol symbol)
-    {
-        if (symbol.Kind != SymbolKind.Method)
-        {
-            return false;
+            return
+                !namespaceSymbol.IsGlobalNamespace ||
+                Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included;
         }
 
-        return ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
-    }
-
-    private void AddAccessibility(ISymbol symbol)
-    {
-        switch (symbol.DeclaredAccessibility)
+        private bool IncludeNamedType([NotNullWhen(true)] INamedTypeSymbol? namedType)
         {
-            case Accessibility.Private:
-                AddKeyword(SyntaxKind.PrivateKeyword);
-                break;
-            case Accessibility.Internal:
-                AddKeyword(SyntaxKind.InternalKeyword);
-                break;
-            case Accessibility.ProtectedAndInternal:
-                AddKeyword(SyntaxKind.PrivateKeyword);
-                AddSpace();
-                AddKeyword(SyntaxKind.ProtectedKeyword);
-                break;
-            case Accessibility.Protected:
-                AddKeyword(SyntaxKind.ProtectedKeyword);
-                break;
-            case Accessibility.ProtectedOrInternal:
-                AddKeyword(SyntaxKind.ProtectedKeyword);
-                AddSpace();
-                AddKeyword(SyntaxKind.InternalKeyword);
-                break;
-            case Accessibility.Public:
-                AddKeyword(SyntaxKind.PublicKeyword);
-                break;
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
+            if (namedType is null)
+            {
+                return false;
+            }
+
+            if (namedType.IsScriptClass && !Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
+            {
+                return false;
+            }
+
+            if (namedType == SemanticModelOpt?.Compilation.ScriptGlobalsType)
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        AddSpace();
-    }
-
-    private bool ShouldVisitNamespace(ISymbol containingSymbol)
-    {
-        var namespaceSymbol = containingSymbol as INamespaceSymbol;
-        if (namespaceSymbol == null)
+        private static bool IsEnumMember(ISymbol symbol)
         {
-            return false;
+            return symbol != null
+                && symbol.Kind == SymbolKind.Field
+                && symbol.ContainingType != null
+                && symbol.ContainingType.TypeKind == TypeKind.Enum
+                && symbol.Name != WellKnownMemberNames.EnumBackingFieldName;
         }
-
-        if (Format.TypeQualificationStyle != SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
-        {
-            return false;
-        }
-
-        return
-            !namespaceSymbol.IsGlobalNamespace ||
-            Format.GlobalNamespaceStyle == SymbolDisplayGlobalNamespaceStyle.Included;
-    }
-
-    private bool IncludeNamedType([NotNullWhen(true)] INamedTypeSymbol? namedType)
-    {
-        if (namedType is null)
-        {
-            return false;
-        }
-
-        if (namedType.IsScriptClass && !Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
-        {
-            return false;
-        }
-
-        if (namedType == SemanticModelOpt?.Compilation.ScriptGlobalsType)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static bool IsEnumMember(ISymbol symbol)
-    {
-        return symbol != null
-            && symbol.Kind == SymbolKind.Field
-            && symbol.ContainingType != null
-            && symbol.ContainingType.TypeKind == TypeKind.Enum
-            && symbol.Name != WellKnownMemberNames.EnumBackingFieldName;
     }
 }

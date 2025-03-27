@@ -4,30 +4,31 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Wraps an <see cref="ISyntaxReceiver"/> in an <see cref="ISyntaxContextReceiver"/>
-/// </summary>
-internal sealed class SyntaxContextReceiverAdaptor : ISyntaxContextReceiver
+namespace Microsoft.CodeAnalysis
 {
-    private SyntaxContextReceiverAdaptor(ISyntaxReceiver receiver)
+    /// <summary>
+    /// Wraps an <see cref="ISyntaxReceiver"/> in an <see cref="ISyntaxContextReceiver"/>
+    /// </summary>
+    internal sealed class SyntaxContextReceiverAdaptor : ISyntaxContextReceiver
     {
-        Receiver = receiver ?? throw new ArgumentNullException(nameof(receiver));
-    }
-
-    public ISyntaxReceiver Receiver { get; }
-
-    public void OnVisitSyntaxNode(GeneratorSyntaxContext context) => Receiver.OnVisitSyntaxNode(context.Node);
-
-    public static SyntaxContextReceiverCreator Create(SyntaxReceiverCreator creator) => () =>
-    {
-        var rx = creator();
-        if (rx is object)
+        private SyntaxContextReceiverAdaptor(ISyntaxReceiver receiver)
         {
-            return new SyntaxContextReceiverAdaptor(rx);
+            Receiver = receiver ?? throw new ArgumentNullException(nameof(receiver));
         }
-        // in the case that the creator function returns null, we'll also return a null adaptor
-        return null;
-    };
+
+        public ISyntaxReceiver Receiver { get; }
+
+        public void OnVisitSyntaxNode(GeneratorSyntaxContext context) => Receiver.OnVisitSyntaxNode(context.Node);
+
+        public static SyntaxContextReceiverCreator Create(SyntaxReceiverCreator creator) => () =>
+        {
+            var rx = creator();
+            if (rx is object)
+            {
+                return new SyntaxContextReceiverAdaptor(rx);
+            }
+            // in the case that the creator function returns null, we'll also return a null adaptor
+            return null;
+        };
+    }
 }

@@ -4,19 +4,20 @@
 
 #if !NET8_0_OR_GREATER
 
-namespace System.Runtime.CompilerServices;
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
-internal sealed class CollectionBuilderAttribute : Attribute
+namespace System.Runtime.CompilerServices
 {
-    public CollectionBuilderAttribute(Type builderType, string methodName)
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface)]
+    internal sealed class CollectionBuilderAttribute : Attribute
     {
-        BuilderType = builderType;
-        MethodName = methodName;
-    }
+        public CollectionBuilderAttribute(Type builderType, string methodName)
+        {
+            BuilderType = builderType;
+            MethodName = methodName;
+        }
 
-    public Type BuilderType { get; }
-    public string MethodName { get; }
+        public Type BuilderType { get; }
+        public string MethodName { get; }
+    }
 }
 
 #else

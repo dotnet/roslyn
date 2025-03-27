@@ -5,25 +5,26 @@
 using System.Collections.Immutable;
 using System.Reflection;
 
-namespace Microsoft.Cci;
-
-/// <summary>
-/// Represents a file referenced by an assembly.
-/// </summary>
-internal interface IFileReference
+namespace Microsoft.Cci
 {
     /// <summary>
-    /// True if the file has metadata.
+    /// Represents a file referenced by an assembly.
     /// </summary>
-    bool HasMetadata { get; }
+    internal interface IFileReference
+    {
+        /// <summary>
+        /// True if the file has metadata.
+        /// </summary>
+        bool HasMetadata { get; }
 
-    /// <summary>
-    /// File name with extension.
-    /// </summary>
-    string? FileName { get; }
+        /// <summary>
+        /// File name with extension.
+        /// </summary>
+        string? FileName { get; }
 
-    /// <summary>
-    /// A hash of the file contents.
-    /// </summary>
-    ImmutableArray<byte> GetHashValue(AssemblyHashAlgorithm algorithmId);
+        /// <summary>
+        /// A hash of the file contents.
+        /// </summary>
+        ImmutableArray<byte> GetHashValue(AssemblyHashAlgorithm algorithmId);
+    }
 }

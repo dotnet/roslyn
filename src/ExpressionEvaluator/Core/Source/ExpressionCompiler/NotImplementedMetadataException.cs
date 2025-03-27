@@ -6,11 +6,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal sealed class NotImplementedMetadataException : Exception
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal NotImplementedMetadataException(NotImplementedException inner) : base(string.Empty, inner)
+    internal sealed class NotImplementedMetadataException : Exception
     {
+        internal NotImplementedMetadataException(NotImplementedException inner) : base(string.Empty, inner)
+        {
+        }
     }
 }

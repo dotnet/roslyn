@@ -9,86 +9,87 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities;
-
-public class TestMetadataReference : PortableExecutableReference
+namespace Roslyn.Test.Utilities
 {
-    private readonly Metadata _metadata;
-    private readonly string _display;
-
-    public TestMetadataReference(Metadata metadata = null, string fullPath = null, string display = null)
-        : base(MetadataReferenceProperties.Assembly, fullPath)
+    public class TestMetadataReference : PortableExecutableReference
     {
-        _metadata = metadata;
-        _display = display;
-    }
+        private readonly Metadata _metadata;
+        private readonly string _display;
 
-    public override string Display
-    {
-        get
+        public TestMetadataReference(Metadata metadata = null, string fullPath = null, string display = null)
+            : base(MetadataReferenceProperties.Assembly, fullPath)
         {
-            return _display;
+            _metadata = metadata;
+            _display = display;
+        }
+
+        public override string Display
+        {
+            get
+            {
+                return _display;
+            }
+        }
+
+        protected override DocumentationProvider CreateDocumentationProvider()
+        {
+            return DocumentationProvider.Default;
+        }
+
+        protected override Metadata GetMetadataImpl()
+        {
+            if (_metadata == null)
+            {
+                throw new FileNotFoundException();
+            }
+
+            return _metadata;
+        }
+
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            throw new NotImplementedException();
         }
     }
 
-    protected override DocumentationProvider CreateDocumentationProvider()
+    public class TestImageReference : PortableExecutableReference
     {
-        return DocumentationProvider.Default;
-    }
+        private readonly ImmutableArray<byte> _metadataBytes;
+        private readonly string _display;
 
-    protected override Metadata GetMetadataImpl()
-    {
-        if (_metadata == null)
+        public TestImageReference(byte[] metadataBytes, string display)
+            : this(ImmutableArray.Create(metadataBytes), display)
         {
-            throw new FileNotFoundException();
         }
 
-        return _metadata;
-    }
-
-    protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class TestImageReference : PortableExecutableReference
-{
-    private readonly ImmutableArray<byte> _metadataBytes;
-    private readonly string _display;
-
-    public TestImageReference(byte[] metadataBytes, string display)
-        : this(ImmutableArray.Create(metadataBytes), display)
-    {
-    }
-
-    public TestImageReference(ImmutableArray<byte> metadataBytes, string display)
-        : base(MetadataReferenceProperties.Assembly)
-    {
-        _metadataBytes = metadataBytes;
-        _display = display;
-    }
-
-    public override string Display
-    {
-        get
+        public TestImageReference(ImmutableArray<byte> metadataBytes, string display)
+            : base(MetadataReferenceProperties.Assembly)
         {
-            return _display;
+            _metadataBytes = metadataBytes;
+            _display = display;
         }
-    }
 
-    protected override DocumentationProvider CreateDocumentationProvider()
-    {
-        return DocumentationProvider.Default;
-    }
+        public override string Display
+        {
+            get
+            {
+                return _display;
+            }
+        }
 
-    protected override Metadata GetMetadataImpl()
-    {
-        return AssemblyMetadata.CreateFromImage(_metadataBytes);
-    }
+        protected override DocumentationProvider CreateDocumentationProvider()
+        {
+            return DocumentationProvider.Default;
+        }
 
-    protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-    {
-        throw new NotImplementedException();
+        protected override Metadata GetMetadataImpl()
+        {
+            return AssemblyMetadata.CreateFromImage(_metadataBytes);
+        }
+
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

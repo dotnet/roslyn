@@ -10,84 +10,85 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class ScriptLocalScopeBinder : LocalScopeBinder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly Labels _labels;
-
-    internal ScriptLocalScopeBinder(Labels labels, Binder next) : base(next)
+    internal sealed class ScriptLocalScopeBinder : LocalScopeBinder
     {
-        _labels = labels;
-    }
+        private readonly Labels _labels;
 
-    internal override Symbol ContainingMemberOrLambda
-    {
-        get { return _labels.ScriptInitializer; }
-    }
-
-    protected override ImmutableArray<LabelSymbol> BuildLabels()
-    {
-        return _labels.GetLabels();
-    }
-
-    internal override bool IsLabelsScopeBinder
-    {
-        get
+        internal ScriptLocalScopeBinder(Labels labels, Binder next) : base(next)
         {
-            return true;
-        }
-    }
-
-    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    // Labels potentially shared across multiple ScriptLocalScopeBinder instances.
-    internal new sealed class Labels
-    {
-        private readonly SynthesizedInteractiveInitializerMethod _scriptInitializer;
-        private readonly CompilationUnitSyntax _syntax;
-        private ImmutableArray<LabelSymbol> _lazyLabels;
-
-        internal Labels(SynthesizedInteractiveInitializerMethod scriptInitializer, CompilationUnitSyntax syntax)
-        {
-            _scriptInitializer = scriptInitializer;
-            _syntax = syntax;
+            _labels = labels;
         }
 
-        internal SynthesizedInteractiveInitializerMethod ScriptInitializer
+        internal override Symbol ContainingMemberOrLambda
         {
-            get { return _scriptInitializer; }
+            get { return _labels.ScriptInitializer; }
         }
 
-        internal ImmutableArray<LabelSymbol> GetLabels()
+        protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
-            if (_lazyLabels == null)
+            return _labels.GetLabels();
+        }
+
+        internal override bool IsLabelsScopeBinder
+        {
+            get
             {
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyLabels, GetLabels(_scriptInitializer, _syntax));
+                return true;
             }
-            return _lazyLabels;
         }
 
-        private static ImmutableArray<LabelSymbol> GetLabels(SynthesizedInteractiveInitializerMethod scriptInitializer, CompilationUnitSyntax syntax)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
-            var builder = ArrayBuilder<LabelSymbol>.GetInstance();
-            foreach (var member in syntax.Members)
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        // Labels potentially shared across multiple ScriptLocalScopeBinder instances.
+        internal new sealed class Labels
+        {
+            private readonly SynthesizedInteractiveInitializerMethod _scriptInitializer;
+            private readonly CompilationUnitSyntax _syntax;
+            private ImmutableArray<LabelSymbol> _lazyLabels;
+
+            internal Labels(SynthesizedInteractiveInitializerMethod scriptInitializer, CompilationUnitSyntax syntax)
             {
-                if (member.Kind() != SyntaxKind.GlobalStatement)
+                _scriptInitializer = scriptInitializer;
+                _syntax = syntax;
+            }
+
+            internal SynthesizedInteractiveInitializerMethod ScriptInitializer
+            {
+                get { return _scriptInitializer; }
+            }
+
+            internal ImmutableArray<LabelSymbol> GetLabels()
+            {
+                if (_lazyLabels == null)
                 {
-                    continue;
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyLabels, GetLabels(_scriptInitializer, _syntax));
                 }
-                LocalScopeBinder.BuildLabels(scriptInitializer, ((GlobalStatementSyntax)member).Statement, ref builder);
+                return _lazyLabels;
             }
-            return builder.ToImmutableAndFree();
+
+            private static ImmutableArray<LabelSymbol> GetLabels(SynthesizedInteractiveInitializerMethod scriptInitializer, CompilationUnitSyntax syntax)
+            {
+                var builder = ArrayBuilder<LabelSymbol>.GetInstance();
+                foreach (var member in syntax.Members)
+                {
+                    if (member.Kind() != SyntaxKind.GlobalStatement)
+                    {
+                        continue;
+                    }
+                    LocalScopeBinder.BuildLabels(scriptInitializer, ((GlobalStatementSyntax)member).Statement, ref builder);
+                }
+                return builder.ToImmutableAndFree();
+            }
         }
     }
 }

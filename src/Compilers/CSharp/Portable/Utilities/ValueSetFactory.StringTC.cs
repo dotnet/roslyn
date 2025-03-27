@@ -5,42 +5,43 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal static partial class ValueSetFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private class StringTC : IEquatableValueTC<string>
+    internal static partial class ValueSetFactory
     {
-        public static readonly StringTC Instance = new StringTC();
-        private StringTC() { }
-
-        string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
+        private class StringTC : IEquatableValueTC<string>
         {
-            var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;
-            Debug.Assert(result != null);
-            return result;
-        }
+            public static readonly StringTC Instance = new StringTC();
+            private StringTC() { }
 
-        string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
-        {
-            Debug.Assert(count > 0);
-            Debug.Assert(scope >= count);
-            string[] result = new string[count];
-            int next = 0;
-            for (int i = 0; i < scope; i++)
+            string IEquatableValueTC<string>.FromConstantValue(ConstantValue constantValue)
             {
-                int need = count - next;
-                int remain = scope - i;
-                if (random.NextDouble() * remain < need)
-                {
-                    result[next++] = i.ToString();
-                }
+                var result = constantValue.IsBad ? string.Empty : constantValue.StringValue;
+                Debug.Assert(result != null);
+                return result;
             }
 
-            Debug.Assert(next == count);
-            return result;
-        }
+            string[] IEquatableValueTC<string>.RandomValues(int count, Random random, int scope)
+            {
+                Debug.Assert(count > 0);
+                Debug.Assert(scope >= count);
+                string[] result = new string[count];
+                int next = 0;
+                for (int i = 0; i < scope; i++)
+                {
+                    int need = count - next;
+                    int remain = scope - i;
+                    if (random.NextDouble() * remain < need)
+                    {
+                        result[next++] = i.ToString();
+                    }
+                }
 
-        ConstantValue IEquatableValueTC<string>.ToConstantValue(string value) => ConstantValue.Create(value);
+                Debug.Assert(next == count);
+                return result;
+            }
+
+            ConstantValue IEquatableValueTC<string>.ToConstantValue(string value) => ConstantValue.Create(value);
+        }
     }
 }

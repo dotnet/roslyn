@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IDynamicObjectCreationExpression : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_DynamicArgument()
+    public class IOperationTests_IDynamicObjectCreationExpression : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_DynamicArgument()
+        {
+            string source = @"
 class C
 {
     public C(int i)
@@ -33,7 +33,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(d)')
   Arguments(1):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
@@ -42,16 +42,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
   Initializer: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_MultipleApplicableSymbols()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_MultipleApplicableSymbols()
+        {
+            string source = @"
 class C
 {
     public C(int i)
@@ -68,7 +68,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(d)')
   Arguments(1):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
@@ -77,16 +77,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
   Initializer: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_MultipleArgumentsAndApplicableSymbols()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_MultipleArgumentsAndApplicableSymbols()
+        {
+            string source = @"
 class C
 {
     public C(int i, char c)
@@ -104,7 +104,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(d, c)')
   Arguments(2):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
@@ -114,16 +114,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
   Initializer: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_ArgumentNames()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_ArgumentNames()
+        {
+            string source = @"
 class C
 {
     public C(int i, char c)
@@ -140,7 +140,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(i: d, c: e)')
   Arguments(2):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
@@ -152,16 +152,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
   Initializer: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_ArgumentRefKinds()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_ArgumentRefKinds()
+        {
+            string source = @"
 class C
 {
     public C(ref object i, out int j, char c)
@@ -180,7 +180,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(ref d, out k, e)')
   Arguments(3):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd')
@@ -194,16 +194,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
   Initializer: 
     null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_Initializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_Initializer()
+        {
+            string source = @"
 class C
 {
     public int X;
@@ -221,7 +221,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(d) { X = 0 }')
   Arguments(1):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
@@ -238,16 +238,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_AllFields()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_AllFields()
+        {
+            string source = @"
 class C
 {
     public int X;
@@ -267,7 +267,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (Syntax: 'new C(ref i ... ) { X = 0 }')
   Arguments(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -289,16 +289,16 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C) (
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_ErrorBadDynamicMethodArgLambda()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_ErrorBadDynamicMethodArgLambda()
+        {
+            string source = @"
 using System;
 
 class C
@@ -317,7 +317,7 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C, IsInvalid) (Syntax: 'new C(delegate { }, y)')
   Arguments(2):
       IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: 'delegate { }')
@@ -331,20 +331,20 @@ IDynamicObjectCreationOperation (OperationKind.DynamicObjectCreation, Type: C, I
   Initializer: 
     null
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
-            //         /*<bind>*/new C(delegate { }, y)/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate { }").WithLocation(9, 25)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //         /*<bind>*/new C(delegate { }, y)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate { }").WithLocation(9, 25)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact]
-    public void DynamicObjectCreation_OVerloadResolutionFailure()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DynamicObjectCreation_OVerloadResolutionFailure()
+        {
+            string source = @"
 class C
 {
     public C()
@@ -361,25 +361,25 @@ class C
     }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid) (Syntax: 'new C(d)')
   Children(1):
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS7036: There is no argument given that corresponds to the required parameter 'j' of 'C.C(int, int)'
-            //         var x = /*<bind>*/new C(d)/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("j", "C.C(int, int)").WithLocation(14, 31)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS7036: There is no argument given that corresponds to the required parameter 'j' of 'C.C(int, int)'
+                //         var x = /*<bind>*/new C(d)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("j", "C.C(int, int)").WithLocation(14, 31)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DynamicObjectCreationFlow_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DynamicObjectCreationFlow_01()
+        {
+            string source = @"
 class C1
 {
     C1(int i) { }
@@ -390,9 +390,9 @@ class C1
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -418,14 +418,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DynamicObjectCreationFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DynamicObjectCreationFlow_02()
+        {
+            string source = @"
 class C1
 {
     C1(int i) { }
@@ -438,9 +438,9 @@ class C1
     int I2 { get; set; }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -537,14 +537,14 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DynamicObjectCreationFlow_03()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DynamicObjectCreationFlow_03()
+        {
+            string source = @"
 using System.Collections;
 using System.Collections.Generic;
 
@@ -561,9 +561,9 @@ class C1 : IEnumerable<int>
     public void Add(int i) { }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -662,7 +662,8 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
+    }
 }

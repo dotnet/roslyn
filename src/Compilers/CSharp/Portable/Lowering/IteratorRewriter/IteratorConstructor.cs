@@ -11,48 +11,49 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// The constructor of the class that is the translation of an iterator method.
-/// </summary>
-internal sealed class IteratorConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-    internal IteratorConstructor(StateMachineTypeSymbol container)
-        : base(container)
+    /// <summary>
+    /// The constructor of the class that is the translation of an iterator method.
+    /// </summary>
+    internal sealed class IteratorConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-        var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
-        _parameters = ImmutableArray.Create<ParameterSymbol>(
-            SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
-    }
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-    {
-        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        internal IteratorConstructor(StateMachineTypeSymbol container)
+            : base(container)
+        {
+            var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
+            _parameters = ImmutableArray.Create<ParameterSymbol>(
+                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
+        }
 
-        var compilation = this.DeclaringCompilation;
-        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
-    }
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-    public override ImmutableArray<ParameterSymbol> Parameters
-    {
-        get { return _parameters; }
-    }
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+        }
 
-    public override Accessibility DeclaredAccessibility
-    {
-        get { return Accessibility.Public; }
-    }
+        public override ImmutableArray<ParameterSymbol> Parameters
+        {
+            get { return _parameters; }
+        }
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-    {
-        get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
-    }
+        public override Accessibility DeclaredAccessibility
+        {
+            get { return Accessibility.Public; }
+        }
 
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-    {
-        get { return false; }
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
+        }
+
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get { return false; }
+        }
     }
 }

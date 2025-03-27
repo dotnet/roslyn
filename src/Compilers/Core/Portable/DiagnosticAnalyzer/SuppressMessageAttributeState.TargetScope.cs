@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-internal partial class SuppressMessageAttributeState
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal enum TargetScope
+    internal partial class SuppressMessageAttributeState
     {
-        None,
-        Module,
-        Namespace,
-        Resource,
-        Type,
-        Member,
-        NamespaceAndDescendants
+        internal enum TargetScope
+        {
+            None,
+            Module,
+            Namespace,
+            Resource,
+            Type,
+            Member,
+            NamespaceAndDescendants
+        }
     }
 }

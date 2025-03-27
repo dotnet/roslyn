@@ -4,80 +4,81 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal partial class SyntaxToken
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal class SyntaxTokenWithValueAndTrivia<T> : SyntaxTokenWithValue<T>
+    internal partial class SyntaxToken
     {
-        private readonly GreenNode _leading;
-        private readonly GreenNode _trailing;
-
-        internal SyntaxTokenWithValueAndTrivia(SyntaxKind kind, string text, T value, GreenNode leading, GreenNode trailing)
-            : base(kind, text, value)
+        internal class SyntaxTokenWithValueAndTrivia<T> : SyntaxTokenWithValue<T>
         {
-            if (leading != null)
+            private readonly GreenNode _leading;
+            private readonly GreenNode _trailing;
+
+            internal SyntaxTokenWithValueAndTrivia(SyntaxKind kind, string text, T value, GreenNode leading, GreenNode trailing)
+                : base(kind, text, value)
             {
-                this.AdjustFlagsAndWidth(leading);
-                _leading = leading;
+                if (leading != null)
+                {
+                    this.AdjustFlagsAndWidth(leading);
+                    _leading = leading;
+                }
+                if (trailing != null)
+                {
+                    this.AdjustFlagsAndWidth(trailing);
+                    _trailing = trailing;
+                }
             }
-            if (trailing != null)
+
+            internal SyntaxTokenWithValueAndTrivia(
+                SyntaxKind kind,
+                string text,
+                T value,
+                GreenNode leading,
+                GreenNode trailing,
+                DiagnosticInfo[] diagnostics,
+                SyntaxAnnotation[] annotations)
+                : base(kind, text, value, diagnostics, annotations)
             {
-                this.AdjustFlagsAndWidth(trailing);
-                _trailing = trailing;
+                if (leading != null)
+                {
+                    this.AdjustFlagsAndWidth(leading);
+                    _leading = leading;
+                }
+                if (trailing != null)
+                {
+                    this.AdjustFlagsAndWidth(trailing);
+                    _trailing = trailing;
+                }
             }
-        }
 
-        internal SyntaxTokenWithValueAndTrivia(
-            SyntaxKind kind,
-            string text,
-            T value,
-            GreenNode leading,
-            GreenNode trailing,
-            DiagnosticInfo[] diagnostics,
-            SyntaxAnnotation[] annotations)
-            : base(kind, text, value, diagnostics, annotations)
-        {
-            if (leading != null)
+            public override GreenNode GetLeadingTrivia()
             {
-                this.AdjustFlagsAndWidth(leading);
-                _leading = leading;
+                return _leading;
             }
-            if (trailing != null)
+
+            public override GreenNode GetTrailingTrivia()
             {
-                this.AdjustFlagsAndWidth(trailing);
-                _trailing = trailing;
+                return _trailing;
             }
-        }
 
-        public override GreenNode GetLeadingTrivia()
-        {
-            return _leading;
-        }
+            public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
+            {
+                return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
+            }
 
-        public override GreenNode GetTrailingTrivia()
-        {
-            return _trailing;
-        }
+            public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
+            {
+                return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
+            }
 
-        public override SyntaxToken TokenWithLeadingTrivia(GreenNode trivia)
-        {
-            return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, trivia, _trailing, this.GetDiagnostics(), this.GetAnnotations());
-        }
+            internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+            {
+                return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, _trailing, diagnostics, this.GetAnnotations());
+            }
 
-        public override SyntaxToken TokenWithTrailingTrivia(GreenNode trivia)
-        {
-            return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, trivia, this.GetDiagnostics(), this.GetAnnotations());
-        }
-
-        internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-        {
-            return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, _trailing, diagnostics, this.GetAnnotations());
-        }
-
-        internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-        {
-            return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, _trailing, this.GetDiagnostics(), annotations);
+            internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+            {
+                return new SyntaxTokenWithValueAndTrivia<T>(this.Kind, this.TextField, this.ValueField, _leading, _trailing, this.GetDiagnostics(), annotations);
+            }
         }
     }
 }

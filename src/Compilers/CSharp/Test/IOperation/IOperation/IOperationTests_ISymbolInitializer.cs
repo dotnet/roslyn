@@ -11,15 +11,15 @@ using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_ISymbolInitializer : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void NoInitializers()
+    public class IOperationTests_ISymbolInitializer : SemanticModelTestBase
     {
-        var source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void NoInitializers()
+        {
+            var source = @"
 class C
 {
     static int s1;
@@ -27,141 +27,141 @@ class C
     int P1 { get; }
 }";
 
-        var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
-        var tree = compilation.SyntaxTrees.Single();
-        var nodes = tree.GetRoot().DescendantNodes().Where(n => n is VariableDeclarationSyntax || n is PropertyDeclarationSyntax).ToArray();
-        Assert.Equal(3, nodes.Length);
+            var tree = compilation.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().Where(n => n is VariableDeclarationSyntax || n is PropertyDeclarationSyntax).ToArray();
+            Assert.Equal(3, nodes.Length);
 
-        var semanticModel = compilation.GetSemanticModel(tree);
-        foreach (var node in nodes)
-        {
-            Assert.Null(semanticModel.GetOperation(node));
+            var semanticModel = compilation.GetSemanticModel(tree);
+            foreach (var node in nodes)
+            {
+                Assert.Null(semanticModel.GetOperation(node));
+            }
         }
-    }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ConstantInitializers_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_StaticField()
+        {
+            string source = @"
 class C
 {
     static int s1 /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0414: The field 'C.s1' is assigned but its value is never used
-            //     static int s1 /*<bind>*/= 1/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 /*<bind>*/= 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ConstantInitializers_InstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_InstanceField()
+        {
+            string source = @"
 class C
 {
     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0414: The field 'C.i2' is assigned but its value is never used
-            //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(4, 17),
-            // CS0414: The field 'C.i1' is assigned but its value is never used
-            //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(4, 9)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(4, 17),
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1, i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(4, 9)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ConstantInitializers_Property()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_Property()
+        {
+            string source = @"
 class C
 {
     int P1 { get; } /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IPropertyInitializerOperation (Property: System.Int32 C.P1 { get; }) (OperationKind.PropertyInitializer, Type: null) (Syntax: '= 1')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ConstantInitializers_DefaultValueParameter()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_DefaultValueParameter()
+        {
+            string source = @"
 class C
 {
     void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IParameterInitializerOperation (Parameter: [System.Int32 p1 = 0]) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= 0')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1751: Cannot specify a default value for a parameter collection
-            //     void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 45)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1751: Cannot specify a default value for a parameter collection
+                //     void M(int p1 /*<bind>*/= 0/*</bind>*/, params int[] p2 = null) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 45)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ConstantInitializers_DefaultValueParamsArray()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ConstantInitializers_DefaultValueParamsArray()
+        {
+            string source = @"
 class C
 {
     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IParameterInitializerOperation (Parameter: params System.Int32[] p2) (OperationKind.ParameterInitializer, Type: null) (Syntax: '= null')
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32[], Constant: null, IsImplicit) (Syntax: 'null')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS1751: Cannot specify a default value for a parameter collection
-            //     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 24)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1751: Cannot specify a default value for a parameter collection
+                //     void M(int p1 = 0, params int[] p2 /*<bind>*/= null/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(4, 24)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ExpressionInitializers_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ExpressionInitializers_StaticField()
+        {
+            string source = @"
 class C
 {
     static int s1 /*<bind>*/= 1 + F()/*</bind>*/;
@@ -169,7 +169,7 @@ class C
     static int F() { return 1; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
@@ -180,16 +180,16 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
           null
         Arguments(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ExpressionInitializers_InstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ExpressionInitializers_InstanceField()
+        {
+            string source = @"
 class C
 {
     static int s1 /*<bind>*/= 1 + F()/*</bind>*/;
@@ -199,7 +199,7 @@ class C
     static int F() { return 1; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
@@ -210,16 +210,16 @@ IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitia
           null
         Arguments(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void ExpressionInitializers_Property()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void ExpressionInitializers_Property()
+        {
+            string source = @"
 class C
 {
     int i1 /*<bind>*/= 1 + F()/*</bind>*/;
@@ -227,7 +227,7 @@ class C
     static int F() { return 1; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.i1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1 + F()')
   IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: '1 + F()')
     Left: 
@@ -238,16 +238,16 @@ IFieldInitializerOperation (Field: System.Int32 C.i1) (OperationKind.FieldInitia
           null
         Arguments(0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void PartialClasses_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void PartialClasses_StaticField()
+        {
+            string source = @"
 partial class C
 {
     static int s1 /*<bind>*/= 1/*</bind>*/;
@@ -260,33 +260,33 @@ partial class C
     int i2 = 2;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.s1) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 1')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0414: The field 'C.i1' is assigned but its value is never used
-            //     int i1 = 1;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9),
-            // CS0414: The field 'C.s2' is assigned but its value is never used
-            //     static int s2 = 2;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
-            // CS0414: The field 'C.s1' is assigned but its value is never used
-            //     static int s1 /*<bind>*/= 1/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
-            // CS0414: The field 'C.i2' is assigned but its value is never used
-            //     int i2 = 2;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9),
+                // CS0414: The field 'C.s2' is assigned but its value is never used
+                //     static int s2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 /*<bind>*/= 1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void PartialClasses_InstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void PartialClasses_InstanceField()
+        {
+            string source = @"
 partial class C
 {
     static int s1 = 1;
@@ -299,33 +299,33 @@ partial class C
     int i2 /*<bind>*/= 2/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Int32 C.i2) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 2')
   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0414: The field 'C.s2' is assigned but its value is never used
-            //     static int s2 = 2;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
-            // CS0414: The field 'C.i2' is assigned but its value is never used
-            //     int i2 /*<bind>*/= 2/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9),
-            // CS0414: The field 'C.s1' is assigned but its value is never used
-            //     static int s1 = 1;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
-            // CS0414: The field 'C.i1' is assigned but its value is never used
-            //     int i1 = 1;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0414: The field 'C.s2' is assigned but its value is never used
+                //     static int s2 = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s2").WithArguments("C.s2").WithLocation(10, 16),
+                // CS0414: The field 'C.i2' is assigned but its value is never used
+                //     int i2 /*<bind>*/= 2/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i2").WithArguments("C.i2").WithLocation(11, 9),
+                // CS0414: The field 'C.s1' is assigned but its value is never used
+                //     static int s1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s1").WithArguments("C.s1").WithLocation(4, 16),
+                // CS0414: The field 'C.i1' is assigned but its value is never used
+                //     int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i1").WithArguments("C.i1").WithLocation(5, 9)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void Events_StaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void Events_StaticField()
+        {
+            string source = @"
 class C
 {
     static event System.Action e /*<bind>*/= MakeAction(1)/*</bind>*/;
@@ -333,7 +333,7 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Action C.e) (OperationKind.FieldInitializer, Type: null) (Syntax: '= MakeAction(1)')
   IInvocationOperation (System.Action C.MakeAction(System.Int32 x)) (OperationKind.Invocation, Type: System.Action) (Syntax: 'MakeAction(1)')
     Instance Receiver: 
@@ -344,16 +344,16 @@ IFieldInitializerOperation (Field: System.Action C.e) (OperationKind.FieldInitia
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-    public void Events_InstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
+        public void Events_InstanceField()
+        {
+            string source = @"
 class C
 {
     event System.Action f /*<bind>*/= MakeAction(2)/*</bind>*/;
@@ -361,7 +361,7 @@ class C
     static System.Action MakeAction(int x) { return null; }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Action C.f) (OperationKind.FieldInitializer, Type: null) (Syntax: '= MakeAction(2)')
   IInvocationOperation (System.Action C.MakeAction(System.Int32 x)) (OperationKind.Invocation, Type: System.Action) (Syntax: 'MakeAction(2)')
     Instance Receiver: 
@@ -372,77 +372,77 @@ IFieldInitializerOperation (Field: System.Action C.f) (OperationKind.FieldInitia
           InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
-    public void FieldInitializer_ConstantConversions_01()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_01()
+        {
+            string source = @"
 class C
 {
     private float f /*<bind>*/= 0.0/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Single C.f) (OperationKind.FieldInitializer, Type: null, IsInvalid) (Syntax: '= 0.0')
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 0, IsInvalid) (Syntax: '0.0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // (4,33): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
-            //     private float f /*<bind>*/= 0.0/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(4, 33),
-            // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
-            //     private float f /*<bind>*/= 0.0/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,33): error CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_LiteralDoubleCast, "0.0").WithArguments("F", "float").WithLocation(4, 33),
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0.0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation)]
-    [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
-    public void FieldInitializer_ConstantConversions_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+        public void FieldInitializer_ConstantConversions_02()
+        {
+            string source = @"
 class C
 {
     private float f /*<bind>*/= 0/*</bind>*/;
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IFieldInitializerOperation (Field: System.Single C.f) (OperationKind.FieldInitializer, Type: null) (Syntax: '= 0')
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Single, Constant: 0, IsImplicit) (Syntax: '0')
     Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
-            //     private float f /*<bind>*/= 0/*</bind>*/;
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // (4,19): warning CS0414: The field 'C.f' is assigned but its value is never used
+                //     private float f /*<bind>*/= 0/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(4, 19)
+            };
 
-        VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_ConstantInitializer_NonConstantField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_ConstantInitializer_NonConstantField()
+        {
+            string source = @"
 class C
 {
     public static int s1 /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -462,22 +462,22 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_ConstantInitializer_ConstantField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_ConstantInitializer_ConstantField()
+        {
+            string source = @"
 class C
 {
     public const int c1 /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -497,24 +497,24 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantInitializer_NonConstantStaticField()
-    {
-        // This unit test also includes declaration with multiple variables.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantInitializer_NonConstantStaticField()
+        {
+            // This unit test also includes declaration with multiple variables.
+            string source = @"
 class C
 {
     public static int s = 0, s1 /*<bind>*/= M()/*</bind>*/, s2;
     public static int M() { s2 = s; return s2; }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -537,23 +537,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantInitializer_NonConstantInstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantInitializer_NonConstantInstanceField()
+        {
+            string source = @"
 class C
 {
     public int s1 /*<bind>*/= M()/*</bind>*/;
     public static int M() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -576,23 +576,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantInitializer_ConstantField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantInitializer_ConstantField()
+        {
+            string source = @"
 class C
 {
     public const int c1 /*<bind>*/= M()/*</bind>*/;
     public static int M() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -615,20 +615,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS0133: The expression being assigned to 'C.c1' must be constant
-            //     public const int c1 /*<bind>*/= M()/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NotConstantExpression, "M()").WithArguments("C.c1").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS0133: The expression being assigned to 'C.c1' must be constant
+                //     public const int c1 /*<bind>*/= M()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M()").WithArguments("C.c1").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantInitializer_FieldLikeEvent()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantInitializer_FieldLikeEvent()
+        {
+            string source = @"
 class C
 {
     static event System.Action e /*<bind>*/= M()/*</bind>*/;
@@ -636,7 +636,7 @@ class C
     static System.Action M() { return null; }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -659,22 +659,22 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_ConstantInitializer_ConstantField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_ConstantInitializer_ConstantField()
+        {
+            string source = @"
 class C
 {
     public const int c1 /*<bind>*/= true ? 1 : 2/*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -725,16 +725,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantInitializer_NonConstantStaticField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantInitializer_NonConstantStaticField()
+        {
+            string source = @"
 class C
 {
     public static int s1 /*<bind>*/= M() ?? M2()/*</bind>*/;
@@ -742,7 +742,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -815,16 +815,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantInitializer_NonConstantInstanceField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantInitializer_NonConstantInstanceField()
+        {
+            string source = @"
 class C
 {
     public int s1 /*<bind>*/= M() ?? M2()/*</bind>*/;
@@ -832,7 +832,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -905,16 +905,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantInitializer_ConstantField()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantInitializer_ConstantField()
+        {
+            string source = @"
 class C
 {
     public const int c1 /*<bind>*/= M() ?? M2()/*</bind>*/;
@@ -922,7 +922,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -995,20 +995,20 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS0133: The expression being assigned to 'C.c1' must be constant
-            //     public const int c1 /*<bind>*/= M() ?? M2()/*</bind>*/;
-            Diagnostic(ErrorCode.ERR_NotConstantExpression, "M() ?? M2()").WithArguments("C.c1").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS0133: The expression being assigned to 'C.c1' must be constant
+                //     public const int c1 /*<bind>*/= M() ?? M2()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "M() ?? M2()").WithArguments("C.c1").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantFieldInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantFieldInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public int s1 /*<bind>*/= M(out int local)/*</bind>*/;
@@ -1019,7 +1019,7 @@ class C
     }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1055,16 +1055,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantFieldInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantFieldInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public int s1 /*<bind>*/= M(out int local) ?? M2()/*</bind>*/;
@@ -1076,7 +1076,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1155,22 +1155,22 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_MissingFieldInitializerValue()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_MissingFieldInitializerValue()
+        {
+            string source = @"
 class C
 {
     public int s1 /*<bind>*/= /*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1191,26 +1191,26 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,42): error CS1525: Invalid expression term ';'
-            //     public int s1 /*<bind>*/= /*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(4, 42)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,42): error CS1525: Invalid expression term ';'
+                //     public int s1 /*<bind>*/= /*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(4, 42)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_ConstantPropertyInitializer_StaticProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_ConstantPropertyInitializer_StaticProperty()
+        {
+            string source = @"
 class C
 {
     public static int P1 { get; } /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1230,22 +1230,22 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_ConstantPropertyInitializer_InstanceProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_ConstantPropertyInitializer_InstanceProperty()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= 1/*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1265,23 +1265,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantPropertyInitializer_StaticProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantPropertyInitializer_StaticProperty()
+        {
+            string source = @"
 class C
 {
     public static int P1 { get; } /*<bind>*/= M()/*</bind>*/;
     public static int M() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1304,23 +1304,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantPropertyInitializer_InstanceProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantPropertyInitializer_InstanceProperty()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= M()/*</bind>*/;
     public static int M() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1343,16 +1343,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantPropertyInitializer_StaticProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantPropertyInitializer_StaticProperty()
+        {
+            string source = @"
 class C
 {
     public static int P1 { get; } /*<bind>*/= M() ?? M2()/*</bind>*/;
@@ -1360,7 +1360,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1433,16 +1433,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantPropertyInitializer_InstanceProperty()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantPropertyInitializer_InstanceProperty()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= M() ?? M2()/*</bind>*/;
@@ -1450,7 +1450,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1523,16 +1523,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantPropertyInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantPropertyInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= M(out int local)/*</bind>*/;
@@ -1543,7 +1543,7 @@ class C
     }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1579,16 +1579,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantPropertyInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantPropertyInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= M(out int local) ?? M2()/*</bind>*/;
@@ -1600,7 +1600,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1679,22 +1679,22 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_MissingPropertyInitializerValue()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_MissingPropertyInitializerValue()
+        {
+            string source = @"
 class C
 {
     public int P1 { get; } /*<bind>*/= /*</bind>*/;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1715,26 +1715,26 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,51): error CS1525: Invalid expression term ';'
-            //     public int P1 { get; } /*<bind>*/= /*</bind>*/;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(4, 51)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,51): error CS1525: Invalid expression term ';'
+                //     public int P1 { get; } /*<bind>*/= /*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(4, 51)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_ConstantParameterInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_ConstantParameterInitializer()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= 1/*</bind>*/) { }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1752,23 +1752,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantParameterInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantParameterInitializer()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= M2()/*</bind>*/) { }
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1789,20 +1789,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
-            //     public void M(int x /*<bind>*/= M2()/*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("x").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     public void M(int x /*<bind>*/= M2()/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("x").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantParameterInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantParameterInitializer()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= M1() ?? M2()/*</bind>*/) { }
@@ -1810,7 +1810,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1881,20 +1881,20 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
-            //     public void M(int x /*<bind>*/= M1() ?? M2()/*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1() ?? M2()").WithArguments("x").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     public void M(int x /*<bind>*/= M1() ?? M2()/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1() ?? M2()").WithArguments("x").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_NonConstantParameterInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantParameterInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= M1(out int local)/*</bind>*/) { }
@@ -1905,7 +1905,7 @@ class C
     }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1939,20 +1939,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
-            //     public void M(int x /*<bind>*/= M1(out int local)/*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1(out int local)").WithArguments("x").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     public void M(int x /*<bind>*/= M1(out int local)/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1(out int local)").WithArguments("x").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void ControlFlow_NonConstantParameterInitializerWithLocals()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_NonConstantParameterInitializerWithLocals()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= M1(out int local) ?? M2()/*</bind>*/) { }
@@ -1964,7 +1964,7 @@ class C
     public static int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2041,26 +2041,26 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
-            //     public void M(int x /*<bind>*/= M1(out int local) ?? M2()/*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1(out int local) ?? M2()").WithArguments("x").WithLocation(4, 37)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,37): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     public void M(int x /*<bind>*/= M1(out int local) ?? M2()/*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M1(out int local) ?? M2()").WithArguments("x").WithLocation(4, 37)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void NoControlFlow_MissingParameterInitializerValue()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_MissingParameterInitializerValue()
+        {
+            string source = @"
 class C
 {
     public void M(int x /*<bind>*/= /*</bind>*/) { }
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2079,12 +2079,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(4,48): error CS1525: Invalid expression term ')'
-            //     public void M(int x /*<bind>*/= /*</bind>*/) { }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 48)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(4,48): error CS1525: Invalid expression term ')'
+                //     public void M(int x /*<bind>*/= /*</bind>*/) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 48)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

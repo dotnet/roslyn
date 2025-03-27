@@ -9,31 +9,32 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// This binder is for binding the argument to typeof.  It traverses
-/// the syntax marking each open type ("unbound generic type" in the
-/// C# spec) as either allowed or not allowed, so that BindType can 
-/// appropriately return either the corresponding type symbol or an 
-/// error type.  It also indicates whether the argument as a whole 
-/// should be considered open so that the flag can be set 
-/// appropriately in BoundTypeOfOperator.
-/// </summary>
-internal sealed class TypeofBinder : Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
-
-    internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
-        // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
-        : base(next, next.Flags | BinderFlags.UnsafeRegion)
+    /// <summary>
+    /// This binder is for binding the argument to typeof.  It traverses
+    /// the syntax marking each open type ("unbound generic type" in the
+    /// C# spec) as either allowed or not allowed, so that BindType can 
+    /// appropriately return either the corresponding type symbol or an 
+    /// error type.  It also indicates whether the argument as a whole 
+    /// should be considered open so that the flag can be set 
+    /// appropriately in BoundTypeOfOperator.
+    /// </summary>
+    internal sealed class TypeofBinder : Binder
     {
-        OpenTypeVisitor.Visit(typeExpression, out _allowedMap);
-    }
+        private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
 
-    protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
-    {
-        bool allowed;
-        return _allowedMap != null && _allowedMap.TryGetValue(syntax, out allowed) && allowed;
+        internal TypeofBinder(ExpressionSyntax typeExpression, Binder next)
+            // Unsafe types are not unsafe in typeof, so it is effectively an unsafe region.
+            : base(next, next.Flags | BinderFlags.UnsafeRegion)
+        {
+            OpenTypeVisitor.Visit(typeExpression, out _allowedMap);
+        }
+
+        protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
+        {
+            bool allowed;
+            return _allowedMap != null && _allowedMap.TryGetValue(syntax, out allowed) && allowed;
+        }
     }
 }

@@ -5,42 +5,43 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal abstract class LocalFunctionOrSourceMemberMethodSymbol : SourceMethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
-
-    protected LocalFunctionOrSourceMemberMethodSymbol(SyntaxReference? syntaxReferenceOpt, bool isIterator)
-        : base(syntaxReferenceOpt)
+    internal abstract class LocalFunctionOrSourceMemberMethodSymbol : SourceMethodSymbol
     {
-        if (isIterator)
-        {
-            _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
-        }
-    }
+        private TypeWithAnnotations.Boxed? _lazyIteratorElementType;
 
-    internal sealed override TypeWithAnnotations IteratorElementTypeWithAnnotations
-    {
-        get
+        protected LocalFunctionOrSourceMemberMethodSymbol(SyntaxReference? syntaxReferenceOpt, bool isIterator)
+            : base(syntaxReferenceOpt)
         {
-            if (_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel)
+            if (isIterator)
             {
-                TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(DeclaringCompilation, RefKind, ReturnType, errorLocation: null, diagnostics: null);
+                _lazyIteratorElementType = TypeWithAnnotations.Boxed.Sentinel;
+            }
+        }
 
-                if (elementType.IsDefault)
+        internal sealed override TypeWithAnnotations IteratorElementTypeWithAnnotations
+        {
+            get
+            {
+                if (_lazyIteratorElementType == TypeWithAnnotations.Boxed.Sentinel)
                 {
-                    elementType = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(DeclaringCompilation, name: "", arity: 0, errorInfo: null, unreported: false));
+                    TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(DeclaringCompilation, RefKind, ReturnType, errorLocation: null, diagnostics: null);
+
+                    if (elementType.IsDefault)
+                    {
+                        elementType = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(DeclaringCompilation, name: "", arity: 0, errorInfo: null, unreported: false));
+                    }
+
+                    Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(elementType), TypeWithAnnotations.Boxed.Sentinel);
+
+                    Debug.Assert(TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, elementType.Type, TypeCompareKind.ConsiderEverything));
                 }
 
-                Interlocked.CompareExchange(ref _lazyIteratorElementType, new TypeWithAnnotations.Boxed(elementType), TypeWithAnnotations.Boxed.Sentinel);
-
-                Debug.Assert(TypeSymbol.Equals(_lazyIteratorElementType.Value.Type, elementType.Type, TypeCompareKind.ConsiderEverything));
+                return _lazyIteratorElementType?.Value ?? default;
             }
-
-            return _lazyIteratorElementType?.Value ?? default;
         }
-    }
 
-    internal sealed override bool IsIterator => _lazyIteratorElementType is object;
+        internal sealed override bool IsIterator => _lazyIteratorElementType is object;
+    }
 }

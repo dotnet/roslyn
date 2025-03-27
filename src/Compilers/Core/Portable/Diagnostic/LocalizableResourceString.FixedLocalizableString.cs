@@ -5,50 +5,51 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-public abstract partial class LocalizableString
+namespace Microsoft.CodeAnalysis
 {
-    private sealed class FixedLocalizableString : LocalizableString
+    public abstract partial class LocalizableString
     {
-        /// <summary>
-        /// FixedLocalizableString representing an empty string.
-        /// </summary>
-        private static readonly FixedLocalizableString s_empty = new FixedLocalizableString(string.Empty);
-
-        private readonly string _fixedString;
-
-        public static FixedLocalizableString Create(string? fixedResource)
+        private sealed class FixedLocalizableString : LocalizableString
         {
-            if (RoslynString.IsNullOrEmpty(fixedResource))
+            /// <summary>
+            /// FixedLocalizableString representing an empty string.
+            /// </summary>
+            private static readonly FixedLocalizableString s_empty = new FixedLocalizableString(string.Empty);
+
+            private readonly string _fixedString;
+
+            public static FixedLocalizableString Create(string? fixedResource)
             {
-                return s_empty;
+                if (RoslynString.IsNullOrEmpty(fixedResource))
+                {
+                    return s_empty;
+                }
+
+                return new FixedLocalizableString(fixedResource);
             }
 
-            return new FixedLocalizableString(fixedResource);
-        }
+            private FixedLocalizableString(string fixedResource)
+            {
+                _fixedString = fixedResource;
+            }
 
-        private FixedLocalizableString(string fixedResource)
-        {
-            _fixedString = fixedResource;
-        }
+            protected override string GetText(IFormatProvider? formatProvider)
+            {
+                return _fixedString;
+            }
 
-        protected override string GetText(IFormatProvider? formatProvider)
-        {
-            return _fixedString;
-        }
+            protected override bool AreEqual(object? other)
+            {
+                var fixedStr = other as FixedLocalizableString;
+                return fixedStr != null && string.Equals(_fixedString, fixedStr._fixedString);
+            }
 
-        protected override bool AreEqual(object? other)
-        {
-            var fixedStr = other as FixedLocalizableString;
-            return fixedStr != null && string.Equals(_fixedString, fixedStr._fixedString);
-        }
+            protected override int GetHash()
+            {
+                return _fixedString?.GetHashCode() ?? 0;
+            }
 
-        protected override int GetHash()
-        {
-            return _fixedString?.GetHashCode() ?? 0;
+            internal override bool CanThrowExceptions => false;
         }
-
-        internal override bool CanThrowExceptions => false;
     }
 }

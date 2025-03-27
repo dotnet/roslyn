@@ -7,72 +7,73 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Roslyn.Utilities;
-
-internal sealed class ImmutableSetWithInsertionOrder<T> : IEnumerable<T>
-    where T : notnull
+namespace Roslyn.Utilities
 {
-    public static readonly ImmutableSetWithInsertionOrder<T> Empty = new ImmutableSetWithInsertionOrder<T>(ImmutableDictionary.Create<T, uint>(), 0u);
-
-    private readonly ImmutableDictionary<T, uint> _map;
-    private readonly uint _nextElementValue;
-
-    private ImmutableSetWithInsertionOrder(ImmutableDictionary<T, uint> map, uint nextElementValue)
+    internal sealed class ImmutableSetWithInsertionOrder<T> : IEnumerable<T>
+        where T : notnull
     {
-        _map = map;
-        _nextElementValue = nextElementValue;
-    }
+        public static readonly ImmutableSetWithInsertionOrder<T> Empty = new ImmutableSetWithInsertionOrder<T>(ImmutableDictionary.Create<T, uint>(), 0u);
 
-    public int Count
-    {
-        get { return _map.Count; }
-    }
+        private readonly ImmutableDictionary<T, uint> _map;
+        private readonly uint _nextElementValue;
 
-    public bool Contains(T value)
-    {
-        return _map.ContainsKey(value);
-    }
-
-    public ImmutableSetWithInsertionOrder<T> Add(T value)
-    {
-        // no reason to cause allocations if value is already in the set
-        if (_map.ContainsKey(value))
+        private ImmutableSetWithInsertionOrder(ImmutableDictionary<T, uint> map, uint nextElementValue)
         {
-            return this;
+            _map = map;
+            _nextElementValue = nextElementValue;
         }
 
-        return new ImmutableSetWithInsertionOrder<T>(_map.Add(value, _nextElementValue), _nextElementValue + 1u);
-    }
-
-    public ImmutableSetWithInsertionOrder<T> Remove(T value)
-    {
-        var modifiedMap = _map.Remove(value);
-        if (modifiedMap == _map)
+        public int Count
         {
-            // no reason to cause allocations if value is missing
-            return this;
+            get { return _map.Count; }
         }
 
-        return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(modifiedMap, _nextElementValue);
-    }
+        public bool Contains(T value)
+        {
+            return _map.ContainsKey(value);
+        }
 
-    public IEnumerable<T> InInsertionOrder
-    {
-        get { return _map.OrderBy(kv => kv.Value).Select(kv => kv.Key); }
-    }
+        public ImmutableSetWithInsertionOrder<T> Add(T value)
+        {
+            // no reason to cause allocations if value is already in the set
+            if (_map.ContainsKey(value))
+            {
+                return this;
+            }
 
-    public override string ToString()
-    {
-        return "{" + string.Join(", ", this) + "}";
-    }
+            return new ImmutableSetWithInsertionOrder<T>(_map.Add(value, _nextElementValue), _nextElementValue + 1u);
+        }
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _map.Keys.GetEnumerator();
-    }
+        public ImmutableSetWithInsertionOrder<T> Remove(T value)
+        {
+            var modifiedMap = _map.Remove(value);
+            if (modifiedMap == _map)
+            {
+                // no reason to cause allocations if value is missing
+                return this;
+            }
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return _map.Keys.GetEnumerator();
+            return this.Count == 1 ? Empty : new ImmutableSetWithInsertionOrder<T>(modifiedMap, _nextElementValue);
+        }
+
+        public IEnumerable<T> InInsertionOrder
+        {
+            get { return _map.OrderBy(kv => kv.Value).Select(kv => kv.Key); }
+        }
+
+        public override string ToString()
+        {
+            return "{" + string.Join(", ", this) + "}";
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return _map.Keys.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _map.Keys.GetEnumerator();
+        }
     }
 }

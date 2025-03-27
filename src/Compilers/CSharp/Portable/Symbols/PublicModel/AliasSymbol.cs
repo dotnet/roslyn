@@ -4,45 +4,46 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class AliasSymbol : Symbol, IAliasSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly Symbols.AliasSymbol _underlying;
-
-    public AliasSymbol(Symbols.AliasSymbol underlying)
+    internal sealed class AliasSymbol : Symbol, IAliasSymbol
     {
-        RoslynDebug.Assert(underlying is object);
-        _underlying = underlying;
-    }
+        private readonly Symbols.AliasSymbol _underlying;
 
-    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-    INamespaceOrTypeSymbol IAliasSymbol.Target
-    {
-        get
+        public AliasSymbol(Symbols.AliasSymbol underlying)
         {
-            return _underlying.Target.GetPublicSymbol();
+            RoslynDebug.Assert(underlying is object);
+            _underlying = underlying;
         }
+
+        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
+
+        INamespaceOrTypeSymbol IAliasSymbol.Target
+        {
+            get
+            {
+                return _underlying.Target.GetPublicSymbol();
+            }
+        }
+
+        #region ISymbol Members
+
+        protected override void Accept(SymbolVisitor visitor)
+        {
+            visitor.VisitAlias(this);
+        }
+
+        protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
+            where TResult : default
+        {
+            return visitor.VisitAlias(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAlias(this, argument);
+        }
+
+        #endregion
     }
-
-    #region ISymbol Members
-
-    protected override void Accept(SymbolVisitor visitor)
-    {
-        visitor.VisitAlias(this);
-    }
-
-    protected override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
-        where TResult : default
-    {
-        return visitor.VisitAlias(this);
-    }
-
-    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-    {
-        return visitor.VisitAlias(this, argument);
-    }
-
-    #endregion
 }

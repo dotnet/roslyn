@@ -10,34 +10,35 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Information decoded from early well-known custom attributes applied on a field.
-/// </summary>
-internal class CommonFieldEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+namespace Microsoft.CodeAnalysis
 {
-    #region ObsoleteAttribute
-    private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-    public ObsoleteAttributeData ObsoleteAttributeData
+    /// <summary>
+    /// Information decoded from early well-known custom attributes applied on a field.
+    /// </summary>
+    internal class CommonFieldEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
-        get
+        #region ObsoleteAttribute
+        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+        public ObsoleteAttributeData ObsoleteAttributeData
         {
-            VerifySealed(expected: true);
-            return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            Debug.Assert(value != null);
-            Debug.Assert(!value.IsUninitialized);
+            get
+            {
+                VerifySealed(expected: true);
+                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                Debug.Assert(!value.IsUninitialized);
 
-            if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
-                return;
+                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                    return;
 
-            _obsoleteAttributeData = value;
-            SetDataStored();
+                _obsoleteAttributeData = value;
+                SetDataStored();
+            }
         }
+        #endregion
     }
-    #endregion
 }

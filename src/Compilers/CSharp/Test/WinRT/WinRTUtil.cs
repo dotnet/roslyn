@@ -8,22 +8,23 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-internal static class WinRTUtil
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal static CompilationVerifier CompileAndVerifyOnWin8Only(
-        this CSharpTestBase testBase,
-        string source,
-        MetadataReference[] additionalRefs = null,
-        string expectedOutput = null)
+    internal static class WinRTUtil
     {
-        var isWin8 = OSVersion.IsWin8;
-        return testBase.CompileAndVerifyWithWinRt(
-            source,
-            references: additionalRefs,
-            expectedOutput: isWin8 ? expectedOutput : null,
-            verify: isWin8 ? Verification.Passes : Verification.Fails);
-    }
+        internal static CompilationVerifier CompileAndVerifyOnWin8Only(
+            this CSharpTestBase testBase,
+            string source,
+            MetadataReference[] additionalRefs = null,
+            string expectedOutput = null)
+        {
+            var isWin8 = OSVersion.IsWin8;
+            return testBase.CompileAndVerifyWithWinRt(
+                source,
+                references: additionalRefs,
+                expectedOutput: isWin8 ? expectedOutput : null,
+                verify: isWin8 ? Verification.Passes : Verification.Fails);
+        }
 
+    }
 }

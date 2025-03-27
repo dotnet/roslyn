@@ -13,33 +13,34 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
 
-namespace IdeCoreBenchmarks;
-
-internal class Program
+namespace IdeCoreBenchmarks
 {
-    private class IgnoreReleaseOnly : ManualConfig
+    internal class Program
     {
-        public IgnoreReleaseOnly()
+        private class IgnoreReleaseOnly : ManualConfig
         {
-            AddValidator(JitOptimizationsValidator.DontFailOnError);
-            AddLogger(DefaultConfig.Instance.GetLoggers().ToArray());
-            AddExporter(DefaultConfig.Instance.GetExporters().ToArray());
-            AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray());
-            AddDiagnoser(MemoryDiagnoser.Default);
+            public IgnoreReleaseOnly()
+            {
+                AddValidator(JitOptimizationsValidator.DontFailOnError);
+                AddLogger(DefaultConfig.Instance.GetLoggers().ToArray());
+                AddExporter(DefaultConfig.Instance.GetExporters().ToArray());
+                AddColumnProvider(DefaultConfig.Instance.GetColumnProviders().ToArray());
+                AddDiagnoser(MemoryDiagnoser.Default);
+            }
         }
-    }
 
-    public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
+        public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
 
-    public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
-    {
-        //This file is located at [Roslyn]\src\Tools\IdeCoreBenchmarks\Program.cs
-        return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
-    }
+        public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
+        {
+            //This file is located at [Roslyn]\src\Tools\IdeCoreBenchmarks\Program.cs
+            return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
+        }
 
-    private static void Main(string[] args)
-    {
-        Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-        new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
+        private static void Main(string[] args)
+        {
+            Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
+            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
+        }
     }
 }

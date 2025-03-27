@@ -5,21 +5,22 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal readonly struct MetadataContext<TAssemblyContext>
-    where TAssemblyContext : struct
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
-    internal readonly ImmutableDictionary<MetadataContextId, TAssemblyContext> AssemblyContexts;
-
-    internal MetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, ImmutableDictionary<MetadataContextId, TAssemblyContext> assemblyContexts)
+    internal readonly struct MetadataContext<TAssemblyContext>
+        where TAssemblyContext : struct
     {
-        MetadataBlocks = metadataBlocks;
-        AssemblyContexts = assemblyContexts;
-    }
+        internal readonly ImmutableArray<MetadataBlock> MetadataBlocks;
+        internal readonly ImmutableDictionary<MetadataContextId, TAssemblyContext> AssemblyContexts;
 
-    internal bool Matches(ImmutableArray<MetadataBlock> metadataBlocks)
-        => !MetadataBlocks.IsDefault &&
-            MetadataBlocks.SequenceEqual(metadataBlocks);
+        internal MetadataContext(ImmutableArray<MetadataBlock> metadataBlocks, ImmutableDictionary<MetadataContextId, TAssemblyContext> assemblyContexts)
+        {
+            MetadataBlocks = metadataBlocks;
+            AssemblyContexts = assemblyContexts;
+        }
+
+        internal bool Matches(ImmutableArray<MetadataBlock> metadataBlocks)
+            => !MetadataBlocks.IsDefault &&
+                MetadataBlocks.SequenceEqual(metadataBlocks);
+    }
 }

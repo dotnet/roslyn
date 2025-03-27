@@ -6,68 +6,69 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal abstract class SingleNamespaceOrTypeDeclaration : Declaration
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly SyntaxReference _syntaxReference;
-    private readonly SourceLocation _nameLocation;
-
-    /// <summary>
-    /// Any diagnostics reported while converting the Namespace/Type syntax into the Declaration
-    /// instance.  Generally, we determine and store some diagnostics here because we don't want 
-    /// to have to go back to Syntax when we have our NamespaceSymbol or NamedTypeSymbol.
-    /// </summary>
-    public readonly ImmutableArray<Diagnostic> Diagnostics;
-
-    protected SingleNamespaceOrTypeDeclaration(
-        string name,
-        SyntaxReference syntaxReference,
-        SourceLocation nameLocation,
-        ImmutableArray<Diagnostic> diagnostics)
-        : base(name)
+    internal abstract class SingleNamespaceOrTypeDeclaration : Declaration
     {
-        _syntaxReference = syntaxReference;
-        _nameLocation = nameLocation;
-        Diagnostics = diagnostics;
-    }
+        private readonly SyntaxReference _syntaxReference;
+        private readonly SourceLocation _nameLocation;
 
-    public SourceLocation Location
-    {
-        get
+        /// <summary>
+        /// Any diagnostics reported while converting the Namespace/Type syntax into the Declaration
+        /// instance.  Generally, we determine and store some diagnostics here because we don't want 
+        /// to have to go back to Syntax when we have our NamespaceSymbol or NamedTypeSymbol.
+        /// </summary>
+        public readonly ImmutableArray<Diagnostic> Diagnostics;
+
+        protected SingleNamespaceOrTypeDeclaration(
+            string name,
+            SyntaxReference syntaxReference,
+            SourceLocation nameLocation,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name)
         {
-            return new SourceLocation(this.SyntaxReference);
+            _syntaxReference = syntaxReference;
+            _nameLocation = nameLocation;
+            Diagnostics = diagnostics;
         }
-    }
 
-    public SyntaxReference SyntaxReference
-    {
-        get
+        public SourceLocation Location
         {
-            return _syntaxReference;
+            get
+            {
+                return new SourceLocation(this.SyntaxReference);
+            }
         }
-    }
 
-    public SourceLocation NameLocation
-    {
-        get
+        public SyntaxReference SyntaxReference
         {
-            return _nameLocation;
+            get
+            {
+                return _syntaxReference;
+            }
         }
-    }
 
-    protected override ImmutableArray<Declaration> GetDeclarationChildren()
-    {
-        return StaticCast<Declaration>.From(this.GetNamespaceOrTypeDeclarationChildren());
-    }
-
-    public new ImmutableArray<SingleNamespaceOrTypeDeclaration> Children
-    {
-        get
+        public SourceLocation NameLocation
         {
-            return this.GetNamespaceOrTypeDeclarationChildren();
+            get
+            {
+                return _nameLocation;
+            }
         }
-    }
 
-    protected abstract ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren();
+        protected override ImmutableArray<Declaration> GetDeclarationChildren()
+        {
+            return StaticCast<Declaration>.From(this.GetNamespaceOrTypeDeclarationChildren());
+        }
+
+        public new ImmutableArray<SingleNamespaceOrTypeDeclaration> Children
+        {
+            get
+            {
+                return this.GetNamespaceOrTypeDeclarationChildren();
+            }
+        }
+
+        protected abstract ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren();
+    }
 }

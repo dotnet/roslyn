@@ -4,12 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-internal static class SymbolExtensions
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public static string ToTestDisplayString(this ISymbol symbol)
+    internal static class SymbolExtensions
     {
-        return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+        public static string ToTestDisplayString(this ISymbol symbol)
+        {
+            return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+        }
     }
 }

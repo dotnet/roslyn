@@ -2,28 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis;
-
-internal abstract partial class CommonCompiler
+namespace Microsoft.CodeAnalysis
 {
-    internal sealed class LoggingXmlFileResolver : XmlFileResolver
+    internal abstract partial class CommonCompiler
     {
-        private readonly TouchedFileLogger? _logger;
-
-        public LoggingXmlFileResolver(string? baseDirectory, TouchedFileLogger? logger)
-            : base(baseDirectory)
+        internal sealed class LoggingXmlFileResolver : XmlFileResolver
         {
-            _logger = logger;
-        }
+            private readonly TouchedFileLogger? _logger;
 
-        protected override bool FileExists(string? fullPath)
-        {
-            if (fullPath != null)
+            public LoggingXmlFileResolver(string? baseDirectory, TouchedFileLogger? logger)
+                : base(baseDirectory)
             {
-                _logger?.AddRead(fullPath);
+                _logger = logger;
             }
 
-            return base.FileExists(fullPath);
+            protected override bool FileExists(string? fullPath)
+            {
+                if (fullPath != null)
+                {
+                    _logger?.AddRead(fullPath);
+                }
+
+                return base.FileExists(fullPath);
+            }
         }
     }
 }

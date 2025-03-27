@@ -4,86 +4,87 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class CollectionBuilderAttributeData
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    public static readonly CollectionBuilderAttributeData Uninitialized = new CollectionBuilderAttributeData(null, null);
-
-    public CollectionBuilderAttributeData(TypeSymbol? builderType, string? methodName)
+    internal sealed class CollectionBuilderAttributeData
     {
-        BuilderType = builderType;
-        MethodName = methodName;
+        public static readonly CollectionBuilderAttributeData Uninitialized = new CollectionBuilderAttributeData(null, null);
+
+        public CollectionBuilderAttributeData(TypeSymbol? builderType, string? methodName)
+        {
+            BuilderType = builderType;
+            MethodName = methodName;
+        }
+
+        public readonly TypeSymbol? BuilderType;
+        public readonly string? MethodName;
     }
 
-    public readonly TypeSymbol? BuilderType;
-    public readonly string? MethodName;
-}
-
-/// <summary>
-/// Information decoded early from well-known custom attributes applied on a type.
-/// </summary>
-internal sealed class TypeEarlyWellKnownAttributeData : CommonTypeEarlyWellKnownAttributeData
-{
-    #region InterpolatedStringHandlerAttribute
-    private bool _hasInterpolatedStringHandlerAttribute;
-    public bool HasInterpolatedStringHandlerAttribute
+    /// <summary>
+    /// Information decoded early from well-known custom attributes applied on a type.
+    /// </summary>
+    internal sealed class TypeEarlyWellKnownAttributeData : CommonTypeEarlyWellKnownAttributeData
     {
-        get
+        #region InterpolatedStringHandlerAttribute
+        private bool _hasInterpolatedStringHandlerAttribute;
+        public bool HasInterpolatedStringHandlerAttribute
         {
-            VerifySealed(expected: true);
-            return _hasInterpolatedStringHandlerAttribute;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasInterpolatedStringHandlerAttribute = value;
-            SetDataStored();
-        }
-    }
-    #endregion
-
-    #region InlineArrayAttribute
-
-    private int _inlineArrayLength;
-    public int InlineArrayLength
-    {
-        get
-        {
-            VerifySealed(expected: true);
-            return _inlineArrayLength;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-
-            Debug.Assert(value is -1 or > 0);
-            if (_inlineArrayLength == 0)
+            get
             {
-                _inlineArrayLength = value;
+                VerifySealed(expected: true);
+                return _hasInterpolatedStringHandlerAttribute;
             }
-
-            SetDataStored();
+            set
+            {
+                VerifySealed(expected: false);
+                _hasInterpolatedStringHandlerAttribute = value;
+                SetDataStored();
+            }
         }
-    }
+        #endregion
 
-    #endregion
+        #region InlineArrayAttribute
 
-    #region CollectionBuilderAttribute
-    private CollectionBuilderAttributeData? _collectionBuilder;
-    public CollectionBuilderAttributeData? CollectionBuilder
-    {
-        get
+        private int _inlineArrayLength;
+        public int InlineArrayLength
         {
-            VerifySealed(expected: true);
-            return _collectionBuilder;
+            get
+            {
+                VerifySealed(expected: true);
+                return _inlineArrayLength;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+
+                Debug.Assert(value is -1 or > 0);
+                if (_inlineArrayLength == 0)
+                {
+                    _inlineArrayLength = value;
+                }
+
+                SetDataStored();
+            }
         }
-        set
+
+        #endregion
+
+        #region CollectionBuilderAttribute
+        private CollectionBuilderAttributeData? _collectionBuilder;
+        public CollectionBuilderAttributeData? CollectionBuilder
         {
-            VerifySealed(expected: false);
-            _collectionBuilder ??= value;
-            SetDataStored();
+            get
+            {
+                VerifySealed(expected: true);
+                return _collectionBuilder;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _collectionBuilder ??= value;
+                SetDataStored();
+            }
         }
+        #endregion
     }
-    #endregion
 }

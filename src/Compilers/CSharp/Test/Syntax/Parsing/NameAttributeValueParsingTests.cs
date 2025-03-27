@@ -13,120 +13,121 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Compilers.CSharp.UnitTests;
-
-public class NameAttributeValueParsingTests : ParsingTests
+namespace Microsoft.CodeAnalysis.Compilers.CSharp.UnitTests
 {
-    public NameAttributeValueParsingTests(ITestOutputHelper output) : base(output) { }
-
-    protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+    public class NameAttributeValueParsingTests : ParsingTests
     {
-        throw new NotSupportedException();
-    }
+        public NameAttributeValueParsingTests(ITestOutputHelper output) : base(output) { }
 
-    protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
-    {
-        var commentText = string.Format(@"/// <param name=""{0}""/>", text);
-        var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
-        var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-        var attr = structure.DescendantNodes().OfType<XmlNameAttributeSyntax>().Single();
-        return attr.Identifier;
-    }
-
-    [Fact]
-    public void Identifier()
-    {
-        UsingNode("A");
-
-        N(SyntaxKind.IdentifierName);
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            N(SyntaxKind.IdentifierToken);
+            throw new NotSupportedException();
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Keyword()
-    {
-        UsingNode("int");
-
-        N(SyntaxKind.IdentifierName);
+        protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
         {
-            N(SyntaxKind.IdentifierToken);
+            var commentText = string.Format(@"/// <param name=""{0}""/>", text);
+            var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
+            var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+            var attr = structure.DescendantNodes().OfType<XmlNameAttributeSyntax>().Single();
+            return attr.Identifier;
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Empty()
-    {
-        UsingNode("");
-
-        M(SyntaxKind.IdentifierName);
+        [Fact]
+        public void Identifier()
         {
-            M(SyntaxKind.IdentifierToken);
+            UsingNode("A");
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Whitespace()
-    {
-        UsingNode(" ");
-
-        M(SyntaxKind.IdentifierName);
+        [Fact]
+        public void Keyword()
         {
-            M(SyntaxKind.IdentifierToken);
+            UsingNode("int");
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Qualified()
-    {
-        // Everything after the first identifier is skipped.
-
-        UsingNode("A.B");
-
-        N(SyntaxKind.IdentifierName);
+        [Fact]
+        public void Empty()
         {
-            N(SyntaxKind.IdentifierToken);
+            UsingNode("");
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Generic()
-    {
-        // Everything after the first identifier is skipped.
-
-        UsingNode("A{T}");
-
-        N(SyntaxKind.IdentifierName);
+        [Fact]
+        public void Whitespace()
         {
-            N(SyntaxKind.IdentifierToken);
+            UsingNode(" ");
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
         }
 
-        EOF();
-    }
-
-    [Fact]
-    public void Punctuation()
-    {
-        // A missing identifier is inserted and everything is skipped.
-
-        UsingNode(".");
-
-        M(SyntaxKind.IdentifierName);
+        [Fact]
+        public void Qualified()
         {
-            M(SyntaxKind.IdentifierToken);
+            // Everything after the first identifier is skipped.
+
+            UsingNode("A.B");
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
         }
 
-        EOF();
+        [Fact]
+        public void Generic()
+        {
+            // Everything after the first identifier is skipped.
+
+            UsingNode("A{T}");
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
+        }
+
+        [Fact]
+        public void Punctuation()
+        {
+            // A missing identifier is inserted and everything is skipped.
+
+            UsingNode(".");
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+
+            EOF();
+        }
     }
 }

@@ -5,26 +5,27 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-public partial class SyntaxFactory
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    /// <summary>Creates a new LiteralExpressionSyntax instance.</summary>
-    public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind)
-        => SyntaxFactory.LiteralExpression(kind, SyntaxFactory.Token(GetLiteralExpressionTokenKind(kind)));
+    public partial class SyntaxFactory
+    {
+        /// <summary>Creates a new LiteralExpressionSyntax instance.</summary>
+        public static LiteralExpressionSyntax LiteralExpression(SyntaxKind kind)
+            => SyntaxFactory.LiteralExpression(kind, SyntaxFactory.Token(GetLiteralExpressionTokenKind(kind)));
 
-    private static SyntaxKind GetLiteralExpressionTokenKind(SyntaxKind kind)
-        => kind switch
-        {
-            SyntaxKind.ArgListExpression => SyntaxKind.ArgListKeyword,
-            SyntaxKind.NumericLiteralExpression => SyntaxKind.NumericLiteralToken,
-            SyntaxKind.StringLiteralExpression => SyntaxKind.StringLiteralToken,
-            SyntaxKind.Utf8StringLiteralExpression => SyntaxKind.Utf8StringLiteralToken,
-            SyntaxKind.CharacterLiteralExpression => SyntaxKind.CharacterLiteralToken,
-            SyntaxKind.TrueLiteralExpression => SyntaxKind.TrueKeyword,
-            SyntaxKind.FalseLiteralExpression => SyntaxKind.FalseKeyword,
-            SyntaxKind.NullLiteralExpression => SyntaxKind.NullKeyword,
-            SyntaxKind.DefaultLiteralExpression => SyntaxKind.DefaultKeyword,
-            _ => throw new ArgumentOutOfRangeException(),
-        };
+        private static SyntaxKind GetLiteralExpressionTokenKind(SyntaxKind kind)
+            => kind switch
+            {
+                SyntaxKind.ArgListExpression => SyntaxKind.ArgListKeyword,
+                SyntaxKind.NumericLiteralExpression => SyntaxKind.NumericLiteralToken,
+                SyntaxKind.StringLiteralExpression => SyntaxKind.StringLiteralToken,
+                SyntaxKind.Utf8StringLiteralExpression => SyntaxKind.Utf8StringLiteralToken,
+                SyntaxKind.CharacterLiteralExpression => SyntaxKind.CharacterLiteralToken,
+                SyntaxKind.TrueLiteralExpression => SyntaxKind.TrueKeyword,
+                SyntaxKind.FalseLiteralExpression => SyntaxKind.FalseKeyword,
+                SyntaxKind.NullLiteralExpression => SyntaxKind.NullKeyword,
+                SyntaxKind.DefaultLiteralExpression => SyntaxKind.DefaultKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+    }
 }

@@ -4,21 +4,22 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal static class IReadOnlyListExtensions
+namespace Roslyn.Utilities
 {
-    public static bool Contains<T>(this IReadOnlyList<T> list, T item, IEqualityComparer<T>? comparer = null)
+    internal static class IReadOnlyListExtensions
     {
-        comparer ??= EqualityComparer<T>.Default;
-        for (int i = 0; i < list.Count; i++)
+        public static bool Contains<T>(this IReadOnlyList<T> list, T item, IEqualityComparer<T>? comparer = null)
         {
-            if (comparer.Equals(item, list[i]))
+            comparer ??= EqualityComparer<T>.Default;
+            for (int i = 0; i < list.Count; i++)
             {
-                return true;
+                if (comparer.Equals(item, list[i]))
+                {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 }

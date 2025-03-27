@@ -5,24 +5,25 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.Cci;
-
-internal sealed class TypeSpecComparer : IEqualityComparer<ITypeReference>
+namespace Microsoft.Cci
 {
-    private readonly MetadataWriter _metadataWriter;
-
-    internal TypeSpecComparer(MetadataWriter metadataWriter)
+    internal sealed class TypeSpecComparer : IEqualityComparer<ITypeReference>
     {
-        _metadataWriter = metadataWriter;
-    }
+        private readonly MetadataWriter _metadataWriter;
 
-    public bool Equals(ITypeReference? x, ITypeReference? y)
-    {
-        return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x).Equals(_metadataWriter.GetTypeSpecSignatureIndex(y));
-    }
+        internal TypeSpecComparer(MetadataWriter metadataWriter)
+        {
+            _metadataWriter = metadataWriter;
+        }
 
-    public int GetHashCode(ITypeReference typeReference)
-    {
-        return _metadataWriter.GetTypeSpecSignatureIndex(typeReference).GetHashCode();
+        public bool Equals(ITypeReference? x, ITypeReference? y)
+        {
+            return x == y || _metadataWriter.GetTypeSpecSignatureIndex(x).Equals(_metadataWriter.GetTypeSpecSignatureIndex(y));
+        }
+
+        public int GetHashCode(ITypeReference typeReference)
+        {
+            return _metadataWriter.GetTypeSpecSignatureIndex(typeReference).GetHashCode();
+        }
     }
 }

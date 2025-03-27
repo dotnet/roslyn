@@ -15,14 +15,14 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests;
-
-public class DeclarationTests : ExpressionCompilerTestBase
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Declarations()
+    public class DeclarationTests : ExpressionCompilerTestBase
     {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Declarations()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -35,18 +35,18 @@ public class DeclarationTests : ExpressionCompilerTestBase
         }
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       85 (0x55)
   .maxstack  4
   .locals init (object V_0, //y
@@ -79,13 +79,13 @@ public class DeclarationTests : ExpressionCompilerTestBase
   IL_0053:  stind.i4
   IL_0054:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void DeconstructionDeclaration()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void DeconstructionDeclaration()
+        {
+            var source = @"
 class C
 {
     void Test()
@@ -93,36 +93,36 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
-           validator: runtime =>
-           {
-               var context = CreateMethodContext(runtime, methodName: "C.Test");
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+               {
+                   var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-               ResultProperties resultProperties;
-               string error;
-               var testData = new CompilationTestData();
-               ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-               context.CompileExpression(
-                   "(int z1, string z2) = (1, null);",
-                   DkmEvaluationFlags.None,
-                   NoAliases,
-                   DebuggerDiagnosticFormatter.Instance,
-                   out resultProperties,
-                   out error,
-                   out missingAssemblyIdentities,
-                   EnsureEnglishUICulture.PreferredOrNull,
-                   testData);
-               Assert.Null(error);
-               Assert.Empty(missingAssemblyIdentities);
+                   ResultProperties resultProperties;
+                   string error;
+                   var testData = new CompilationTestData();
+                   ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                   context.CompileExpression(
+                       "(int z1, string z2) = (1, null);",
+                       DkmEvaluationFlags.None,
+                       NoAliases,
+                       DebuggerDiagnosticFormatter.Instance,
+                       out resultProperties,
+                       out error,
+                       out missingAssemblyIdentities,
+                       EnsureEnglishUICulture.PreferredOrNull,
+                       testData);
+                   Assert.Null(error);
+                   Assert.Empty(missingAssemblyIdentities);
 
-               Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
-               Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
-               Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
-               Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
-               Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+                   Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                   Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
+                   Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                   Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                   Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
 
-               testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
+                   testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
 {
   // Code size       92 (0x5c)
   .maxstack  4
@@ -156,13 +156,13 @@ class C
   IL_0056:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
   IL_005b:  ret
 }");
-           });
-    }
+               });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void DeconstructionDeclarationWithDiscard()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void DeconstructionDeclarationWithDiscard()
+        {
+            var source = @"
 class C
 {
     void Test()
@@ -170,36 +170,36 @@ class C
     }
 }
 ";
-        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-        WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
-           validator: runtime =>
-           {
-               var context = CreateMethodContext(runtime, methodName: "C.Test");
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
+               validator: runtime =>
+               {
+                   var context = CreateMethodContext(runtime, methodName: "C.Test");
 
-               ResultProperties resultProperties;
-               string error;
-               var testData = new CompilationTestData();
-               ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-               context.CompileExpression(
-                   "(_, string z2) = (1, null);",
-                   DkmEvaluationFlags.None,
-                   NoAliases,
-                   DebuggerDiagnosticFormatter.Instance,
-                   out resultProperties,
-                   out error,
-                   out missingAssemblyIdentities,
-                   EnsureEnglishUICulture.PreferredOrNull,
-                   testData);
-               Assert.Null(error);
-               Assert.Empty(missingAssemblyIdentities);
+                   ResultProperties resultProperties;
+                   string error;
+                   var testData = new CompilationTestData();
+                   ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                   context.CompileExpression(
+                       "(_, string z2) = (1, null);",
+                       DkmEvaluationFlags.None,
+                       NoAliases,
+                       DebuggerDiagnosticFormatter.Instance,
+                       out resultProperties,
+                       out error,
+                       out missingAssemblyIdentities,
+                       EnsureEnglishUICulture.PreferredOrNull,
+                       testData);
+                   Assert.Null(error);
+                   Assert.Empty(missingAssemblyIdentities);
 
-               Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
-               Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
-               Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
-               Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
-               Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
+                   Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                   Assert.Equal(DkmEvaluationResultCategory.Data, resultProperties.Category); // Data, because it is an expression
+                   Assert.Equal(default(DkmEvaluationResultAccessType), resultProperties.AccessType);
+                   Assert.Equal(default(DkmEvaluationResultStorageType), resultProperties.StorageType);
+                   Assert.Equal(default(DkmEvaluationResultTypeModifierFlags), resultProperties.ModifierFlags);
 
-               testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
+                   testData.GetMethodData("<>x.<>m0(C)").VerifyIL(@"
 {
   // Code size       50 (0x32)
   .maxstack  4
@@ -222,13 +222,13 @@ class C
   IL_0031:  ret
 }
 ");
-           });
-    }
+               });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void ExpressionLocals_ExpressionStatement_01()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void ExpressionLocals_ExpressionStatement_01()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -246,18 +246,18 @@ class C
         y = 1;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Test(x, out var z);", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Test(x, out var z);", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       47 (0x2f)
   .maxstack  4
   .locals init (object V_0, //y
@@ -278,14 +278,14 @@ class C
   IL_0029:  call       ""void C.Test(object, out int)""
   IL_002e:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/13159")]
-    public void ExpressionLocals_ExpressionStatement_02()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13159")]
+        public void ExpressionLocals_ExpressionStatement_02()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -302,18 +302,18 @@ class C
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Test(x is int z);", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Test(x is int z);", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       69 (0x45)
   .maxstack  4
   .locals init (object V_0, //y
@@ -345,13 +345,13 @@ class C
   IL_003f:  call       ""void C.Test(bool)""
   IL_0044:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void ExpressionLocals_Assignment_01()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void ExpressionLocals_Assignment_01()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -370,18 +370,18 @@ class C
         return x;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(out var z)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(out var z)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       48 (0x30)
   .maxstack  4
   .locals init (object V_0, //y
@@ -402,13 +402,13 @@ class C
   IL_002d:  starg.s    V_0
   IL_002f:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void ExpressionLocals_LocalDeclarationStatement_01()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void ExpressionLocals_LocalDeclarationStatement_01()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -427,18 +427,18 @@ class C
         return 0;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       88 (0x58)
   .maxstack  4
   .locals init (object V_0, //y
@@ -470,13 +470,13 @@ class C
   IL_0056:  stind.i4
   IL_0057:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void References()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void References()
+        {
+            var source =
 @"class C
 {
     delegate void D();
@@ -487,30 +487,30 @@ class C
         object y;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            var aliases = ImmutableArray.Create(
-                VariableAlias("x", typeof(string)),
-                VariableAlias("y", typeof(int)),
-                VariableAlias("T", typeof(object)),
-                VariableAlias("D", "C"),
-                VariableAlias("F", typeof(int)));
+                var aliases = ImmutableArray.Create(
+                    VariableAlias("x", typeof(string)),
+                    VariableAlias("y", typeof(int)),
+                    VariableAlias("T", typeof(object)),
+                    VariableAlias("D", "C"),
+                    VariableAlias("F", typeof(int)));
 
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "(object)x ?? (object)y ?? (object)T ?? (object)F ?? ((C)D).F ?? C.G",
-                DkmEvaluationFlags.TreatAsExpression,
-                aliases,
-                out error,
-                testData);
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "(object)x ?? (object)y ?? (object)T ?? (object)F ?? ((C)D).F ?? C.G",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    aliases,
+                    out error,
+                    testData);
 
-            Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
 @"{
   // Code size       78 (0x4e)
   .maxstack  2
@@ -545,33 +545,33 @@ class C
   IL_0048:  ldsfld     ""object C.G""
   IL_004d:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Address()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Address()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            var result = context.CompileExpression(
-                "*(&c) = 'A'",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(VariableAlias("c", typeof(char))),
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression(
+                    "*(&c) = 'A'",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(VariableAlias("c", typeof(char))),
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       18 (0x12)
   .maxstack  3
   .locals init (char V_0)
@@ -585,99 +585,99 @@ class C
   IL_0010:  ldloc.0
   IL_0011:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void TreatAsExpression()
-    {
-        var source =
+        [Fact]
+        public void TreatAsExpression()
+        {
+            var source =
 @"class C
 {
     static void M(object x)
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                string error;
+
+                // Expression without ';' as statement.
+                var result = context.CompileExpression("3", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+
+                // Expression with ';' as statement.
+                result = context.CompileExpression("3;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+
+                // Expression with format specifiers but without ';' as statement.
+                result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+                AssertEx.SetEqual(result.FormatSpecifiers, ["nq"]);
+
+                // Expression with format specifiers with ';' as statement.
+                result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal("error CS1073: Unexpected token ','", error);
+                Assert.Null(result);
+
+                // Assignment without ';' as statement.
+                result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+
+                // Assignment with ';' as statement.
+                result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Null(error);
+
+                // Statement without ';' as statement.
+                result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
+
+                // Neither statement nor expression as statement.
+                result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal("error CS1026: ) expected", error);
+
+                // Statement without ';' as expression.
+                result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
+
+                // Statement with ';' as expression.
+                result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
+
+                // Neither statement nor expression as expression.
+                result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
+                Assert.Equal("error CS1026: ) expected", error);
+            });
+        }
+
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void BaseType()
         {
-            var context = CreateMethodContext(runtime, "C.M");
-
-            string error;
-
-            // Expression without ';' as statement.
-            var result = context.CompileExpression("3", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-
-            // Expression with ';' as statement.
-            result = context.CompileExpression("3;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-
-            // Expression with format specifiers but without ';' as statement.
-            result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-            AssertEx.SetEqual(result.FormatSpecifiers, ["nq"]);
-
-            // Expression with format specifiers with ';' as statement.
-            result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal("error CS1073: Unexpected token ','", error);
-            Assert.Null(result);
-
-            // Assignment without ';' as statement.
-            result = context.CompileExpression("x = 2", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-
-            // Assignment with ';' as statement.
-            result = context.CompileExpression("x = 2;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Null(error);
-
-            // Statement without ';' as statement.
-            result = context.CompileExpression("int o", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal("error CS1525: Invalid expression term 'int'", error);
-
-            // Neither statement nor expression as statement.
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal("error CS1026: ) expected", error);
-
-            // Statement without ';' as expression.
-            result = context.CompileExpression("int o", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal("error CS1525: Invalid expression term 'int'", error);
-
-            // Statement with ';' as expression.
-            result = context.CompileExpression("int o;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal("error CS1525: Invalid expression term 'int'", error);
-
-            // Neither statement nor expression as expression.
-            result = context.CompileExpression("M(;", DkmEvaluationFlags.TreatAsExpression, NoAliases, out error);
-            Assert.Equal("error CS1026: ) expected", error);
-        });
-    }
-
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void BaseType()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "System.ValueType C = (int)$3;",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(ObjectIdAlias(3, typeof(int))),
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "System.ValueType C = (int)$3;",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(ObjectIdAlias(3, typeof(int))),
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       62 (0x3e)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -698,31 +698,31 @@ class C
   IL_003c:  stind.ref
   IL_003d:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Var()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Var()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "var x = 1;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "var x = 1;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -740,14 +740,14 @@ class C
   IL_0029:  stind.i4
   IL_002a:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-    public void Dynamic()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
+        public void Dynamic()
+        {
+            var source =
 @"class C
 {
     static void M()
@@ -758,15 +758,15 @@ class C
         return null;
     }
 }";
-        var compilation0 = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
+            var compilation0 = CreateCompilation(source, new[] { CSharpRef }, TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       62 (0x3e)
   .maxstack  7
@@ -793,132 +793,132 @@ class C
   IL_003c:  stind.ref
   IL_003d:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void BindingError_Initializer()
-    {
-        var source =
+        [Fact]
+        public void BindingError_Initializer()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "object o = F();",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object o = F();",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS0103: The name 'F' does not exist in the current context", error);
+            });
+        }
 
-    [Fact]
-    public void CannotInferType_NoInitializer()
-    {
-        var source =
+        [Fact]
+        public void CannotInferType_NoInitializer()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var y;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+
+                Assert.Equal("error CS0818: Implicitly-typed variables must be initialized", error);
+            });
+        }
+
+        [Fact]
+        public void CannotInferType_Null()
         {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "var y;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-
-            Assert.Equal("error CS0818: Implicitly-typed variables must be initialized", error);
-        });
-    }
-
-    [Fact]
-    public void CannotInferType_Null()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var z = null;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS0815: Cannot assign <null> to an implicitly-typed variable", error);
+            });
+        }
+
+        [Fact]
+        public void InferredType_Void()
         {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "var z = null;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS0815: Cannot assign <null> to an implicitly-typed variable", error);
-        });
-    }
-
-    [Fact]
-    public void InferredType_Void()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var w = M();",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+
+                Assert.Equal("error CS0815: Cannot assign void to an implicitly-typed variable", error);
+            });
+        }
+
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void ReferenceInNextDeclaration()
         {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "var w = M();",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-
-            Assert.Equal("error CS0815: Cannot assign void to an implicitly-typed variable", error);
-        });
-    }
-
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void ReferenceInNextDeclaration()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void M<T>()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "T x = default(T), y = x;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "T x = default(T), y = x;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size      115 (0x73)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -953,40 +953,40 @@ class C
   IL_006d:  stobj      ""T""
   IL_0072:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
-    public void ReferenceInSameDeclaration()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
+        public void ReferenceInSameDeclaration()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "object o = o ?? null;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            // The compiler reports "CS0165: Use of unassigned local variable 'o'"
-            // in flow analysis. But since flow analysis is skipped in the EE,
-            // compilation succeeds and references to the local in the initializer
-            // are treated as default(T). That matches the legacy EE.
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "object o = o ?? null;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                // The compiler reports "CS0165: Use of unassigned local variable 'o'"
+                // in flow analysis. But since flow analysis is skipped in the EE,
+                // compilation succeeds and references to the local in the initializer
+                // are treated as default(T). That matches the legacy EE.
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       57 (0x39)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1009,15 +1009,15 @@ class C
   IL_0037:  stind.ref
   IL_0038:  ret
 }");
-            testData = new CompilationTestData();
-            context.CompileExpression(
-                "string s = s.Substring(0);",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+                testData = new CompilationTestData();
+                context.CompileExpression(
+                    "string s = s.Substring(0);",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       63 (0x3f)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1039,63 +1039,63 @@ class C
   IL_003d:  stind.ref
   IL_003e:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void ReferenceInPreviousDeclaration()
-    {
-        var source =
+        [Fact]
+        public void ReferenceInPreviousDeclaration()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "object x = y, y;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS0841: Cannot use local variable 'y' before it is declared", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object x = y, y;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS0841: Cannot use local variable 'y' before it is declared", error);
+            });
+        }
 
-    [Fact(Skip = "1094104")]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
-    public void Conflict_Parameter()
-    {
-        var source =
+        [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        public void Conflict_Parameter()
+        {
+            var source =
 @"class C
 {
     static void M(object x)
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "var x = 4;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("...", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "var x = 4;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("...", error);
+            });
+        }
 
-    [Fact(Skip = "1094104")]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
-    public void Conflict_Local()
-    {
-        var source =
+        [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        public void Conflict_Local()
+        {
+            var source =
 @"class C
 {
     static void M()
@@ -1103,95 +1103,95 @@ class C
         object y;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "object y = 5;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("...", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object y = 5;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("...", error);
+            });
+        }
 
-    [Fact(Skip = "1094104")]
-    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
-    public void Conflict_OtherDeclaration()
-    {
-        var source =
+        [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
+        public void Conflict_OtherDeclaration()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            context.CompileExpression(
-                "object z = 6;",
-                DkmEvaluationFlags.None,
-                ImmutableArray.Create(VariableAlias("z", typeof(int))),
-                out error);
-            Assert.Equal("...", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                context.CompileExpression(
+                    "object z = 6;",
+                    DkmEvaluationFlags.None,
+                    ImmutableArray.Create(VariableAlias("z", typeof(int))),
+                    out error);
+                Assert.Equal("...", error);
+            });
+        }
 
-    [Fact]
-    public void Arguments()
-    {
-        var source =
+        [Fact]
+        public void Arguments()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            // Local declaration arguments (error only).
-            string error;
-            context.CompileExpression(
-                "int a[3];",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS1525: Invalid expression term 'int'", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                // Local declaration arguments (error only).
+                string error;
+                context.CompileExpression(
+                    "int a[3];",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS1525: Invalid expression term 'int'", error);
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Keyword()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Keyword()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "object @class, @this = @class;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "object @class, @this = @class;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       82 (0x52)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1218,35 +1218,35 @@ class C
   IL_0050:  stind.ref
   IL_0051:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Constant()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Constant()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "const int x = 1;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            // Legacy EE reports "Invalid expression term 'const'".
-            Assert.Null(error);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "const int x = 1;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                // Legacy EE reports "Invalid expression term 'const'".
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1264,33 +1264,33 @@ class C
   IL_0029:  stind.i4
   IL_002a:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Generic()
-    {
-        var source =
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Generic()
+        {
+            var source =
 @"class C
 {
     static void M<T>(T x)
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "T y = x;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "T y = x;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       47 (0x2f)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1308,90 +1308,90 @@ class C
   IL_0029:  stobj      ""T""
   IL_002e:  ret
 }");
-        });
-    }
+            });
+        }
 
-    /// <summary>
-    /// Should not allow names with '$' prefix.
-    /// </summary>
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
-    public void NoPrefix()
-    {
-        var source =
+        /// <summary>
+        /// Should not allow names with '$' prefix.
+        /// </summary>
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
+        public void NoPrefix()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+
+                // $1
+                context.CompileExpression(
+                    "var $1 = 1;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
+
+                // $exception
+                context.CompileExpression(
+                    "var $exception = 2;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
+
+                // $ReturnValue
+                context.CompileExpression(
+                    "var $ReturnValue = 3;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
+
+                // $x
+                context.CompileExpression(
+                    "var $x = 4;",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error);
+                Assert.Equal("error CS1056: Unexpected character '$'", error);
+            });
+        }
+
+        /// <summary>
+        /// Local declarations inside a lambda should
+        /// not be considered pseudo-variables.
+        /// </summary>
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void Lambda()
         {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-
-            // $1
-            context.CompileExpression(
-                "var $1 = 1;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS1056: Unexpected character '$'", error);
-
-            // $exception
-            context.CompileExpression(
-                "var $exception = 2;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS1056: Unexpected character '$'", error);
-
-            // $ReturnValue
-            context.CompileExpression(
-                "var $ReturnValue = 3;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS1056: Unexpected character '$'", error);
-
-            // $x
-            context.CompileExpression(
-                "var $x = 4;",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error);
-            Assert.Equal("error CS1056: Unexpected character '$'", error);
-        });
-    }
-
-    /// <summary>
-    /// Local declarations inside a lambda should
-    /// not be considered pseudo-variables.
-    /// </summary>
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void Lambda()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression(
-                "System.Action b = () => { object c = null; };",
-                DkmEvaluationFlags.None,
-                NoAliases,
-                out error,
-                testData);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(
+                    "System.Action b = () => { object c = null; };",
+                    DkmEvaluationFlags.None,
+                    NoAliases,
+                    out error,
+                    testData);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       73 (0x49)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1417,38 +1417,38 @@ class C
   IL_0047:  stind.ref
   IL_0048:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
-    public void OtherStatements()
-    {
-        var source =
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
+        public void OtherStatements()
+        {
+            var source =
 @"class C
 {
     static void M()
     {
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            string error;
-            var testData = new CompilationTestData();
-            context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
-            testData = new CompilationTestData();
-            context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
-            Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
-        });
-    }
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("while(false) ;", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
+                testData = new CompilationTestData();
+                context.CompileExpression("try { } catch (System.Exception) { }", DkmEvaluationFlags.None, NoAliases, out error);
+                Assert.Equal("error CS8092: Expression or declaration statement expected.", error);
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void GenericType_Identifier()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void GenericType_Identifier()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1460,16 +1460,16 @@ class Generic<T>
 {
 }
 ";
-        var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(comp, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1487,14 +1487,14 @@ class Generic<T>
   IL_0029:  stind.ref
   IL_002a:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void GenericType_Keyword()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void GenericType_Keyword()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1506,16 +1506,16 @@ class Generic<T>
 {
 }
 ";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1533,14 +1533,14 @@ class Generic<T>
   IL_0029:  stind.ref
   IL_002a:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void PointerType_Identifier()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void PointerType_Identifier()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1552,16 +1552,16 @@ struct S
 {
 }
 ";
-        var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(comp, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "S* s = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "S* s = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       44 (0x2c)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1580,14 +1580,14 @@ struct S
   IL_002a:  stind.i
   IL_002b:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void PointerType_Keyword()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void PointerType_Keyword()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1595,16 +1595,16 @@ class C
     }
 }
 ";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int* p = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int* p = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       44 (0x2c)
   .maxstack  4
   .locals init (System.Guid V_0)
@@ -1623,14 +1623,14 @@ class C
   IL_002a:  stind.i
   IL_002b:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void NullableType_Identifier()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void NullableType_Identifier()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1642,16 +1642,16 @@ struct S
 {
 }
 ";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "S? s = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "S? s = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       55 (0x37)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -1672,14 +1672,14 @@ struct S
   IL_0031:  stobj      ""S?""
   IL_0036:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
-    public void NullableType_Keyword()
-    {
-        var source = @"
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
+        public void NullableType_Keyword()
+        {
+            var source = @"
 class C
 {
     static void M()
@@ -1687,16 +1687,16 @@ class C
     }
 }
 ";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int? n = null;", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int? n = null;", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
   // Code size       55 (0x37)
   .maxstack  4
   .locals init (System.Guid V_0,
@@ -1717,41 +1717,41 @@ class C
   IL_0031:  stobj      ""int?""
   IL_0036:  ret
 }");
-        });
-    }
+            });
+        }
 
-    private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
-    {
-        string error;
-        CompileDeclaration(context, declaration, out flags, out testData, out error);
-        Assert.Null(error);
-    }
+        private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
+        {
+            string error;
+            CompileDeclaration(context, declaration, out flags, out testData, out error);
+            Assert.Null(error);
+        }
 
-    private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData, out string error)
-    {
-        testData = new CompilationTestData();
+        private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData, out string error)
+        {
+            testData = new CompilationTestData();
 
-        ResultProperties resultProperties;
-        ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-        var result = context.CompileExpression(
-            declaration,
-            DkmEvaluationFlags.None,
-            NoAliases,
-            DebuggerDiagnosticFormatter.Instance,
-            out resultProperties,
-            out error,
-            out missingAssemblyIdentities,
-            EnsureEnglishUICulture.PreferredOrNull,
-            testData);
-        Assert.Empty(missingAssemblyIdentities);
+            ResultProperties resultProperties;
+            ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+            var result = context.CompileExpression(
+                declaration,
+                DkmEvaluationFlags.None,
+                NoAliases,
+                DebuggerDiagnosticFormatter.Instance,
+                out resultProperties,
+                out error,
+                out missingAssemblyIdentities,
+                EnsureEnglishUICulture.PreferredOrNull,
+                testData);
+            Assert.Empty(missingAssemblyIdentities);
 
-        flags = resultProperties.Flags;
-    }
+            flags = resultProperties.Flags;
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_Assignment_01()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_Assignment_01()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -1769,18 +1769,18 @@ class C
         return x;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(x is int i)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       71 (0x47)
   .maxstack  4
   .locals init (object V_0, //y
@@ -1813,13 +1813,13 @@ class C
   IL_0044:  starg.s    V_0
   IL_0046:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_Assignment_02()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_Assignment_02()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -1837,18 +1837,18 @@ class C
         return x;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(x is string i)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is string i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       67 (0x43)
   .maxstack  4
   .locals init (object V_0, //y
@@ -1880,13 +1880,13 @@ class C
   IL_0040:  starg.s    V_0
   IL_0042:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_Assignment_03()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_Assignment_03()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -1904,18 +1904,18 @@ class C
         return x;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(x is object i)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is object i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       57 (0x39)
   .maxstack  4
   .locals init (object V_0, //y
@@ -1943,13 +1943,13 @@ class C
   IL_0036:  starg.s    V_0
   IL_0038:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_Assignment_04()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_Assignment_04()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -1967,18 +1967,18 @@ class C
         return 1;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(x is int i)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       51 (0x33)
   .maxstack  4
   .locals init (object V_0, //y
@@ -2002,13 +2002,13 @@ class C
   IL_0030:  starg.s    V_0
   IL_0032:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_Assignment_05()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_Assignment_05()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -2026,18 +2026,18 @@ class C
         return null;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            CompilationTestData testData;
-            string error;
-            testData = new CompilationTestData();
-            context.CompileAssignment("x", "Test(x is int i)", out error, testData);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                CompilationTestData testData;
+                string error;
+                testData = new CompilationTestData();
+                context.CompileAssignment("x", "Test(x is int i)", out error, testData);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size       74 (0x4a)
   .maxstack  4
   .locals init (object V_0, //y
@@ -2072,13 +2072,13 @@ class C
   IL_0047:  starg.s    V_0
   IL_0049:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-    public void PatternLocals_LocalDeclarationStatement_01()
-    {
-        var source =
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        public void PatternLocals_LocalDeclarationStatement_01()
+        {
+            var source =
 @"class C
 {
     static object F;
@@ -2096,18 +2096,18 @@ class C
         return y ? 1 : 0;
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            CompileDeclaration(context, "int z = Test(x is int i);", out flags, out testData);
-            Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
-            testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
-@"{
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                CompileDeclaration(context, "int z = Test(x is int i);", out flags, out testData);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
+                testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
+    @"{
   // Code size      110 (0x6e)
   .maxstack  4
   .locals init (object V_0, //y
@@ -2150,13 +2150,13 @@ class C
   IL_006c:  stind.i4
   IL_006d:  ret
 }");
-        });
-    }
+            });
+        }
 
-    [Fact]
-    public void DuplicateDeclaration()
-    {
-        var source =
+        [Fact]
+        public void DuplicateDeclaration()
+        {
+            var source =
 @"class C
 {
     static void M()
@@ -2165,24 +2165,24 @@ class C
 #line 999
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            });
+        }
+
+        [Fact]
+        public void DuplicateDeclarationInOutVar()
         {
-            var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
-
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            string error;
-            CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
-            Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
-        });
-    }
-
-    [Fact]
-    public void DuplicateDeclarationInOutVar()
-    {
-        var source =
+            var source =
 @"class C
 {
     static void F(out double x, out int y) => x = y = 4;
@@ -2192,17 +2192,18 @@ class C
         F(out var x, out var y);
     }
 }";
-        var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
-        WithRuntimeInstance(compilation0, runtime =>
-        {
-            var context = CreateMethodContext(runtime, "C.M");
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
 
-            DkmClrCompilationResultFlags flags;
-            CompilationTestData testData;
-            string error;
-            CompileDeclaration(context, "F(out var x, out var y)", out flags, out testData, out error);
-            Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
-        });
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "F(out var x, out var y)", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            });
+        }
     }
 }

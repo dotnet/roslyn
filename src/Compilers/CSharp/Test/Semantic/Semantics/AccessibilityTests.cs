@@ -12,17 +12,17 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class AccessibilityTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    private static readonly SemanticModel s_testModel;
-    private static readonly int s_testPosition;
-    private static readonly ISymbol s_testSymbol;
-
-    static AccessibilityTests()
+    public class AccessibilityTests : CSharpTestBase
     {
-        var t = Parse(@"
+        private static readonly SemanticModel s_testModel;
+        private static readonly int s_testPosition;
+        private static readonly ISymbol s_testSymbol;
+
+        static AccessibilityTests()
+        {
+            var t = Parse(@"
 using System;
 class C1
 {
@@ -30,67 +30,67 @@ class C1
 }
 
 ");
-        CSharpCompilation c = CreateEmptyCompilation(new[] { t });
-        s_testModel = c.GetSemanticModel(t);
-        s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
-        s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception).GetPublicSymbol();
-    }
+            CSharpCompilation c = CreateEmptyCompilation(new[] { t });
+            s_testModel = c.GetSemanticModel(t);
+            s_testPosition = t.FindNodeOrTokenByKind(SyntaxKind.VariableDeclaration).SpanStart;
+            s_testSymbol = c.GetWellKnownType(WellKnownType.System_Exception).GetPublicSymbol();
+        }
 
-    [Fact]
-    public void IsAccessibleNullArguments()
-    {
-        Assert.Throws<ArgumentNullException>(() =>
-            s_testModel.IsAccessible(s_testPosition, null));
-    }
+        [Fact]
+        public void IsAccessibleNullArguments()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                s_testModel.IsAccessible(s_testPosition, null));
+        }
 
-    [Fact]
-    public void IsAccessibleLocationNotInSource()
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            s_testModel.IsAccessible(-1, s_testSymbol));
+        [Fact]
+        public void IsAccessibleLocationNotInSource()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                s_testModel.IsAccessible(-1, s_testSymbol));
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
-    }
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                s_testModel.IsAccessible(s_testModel.SyntaxTree.GetCompilationUnitRoot().FullSpan.End + 1, s_testSymbol));
+        }
 
-    [Fact]
-    public void IsAccessibleSymbolErrorType()
-    {
-        Assert.True(
-            s_testModel.IsAccessible(s_testPosition, s_testSymbol));
-    }
+        [Fact]
+        public void IsAccessibleSymbolErrorType()
+        {
+            Assert.True(
+                s_testModel.IsAccessible(s_testPosition, s_testSymbol));
+        }
 
-    [WorkItem(527516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527516")]
-    [Fact]
-    public void IsAccessibleSymbolNotResolvable()
-    {
-        Symbol symbol = CSharpCompilation.Create(
-            "NotResolvable",
-            references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
+        [WorkItem(527516, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527516")]
+        [Fact]
+        public void IsAccessibleSymbolNotResolvable()
+        {
+            Symbol symbol = CSharpCompilation.Create(
+                "NotResolvable",
+                references: new MetadataReference[] { MscorlibRef }).GetWellKnownType(WellKnownType.System_Exception);
 
-        Assert.True(
-            s_testModel.IsAccessible(s_testPosition, symbol.GetPublicSymbol()));
-    }
+            Assert.True(
+                s_testModel.IsAccessible(s_testPosition, symbol.GetPublicSymbol()));
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Property1()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Property1()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
 
     protected G<int>.N P { get; set; }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Property2()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Property2()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
@@ -100,28 +100,28 @@ class C : G<int>
 {
     protected G<long>.N P { get; set; }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Indexer1()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Indexer1()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
 
     protected G<int>.N this[int x] { get { throw null; } }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Indexer2()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Indexer2()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
@@ -131,28 +131,28 @@ class C : G<int>
 {
     protected G<long>.N this[int x] { get { throw null; } }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Method1()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Method1()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
 
     protected G<int>.N M() { throw null; }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Method2()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Method2()
+        {
+            var source = @"
 public class G<T>
 {
     protected class N { }
@@ -162,31 +162,31 @@ class C : G<int>
 {
     protected G<long>.N M() { throw null; }
 }";
-        CreateCompilation(source).VerifyDiagnostics();
-    }
+            CreateCompilation(source).VerifyDiagnostics();
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Event1()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Event1()
+        {
+            var source = @"
 public class G<T>
 {
     protected delegate void N();
 
     protected event G<int>.N E;
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (6,30): warning CS0067: The event 'G<T>.E' is never used
-            //     protected event G<int>.N E;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,30): warning CS0067: The event 'G<T>.E' is never used
+                //     protected event G<int>.N E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("G<T>.E"));
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypes_Event2()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypes_Event2()
+        {
+            var source = @"
 public class G<T>
 {
     protected delegate void N();
@@ -196,17 +196,17 @@ class C : G<int>
 {
     protected event G<long>.N E;
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (9,31): warning CS0067: The event 'C.E' is never used
-            //     protected event G<long>.N E;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,31): warning CS0067: The event 'C.E' is never used
+                //     protected event G<long>.N E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+        }
 
-    [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
-    [Fact]
-    public void ProtectedTypesNestedInGenericTypesLegacy()
-    {
-        var source = @"
+        [WorkItem(545450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545450")]
+        [Fact]
+        public void ProtectedTypesNestedInGenericTypesLegacy()
+        {
+            var source = @"
 public class Bar<T> { }               
 
 public class RuleE<T>
@@ -256,45 +256,46 @@ class Test
     {
     }
 }";
-        CreateCompilation(source).VerifyDiagnostics(
-            // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
-            //         protected RuleE<int>.N Goo;    
-            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
-            // (23,26): warning CS0169: The field 'RuleE<T>.Fld3' is never used
-            //     private RuleE<int>.N Fld3;    
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "Fld3").WithArguments("RuleE<T>.Fld3"),
-            // (38,26): warning CS0169: The field 'D<T>.F3' is never used
-            //     private RuleE<int>.N F3;   
-            Diagnostic(ErrorCode.WRN_UnreferencedField, "F3").WithArguments("D<T>.F3"));
-    }
+            CreateCompilation(source).VerifyDiagnostics(
+                // (16,32): warning CS0649: Field 'RuleE<T>.Z1.Goo' is never assigned to, and will always have its default value null
+                //         protected RuleE<int>.N Goo;    
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Goo").WithArguments("RuleE<T>.Z1.Goo", "null"),
+                // (23,26): warning CS0169: The field 'RuleE<T>.Fld3' is never used
+                //     private RuleE<int>.N Fld3;    
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Fld3").WithArguments("RuleE<T>.Fld3"),
+                // (38,26): warning CS0169: The field 'D<T>.F3' is never used
+                //     private RuleE<int>.N F3;   
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F3").WithArguments("D<T>.F3"));
+        }
 
-    [WorkItem(531368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531368")]
-    [Fact]
-    public void TestDeepTypeAccessibilityBug18018()
-    {
-        // Bug 18018: Deep array types blow the stack during accessibility analysis.
+        [WorkItem(531368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531368")]
+        [Fact]
+        public void TestDeepTypeAccessibilityBug18018()
+        {
+            // Bug 18018: Deep array types blow the stack during accessibility analysis.
 
-        // We have since switched to an iterative rather than recursive algorithm.
+            // We have since switched to an iterative rather than recursive algorithm.
 
-        string brackets = "[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]";
-        brackets = brackets + brackets; // 80
-        brackets = brackets + brackets; // 160
-        brackets = brackets + brackets; // 320
-        brackets = brackets + brackets; // 640
-        brackets = brackets + brackets; // 1280
-        brackets = brackets + brackets; // 2560
-        brackets = brackets + brackets; // 5120
-        brackets = brackets + brackets; // 10240
+            string brackets = "[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]";
+            brackets = brackets + brackets; // 80
+            brackets = brackets + brackets; // 160
+            brackets = brackets + brackets; // 320
+            brackets = brackets + brackets; // 640
+            brackets = brackets + brackets; // 1280
+            brackets = brackets + brackets; // 2560
+            brackets = brackets + brackets; // 5120
+            brackets = brackets + brackets; // 10240
 
-        var source = @"
+            var source = @"
     public class P
     {
         private class C {}
         public C " + brackets + @" x;
     }
 ";
-        CreateCompilation(source).VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
+            CreateCompilation(source).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("P.x", "P.C" + brackets)
 );
+        }
     }
 }

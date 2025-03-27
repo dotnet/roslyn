@@ -6,79 +6,80 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis;
-
-[Flags]
-internal enum SymbolDisplayCompilerInternalOptions
+namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// None
-    /// </summary>
-    None = 0,
+    [Flags]
+    internal enum SymbolDisplayCompilerInternalOptions
+    {
+        /// <summary>
+        /// None
+        /// </summary>
+        None = 0,
 
-    /// <summary>
-    /// - ".ctor" instead of "Goo"
-    /// - "&lt;Prop&gt;k__backingField" instead of "Prop.field" (for C# backing fields)
-    /// </summary>
-    UseMetadataMemberNames = 1 << 0,
+        /// <summary>
+        /// - ".ctor" instead of "Goo"
+        /// - "&lt;Prop&gt;k__backingField" instead of "Prop.field" (for C# backing fields)
+        /// </summary>
+        UseMetadataMemberNames = 1 << 0,
 
-    /// <summary>
-    /// "List`1" instead of "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on
-    /// types.
-    /// </summary>
-    UseArityForGenericTypes = 1 << 1,
+        /// <summary>
+        /// "List`1" instead of "List&lt;T&gt;" ("List(of T)" in VB). Overrides GenericsOptions on
+        /// types.
+        /// </summary>
+        UseArityForGenericTypes = 1 << 1,
 
-    /// <summary>
-    /// Append "[Missing]" to missing Metadata types (for testing).
-    /// </summary>
-    FlagMissingMetadataTypes = 1 << 2,
+        /// <summary>
+        /// Append "[Missing]" to missing Metadata types (for testing).
+        /// </summary>
+        FlagMissingMetadataTypes = 1 << 2,
 
-    /// <summary>
-    /// Include the Script type when qualifying type names.
-    /// </summary>
-    IncludeScriptType = 1 << 3,
+        /// <summary>
+        /// Include the Script type when qualifying type names.
+        /// </summary>
+        IncludeScriptType = 1 << 3,
 
-    /// <summary>
-    /// Include custom modifiers (e.g. modopt([mscorlib]System.Runtime.CompilerServices.IsConst)) on
-    /// the member (return) type and parameters.
-    /// </summary>
-    /// <remarks>
-    /// CONSIDER: custom modifiers are part of the public API, so we might want to move this to SymbolDisplayMemberOptions.
-    /// </remarks>
-    IncludeCustomModifiers = 1 << 4,
+        /// <summary>
+        /// Include custom modifiers (e.g. modopt([mscorlib]System.Runtime.CompilerServices.IsConst)) on
+        /// the member (return) type and parameters.
+        /// </summary>
+        /// <remarks>
+        /// CONSIDER: custom modifiers are part of the public API, so we might want to move this to SymbolDisplayMemberOptions.
+        /// </remarks>
+        IncludeCustomModifiers = 1 << 4,
 
-    /// <summary>
-    /// For a type written as "int[][,]" in C#, then
-    ///   a) setting this option will produce "int[,][]", and
-    ///   b) not setting this option will produce "int[][,]".
-    /// </summary>
-    ReverseArrayRankSpecifiers = 1 << 5,
+        /// <summary>
+        /// For a type written as "int[][,]" in C#, then
+        ///   a) setting this option will produce "int[,][]", and
+        ///   b) not setting this option will produce "int[][,]".
+        /// </summary>
+        ReverseArrayRankSpecifiers = 1 << 5,
 
-    /// <summary>
-    /// Display `System.[U]IntPtr` instead of `n[u]int`.
-    /// </summary>
-    UseNativeIntegerUnderlyingType = 1 << 6,
+        /// <summary>
+        /// Display `System.[U]IntPtr` instead of `n[u]int`.
+        /// </summary>
+        UseNativeIntegerUnderlyingType = 1 << 6,
 
-    /// <summary>
-    /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
-    /// </summary>
-    UsePlusForNestedTypes = 1 << 7,
+        /// <summary>
+        /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+        /// </summary>
+        UsePlusForNestedTypes = 1 << 7,
 
-    /// <summary>
-    /// Display `MyType@File.cs` instead of `MyType`.
-    /// </summary>
-    IncludeContainingFileForFileTypes = 1 << 8,
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 8,
 
-    /// <summary>
-    /// Does not include parameter name if the parameter is displayed on its own
-    /// (i.e., not as part of a method, delegate, or indexer).
-    /// </summary>
-    ExcludeParameterNameIfStandalone = 1 << 9,
+        /// <summary>
+        /// Does not include parameter name if the parameter is displayed on its own
+        /// (i.e., not as part of a method, delegate, or indexer).
+        /// </summary>
+        ExcludeParameterNameIfStandalone = 1 << 9,
 
-    /// <summary>
-    /// Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
-    /// Differs from <see cref="IncludeContainingFileForFileTypes"/> because it guarantees that
-    /// the prefix will be unique for all files which are permitted to declare file-local types.
-    /// </summary>
-    IncludeFileLocalTypesPrefix = 1 << 10,
+        /// <summary>
+        /// Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
+        /// Differs from <see cref="IncludeContainingFileForFileTypes"/> because it guarantees that
+        /// the prefix will be unique for all files which are permitted to declare file-local types.
+        /// </summary>
+        IncludeFileLocalTypesPrefix = 1 << 10,
+    }
 }

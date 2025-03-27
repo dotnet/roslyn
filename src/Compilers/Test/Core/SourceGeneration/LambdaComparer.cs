@@ -6,20 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities.TestGenerators;
-
-public sealed class LambdaComparer<T> : IEqualityComparer<T>
+namespace Roslyn.Test.Utilities.TestGenerators
 {
-    private readonly Func<T?, T?, bool> _equal;
-    private readonly int? _hashCode;
-
-    public LambdaComparer(Func<T?, T?, bool> equal, int? hashCode = null)
+    public sealed class LambdaComparer<T> : IEqualityComparer<T>
     {
-        _equal = equal;
-        _hashCode = hashCode;
+        private readonly Func<T?, T?, bool> _equal;
+        private readonly int? _hashCode;
+
+        public LambdaComparer(Func<T?, T?, bool> equal, int? hashCode = null)
+        {
+            _equal = equal;
+            _hashCode = hashCode;
+        }
+
+        public bool Equals(T? x, T? y) => _equal(x, y);
+
+        public int GetHashCode([DisallowNull] T obj) => _hashCode.HasValue ? _hashCode.Value : EqualityComparer<T>.Default.GetHashCode(obj);
     }
-
-    public bool Equals(T? x, T? y) => _equal(x, y);
-
-    public int GetHashCode([DisallowNull] T obj) => _hashCode.HasValue ? _hashCode.Value : EqualityComparer<T>.Default.GetHashCode(obj);
 }

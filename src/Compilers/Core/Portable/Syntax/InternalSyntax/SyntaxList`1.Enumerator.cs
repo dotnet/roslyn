@@ -2,38 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax;
-
-internal partial struct SyntaxList<TNode> where TNode : GreenNode
+namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
-    internal struct Enumerator
+    internal partial struct SyntaxList<TNode> where TNode : GreenNode
     {
-        private readonly SyntaxList<TNode> _list;
-        private int _index;
-
-        internal Enumerator(SyntaxList<TNode> list)
+        internal struct Enumerator
         {
-            _list = list;
-            _index = -1;
-        }
+            private readonly SyntaxList<TNode> _list;
+            private int _index;
 
-        public bool MoveNext()
-        {
-            var newIndex = _index + 1;
-            if (newIndex < _list.Count)
+            internal Enumerator(SyntaxList<TNode> list)
             {
-                _index = newIndex;
-                return true;
+                _list = list;
+                _index = -1;
             }
 
-            return false;
-        }
-
-        public TNode Current
-        {
-            get
+            public bool MoveNext()
             {
-                return _list[_index]!;
+                var newIndex = _index + 1;
+                if (newIndex < _list.Count)
+                {
+                    _index = newIndex;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public TNode Current
+            {
+                get
+                {
+                    return _list[_index]!;
+                }
             }
         }
     }

@@ -11,194 +11,195 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class MetadataReaderExtensions
+namespace Microsoft.CodeAnalysis
 {
-    internal static bool GetWinMdVersion(this MetadataReader reader, out int majorVersion, out int minorVersion)
+    internal static class MetadataReaderExtensions
     {
-        if (reader.MetadataKind == MetadataKind.WindowsMetadata)
+        internal static bool GetWinMdVersion(this MetadataReader reader, out int majorVersion, out int minorVersion)
         {
-            // Name should be of the form "WindowsRuntime {major}.{minor}".
-            const string prefix = "WindowsRuntime ";
-            string version = reader.MetadataVersion;
-            if (version.StartsWith(prefix, StringComparison.Ordinal))
+            if (reader.MetadataKind == MetadataKind.WindowsMetadata)
             {
-                var parts = version.Substring(prefix.Length).Split('.');
-                if ((parts.Length == 2) &&
-                    int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out majorVersion) &&
-                    int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out minorVersion))
+                // Name should be of the form "WindowsRuntime {major}.{minor}".
+                const string prefix = "WindowsRuntime ";
+                string version = reader.MetadataVersion;
+                if (version.StartsWith(prefix, StringComparison.Ordinal))
                 {
-                    return true;
+                    var parts = version.Substring(prefix.Length).Split('.');
+                    if ((parts.Length == 2) &&
+                        int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out majorVersion) &&
+                        int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out minorVersion))
+                    {
+                        return true;
+                    }
                 }
             }
+
+            majorVersion = 0;
+            minorVersion = 0;
+            return false;
         }
 
-        majorVersion = 0;
-        minorVersion = 0;
-        return false;
-    }
-
-    /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-    internal static AssemblyIdentity ReadAssemblyIdentityOrThrow(this MetadataReader reader)
-    {
-        if (!reader.IsAssembly)
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static AssemblyIdentity ReadAssemblyIdentityOrThrow(this MetadataReader reader)
         {
-            return null;
-        }
-
-        var assemblyDef = reader.GetAssemblyDefinition();
-
-        return reader.CreateAssemblyIdentityOrThrow(
-            assemblyDef.Version,
-            assemblyDef.Flags,
-            assemblyDef.PublicKey,
-            assemblyDef.Name,
-            assemblyDef.Culture,
-            isReference: false);
-    }
-
-    /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-    internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
-    {
-        var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
-        try
-        {
-            foreach (var assemblyRef in reader.AssemblyReferences)
+            if (!reader.IsAssembly)
             {
-                AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
-                result.Add(reader.CreateAssemblyIdentityOrThrow(
-                    reference.Version,
-                    reference.Flags,
-                    reference.PublicKeyOrToken,
-                    reference.Name,
-                    reference.Culture,
-                    isReference: true));
+                return null;
             }
 
-            return result.ToImmutable();
-        }
-        finally
-        {
-            result.Free();
-        }
-    }
+            var assemblyDef = reader.GetAssemblyDefinition();
 
-    /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-    internal static Guid GetModuleVersionIdOrThrow(this MetadataReader reader)
-    {
-        return reader.GetGuid(reader.GetModuleDefinition().Mvid);
-    }
-
-    /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-    private static AssemblyIdentity CreateAssemblyIdentityOrThrow(
-        this MetadataReader reader,
-        Version version,
-        AssemblyFlags flags,
-        BlobHandle publicKey,
-        StringHandle name,
-        StringHandle culture,
-        bool isReference)
-    {
-        string nameStr = reader.GetString(name);
-        if (!MetadataHelpers.IsValidMetadataIdentifier(nameStr))
-        {
-            throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidAssemblyName, nameStr));
+            return reader.CreateAssemblyIdentityOrThrow(
+                assemblyDef.Version,
+                assemblyDef.Flags,
+                assemblyDef.PublicKey,
+                assemblyDef.Name,
+                assemblyDef.Culture,
+                isReference: false);
         }
 
-        string cultureName = culture.IsNil ? null : reader.GetString(culture);
-        if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static ImmutableArray<AssemblyIdentity> GetReferencedAssembliesOrThrow(this MetadataReader reader)
         {
-            throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName));
-        }
-
-        ImmutableArray<byte> publicKeyOrToken = reader.GetBlobContent(publicKey);
-        bool hasPublicKey;
-
-        if (isReference)
-        {
-            hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
-            if (hasPublicKey)
+            var result = ArrayBuilder<AssemblyIdentity>.GetInstance(reader.AssemblyReferences.Count);
+            try
             {
-                if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                foreach (var assemblyRef in reader.AssemblyReferences)
                 {
-                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                    AssemblyReference reference = reader.GetAssemblyReference(assemblyRef);
+                    result.Add(reader.CreateAssemblyIdentityOrThrow(
+                        reference.Version,
+                        reference.Flags,
+                        reference.PublicKeyOrToken,
+                        reference.Name,
+                        reference.Culture,
+                        isReference: true));
+                }
+
+                return result.ToImmutable();
+            }
+            finally
+            {
+                result.Free();
+            }
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static Guid GetModuleVersionIdOrThrow(this MetadataReader reader)
+        {
+            return reader.GetGuid(reader.GetModuleDefinition().Mvid);
+        }
+
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        private static AssemblyIdentity CreateAssemblyIdentityOrThrow(
+            this MetadataReader reader,
+            Version version,
+            AssemblyFlags flags,
+            BlobHandle publicKey,
+            StringHandle name,
+            StringHandle culture,
+            bool isReference)
+        {
+            string nameStr = reader.GetString(name);
+            if (!MetadataHelpers.IsValidMetadataIdentifier(nameStr))
+            {
+                throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidAssemblyName, nameStr));
+            }
+
+            string cultureName = culture.IsNil ? null : reader.GetString(culture);
+            if (cultureName != null && !MetadataHelpers.IsValidMetadataIdentifier(cultureName))
+            {
+                throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName));
+            }
+
+            ImmutableArray<byte> publicKeyOrToken = reader.GetBlobContent(publicKey);
+            bool hasPublicKey;
+
+            if (isReference)
+            {
+                hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
+                if (hasPublicKey)
+                {
+                    if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                    {
+                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                    }
+                }
+                else
+                {
+                    if (!publicKeyOrToken.IsEmpty &&
+                        publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
+                    {
+                        throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
+                    }
                 }
             }
             else
             {
-                if (!publicKeyOrToken.IsEmpty &&
-                    publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
+                // Assembly definitions never contain a public key token, they only can have a full key or nothing,
+                // so the flag AssemblyFlags.PublicKey does not make sense for them and is ignored.
+                // See Ecma-335, Partition II Metadata, 22.2 "Assembly : 0x20".
+                // This also corresponds to the behavior of the native C# compiler and sn.exe tool.
+                hasPublicKey = !publicKeyOrToken.IsEmpty;
+                if (hasPublicKey && !MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
                 {
-                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
+                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
                 }
             }
-        }
-        else
-        {
-            // Assembly definitions never contain a public key token, they only can have a full key or nothing,
-            // so the flag AssemblyFlags.PublicKey does not make sense for them and is ignored.
-            // See Ecma-335, Partition II Metadata, 22.2 "Assembly : 0x20".
-            // This also corresponds to the behavior of the native C# compiler and sn.exe tool.
-            hasPublicKey = !publicKeyOrToken.IsEmpty;
-            if (hasPublicKey && !MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+
+            if (publicKeyOrToken.IsEmpty)
             {
-                throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                publicKeyOrToken = default(ImmutableArray<byte>);
             }
+
+            return new AssemblyIdentity(
+                name: nameStr,
+                version: version,
+                cultureName: cultureName,
+                publicKeyOrToken: publicKeyOrToken,
+                hasPublicKey: hasPublicKey,
+                isRetargetable: (flags & AssemblyFlags.Retargetable) != 0,
+                contentType: (AssemblyContentType)((int)(flags & AssemblyFlags.ContentTypeMask) >> 9),
+                noThrow: true);
         }
 
-        if (publicKeyOrToken.IsEmpty)
+        internal static bool DeclaresTheObjectClass(this MetadataReader reader)
         {
-            publicKeyOrToken = default(ImmutableArray<byte>);
+            return reader.DeclaresType(IsTheObjectClass);
         }
 
-        return new AssemblyIdentity(
-            name: nameStr,
-            version: version,
-            cultureName: cultureName,
-            publicKeyOrToken: publicKeyOrToken,
-            hasPublicKey: hasPublicKey,
-            isRetargetable: (flags & AssemblyFlags.Retargetable) != 0,
-            contentType: (AssemblyContentType)((int)(flags & AssemblyFlags.ContentTypeMask) >> 9),
-            noThrow: true);
-    }
-
-    internal static bool DeclaresTheObjectClass(this MetadataReader reader)
-    {
-        return reader.DeclaresType(IsTheObjectClass);
-    }
-
-    private static bool IsTheObjectClass(this MetadataReader reader, TypeDefinition typeDef)
-    {
-        return typeDef.BaseType.IsNil &&
-            reader.IsPublicNonInterfaceType(typeDef, "System", "Object");
-    }
-
-    internal static bool DeclaresType(this MetadataReader reader, Func<MetadataReader, TypeDefinition, bool> predicate)
-    {
-        foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
+        private static bool IsTheObjectClass(this MetadataReader reader, TypeDefinition typeDef)
         {
-            try
+            return typeDef.BaseType.IsNil &&
+                reader.IsPublicNonInterfaceType(typeDef, "System", "Object");
+        }
+
+        internal static bool DeclaresType(this MetadataReader reader, Func<MetadataReader, TypeDefinition, bool> predicate)
+        {
+            foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
             {
-                var typeDef = reader.GetTypeDefinition(handle);
-                if (predicate(reader, typeDef))
+                try
                 {
-                    return true;
+                    var typeDef = reader.GetTypeDefinition(handle);
+                    if (predicate(reader, typeDef))
+                    {
+                        return true;
+                    }
+                }
+                catch (BadImageFormatException)
+                {
                 }
             }
-            catch (BadImageFormatException)
-            {
-            }
+
+            return false;
         }
 
-        return false;
-    }
-
-    /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-    internal static bool IsPublicNonInterfaceType(this MetadataReader reader, TypeDefinition typeDef, string namespaceName, string typeName)
-    {
-        return (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
-            reader.StringComparer.Equals(typeDef.Name, typeName) &&
-            reader.StringComparer.Equals(typeDef.Namespace, namespaceName);
+        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
+        internal static bool IsPublicNonInterfaceType(this MetadataReader reader, TypeDefinition typeDef, string namespaceName, string typeName)
+        {
+            return (typeDef.Attributes & (TypeAttributes.Public | TypeAttributes.Interface)) == TypeAttributes.Public &&
+                reader.StringComparer.Equals(typeDef.Name, typeName) &&
+                reader.StringComparer.Equals(typeDef.Namespace, namespaceName);
+        }
     }
 }

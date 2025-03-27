@@ -11,169 +11,170 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit;
-
-internal abstract class NamedTypeReference : Cci.INamedTypeReference
+namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
-    protected readonly NamedTypeSymbol UnderlyingNamedType;
-
-    public NamedTypeReference(NamedTypeSymbol underlyingNamedType)
+    internal abstract class NamedTypeReference : Cci.INamedTypeReference
     {
-        Debug.Assert((object)underlyingNamedType != null);
+        protected readonly NamedTypeSymbol UnderlyingNamedType;
 
-        this.UnderlyingNamedType = underlyingNamedType;
-    }
-
-    ushort Cci.INamedTypeReference.GenericParameterCount
-    {
-        get
+        public NamedTypeReference(NamedTypeSymbol underlyingNamedType)
         {
-            return (ushort)UnderlyingNamedType.Arity;
-        }
-    }
+            Debug.Assert((object)underlyingNamedType != null);
 
-    bool Cci.INamedTypeReference.MangleName
-    {
-        get
-        {
-            return UnderlyingNamedType.MangleName;
+            this.UnderlyingNamedType = underlyingNamedType;
         }
-    }
+
+        ushort Cci.INamedTypeReference.GenericParameterCount
+        {
+            get
+            {
+                return (ushort)UnderlyingNamedType.Arity;
+            }
+        }
+
+        bool Cci.INamedTypeReference.MangleName
+        {
+            get
+            {
+                return UnderlyingNamedType.MangleName;
+            }
+        }
 
 #nullable enable
-    string? Cci.INamedTypeReference.AssociatedFileIdentifier
-    {
-        get
+        string? Cci.INamedTypeReference.AssociatedFileIdentifier
         {
-            return UnderlyingNamedType.GetFileLocalTypeMetadataNamePrefix();
+            get
+            {
+                return UnderlyingNamedType.GetFileLocalTypeMetadataNamePrefix();
+            }
         }
-    }
 #nullable disable
 
-    string Cci.INamedEntity.Name
-    {
-        get
+        string Cci.INamedEntity.Name
         {
-            return UnderlyingNamedType.MetadataName;
+            get
+            {
+                return UnderlyingNamedType.MetadataName;
+            }
         }
-    }
 
-    bool Cci.ITypeReference.IsEnum
-    {
-        get
+        bool Cci.ITypeReference.IsEnum
         {
-            return UnderlyingNamedType.IsEnumType();
+            get
+            {
+                return UnderlyingNamedType.IsEnumType();
+            }
         }
-    }
 
-    bool Cci.ITypeReference.IsValueType
-    {
-        get
+        bool Cci.ITypeReference.IsValueType
         {
-            return UnderlyingNamedType.IsValueType;
+            get
+            {
+                return UnderlyingNamedType.IsValueType;
+            }
         }
-    }
 
-    Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
-    {
-        return null;
-    }
-
-    Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
-    {
-        get
-        {
-            return Cci.PrimitiveTypeCode.NotPrimitive;
-        }
-    }
-
-    TypeDefinitionHandle Cci.ITypeReference.TypeDef
-    {
-        get
-        {
-            return default(TypeDefinitionHandle);
-        }
-    }
-
-    Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
-    {
-        get
+        Cci.ITypeDefinition Cci.ITypeReference.GetResolvedType(EmitContext context)
         {
             return null;
         }
-    }
 
-    public abstract Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
-    {
-        get;
-    }
+        Cci.PrimitiveTypeCode Cci.ITypeReference.TypeCode
+        {
+            get
+            {
+                return Cci.PrimitiveTypeCode.NotPrimitive;
+            }
+        }
 
-    Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
-    {
-        get
+        TypeDefinitionHandle Cci.ITypeReference.TypeDef
+        {
+            get
+            {
+                return default(TypeDefinitionHandle);
+            }
+        }
+
+        Cci.IGenericMethodParameterReference Cci.ITypeReference.AsGenericMethodParameterReference
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public abstract Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference
+        {
+            get;
+        }
+
+        Cci.IGenericTypeParameterReference Cci.ITypeReference.AsGenericTypeParameterReference
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
         {
             return null;
         }
-    }
 
-    Cci.INamespaceTypeDefinition Cci.ITypeReference.AsNamespaceTypeDefinition(EmitContext context)
-    {
-        return null;
-    }
+        public abstract Cci.INamespaceTypeReference AsNamespaceTypeReference
+        {
+            get;
+        }
 
-    public abstract Cci.INamespaceTypeReference AsNamespaceTypeReference
-    {
-        get;
-    }
+        Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
+        {
+            return null;
+        }
 
-    Cci.INestedTypeDefinition Cci.ITypeReference.AsNestedTypeDefinition(EmitContext context)
-    {
-        return null;
-    }
+        public abstract Cci.INestedTypeReference AsNestedTypeReference
+        {
+            get;
+        }
 
-    public abstract Cci.INestedTypeReference AsNestedTypeReference
-    {
-        get;
-    }
+        public abstract Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
+        {
+            get;
+        }
 
-    public abstract Cci.ISpecializedNestedTypeReference AsSpecializedNestedTypeReference
-    {
-        get;
-    }
+        Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
+        {
+            return null;
+        }
 
-    Cci.ITypeDefinition Cci.ITypeReference.AsTypeDefinition(EmitContext context)
-    {
-        return null;
-    }
+        public override string ToString()
+        {
+            return UnderlyingNamedType.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+        }
 
-    public override string ToString()
-    {
-        return UnderlyingNamedType.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
-    }
+        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+        }
 
-    IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-    {
-        return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-    }
+        public abstract void Dispatch(Cci.MetadataVisitor visitor);
 
-    public abstract void Dispatch(Cci.MetadataVisitor visitor);
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        {
+            return null;
+        }
 
-    Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-    {
-        return null;
-    }
+        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => UnderlyingNamedType;
 
-    CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => UnderlyingNamedType;
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    public sealed override bool Equals(object obj)
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    public sealed override int GetHashCode()
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

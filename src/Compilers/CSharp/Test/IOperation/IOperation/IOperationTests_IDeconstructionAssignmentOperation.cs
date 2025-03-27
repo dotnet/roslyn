@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IDeconstructionAssignmentOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_01()
+    public class IOperationTests_IDeconstructionAssignmentOperation : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_01()
+        {
+            string source = @"
 class C
 {
     void M(bool b, int i1, int i2, int i3, int i4, int i5, int i6)
@@ -27,9 +27,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -108,14 +108,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_02()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_02()
+        {
+            string source = @"
 class C
 {
     void M(bool b)
@@ -125,9 +125,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -193,14 +193,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_03()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_03()
+        {
+            string source = @"
 class C
 {
     void M(bool b)
@@ -210,9 +210,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -277,14 +277,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_04()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_04()
+        {
+            string source = @"
 class C
 {
     void M(bool b, C c1)
@@ -300,9 +300,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -359,14 +359,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void MixedDeconstruction()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MixedDeconstruction()
+        {
+            string source = @"
 class C
 {
     void M(bool b)
@@ -375,9 +375,9 @@ class C
         (int i1, i2) = b ? (1, 2) : (3, 4);
     }/*</bind>*/
 }";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Int32 i2
     Local_2: System.Int32 i1
@@ -415,9 +415,9 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null) (Synt
                 Elements(2):
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')";
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -479,14 +479,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void MixedNestedDeconstruction()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MixedNestedDeconstruction()
+        {
+            string source = @"
 class C
 {
     void M(bool b)
@@ -495,9 +495,9 @@ class C
         (int i1, (i2, int i3)) = b ? (1, (2, 3)) : (4, (5, 6));
     }/*</bind>*/
 }";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockOperation (2 statements, 3 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Int32 i2
     Local_2: System.Int32 i1
@@ -549,9 +549,9 @@ IBlockOperation (2 statements, 3 locals) (OperationKind.Block, Type: null) (Synt
                       Elements(2):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')";
-        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -625,14 +625,14 @@ Block[B0] - Entry
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_06()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_06()
+        {
+            string source = @"
 class C
 {
     int fI1 = 0;
@@ -643,13 +643,13 @@ class C
 }
 
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         (c1?.fI1, i1) = b ? (1, 2) : (3, 4);
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "c1?.fI1").WithLocation(7, 10),
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (c1?.fI1, i1) = b ? (1, 2) : (3, 4);
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "c1?.fI1").WithLocation(7, 10),
+            };
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -774,14 +774,14 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_07()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_07()
+        {
+            string source = @"
 class C
 {
     void M(bool b, int i1, int i2, int i3)
@@ -791,9 +791,9 @@ class C
 }
 
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -880,14 +880,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void DeconstructionFlow_08()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DeconstructionFlow_08()
+        {
+            string source = @"
 class C
 {
     void M(int i1, int i2, int i3, int i4, int i5, int? i6, int i7)
@@ -897,9 +897,9 @@ class C
     }/*</bind>*/
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1012,6 +1012,7 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

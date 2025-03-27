@@ -5,31 +5,32 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
-
-internal partial class Lexer
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    internal readonly struct Interpolation
+    internal partial class Lexer
     {
-        public readonly Range OpenBraceRange;
-
-        /// <summary>
-        /// Range of the format colon in the interpolation.  Empty if there is no colon.
-        /// </summary>
-        public readonly Range ColonRange;
-
-        /// <summary>
-        /// Range of the close brace.  Empty if there was no close brace (an error condition).
-        /// </summary>
-        public readonly Range CloseBraceRange;
-
-        public bool HasColon => ColonRange.Start.Value != ColonRange.End.Value;
-
-        public Interpolation(Range openBraceRange, Range colonRange, Range closeBraceRange)
+        internal readonly struct Interpolation
         {
-            OpenBraceRange = openBraceRange;
-            ColonRange = colonRange;
-            CloseBraceRange = closeBraceRange;
+            public readonly Range OpenBraceRange;
+
+            /// <summary>
+            /// Range of the format colon in the interpolation.  Empty if there is no colon.
+            /// </summary>
+            public readonly Range ColonRange;
+
+            /// <summary>
+            /// Range of the close brace.  Empty if there was no close brace (an error condition).
+            /// </summary>
+            public readonly Range CloseBraceRange;
+
+            public bool HasColon => ColonRange.Start.Value != ColonRange.End.Value;
+
+            public Interpolation(Range openBraceRange, Range colonRange, Range closeBraceRange)
+            {
+                OpenBraceRange = openBraceRange;
+                ColonRange = colonRange;
+                CloseBraceRange = closeBraceRange;
+            }
         }
     }
 }

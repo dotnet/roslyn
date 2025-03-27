@@ -8,30 +8,31 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    private readonly IRazorDocumentExcerptServiceImplementation _impl;
-
-    public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
-        => _impl = impl;
-
-    public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
+    internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
     {
-        var razorMode = mode switch
+        private readonly IRazorDocumentExcerptServiceImplementation _impl;
+
+        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
+            => _impl = impl;
+
+        public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
         {
-            ExcerptMode.SingleLine => RazorExcerptMode.SingleLine,
-            ExcerptMode.Tooltip => RazorExcerptMode.Tooltip,
-            _ => throw ExceptionUtilities.UnexpectedValue(mode),
-        };
+            var razorMode = mode switch
+            {
+                ExcerptMode.SingleLine => RazorExcerptMode.SingleLine,
+                ExcerptMode.Tooltip => RazorExcerptMode.Tooltip,
+                _ => throw ExceptionUtilities.UnexpectedValue(mode),
+            };
 
-        var result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
+            var result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
 
-        if (result is null)
-            return null;
+            if (result is null)
+                return null;
 
-        var razorExcerpt = result.Value;
-        return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
+            var razorExcerpt = result.Value;
+            return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
+        }
     }
 }

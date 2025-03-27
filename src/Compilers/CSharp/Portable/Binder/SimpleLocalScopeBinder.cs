@@ -10,30 +10,31 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class SimpleLocalScopeBinder : LocalScopeBinder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ImmutableArray<LocalSymbol> _locals;
-
-    public SimpleLocalScopeBinder(ImmutableArray<LocalSymbol> locals, Binder next) :
-        base(next)
+    internal sealed class SimpleLocalScopeBinder : LocalScopeBinder
     {
-        _locals = locals;
-    }
+        private readonly ImmutableArray<LocalSymbol> _locals;
 
-    protected override ImmutableArray<LocalSymbol> BuildLocals()
-    {
-        return _locals;
-    }
+        public SimpleLocalScopeBinder(ImmutableArray<LocalSymbol> locals, Binder next) :
+            base(next)
+        {
+            _locals = locals;
+        }
 
-    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        {
+            return _locals;
+        }
 
-    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-    {
-        throw ExceptionUtilities.Unreachable();
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

@@ -8,235 +8,236 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    [return: NotNullIfNotNull(nameof(type))]
-    public virtual TypeSymbol? VisitType(TypeSymbol? type)
+    internal abstract partial class BoundTreeRewriter : BoundTreeVisitor
     {
-        return type;
-    }
-
-    public ImmutableArray<T> VisitList<T>(ImmutableArray<T> list) where T : BoundNode
-    {
-        if (list.IsDefault)
+        [return: NotNullIfNotNull(nameof(type))]
+        public virtual TypeSymbol? VisitType(TypeSymbol? type)
         {
-            return list;
+            return type;
         }
 
-        return DoVisitList(list);
-    }
-
-    private ImmutableArray<T> DoVisitList<T>(ImmutableArray<T> list) where T : BoundNode
-    {
-        ArrayBuilder<T>? newList = null;
-        for (int i = 0; i < list.Length; i++)
+        public ImmutableArray<T> VisitList<T>(ImmutableArray<T> list) where T : BoundNode
         {
-            var item = list[i];
-            System.Diagnostics.Debug.Assert(item != null);
-
-            var visited = this.Visit(item);
-            if (newList == null && item != visited)
+            if (list.IsDefault)
             {
-                newList = ArrayBuilder<T>.GetInstance();
-                if (i > 0)
+                return list;
+            }
+
+            return DoVisitList(list);
+        }
+
+        private ImmutableArray<T> DoVisitList<T>(ImmutableArray<T> list) where T : BoundNode
+        {
+            ArrayBuilder<T>? newList = null;
+            for (int i = 0; i < list.Length; i++)
+            {
+                var item = list[i];
+                System.Diagnostics.Debug.Assert(item != null);
+
+                var visited = this.Visit(item);
+                if (newList == null && item != visited)
                 {
-                    newList.AddRange(list, i);
+                    newList = ArrayBuilder<T>.GetInstance();
+                    if (i > 0)
+                    {
+                        newList.AddRange(list, i);
+                    }
+                }
+
+                if (newList != null && visited != null)
+                {
+                    newList.Add((T)visited);
                 }
             }
 
-            if (newList != null && visited != null)
+            if (newList != null)
             {
-                newList.Add((T)visited);
+                return newList.ToImmutableAndFree();
             }
-        }
 
-        if (newList != null)
+            return list;
+        }
+    }
+
+    internal abstract class BoundTreeRewriterWithStackGuard : BoundTreeRewriter
+    {
+        private int _recursionDepth;
+
+        protected BoundTreeRewriterWithStackGuard()
+        { }
+
+        protected BoundTreeRewriterWithStackGuard(int recursionDepth)
         {
-            return newList.ToImmutableAndFree();
+            _recursionDepth = recursionDepth;
         }
 
-        return list;
-    }
-}
+        protected int RecursionDepth => _recursionDepth;
 
-internal abstract class BoundTreeRewriterWithStackGuard : BoundTreeRewriter
-{
-    private int _recursionDepth;
+        [return: NotNullIfNotNull(nameof(node))]
+        public override BoundNode? Visit(BoundNode? node)
+        {
+            if (node is BoundExpression or BoundPattern)
+            {
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
+            }
 
-    protected BoundTreeRewriterWithStackGuard()
-    { }
+            return base.Visit(node);
+        }
 
-    protected BoundTreeRewriterWithStackGuard(int recursionDepth)
-    {
-        _recursionDepth = recursionDepth;
-    }
-
-    protected int RecursionDepth => _recursionDepth;
-
-    [return: NotNullIfNotNull(nameof(node))]
-    public override BoundNode? Visit(BoundNode? node)
-    {
-        if (node is BoundExpression or BoundPattern)
+        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
         {
             return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        return base.Visit(node);
-    }
-
-    protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
-    {
-        return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
-    }
-
-    protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
-    {
-        return base.Visit(node);
-    }
-}
-
-internal abstract class BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeRewriterWithStackGuard
-{
-    protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
-    { }
-
-    protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
-        : base(recursionDepth)
-    { }
-
-    public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
-    {
-        BoundExpression child = node.Left;
-
-        if (child.Kind != BoundKind.BinaryOperator)
+        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return base.VisitBinaryOperator(node);
+            return base.Visit(node);
         }
+    }
 
-        var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-        stack.Push(node);
+    internal abstract class BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeRewriterWithStackGuard
+    {
+        protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
+        { }
 
-        BoundBinaryOperator binary = (BoundBinaryOperator)child;
+        protected BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
+            : base(recursionDepth)
+        { }
 
-        while (true)
+        public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
-            stack.Push(binary);
-            child = binary.Left;
+            BoundExpression child = node.Left;
 
             if (child.Kind != BoundKind.BinaryOperator)
             {
-                break;
+                return base.VisitBinaryOperator(node);
             }
 
-            binary = (BoundBinaryOperator)child;
-        }
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
 
-        var left = (BoundExpression?)this.Visit(child);
-        Debug.Assert(left is { });
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
 
-        do
-        {
-            binary = stack.Pop();
-            var right = (BoundExpression?)this.Visit(binary.Right);
-            Debug.Assert(right is { });
-            var type = this.VisitType(binary.Type);
-            left = binary.Update(binary.OperatorKind, binary.Data, binary.ResultKind, left, right, type);
-        }
-        while (stack.Count > 0);
-
-        Debug.Assert((object)binary == node);
-        stack.Free();
-
-        return left;
-    }
-
-    public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
-    {
-        if (node.AlternativeOpt is not BoundIfStatement ifStatement)
-        {
-            return base.VisitIfStatement(node);
-        }
-
-        var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
-        stack.Push(node);
-
-        BoundStatement? alternative;
-        while (true)
-        {
-            stack.Push(ifStatement);
-
-            alternative = ifStatement.AlternativeOpt;
-            if (alternative is not BoundIfStatement nextIfStatement)
+            while (true)
             {
-                break;
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
             }
 
-            ifStatement = nextIfStatement;
+            var left = (BoundExpression?)this.Visit(child);
+            Debug.Assert(left is { });
+
+            do
+            {
+                binary = stack.Pop();
+                var right = (BoundExpression?)this.Visit(binary.Right);
+                Debug.Assert(right is { });
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, binary.Data, binary.ResultKind, left, right, type);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
 
-        alternative = (BoundStatement?)this.Visit(alternative);
-
-        do
+        public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
-            ifStatement = stack.Pop();
+            if (node.AlternativeOpt is not BoundIfStatement ifStatement)
+            {
+                return base.VisitIfStatement(node);
+            }
 
-            BoundExpression condition = (BoundExpression)this.Visit(ifStatement.Condition);
-            BoundStatement consequence = (BoundStatement)this.Visit(ifStatement.Consequence);
+            var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
+            stack.Push(node);
 
-            alternative = ifStatement.Update(condition, consequence, alternative);
+            BoundStatement? alternative;
+            while (true)
+            {
+                stack.Push(ifStatement);
+
+                alternative = ifStatement.AlternativeOpt;
+                if (alternative is not BoundIfStatement nextIfStatement)
+                {
+                    break;
+                }
+
+                ifStatement = nextIfStatement;
+            }
+
+            alternative = (BoundStatement?)this.Visit(alternative);
+
+            do
+            {
+                ifStatement = stack.Pop();
+
+                BoundExpression condition = (BoundExpression)this.Visit(ifStatement.Condition);
+                BoundStatement consequence = (BoundStatement)this.Visit(ifStatement.Consequence);
+
+                alternative = ifStatement.Update(condition, consequence, alternative);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)ifStatement == node);
+            stack.Free();
+
+            return alternative;
         }
-        while (stack.Count > 0);
 
-        Debug.Assert((object)ifStatement == node);
-        stack.Free();
-
-        return alternative;
-    }
-
-    public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
-    {
-        BoundPattern child = node.Left;
-
-        if (child.Kind != BoundKind.BinaryPattern)
+        public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
         {
-            return base.VisitBinaryPattern(node);
-        }
-
-        var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
-        stack.Push(node);
-
-        BoundBinaryPattern binary = (BoundBinaryPattern)child;
-
-        while (true)
-        {
-            stack.Push(binary);
-            child = binary.Left;
+            BoundPattern child = node.Left;
 
             if (child.Kind != BoundKind.BinaryPattern)
             {
-                break;
+                return base.VisitBinaryPattern(node);
             }
 
-            binary = (BoundBinaryPattern)child;
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryPattern binary = (BoundBinaryPattern)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryPattern)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryPattern)child;
+            }
+
+            var left = (BoundPattern?)this.Visit(child);
+            Debug.Assert(left is { });
+
+            do
+            {
+                binary = stack.Pop();
+                var right = (BoundPattern?)this.Visit(binary.Right);
+                Debug.Assert(right is { });
+                left = binary.Update(binary.Disjunction, left, right, VisitType(binary.InputType), VisitType(binary.NarrowedType));
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
-
-        var left = (BoundPattern?)this.Visit(child);
-        Debug.Assert(left is { });
-
-        do
-        {
-            binary = stack.Pop();
-            var right = (BoundPattern?)this.Visit(binary.Right);
-            Debug.Assert(right is { });
-            left = binary.Update(binary.Disjunction, left, right, VisitType(binary.InputType), VisitType(binary.NarrowedType));
-        }
-        while (stack.Count > 0);
-
-        Debug.Assert((object)binary == node);
-        stack.Free();
-
-        return left;
     }
 }

@@ -8,18 +8,19 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace BuildValidator;
-
-internal static class Extensions
+namespace BuildValidator
 {
-#if !NETCOREAPP
-    internal static unsafe void Write(this FileStream stream, ReadOnlySpan<byte> span)
+    internal static class Extensions
     {
-        fixed (byte* dataPointer = span)
+#if !NETCOREAPP
+        internal static unsafe void Write(this FileStream stream, ReadOnlySpan<byte> span)
         {
-            using var unmanagedStream = new UnmanagedMemoryStream(dataPointer, span.Length);
-            unmanagedStream.CopyTo(stream);
+            fixed (byte* dataPointer = span)
+            {
+                using var unmanagedStream = new UnmanagedMemoryStream(dataPointer, span.Length);
+                unmanagedStream.CopyTo(stream);
+            }
         }
-    }
 #endif
+    }
 }

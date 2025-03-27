@@ -4,22 +4,23 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Emit;
-
-internal readonly struct EncHoistedLocalMetadata
+namespace Microsoft.CodeAnalysis.Emit
 {
-    public readonly string Name;
-    public readonly Cci.ITypeReference Type;
-    public readonly SynthesizedLocalKind SynthesizedKind;
-
-    public EncHoistedLocalMetadata(string name, Cci.ITypeReference type, SynthesizedLocalKind synthesizedKind)
+    internal readonly struct EncHoistedLocalMetadata
     {
-        Debug.Assert(name != null);
-        Debug.Assert(type != null);
-        Debug.Assert(synthesizedKind.IsLongLived());
+        public readonly string Name;
+        public readonly Cci.ITypeReference Type;
+        public readonly SynthesizedLocalKind SynthesizedKind;
 
-        this.Name = name;
-        this.Type = type;
-        this.SynthesizedKind = synthesizedKind;
+        public EncHoistedLocalMetadata(string name, Cci.ITypeReference type, SynthesizedLocalKind synthesizedKind)
+        {
+            Debug.Assert(name != null);
+            Debug.Assert(type != null);
+            Debug.Assert(synthesizedKind.IsLongLived());
+
+            this.Name = name;
+            this.Type = type;
+            this.SynthesizedKind = synthesizedKind;
+        }
     }
 }

@@ -8,121 +8,122 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
-/// <summary>
-/// Returns a string with all symbols containing nullable attributes.
-/// </summary>
-internal sealed class NullableAttributesVisitor : TestAttributesVisitor
+namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    internal static string GetString(PEModuleSymbol module)
+    /// <summary>
+    /// Returns a string with all symbols containing nullable attributes.
+    /// </summary>
+    internal sealed class NullableAttributesVisitor : TestAttributesVisitor
     {
-        var builder = new StringBuilder();
-        var visitor = new NullableAttributesVisitor(module, builder);
-        visitor.Visit(module);
-        return builder.ToString();
-    }
-
-    private readonly PEModuleSymbol _module;
-    private CSharpAttributeData? _nullableContext;
-
-    private NullableAttributesVisitor(PEModuleSymbol module, StringBuilder builder) : base(builder)
-    {
-        _module = module;
-    }
-
-    public override void VisitNamedType(NamedTypeSymbol type)
-    {
-        var previousContext = _nullableContext;
-        _nullableContext = GetNullableContextAttribute(type.GetAttributes()) ?? _nullableContext;
-
-        base.VisitNamedType(type);
-
-        _nullableContext = previousContext;
-    }
-
-    public override void VisitMethod(MethodSymbol method)
-    {
-        var previousContext = _nullableContext;
-        _nullableContext = GetNullableContextAttribute(method.GetAttributes()) ?? _nullableContext;
-
-        base.VisitMethod(method);
-
-        _nullableContext = previousContext;
-    }
-
-    protected override SymbolDisplayFormat DisplayFormat => SymbolDisplayFormat.TestFormatWithConstraints.
-        WithMemberOptions(
-            SymbolDisplayMemberOptions.IncludeParameters |
-            SymbolDisplayMemberOptions.IncludeType |
-            SymbolDisplayMemberOptions.IncludeRef |
-            SymbolDisplayMemberOptions.IncludeExplicitInterface);
-
-    protected override void ReportSymbol(Symbol symbol)
-    {
-        var nullableContextAttribute = GetNullableContextAttribute(symbol.GetAttributes());
-        var nullableAttribute = GetNullableAttribute((symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes());
-
-        if (nullableContextAttribute == null && nullableAttribute == null)
+        internal static string GetString(PEModuleSymbol module)
         {
-            if (_nullableContext == null)
+            var builder = new StringBuilder();
+            var visitor = new NullableAttributesVisitor(module, builder);
+            visitor.Visit(module);
+            return builder.ToString();
+        }
+
+        private readonly PEModuleSymbol _module;
+        private CSharpAttributeData? _nullableContext;
+
+        private NullableAttributesVisitor(PEModuleSymbol module, StringBuilder builder) : base(builder)
+        {
+            _module = module;
+        }
+
+        public override void VisitNamedType(NamedTypeSymbol type)
+        {
+            var previousContext = _nullableContext;
+            _nullableContext = GetNullableContextAttribute(type.GetAttributes()) ?? _nullableContext;
+
+            base.VisitNamedType(type);
+
+            _nullableContext = previousContext;
+        }
+
+        public override void VisitMethod(MethodSymbol method)
+        {
+            var previousContext = _nullableContext;
+            _nullableContext = GetNullableContextAttribute(method.GetAttributes()) ?? _nullableContext;
+
+            base.VisitMethod(method);
+
+            _nullableContext = previousContext;
+        }
+
+        protected override SymbolDisplayFormat DisplayFormat => SymbolDisplayFormat.TestFormatWithConstraints.
+            WithMemberOptions(
+                SymbolDisplayMemberOptions.IncludeParameters |
+                SymbolDisplayMemberOptions.IncludeType |
+                SymbolDisplayMemberOptions.IncludeRef |
+                SymbolDisplayMemberOptions.IncludeExplicitInterface);
+
+        protected override void ReportSymbol(Symbol symbol)
+        {
+            var nullableContextAttribute = GetNullableContextAttribute(symbol.GetAttributes());
+            var nullableAttribute = GetNullableAttribute((symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes());
+
+            if (nullableContextAttribute == null && nullableAttribute == null)
             {
-                // No explicit attributes on this symbol or above.
-                return;
+                if (_nullableContext == null)
+                {
+                    // No explicit attributes on this symbol or above.
+                    return;
+                }
+                // No explicit attributes on this symbol. Check if nullability metadata was dropped.
+                if (!_module.ShouldDecodeNullableAttributes(GetAccessSymbol(symbol)))
+                {
+                    return;
+                }
             }
-            // No explicit attributes on this symbol. Check if nullability metadata was dropped.
-            if (!_module.ShouldDecodeNullableAttributes(GetAccessSymbol(symbol)))
+
+            ReportContainingSymbols(symbol);
+            _builder.Append(GetIndentString(symbol));
+
+            if (nullableContextAttribute != null)
             {
-                return;
+                _builder.Append($"{ReportAttribute(nullableContextAttribute)} ");
             }
-        }
 
-        ReportContainingSymbols(symbol);
-        _builder.Append(GetIndentString(symbol));
-
-        if (nullableContextAttribute != null)
-        {
-            _builder.Append($"{ReportAttribute(nullableContextAttribute)} ");
-        }
-
-        if (nullableAttribute != null)
-        {
-            _builder.Append($"{ReportAttribute(nullableAttribute)} ");
-        }
-
-        _builder.AppendLine(symbol.ToDisplayString(DisplayFormat));
-        _reported.Add(symbol);
-    }
-
-    private static Symbol GetAccessSymbol(Symbol symbol)
-    {
-        while (true)
-        {
-            switch (symbol.Kind)
+            if (nullableAttribute != null)
             {
-                case SymbolKind.Parameter:
-                case SymbolKind.TypeParameter:
-                    symbol = symbol.ContainingSymbol;
-                    break;
-                default:
-                    return symbol;
+                _builder.Append($"{ReportAttribute(nullableAttribute)} ");
+            }
+
+            _builder.AppendLine(symbol.ToDisplayString(DisplayFormat));
+            _reported.Add(symbol);
+        }
+
+        private static Symbol GetAccessSymbol(Symbol symbol)
+        {
+            while (true)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Parameter:
+                    case SymbolKind.TypeParameter:
+                        symbol = symbol.ContainingSymbol;
+                        break;
+                    default:
+                        return symbol;
+                }
             }
         }
-    }
 
-    private static CSharpAttributeData? GetNullableContextAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
-        GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableContextAttribute");
+        private static CSharpAttributeData? GetNullableContextAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
+            GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableContextAttribute");
 
-    private static CSharpAttributeData? GetNullableAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
-        GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableAttribute");
+        private static CSharpAttributeData? GetNullableAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
+            GetAttribute(attributes, "System.Runtime.CompilerServices", "NullableAttribute");
 
-    protected override bool TypeRequiresAttribute(TypeSymbol? type)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        protected override bool TypeRequiresAttribute(TypeSymbol? type)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    protected override CSharpAttributeData GetTargetAttribute(ImmutableArray<CSharpAttributeData> attributes)
-    {
-        throw ExceptionUtilities.Unreachable();
+        protected override CSharpAttributeData GetTargetAttribute(ImmutableArray<CSharpAttributeData> attributes)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

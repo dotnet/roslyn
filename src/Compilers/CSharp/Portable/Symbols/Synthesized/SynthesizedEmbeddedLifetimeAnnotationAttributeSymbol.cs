@@ -5,28 +5,29 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SynthesizedEmbeddedScopedRefAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly ImmutableArray<MethodSymbol> _constructors;
-
-    public SynthesizedEmbeddedScopedRefAttributeSymbol(
-        string name,
-        NamespaceSymbol containingNamespace,
-        ModuleSymbol containingModule,
-        NamedTypeSymbol systemAttributeType)
-        : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
+    internal sealed class SynthesizedEmbeddedScopedRefAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
-        _constructors = ImmutableArray.Create<MethodSymbol>(
-            new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
-                this,
-                getParameters: m => ImmutableArray<ParameterSymbol>.Empty,
-                getConstructorBody: (_, _, _) => { }));
+        private readonly ImmutableArray<MethodSymbol> _constructors;
+
+        public SynthesizedEmbeddedScopedRefAttributeSymbol(
+            string name,
+            NamespaceSymbol containingNamespace,
+            ModuleSymbol containingModule,
+            NamedTypeSymbol systemAttributeType)
+            : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
+        {
+            _constructors = ImmutableArray.Create<MethodSymbol>(
+                new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
+                    this,
+                    getParameters: m => ImmutableArray<ParameterSymbol>.Empty,
+                    getConstructorBody: (_, _, _) => { }));
+        }
+
+        public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+
+        internal override AttributeUsageInfo GetAttributeUsageInfo() =>
+            new AttributeUsageInfo(AttributeTargets.Parameter, allowMultiple: false, inherited: false);
     }
-
-    public override ImmutableArray<MethodSymbol> Constructors => _constructors;
-
-    internal override AttributeUsageInfo GetAttributeUsageInfo() =>
-        new AttributeUsageInfo(AttributeTargets.Parameter, allowMultiple: false, inherited: false);
 }

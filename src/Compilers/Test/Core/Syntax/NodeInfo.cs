@@ -6,42 +6,43 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities;
-
-//Contains the information about a SyntaxNode that is difficult to get from a variable
-//just typed as SyntaxNode. This is name/type/value information for all fields and children.
-public partial class NodeInfo
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    private readonly string _className;
-    private readonly FieldInfo[] _fieldInfos;
-    private static readonly FieldInfo[] s_emptyFieldInfos = { };
-
-    public string ClassName
+    //Contains the information about a SyntaxNode that is difficult to get from a variable
+    //just typed as SyntaxNode. This is name/type/value information for all fields and children.
+    public partial class NodeInfo
     {
-        get
-        {
-            return _className;
-        }
-    }
+        private readonly string _className;
+        private readonly FieldInfo[] _fieldInfos;
+        private static readonly FieldInfo[] s_emptyFieldInfos = { };
 
-    public FieldInfo[] FieldInfos
-    {
-        get
+        public string ClassName
         {
-            if (_fieldInfos == null)
+            get
             {
-                return s_emptyFieldInfos;
-            }
-            else
-            {
-                return _fieldInfos;
+                return _className;
             }
         }
-    }
 
-    public NodeInfo(string className, FieldInfo[] fieldInfos)
-    {
-        _className = className;
-        _fieldInfos = fieldInfos;
+        public FieldInfo[] FieldInfos
+        {
+            get
+            {
+                if (_fieldInfos == null)
+                {
+                    return s_emptyFieldInfos;
+                }
+                else
+                {
+                    return _fieldInfos;
+                }
+            }
+        }
+
+        public NodeInfo(string className, FieldInfo[] fieldInfos)
+        {
+            _className = className;
+            _fieldInfos = fieldInfos;
+        }
     }
 }

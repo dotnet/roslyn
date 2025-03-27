@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class IOperationTests_IAnonymousObjectCreationOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_01()
+    public class IOperationTests_IAnonymousObjectCreationOperation : SemanticModelTestBase
     {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_01()
+        {
+            string source = @"
 using System;
 
 class C
@@ -27,7 +27,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -86,17 +86,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_02()
-    {
-        // Verify initializers that are not simple assignments.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_02()
+        {
+            // Verify initializers that are not simple assignments.
+            string source = @"
 using System;
 
 class B
@@ -113,7 +113,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -176,17 +176,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_03()
-    {
-        // Verify initializers that are mix of simple assignments and non-assignments.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_03()
+        {
+            // Verify initializers that are mix of simple assignments and non-assignments.
+            string source = @"
 using System;
 
 class C
@@ -197,7 +197,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -256,17 +256,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_04()
-    {
-        // Verify anonymous object creation in query.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_04()
+        {
+            // Verify anonymous object creation in query.
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -283,7 +283,7 @@ class C
 }
 ";
 
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -451,17 +451,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_05()
-    {
-        // Verify anonymous object creation in query with transparent identifiers.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_05()
+        {
+            // Verify anonymous object creation in query with transparent identifiers.
+            string source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -477,7 +477,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -622,17 +622,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_06()
-    {
-        // Verify anonymous object creation nested in object creation initializer.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_06()
+        {
+            // Verify anonymous object creation nested in object creation initializer.
+            string source = @"
 using System;
 
 class C
@@ -645,7 +645,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -747,17 +747,17 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_07()
-    {
-        // Verify anonymous object creation nested in anonymous object creation initializer.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_07()
+        {
+            // Verify anonymous object creation nested in anonymous object creation initializer.
+            string source = @"
 using System;
 
 class C
@@ -768,7 +768,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -866,17 +866,17 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_08()
-    {
-        // Verify anonymous object creation with no initializers.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_08()
+        {
+            // Verify anonymous object creation with no initializers.
+            string source = @"
 using System;
 
 class C
@@ -887,7 +887,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -912,17 +912,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_Error01()
-    {
-        // Duplicate property name, ensure we have same number of initializers as properties.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_Error01()
+        {
+            // Duplicate property name, ensure we have same number of initializers as properties.
+            string source = @"
 using System;
 
 class C
@@ -933,7 +933,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -992,21 +992,21 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(8,22): error CS0833: An anonymous type cannot have multiple properties with the same name
-            //         p = new { i, i };
-            Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "i").WithLocation(8, 22)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,22): error CS0833: An anonymous type cannot have multiple properties with the same name
+                //         p = new { i, i };
+                Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "i").WithLocation(8, 22)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_Error02()
-    {
-        // Missing value for property assignment.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_Error02()
+        {
+            // Missing value for property assignment.
+            string source = @"
 using System;
 
 class C
@@ -1017,7 +1017,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1066,21 +1066,21 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(8,23): error CS1525: Invalid expression term '}'
-            //         p = new { a = };
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 23)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,23): error CS1525: Invalid expression term '}'
+                //         p = new { a = };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(8, 23)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_Error03()
-    {
-        // Invalid expression as initializer target, ensure we don't drop this expression from the flow graph.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_Error03()
+        {
+            // Invalid expression as initializer target, ensure we don't drop this expression from the flow graph.
+            string source = @"
 using System;
 
 class C
@@ -1093,7 +1093,7 @@ class C
     int M2() => 0;
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1150,24 +1150,24 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-            // file.cs(8,19): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-            //         p = new { M2() = i };
-            Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "M2() = i").WithLocation(8, 19),
-            // file.cs(8,19): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         p = new { M2() = i };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "M2()").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,19): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         p = new { M2() = i };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "M2() = i").WithLocation(8, 19),
+                // file.cs(8,19): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         p = new { M2() = i };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "M2()").WithLocation(8, 19)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_NoControlFlow_Error04()
-    {
-        // Property reference with argument as an assignment target.
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_NoControlFlow_Error04()
+        {
+            // Property reference with argument as an assignment target.
+            string source = @"
 using System;
 
 class C
@@ -1178,7 +1178,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1234,23 +1234,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = new DiagnosticDescription[] {
-           // file.cs(8,19): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-            //         p = new { a[i] = j };
-            Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a[i] = j").WithLocation(8, 19),
-            // file.cs(8,19): error CS0103: The name 'a' does not exist in the current context
-            //         p = new { a[i] = j };
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 19)
-        };
+            var expectedDiagnostics = new DiagnosticDescription[] {
+               // file.cs(8,19): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         p = new { a[i] = j };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a[i] = j").WithLocation(8, 19),
+                // file.cs(8,19): error CS0103: The name 'a' does not exist in the current context
+                //         p = new { a[i] = j };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(8, 19)
+            };
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_ControlFlowInFirstInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_ControlFlowInFirstInitializer()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1261,7 +1261,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1361,16 +1361,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_ControlFlowInSecondInitializer()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_ControlFlowInSecondInitializer()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1381,7 +1381,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1481,16 +1481,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-    [Fact]
-    public void AnonymousObjectCreation_ControlFlowInMultipleInitializers()
-    {
-        string source = @"
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void AnonymousObjectCreation_ControlFlowInMultipleInitializers()
+        {
+            string source = @"
 using System;
 
 class C
@@ -1501,7 +1501,7 @@ class C
     }/*</bind>*/
 }
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1639,15 +1639,15 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AnonymousObjectCreation_NullableEnabled_PropertyMatches()
-    {
-        var source = @"
+        [Fact]
+        public void AnonymousObjectCreation_NullableEnabled_PropertyMatches()
+        {
+            var source = @"
 #nullable enable
 class C
 {
@@ -1657,7 +1657,7 @@ class C
     }
 }";
 
-        var expectedOperationTree = @"
+            var expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a, System.Object o1, System.String b>) (Syntax: 'new { a = i ... o world!"" }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'a = i1')
@@ -1682,6 +1682,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Hello world!"") (Syntax: '""Hello world!""')";
 
-        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: DiagnosticDescription.None);
+            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: DiagnosticDescription.None);
+        }
     }
 }

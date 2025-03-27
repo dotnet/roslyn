@@ -6,95 +6,96 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Information decoded from early well-known custom attributes applied on a parameter.
-/// </summary>
-internal abstract class CommonParameterEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+namespace Microsoft.CodeAnalysis
 {
-    #region DefaultParameterValue, DecimalConstant, DateTimeConstant
-    private ConstantValue _defaultParameterValue = ConstantValue.Unset;
-
-    public ConstantValue DefaultParameterValue
+    /// <summary>
+    /// Information decoded from early well-known custom attributes applied on a parameter.
+    /// </summary>
+    internal abstract class CommonParameterEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
-        get
-        {
-            return _defaultParameterValue;
-        }
-        set
-        {
-            VerifySealed(expected: false);
-            Debug.Assert(_defaultParameterValue == ConstantValue.Unset);
-            _defaultParameterValue = value;
-            SetDataStored();
-        }
-    }
-    #endregion
+        #region DefaultParameterValue, DecimalConstant, DateTimeConstant
+        private ConstantValue _defaultParameterValue = ConstantValue.Unset;
 
-    #region CallerInfoAttributes
-    private bool _hasCallerLineNumberAttribute;
-    public bool HasCallerLineNumberAttribute
-    {
-        get
+        public ConstantValue DefaultParameterValue
         {
-            VerifySealed(expected: true);
-            return _hasCallerLineNumberAttribute;
+            get
+            {
+                return _defaultParameterValue;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(_defaultParameterValue == ConstantValue.Unset);
+                _defaultParameterValue = value;
+                SetDataStored();
+            }
         }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasCallerLineNumberAttribute = value;
-            SetDataStored();
-        }
-    }
+        #endregion
 
-    private bool _hasCallerFilePathAttribute;
-    public bool HasCallerFilePathAttribute
-    {
-        get
+        #region CallerInfoAttributes
+        private bool _hasCallerLineNumberAttribute;
+        public bool HasCallerLineNumberAttribute
         {
-            VerifySealed(expected: true);
-            return _hasCallerFilePathAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCallerLineNumberAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCallerLineNumberAttribute = value;
+                SetDataStored();
+            }
         }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasCallerFilePathAttribute = value;
-            SetDataStored();
-        }
-    }
 
-    private bool _hasCallerMemberNameAttribute;
-    public bool HasCallerMemberNameAttribute
-    {
-        get
+        private bool _hasCallerFilePathAttribute;
+        public bool HasCallerFilePathAttribute
         {
-            VerifySealed(expected: true);
-            return _hasCallerMemberNameAttribute;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCallerFilePathAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCallerFilePathAttribute = value;
+                SetDataStored();
+            }
         }
-        set
-        {
-            VerifySealed(expected: false);
-            _hasCallerMemberNameAttribute = value;
-            SetDataStored();
-        }
-    }
 
-    private int _argumentExpressionParameterIndex = -1;
-    public int CallerArgumentExpressionParameterIndex
-    {
-        get
+        private bool _hasCallerMemberNameAttribute;
+        public bool HasCallerMemberNameAttribute
         {
-            VerifySealed(expected: true);
-            return _argumentExpressionParameterIndex;
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCallerMemberNameAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCallerMemberNameAttribute = value;
+                SetDataStored();
+            }
         }
-        set
+
+        private int _argumentExpressionParameterIndex = -1;
+        public int CallerArgumentExpressionParameterIndex
         {
-            VerifySealed(expected: false);
-            _argumentExpressionParameterIndex = value;
-            SetDataStored();
+            get
+            {
+                VerifySealed(expected: true);
+                return _argumentExpressionParameterIndex;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _argumentExpressionParameterIndex = value;
+                SetDataStored();
+            }
         }
+        #endregion
     }
-    #endregion
 }

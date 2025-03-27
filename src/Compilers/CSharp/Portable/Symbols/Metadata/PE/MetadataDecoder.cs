@@ -13,600 +13,601 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-
-/// <summary>
-/// Helper class to resolve metadata tokens and signatures.
-/// </summary>
-internal class MetadataDecoder : MetadataDecoder<PEModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol>
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     /// <summary>
-    /// Type context for resolving generic type arguments.
+    /// Helper class to resolve metadata tokens and signatures.
     /// </summary>
-    private readonly PENamedTypeSymbol _typeContextOpt;
-
-    /// <summary>
-    /// Method context for resolving generic method type arguments.
-    /// </summary>
-    private readonly PEMethodSymbol _methodContextOpt;
-
-    public MetadataDecoder(
-        PEModuleSymbol moduleSymbol,
-        PENamedTypeSymbol context) :
-        this(moduleSymbol, context, null)
+    internal class MetadataDecoder : MetadataDecoder<PEModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol>
     {
-    }
+        /// <summary>
+        /// Type context for resolving generic type arguments.
+        /// </summary>
+        private readonly PENamedTypeSymbol _typeContextOpt;
 
-    public MetadataDecoder(
-        PEModuleSymbol moduleSymbol,
-        PEMethodSymbol context) :
-        this(moduleSymbol, (PENamedTypeSymbol)context.ContainingType, context)
-    {
-    }
+        /// <summary>
+        /// Method context for resolving generic method type arguments.
+        /// </summary>
+        private readonly PEMethodSymbol _methodContextOpt;
 
-    public MetadataDecoder(
-        PEModuleSymbol moduleSymbol) :
-        this(moduleSymbol, null, null)
-    {
-    }
-
-    private MetadataDecoder(PEModuleSymbol moduleSymbol, PENamedTypeSymbol typeContextOpt, PEMethodSymbol methodContextOpt)
-        // TODO (tomat): if the containing assembly is a source assembly and we are about to decode assembly level attributes, we run into a cycle,
-        // so for now ignore the assembly identity.
-        : base(moduleSymbol.Module, (moduleSymbol.ContainingAssembly is PEAssemblySymbol) ? moduleSymbol.ContainingAssembly.Identity : null, SymbolFactory.Instance, moduleSymbol)
-    {
-        Debug.Assert((object)moduleSymbol != null);
-
-        _typeContextOpt = typeContextOpt;
-        _methodContextOpt = methodContextOpt;
-    }
-
-    internal PEModuleSymbol ModuleSymbol
-    {
-        get { return moduleSymbol; }
-    }
-
-    protected override TypeSymbol GetGenericMethodTypeParamSymbol(int position)
-    {
-        if ((object)_methodContextOpt == null)
+        public MetadataDecoder(
+            PEModuleSymbol moduleSymbol,
+            PENamedTypeSymbol context) :
+            this(moduleSymbol, context, null)
         {
-            return new UnsupportedMetadataTypeSymbol(); // type parameter not associated with a method
         }
 
-        var typeParameters = _methodContextOpt.TypeParameters;
-
-        if (typeParameters.Length <= position)
+        public MetadataDecoder(
+            PEModuleSymbol moduleSymbol,
+            PEMethodSymbol context) :
+            this(moduleSymbol, (PENamedTypeSymbol)context.ContainingType, context)
         {
-            return new UnsupportedMetadataTypeSymbol(); // type parameter position too large
         }
 
-        return typeParameters[position];
-    }
-
-    protected override TypeSymbol GetGenericTypeParamSymbol(int position)
-    {
-        PENamedTypeSymbol type = _typeContextOpt;
-
-        while ((object)type != null && (type.MetadataArity - type.Arity) > position)
+        public MetadataDecoder(
+            PEModuleSymbol moduleSymbol) :
+            this(moduleSymbol, null, null)
         {
-            type = type.ContainingSymbol as PENamedTypeSymbol;
         }
 
-        if ((object)type == null || type.MetadataArity <= position)
+        private MetadataDecoder(PEModuleSymbol moduleSymbol, PENamedTypeSymbol typeContextOpt, PEMethodSymbol methodContextOpt)
+            // TODO (tomat): if the containing assembly is a source assembly and we are about to decode assembly level attributes, we run into a cycle,
+            // so for now ignore the assembly identity.
+            : base(moduleSymbol.Module, (moduleSymbol.ContainingAssembly is PEAssemblySymbol) ? moduleSymbol.ContainingAssembly.Identity : null, SymbolFactory.Instance, moduleSymbol)
         {
-            return new UnsupportedMetadataTypeSymbol(); // position of type parameter too large
+            Debug.Assert((object)moduleSymbol != null);
+
+            _typeContextOpt = typeContextOpt;
+            _methodContextOpt = methodContextOpt;
         }
 
-        position -= type.MetadataArity - type.Arity;
-        Debug.Assert(position >= 0 && position < type.Arity);
+        internal PEModuleSymbol ModuleSymbol
+        {
+            get { return moduleSymbol; }
+        }
 
-        return type.TypeParameters[position];
-    }
+        protected override TypeSymbol GetGenericMethodTypeParamSymbol(int position)
+        {
+            if ((object)_methodContextOpt == null)
+            {
+                return new UnsupportedMetadataTypeSymbol(); // type parameter not associated with a method
+            }
 
-    protected override ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap()
-    {
-        return moduleSymbol.TypeHandleToTypeMap;
-    }
+            var typeParameters = _methodContextOpt.TypeParameters;
 
-    protected override ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> GetTypeRefHandleToTypeMap()
-    {
-        return moduleSymbol.TypeRefHandleToTypeMap;
-    }
+            if (typeParameters.Length <= position)
+            {
+                return new UnsupportedMetadataTypeSymbol(); // type parameter position too large
+            }
+
+            return typeParameters[position];
+        }
+
+        protected override TypeSymbol GetGenericTypeParamSymbol(int position)
+        {
+            PENamedTypeSymbol type = _typeContextOpt;
+
+            while ((object)type != null && (type.MetadataArity - type.Arity) > position)
+            {
+                type = type.ContainingSymbol as PENamedTypeSymbol;
+            }
+
+            if ((object)type == null || type.MetadataArity <= position)
+            {
+                return new UnsupportedMetadataTypeSymbol(); // position of type parameter too large
+            }
+
+            position -= type.MetadataArity - type.Arity;
+            Debug.Assert(position >= 0 && position < type.Arity);
+
+            return type.TypeParameters[position];
+        }
+
+        protected override ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap()
+        {
+            return moduleSymbol.TypeHandleToTypeMap;
+        }
+
+        protected override ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> GetTypeRefHandleToTypeMap()
+        {
+            return moduleSymbol.TypeRefHandleToTypeMap;
+        }
 
 #nullable enable
 
-    protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
-    {
-        var result = container.LookupMetadataType(ref emittedName);
-        Debug.Assert(result?.IsErrorType() != true);
-
-        return result ?? new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
-
-    }
-
-    /// <summary>
-    /// Lookup a type defined in referenced assembly.
-    /// </summary>
-    /// <param name="referencedAssemblyIndex"></param>
-    /// <param name="emittedName"></param>
-    protected override TypeSymbol LookupTopLevelTypeDefSymbol(
-        int referencedAssemblyIndex,
-        ref MetadataTypeName emittedName)
-    {
-        var assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
-        if ((object)assembly == null)
+        protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
         {
-            return new UnsupportedMetadataTypeSymbol();
+            var result = container.LookupMetadataType(ref emittedName);
+            Debug.Assert(result?.IsErrorType() != true);
+
+            return result ?? new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
+
         }
 
-        try
+        /// <summary>
+        /// Lookup a type defined in referenced assembly.
+        /// </summary>
+        /// <param name="referencedAssemblyIndex"></param>
+        /// <param name="emittedName"></param>
+        protected override TypeSymbol LookupTopLevelTypeDefSymbol(
+            int referencedAssemblyIndex,
+            ref MetadataTypeName emittedName)
         {
-            return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-    }
-
-    /// <summary>
-    /// Lookup a type defined in a module of a multi-module assembly.
-    /// </summary>
-    protected override TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
-    {
-        foreach (ModuleSymbol m in moduleSymbol.ContainingAssembly.Modules)
-        {
-            if (string.Equals(m.Name, moduleName, StringComparison.OrdinalIgnoreCase))
+            var assembly = moduleSymbol.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+            if ((object)assembly == null)
             {
-                if ((object)m == (object)moduleSymbol)
-                {
-                    return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
-                }
-                else
-                {
-                    isNoPiaLocalType = false;
-                    var result = m.LookupTopLevelMetadataType(ref emittedName);
-                    Debug.Assert(result?.IsErrorType() != true);
+                return new UnsupportedMetadataTypeSymbol();
+            }
 
-                    return result ?? new MissingMetadataTypeSymbol.TopLevel(m, ref emittedName);
-                }
+            try
+            {
+                return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagate(e)) // Trying to get more useful Watson dumps.
+            {
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
-        isNoPiaLocalType = false;
-        return new MissingMetadataTypeSymbol.TopLevel(new MissingModuleSymbolWithName(moduleSymbol.ContainingAssembly, moduleName), ref emittedName, SpecialType.None);
-    }
+        /// <summary>
+        /// Lookup a type defined in a module of a multi-module assembly.
+        /// </summary>
+        protected override TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
+        {
+            foreach (ModuleSymbol m in moduleSymbol.ContainingAssembly.Modules)
+            {
+                if (string.Equals(m.Name, moduleName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if ((object)m == (object)moduleSymbol)
+                    {
+                        return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
+                    }
+                    else
+                    {
+                        isNoPiaLocalType = false;
+                        var result = m.LookupTopLevelMetadataType(ref emittedName);
+                        Debug.Assert(result?.IsErrorType() != true);
 
-    /// <summary>
-    /// Lookup a type defined in this module.
-    /// This method will be called only if the type we are
-    /// looking for hasn't been loaded yet. Otherwise, MetadataDecoder
-    /// would have found the type in TypeDefRowIdToTypeMap based on its 
-    /// TypeDef row id. 
-    /// </summary>
-    protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
-    {
-        return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
-    }
+                        return result ?? new MissingMetadataTypeSymbol.TopLevel(m, ref emittedName);
+                    }
+                }
+            }
+
+            isNoPiaLocalType = false;
+            return new MissingMetadataTypeSymbol.TopLevel(new MissingModuleSymbolWithName(moduleSymbol.ContainingAssembly, moduleName), ref emittedName, SpecialType.None);
+        }
+
+        /// <summary>
+        /// Lookup a type defined in this module.
+        /// This method will be called only if the type we are
+        /// looking for hasn't been loaded yet. Otherwise, MetadataDecoder
+        /// would have found the type in TypeDefRowIdToTypeMap based on its 
+        /// TypeDef row id. 
+        /// </summary>
+        protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
+        {
+            return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
+        }
 
 #nullable disable
 
-    protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
-    {
-        // Go through all assemblies referenced by the current module and
-        // find the one which *exactly* matches the given identity.
-        // No unification will be performed
-        var assemblies = this.moduleSymbol.GetReferencedAssemblies();
-        for (int i = 0; i < assemblies.Length; i++)
+        protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
         {
-            if (identity.Equals(assemblies[i]))
+            // Go through all assemblies referenced by the current module and
+            // find the one which *exactly* matches the given identity.
+            // No unification will be performed
+            var assemblies = this.moduleSymbol.GetReferencedAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
             {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /// <summary>
-    /// Perform a check whether the type or at least one of its generic arguments 
-    /// is defined in the specified assemblies. The check is performed recursively. 
-    /// </summary>
-    public static bool IsOrClosedOverATypeFromAssemblies(TypeSymbol symbol, ImmutableArray<AssemblySymbol> assemblies)
-    {
-        switch (symbol.Kind)
-        {
-            case SymbolKind.TypeParameter:
-                return false;
-
-            case SymbolKind.ArrayType:
-                return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType, assemblies);
-
-            case SymbolKind.PointerType:
-                return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType, assemblies);
-
-            case SymbolKind.DynamicType:
-                return false;
-
-            case SymbolKind.ErrorType:
-                goto case SymbolKind.NamedType;
-            case SymbolKind.NamedType:
-                var namedType = (NamedTypeSymbol)symbol;
-                AssemblySymbol containingAssembly = symbol.OriginalDefinition.ContainingAssembly;
-                int i;
-
-                if ((object)containingAssembly != null)
+                if (identity.Equals(assemblies[i]))
                 {
-                    for (i = 0; i < assemblies.Length; i++)
-                    {
-                        if (ReferenceEquals(containingAssembly, assemblies[i]))
-                        {
-                            return true;
-                        }
-                    }
+                    return i;
                 }
+            }
+            return -1;
+        }
 
-                do
-                {
-                    var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                    int count = arguments.Length;
+        /// <summary>
+        /// Perform a check whether the type or at least one of its generic arguments 
+        /// is defined in the specified assemblies. The check is performed recursively. 
+        /// </summary>
+        public static bool IsOrClosedOverATypeFromAssemblies(TypeSymbol symbol, ImmutableArray<AssemblySymbol> assemblies)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.TypeParameter:
+                    return false;
 
-                    for (i = 0; i < count; i++)
+                case SymbolKind.ArrayType:
+                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType, assemblies);
+
+                case SymbolKind.PointerType:
+                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType, assemblies);
+
+                case SymbolKind.DynamicType:
+                    return false;
+
+                case SymbolKind.ErrorType:
+                    goto case SymbolKind.NamedType;
+                case SymbolKind.NamedType:
+                    var namedType = (NamedTypeSymbol)symbol;
+                    AssemblySymbol containingAssembly = symbol.OriginalDefinition.ContainingAssembly;
+                    int i;
+
+                    if ((object)containingAssembly != null)
                     {
-                        if (IsOrClosedOverATypeFromAssemblies(arguments[i].Type, assemblies))
+                        for (i = 0; i < assemblies.Length; i++)
                         {
-                            return true;
+                            if (ReferenceEquals(containingAssembly, assemblies[i]))
+                            {
+                                return true;
+                            }
                         }
                     }
 
-                    namedType = namedType.ContainingType;
-                }
-                while ((object)namedType != null);
+                    do
+                    {
+                        var arguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                        int count = arguments.Length;
 
-                return false;
+                        for (i = 0; i < count; i++)
+                        {
+                            if (IsOrClosedOverATypeFromAssemblies(arguments[i].Type, assemblies))
+                            {
+                                return true;
+                            }
+                        }
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+                        namedType = namedType.ContainingType;
+                    }
+                    while ((object)namedType != null);
+
+                    return false;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
+            }
         }
-    }
 
-    protected override TypeSymbol SubstituteNoPiaLocalType(
-        TypeDefinitionHandle typeDef,
-        ref MetadataTypeName name,
-        string interfaceGuid,
-        string scope,
-        string identifier)
-    {
-        TypeSymbol result;
-
-        try
+        protected override TypeSymbol SubstituteNoPiaLocalType(
+            TypeDefinitionHandle typeDef,
+            ref MetadataTypeName name,
+            string interfaceGuid,
+            string scope,
+            string identifier)
         {
-            bool isInterface = Module.IsInterfaceOrThrow(typeDef);
-            TypeSymbol baseType = null;
+            TypeSymbol result;
 
-            if (!isInterface)
+            try
             {
-                EntityHandle baseToken = Module.GetBaseTypeOfTypeOrThrow(typeDef);
+                bool isInterface = Module.IsInterfaceOrThrow(typeDef);
+                TypeSymbol baseType = null;
 
-                if (!baseToken.IsNil)
+                if (!isInterface)
                 {
-                    baseType = GetTypeOfToken(baseToken);
+                    EntityHandle baseToken = Module.GetBaseTypeOfTypeOrThrow(typeDef);
+
+                    if (!baseToken.IsNil)
+                    {
+                        baseType = GetTypeOfToken(baseToken);
+                    }
                 }
+
+                result = SubstituteNoPiaLocalType(
+                    ref name,
+                    isInterface,
+                    baseType,
+                    interfaceGuid,
+                    scope,
+                    identifier,
+                    moduleSymbol.ContainingAssembly);
+            }
+            catch (BadImageFormatException mrEx)
+            {
+                result = GetUnsupportedMetadataTypeSymbol(mrEx);
             }
 
-            result = SubstituteNoPiaLocalType(
-                ref name,
-                isInterface,
-                baseType,
-                interfaceGuid,
-                scope,
-                identifier,
-                moduleSymbol.ContainingAssembly);
+            Debug.Assert((object)result != null);
+
+            ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
+            Debug.Assert(cache != null);
+
+            TypeSymbol newresult = cache.GetOrAdd(typeDef, result);
+            Debug.Assert(ReferenceEquals(newresult, result) || (newresult.Kind == SymbolKind.ErrorType));
+
+            return newresult;
         }
-        catch (BadImageFormatException mrEx)
-        {
-            result = GetUnsupportedMetadataTypeSymbol(mrEx);
-        }
-
-        Debug.Assert((object)result != null);
-
-        ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
-        Debug.Assert(cache != null);
-
-        TypeSymbol newresult = cache.GetOrAdd(typeDef, result);
-        Debug.Assert(ReferenceEquals(newresult, result) || (newresult.Kind == SymbolKind.ErrorType));
-
-        return newresult;
-    }
 
 #nullable enable
 
-    /// <summary>
-    /// Find canonical type for NoPia embedded type.
-    /// </summary>
-    /// <returns>
-    /// Symbol for the canonical type or an ErrorTypeSymbol. Never returns null.
-    /// </returns>
-    internal static NamedTypeSymbol SubstituteNoPiaLocalType(
-        ref MetadataTypeName name,
-        bool isInterface,
-        TypeSymbol baseType,
-        string? interfaceGuid,
-        string? scope,
-        string? identifier,
-        AssemblySymbol referringAssembly)
-    {
-        NamedTypeSymbol? result = null;
-
-        Guid interfaceGuidValue = new Guid();
-        bool haveInterfaceGuidValue = false;
-        Guid scopeGuidValue = new Guid();
-        bool haveScopeGuidValue = false;
-
-        if (isInterface && interfaceGuid != null)
+        /// <summary>
+        /// Find canonical type for NoPia embedded type.
+        /// </summary>
+        /// <returns>
+        /// Symbol for the canonical type or an ErrorTypeSymbol. Never returns null.
+        /// </returns>
+        internal static NamedTypeSymbol SubstituteNoPiaLocalType(
+            ref MetadataTypeName name,
+            bool isInterface,
+            TypeSymbol baseType,
+            string? interfaceGuid,
+            string? scope,
+            string? identifier,
+            AssemblySymbol referringAssembly)
         {
-            haveInterfaceGuidValue = Guid.TryParse(interfaceGuid, out interfaceGuidValue);
+            NamedTypeSymbol? result = null;
 
-            if (haveInterfaceGuidValue)
+            Guid interfaceGuidValue = new Guid();
+            bool haveInterfaceGuidValue = false;
+            Guid scopeGuidValue = new Guid();
+            bool haveScopeGuidValue = false;
+
+            if (isInterface && interfaceGuid != null)
             {
-                // To have consistent errors.
-                scope = null;
-                identifier = null;
-            }
-        }
+                haveInterfaceGuidValue = Guid.TryParse(interfaceGuid, out interfaceGuidValue);
 
-        if (scope != null)
-        {
-            haveScopeGuidValue = Guid.TryParse(scope, out scopeGuidValue);
-        }
-
-        foreach (AssemblySymbol assembly in referringAssembly.GetNoPiaResolutionAssemblies())
-        {
-            Debug.Assert((object)assembly != null);
-            if (ReferenceEquals(assembly, referringAssembly))
-            {
-                continue;
+                if (haveInterfaceGuidValue)
+                {
+                    // To have consistent errors.
+                    scope = null;
+                    identifier = null;
+                }
             }
 
-            // Ignore type forwarders
-            NamedTypeSymbol? candidate = assembly.LookupDeclaredTopLevelMetadataType(ref name);
-            Debug.Assert(candidate?.IsGenericType != true);
-            Debug.Assert(candidate?.IsErrorType() != true);
-            Debug.Assert(candidate is null || ReferenceEquals(candidate.ContainingAssembly, assembly));
-
-            // Ignore non-public types
-            if (candidate is null ||
-                candidate.DeclaredAccessibility != Accessibility.Public)
+            if (scope != null)
             {
-                continue;
+                haveScopeGuidValue = Guid.TryParse(scope, out scopeGuidValue);
             }
 
-            // Ignore NoPia local types.
-            // If candidate is coming from metadata, we don't need to do any special check,
-            // because we do not create symbols for local types. However, local types defined in source 
-            // is another story. However, if compilation explicitly defines a local type, it should be
-            // represented by a retargeting assembly, which is supposed to hide the local type.
-            Debug.Assert(!(assembly is SourceAssemblySymbol) || !((SourceAssemblySymbol)assembly).SourceModule.MightContainNoPiaLocalTypes());
-
-            string candidateGuid;
-            bool haveCandidateGuidValue = false;
-            Guid candidateGuidValue = new Guid();
-
-            // The type must be of the same kind (interface, struct, delegate or enum).
-            switch (candidate.TypeKind)
+            foreach (AssemblySymbol assembly in referringAssembly.GetNoPiaResolutionAssemblies())
             {
-                case TypeKind.Interface:
-                    if (!isInterface)
+                Debug.Assert((object)assembly != null);
+                if (ReferenceEquals(assembly, referringAssembly))
+                {
+                    continue;
+                }
+
+                // Ignore type forwarders
+                NamedTypeSymbol? candidate = assembly.LookupDeclaredTopLevelMetadataType(ref name);
+                Debug.Assert(candidate?.IsGenericType != true);
+                Debug.Assert(candidate?.IsErrorType() != true);
+                Debug.Assert(candidate is null || ReferenceEquals(candidate.ContainingAssembly, assembly));
+
+                // Ignore non-public types
+                if (candidate is null ||
+                    candidate.DeclaredAccessibility != Accessibility.Public)
+                {
+                    continue;
+                }
+
+                // Ignore NoPia local types.
+                // If candidate is coming from metadata, we don't need to do any special check,
+                // because we do not create symbols for local types. However, local types defined in source 
+                // is another story. However, if compilation explicitly defines a local type, it should be
+                // represented by a retargeting assembly, which is supposed to hide the local type.
+                Debug.Assert(!(assembly is SourceAssemblySymbol) || !((SourceAssemblySymbol)assembly).SourceModule.MightContainNoPiaLocalTypes());
+
+                string candidateGuid;
+                bool haveCandidateGuidValue = false;
+                Guid candidateGuidValue = new Guid();
+
+                // The type must be of the same kind (interface, struct, delegate or enum).
+                switch (candidate.TypeKind)
+                {
+                    case TypeKind.Interface:
+                        if (!isInterface)
+                        {
+                            continue;
+                        }
+
+                        // Get candidate's Guid
+                        if (candidate.GetGuidString(out candidateGuid) && candidateGuid != null)
+                        {
+                            haveCandidateGuidValue = Guid.TryParse(candidateGuid, out candidateGuidValue);
+                        }
+
+                        break;
+
+                    case TypeKind.Delegate:
+                    case TypeKind.Enum:
+                    case TypeKind.Struct:
+
+                        if (isInterface)
+                        {
+                            continue;
+                        }
+
+                        // Let's use a trick. To make sure the kind is the same, make sure
+                        // base type is the same.
+                        SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType ?? SpecialType.None);
+                        if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType ?? SpecialType.None))
+                        {
+                            continue;
+                        }
+
+                        break;
+
+                    default:
+                        continue;
+                }
+
+                if (haveInterfaceGuidValue || haveCandidateGuidValue)
+                {
+                    if (!haveInterfaceGuidValue || !haveCandidateGuidValue ||
+                        candidateGuidValue != interfaceGuidValue)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (!haveScopeGuidValue || identifier == null || !identifier.Equals(name.FullName))
                     {
                         continue;
                     }
 
-                    // Get candidate's Guid
-                    if (candidate.GetGuidString(out candidateGuid) && candidateGuid != null)
+                    // Scope guid must match candidate's assembly guid.
+                    haveCandidateGuidValue = false;
+                    if (assembly.GetGuidString(out candidateGuid) && candidateGuid != null)
                     {
                         haveCandidateGuidValue = Guid.TryParse(candidateGuid, out candidateGuidValue);
                     }
 
-                    break;
-
-                case TypeKind.Delegate:
-                case TypeKind.Enum:
-                case TypeKind.Struct:
-
-                    if (isInterface)
+                    if (!haveCandidateGuidValue || scopeGuidValue != candidateGuidValue)
                     {
                         continue;
                     }
+                }
 
-                    // Let's use a trick. To make sure the kind is the same, make sure
-                    // base type is the same.
-                    SpecialType baseSpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType ?? SpecialType.None);
-                    if (baseSpecialType == SpecialType.None || baseSpecialType != (baseType?.SpecialType ?? SpecialType.None))
-                    {
-                        continue;
-                    }
-
+                // OK. It looks like we found canonical type definition.
+                if ((object?)result != null)
+                {
+                    // Ambiguity 
+                    result = new NoPiaAmbiguousCanonicalTypeSymbol(referringAssembly, result, candidate);
                     break;
+                }
 
-                default:
-                    continue;
+                result = candidate;
             }
 
-            if (haveInterfaceGuidValue || haveCandidateGuidValue)
+            if ((object?)result == null)
             {
-                if (!haveInterfaceGuidValue || !haveCandidateGuidValue ||
-                    candidateGuidValue != interfaceGuidValue)
-                {
-                    continue;
-                }
-            }
-            else
-            {
-                if (!haveScopeGuidValue || identifier == null || !identifier.Equals(name.FullName))
-                {
-                    continue;
-                }
-
-                // Scope guid must match candidate's assembly guid.
-                haveCandidateGuidValue = false;
-                if (assembly.GetGuidString(out candidateGuid) && candidateGuid != null)
-                {
-                    haveCandidateGuidValue = Guid.TryParse(candidateGuid, out candidateGuidValue);
-                }
-
-                if (!haveCandidateGuidValue || scopeGuidValue != candidateGuidValue)
-                {
-                    continue;
-                }
+                result = new NoPiaMissingCanonicalTypeSymbol(
+                                referringAssembly,
+                                name.FullName,
+                                interfaceGuid,
+                                scope,
+                                identifier);
             }
 
-            // OK. It looks like we found canonical type definition.
-            if ((object?)result != null)
-            {
-                // Ambiguity 
-                result = new NoPiaAmbiguousCanonicalTypeSymbol(referringAssembly, result, candidate);
-                break;
-            }
-
-            result = candidate;
+            return result;
         }
-
-        if ((object?)result == null)
-        {
-            result = new NoPiaMissingCanonicalTypeSymbol(
-                            referringAssembly,
-                            name.FullName,
-                            interfaceGuid,
-                            scope,
-                            identifier);
-        }
-
-        return result;
-    }
 
 #nullable disable
 
-    protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodDefinitionHandle targetMethodDef)
-    {
-        Debug.Assert(typeSymbol.IsDefinition);
-
-        if (typeSymbol is PENamedTypeSymbol peTypeSymbol && ReferenceEquals(peTypeSymbol.ContainingPEModule, moduleSymbol))
+        protected override MethodSymbol FindMethodSymbolInType(TypeSymbol typeSymbol, MethodDefinitionHandle targetMethodDef)
         {
-            foreach (Symbol member in typeSymbol.GetMembersUnordered())
+            Debug.Assert(typeSymbol.IsDefinition);
+
+            if (typeSymbol is PENamedTypeSymbol peTypeSymbol && ReferenceEquals(peTypeSymbol.ContainingPEModule, moduleSymbol))
             {
-                PEMethodSymbol method = member as PEMethodSymbol;
-                if ((object)method != null && method.Handle == targetMethodDef)
+                foreach (Symbol member in typeSymbol.GetMembersUnordered())
                 {
-                    return method;
+                    PEMethodSymbol method = member as PEMethodSymbol;
+                    if ((object)method != null && method.Handle == targetMethodDef)
+                    {
+                        return method;
+                    }
                 }
             }
-        }
-        else if (typeSymbol is not ErrorTypeSymbol)
-        {
-            // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
-            // (We're not just using a different type - we're also changing the type context.)
-            var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, typeSymbol);
-
-            return (MethodSymbol)memberRefDecoder.FindMember(targetMethodDef, methodsOnly: true);
-        }
-
-        return null;
-    }
-
-    protected override FieldSymbol FindFieldSymbolInType(TypeSymbol typeSymbol, FieldDefinitionHandle fieldDef)
-    {
-        Debug.Assert(typeSymbol is PENamedTypeSymbol || typeSymbol is ErrorTypeSymbol);
-
-        foreach (Symbol member in typeSymbol.GetMembersUnordered())
-        {
-            PEFieldSymbol field = member as PEFieldSymbol;
-            if ((object)field != null && field.Handle == fieldDef)
+            else if (typeSymbol is not ErrorTypeSymbol)
             {
-                return field;
+                // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
+                // (We're not just using a different type - we're also changing the type context.)
+                var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, typeSymbol);
+
+                return (MethodSymbol)memberRefDecoder.FindMember(targetMethodDef, methodsOnly: true);
             }
-        }
 
-        return null;
-    }
-
-    internal override Symbol GetSymbolForMemberRef(MemberReferenceHandle memberRef, TypeSymbol scope = null, bool methodsOnly = false)
-    {
-        TypeSymbol targetTypeSymbol = GetMemberRefTypeSymbol(memberRef);
-
-        if (targetTypeSymbol is null)
-        {
             return null;
         }
 
-        Debug.Assert(!targetTypeSymbol.IsTupleType);
-
-        if ((object)scope != null)
+        protected override FieldSymbol FindFieldSymbolInType(TypeSymbol typeSymbol, FieldDefinitionHandle fieldDef)
         {
-            Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
+            Debug.Assert(typeSymbol is PENamedTypeSymbol || typeSymbol is ErrorTypeSymbol);
 
-            // We only want to consider members that are at or above "scope" in the type hierarchy.
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
-                !(targetTypeSymbol.IsInterfaceType()
-                    ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, SymbolEqualityComparer.CLRSignature) != -1
-                    : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteInfo: ref discardedUseSiteInfo)))
+            foreach (Symbol member in typeSymbol.GetMembersUnordered())
+            {
+                PEFieldSymbol field = member as PEFieldSymbol;
+                if ((object)field != null && field.Handle == fieldDef)
+                {
+                    return field;
+                }
+            }
+
+            return null;
+        }
+
+        internal override Symbol GetSymbolForMemberRef(MemberReferenceHandle memberRef, TypeSymbol scope = null, bool methodsOnly = false)
+        {
+            TypeSymbol targetTypeSymbol = GetMemberRefTypeSymbol(memberRef);
+
+            if (targetTypeSymbol is null)
             {
                 return null;
             }
-        }
 
-        if (!targetTypeSymbol.IsTupleType)
-        {
-            targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
-        }
+            Debug.Assert(!targetTypeSymbol.IsTupleType);
 
-        // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
-        // (We're not just using a different type - we're also changing the type context.)
-        var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol.OriginalDefinition);
-
-        var definition = memberRefDecoder.FindMember(memberRef, methodsOnly);
-
-        if (definition is not null && !targetTypeSymbol.IsDefinition)
-        {
-            return definition.SymbolAsMember((NamedTypeSymbol)targetTypeSymbol);
-        }
-
-        return definition;
-    }
-
-    protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
-    {
-        foreach (NamedTypeSymbol @interface in typeSymbol.InterfacesNoUseSiteDiagnostics())
-        {
-            EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, @interface);
-        }
-
-        EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, typeSymbol.BaseTypeNoUseSiteDiagnostics);
-    }
-
-    protected override void EnqueueTypeSymbol(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
-    {
-        if ((object)typeSymbol != null)
-        {
-            PENamedTypeSymbol peTypeSymbol = typeSymbol as PENamedTypeSymbol;
-            if ((object)peTypeSymbol != null && ReferenceEquals(peTypeSymbol.ContainingPEModule, moduleSymbol))
+            if ((object)scope != null)
             {
-                typeDefsToSearch.Enqueue(peTypeSymbol.Handle);
+                Debug.Assert(scope.Kind == SymbolKind.NamedType || scope.Kind == SymbolKind.ErrorType);
+
+                // We only want to consider members that are at or above "scope" in the type hierarchy.
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                if (!TypeSymbol.Equals(scope, targetTypeSymbol, TypeCompareKind.ConsiderEverything2) &&
+                    !(targetTypeSymbol.IsInterfaceType()
+                        ? scope.AllInterfacesNoUseSiteDiagnostics.IndexOf((NamedTypeSymbol)targetTypeSymbol, 0, SymbolEqualityComparer.CLRSignature) != -1
+                        : scope.IsDerivedFrom(targetTypeSymbol, TypeCompareKind.CLRSignatureCompareOptions, useSiteInfo: ref discardedUseSiteInfo)))
+                {
+                    return null;
+                }
             }
-            else
+
+            if (!targetTypeSymbol.IsTupleType)
             {
-                typeSymbolsToSearch.Enqueue(typeSymbol);
+                targetTypeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(targetTypeSymbol, elementNames: default);
+            }
+
+            // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
+            // (We're not just using a different type - we're also changing the type context.)
+            var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol.OriginalDefinition);
+
+            var definition = memberRefDecoder.FindMember(memberRef, methodsOnly);
+
+            if (definition is not null && !targetTypeSymbol.IsDefinition)
+            {
+                return definition.SymbolAsMember((NamedTypeSymbol)targetTypeSymbol);
+            }
+
+            return definition;
+        }
+
+        protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
+        {
+            foreach (NamedTypeSymbol @interface in typeSymbol.InterfacesNoUseSiteDiagnostics())
+            {
+                EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, @interface);
+            }
+
+            EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, typeSymbol.BaseTypeNoUseSiteDiagnostics);
+        }
+
+        protected override void EnqueueTypeSymbol(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
+        {
+            if ((object)typeSymbol != null)
+            {
+                PENamedTypeSymbol peTypeSymbol = typeSymbol as PENamedTypeSymbol;
+                if ((object)peTypeSymbol != null && ReferenceEquals(peTypeSymbol.ContainingPEModule, moduleSymbol))
+                {
+                    typeDefsToSearch.Enqueue(peTypeSymbol.Handle);
+                }
+                else
+                {
+                    typeSymbolsToSearch.Enqueue(typeSymbol);
+                }
             }
         }
-    }
 
-    protected override MethodDefinitionHandle GetMethodHandle(MethodSymbol method)
-    {
-        PEMethodSymbol peMethod = method as PEMethodSymbol;
-        if ((object)peMethod != null && ReferenceEquals(peMethod.ContainingModule, moduleSymbol))
+        protected override MethodDefinitionHandle GetMethodHandle(MethodSymbol method)
         {
-            return peMethod.Handle;
-        }
+            PEMethodSymbol peMethod = method as PEMethodSymbol;
+            if ((object)peMethod != null && ReferenceEquals(peMethod.ContainingModule, moduleSymbol))
+            {
+                return peMethod.Handle;
+            }
 
-        return default(MethodDefinitionHandle);
+            return default(MethodDefinitionHandle);
+        }
     }
 }

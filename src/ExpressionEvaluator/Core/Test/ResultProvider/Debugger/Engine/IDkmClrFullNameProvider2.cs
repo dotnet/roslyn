@@ -13,19 +13,20 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-
-public interface IDkmClrFullNameProvider2
+namespace Microsoft.VisualStudio.Debugger.ComponentInterfaces
 {
-    string GetClrNameForLocalVariable(
-        DkmInspectionContext inspectionContext,
-        DkmClrModuleInstance moduleInstance,
-        DkmClrMethodId methodId,
-        DkmILRange ilRange,
-        DkmClrLocalVariable localVariable);
+    public interface IDkmClrFullNameProvider2
+    {
+        string GetClrNameForLocalVariable(
+            DkmInspectionContext inspectionContext,
+            DkmClrModuleInstance moduleInstance,
+            DkmClrMethodId methodId,
+            DkmILRange ilRange,
+            DkmClrLocalVariable localVariable);
 
-    string GetClrNameForField(
-        DkmInspectionContext inspectionContext,
-        DkmClrModuleInstance moduleInstance,
-        int fieldToken);
+        string GetClrNameForField(
+            DkmInspectionContext inspectionContext,
+            DkmClrModuleInstance moduleInstance,
+            int fieldToken);
+    }
 }

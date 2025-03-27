@@ -12,39 +12,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-internal abstract class AbstractTypeParameterMap : AbstractTypeMap
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    protected readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> Mapping;
-
-    protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal abstract class AbstractTypeParameterMap : AbstractTypeMap
     {
-        this.Mapping = mapping;
-    }
+        protected readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> Mapping;
 
-    protected sealed override TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
-    {
-        // It might need to be substituted directly.
-        TypeWithAnnotations result;
-        if (Mapping.TryGetValue(typeParameter, out result))
+        protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
         {
-            return result;
+            this.Mapping = mapping;
         }
 
-        return TypeWithAnnotations.Create(typeParameter);
-    }
-
-    private string GetDebuggerDisplay()
-    {
-        var result = new StringBuilder("[");
-        result.Append(this.GetType().Name);
-        foreach (var kv in Mapping)
+        protected sealed override TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
         {
-            result.Append(' ').Append(kv.Key).Append(':').Append(kv.Value.Type);
+            // It might need to be substituted directly.
+            TypeWithAnnotations result;
+            if (Mapping.TryGetValue(typeParameter, out result))
+            {
+                return result;
+            }
+
+            return TypeWithAnnotations.Create(typeParameter);
         }
 
-        return result.Append(']').ToString();
+        private string GetDebuggerDisplay()
+        {
+            var result = new StringBuilder("[");
+            result.Append(this.GetType().Name);
+            foreach (var kv in Mapping)
+            {
+                result.Append(' ').Append(kv.Key).Append(':').Append(kv.Value.Type);
+            }
+
+            return result.Append(']').ToString();
+        }
     }
 }

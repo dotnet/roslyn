@@ -6,9 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal partial class BoundLocalFunctionStatement
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundBlock? Body { get => BlockBody ?? ExpressionBody; }
+    internal partial class BoundLocalFunctionStatement
+    {
+        public BoundBlock? Body { get => BlockBody ?? ExpressionBody; }
+    }
 }

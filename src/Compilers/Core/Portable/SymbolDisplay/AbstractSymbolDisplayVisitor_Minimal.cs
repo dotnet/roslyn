@@ -6,126 +6,127 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.SymbolDisplay;
-
-internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
+namespace Microsoft.CodeAnalysis.SymbolDisplay
 {
-    protected abstract bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes();
-
-    [MemberNotNullWhen(true, nameof(SemanticModelOpt))]
-    protected bool IsMinimizing
+    internal abstract partial class AbstractSymbolDisplayVisitor : SymbolVisitor
     {
-        get { return this.SemanticModelOpt != null; }
-    }
+        protected abstract bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes();
 
-    protected bool NameBoundSuccessfullyToSameSymbol(INamedTypeSymbol symbol)
-    {
-        Debug.Assert(IsMinimizing);
-
-        ImmutableArray<ISymbol> normalSymbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
-            ? SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name)
-            : SemanticModelOpt.LookupSymbols(PositionOpt, name: symbol.Name);
-        ISymbol? normalSymbol = SingleSymbolWithArity(normalSymbols, symbol.Arity);
-
-        if (normalSymbol == null)
+        [MemberNotNullWhen(true, nameof(SemanticModelOpt))]
+        protected bool IsMinimizing
         {
-            return false;
+            get { return this.SemanticModelOpt != null; }
         }
 
-        // Binding normally ended up with the right symbol.  We can definitely use the
-        // simplified name.
-        if (normalSymbol.Equals(symbol.OriginalDefinition))
+        protected bool NameBoundSuccessfullyToSameSymbol(INamedTypeSymbol symbol)
         {
-            return true;
-        }
+            Debug.Assert(IsMinimizing);
 
-        // Binding normally failed.  We may be in a "Color Color" situation where 'Color'
-        // will bind to the field, but we could still allow simplification here.
-        ImmutableArray<ISymbol> typeOnlySymbols = SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name);
-        ISymbol? typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
+            ImmutableArray<ISymbol> normalSymbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
+                ? SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name)
+                : SemanticModelOpt.LookupSymbols(PositionOpt, name: symbol.Name);
+            ISymbol? normalSymbol = SingleSymbolWithArity(normalSymbols, symbol.Arity);
 
-        if (typeOnlySymbol == null)
-        {
-            return false;
-        }
-
-        var type1 = GetSymbolType(normalSymbol);
-        var type2 = GetSymbolType(typeOnlySymbol);
-
-        return
-            type1 != null &&
-            type2 != null &&
-            type1.Equals(type2) &&
-            typeOnlySymbol.Equals(symbol.OriginalDefinition);
-    }
-
-    private static ISymbol? SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
-    {
-        ISymbol? singleSymbol = null;
-        foreach (ISymbol candidate in candidates)
-        {
-            int arity;
-            switch (candidate.Kind)
+            if (normalSymbol == null)
             {
-                case SymbolKind.NamedType:
-                    arity = ((INamedTypeSymbol)candidate).Arity;
-                    break;
-                case SymbolKind.Method:
-                    arity = ((IMethodSymbol)candidate).Arity;
-                    break;
-                default:
-                    arity = 0;
-                    break;
+                return false;
             }
 
-            if (arity == desiredArity)
+            // Binding normally ended up with the right symbol.  We can definitely use the
+            // simplified name.
+            if (normalSymbol.Equals(symbol.OriginalDefinition))
             {
-                if (singleSymbol == null)
+                return true;
+            }
+
+            // Binding normally failed.  We may be in a "Color Color" situation where 'Color'
+            // will bind to the field, but we could still allow simplification here.
+            ImmutableArray<ISymbol> typeOnlySymbols = SemanticModelOpt.LookupNamespacesAndTypes(PositionOpt, name: symbol.Name);
+            ISymbol? typeOnlySymbol = SingleSymbolWithArity(typeOnlySymbols, symbol.Arity);
+
+            if (typeOnlySymbol == null)
+            {
+                return false;
+            }
+
+            var type1 = GetSymbolType(normalSymbol);
+            var type2 = GetSymbolType(typeOnlySymbol);
+
+            return
+                type1 != null &&
+                type2 != null &&
+                type1.Equals(type2) &&
+                typeOnlySymbol.Equals(symbol.OriginalDefinition);
+        }
+
+        private static ISymbol? SingleSymbolWithArity(ImmutableArray<ISymbol> candidates, int desiredArity)
+        {
+            ISymbol? singleSymbol = null;
+            foreach (ISymbol candidate in candidates)
+            {
+                int arity;
+                switch (candidate.Kind)
                 {
-                    singleSymbol = candidate;
+                    case SymbolKind.NamedType:
+                        arity = ((INamedTypeSymbol)candidate).Arity;
+                        break;
+                    case SymbolKind.Method:
+                        arity = ((IMethodSymbol)candidate).Arity;
+                        break;
+                    default:
+                        arity = 0;
+                        break;
                 }
-                else
+
+                if (arity == desiredArity)
                 {
-                    singleSymbol = null;
-                    break;
+                    if (singleSymbol == null)
+                    {
+                        singleSymbol = candidate;
+                    }
+                    else
+                    {
+                        singleSymbol = null;
+                        break;
+                    }
                 }
             }
+            return singleSymbol;
         }
-        return singleSymbol;
-    }
 
-    protected static ITypeSymbol? GetSymbolType(ISymbol symbol)
-    {
-        var localSymbol = symbol as ILocalSymbol;
-        if (localSymbol != null)
+        protected static ITypeSymbol? GetSymbolType(ISymbol symbol)
         {
-            return localSymbol.Type;
-        }
+            var localSymbol = symbol as ILocalSymbol;
+            if (localSymbol != null)
+            {
+                return localSymbol.Type;
+            }
 
-        var fieldSymbol = symbol as IFieldSymbol;
-        if (fieldSymbol != null)
-        {
-            return fieldSymbol.Type;
-        }
+            var fieldSymbol = symbol as IFieldSymbol;
+            if (fieldSymbol != null)
+            {
+                return fieldSymbol.Type;
+            }
 
-        var propertySymbol = symbol as IPropertySymbol;
-        if (propertySymbol != null)
-        {
-            return propertySymbol.Type;
-        }
+            var propertySymbol = symbol as IPropertySymbol;
+            if (propertySymbol != null)
+            {
+                return propertySymbol.Type;
+            }
 
-        var parameterSymbol = symbol as IParameterSymbol;
-        if (parameterSymbol != null)
-        {
-            return parameterSymbol.Type;
-        }
+            var parameterSymbol = symbol as IParameterSymbol;
+            if (parameterSymbol != null)
+            {
+                return parameterSymbol.Type;
+            }
 
-        var aliasSymbol = symbol as IAliasSymbol;
-        if (aliasSymbol != null)
-        {
-            return aliasSymbol.Target as ITypeSymbol;
-        }
+            var aliasSymbol = symbol as IAliasSymbol;
+            if (aliasSymbol != null)
+            {
+                return aliasSymbol.Target as ITypeSymbol;
+            }
 
-        return symbol as ITypeSymbol;
+            return symbol as ITypeSymbol;
+        }
     }
 }

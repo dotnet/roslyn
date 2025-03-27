@@ -4,16 +4,17 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal readonly struct CommonTypeNameFormatterOptions
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public int ArrayBoundRadix { get; }
-    public bool ShowNamespaces { get; }
-
-    public CommonTypeNameFormatterOptions(int arrayBoundRadix, bool showNamespaces)
+    internal readonly struct CommonTypeNameFormatterOptions
     {
-        ArrayBoundRadix = arrayBoundRadix;
-        ShowNamespaces = showNamespaces;
+        public int ArrayBoundRadix { get; }
+        public bool ShowNamespaces { get; }
+
+        public CommonTypeNameFormatterOptions(int arrayBoundRadix, bool showNamespaces)
+        {
+            ArrayBoundRadix = arrayBoundRadix;
+            ShowNamespaces = showNamespaces;
+        }
     }
 }

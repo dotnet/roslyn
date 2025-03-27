@@ -4,39 +4,40 @@
 
 using System.Threading;
 
-namespace Roslyn.Utilities;
-
-internal static class ThreadSafeFlagOperations
+namespace Roslyn.Utilities
 {
-    public static bool Set(ref int flags, int toSet)
+    internal static class ThreadSafeFlagOperations
     {
-        int oldState, newState;
-        do
+        public static bool Set(ref int flags, int toSet)
         {
-            oldState = flags;
-            newState = oldState | toSet;
-            if (newState == oldState)
+            int oldState, newState;
+            do
             {
-                return false;
+                oldState = flags;
+                newState = oldState | toSet;
+                if (newState == oldState)
+                {
+                    return false;
+                }
             }
+            while (Interlocked.CompareExchange(ref flags, newState, oldState) != oldState);
+            return true;
         }
-        while (Interlocked.CompareExchange(ref flags, newState, oldState) != oldState);
-        return true;
-    }
 
-    public static bool Clear(ref int flags, int toClear)
-    {
-        int oldState, newState;
-        do
+        public static bool Clear(ref int flags, int toClear)
         {
-            oldState = flags;
-            newState = oldState & ~toClear;
-            if (newState == oldState)
+            int oldState, newState;
+            do
             {
-                return false;
+                oldState = flags;
+                newState = oldState & ~toClear;
+                if (newState == oldState)
+                {
+                    return false;
+                }
             }
+            while (Interlocked.CompareExchange(ref flags, newState, oldState) != oldState);
+            return true;
         }
-        while (Interlocked.CompareExchange(ref flags, newState, oldState) != oldState);
-        return true;
     }
 }

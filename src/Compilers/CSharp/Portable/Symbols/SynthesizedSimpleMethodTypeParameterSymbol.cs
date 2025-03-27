@@ -6,125 +6,126 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A simple method type parameter with no constraints.
-/// </summary>
-internal sealed class SynthesizedSimpleMethodTypeParameterSymbol : TypeParameterSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    private readonly MethodSymbol _container;
-    private readonly int _ordinal;
-    private readonly string _name;
-
-    public SynthesizedSimpleMethodTypeParameterSymbol(MethodSymbol container, int ordinal, string name)
+    /// <summary>
+    /// A simple method type parameter with no constraints.
+    /// </summary>
+    internal sealed class SynthesizedSimpleMethodTypeParameterSymbol : TypeParameterSymbol
     {
-        _container = container;
-        _ordinal = ordinal;
-        _name = name;
-    }
+        private readonly MethodSymbol _container;
+        private readonly int _ordinal;
+        private readonly string _name;
 
-    public override string Name
-    {
-        get { return _name; }
-    }
+        public SynthesizedSimpleMethodTypeParameterSymbol(MethodSymbol container, int ordinal, string name)
+        {
+            _container = container;
+            _ordinal = ordinal;
+            _name = name;
+        }
 
-    public override int Ordinal
-    {
-        get { return _ordinal; }
-    }
+        public override string Name
+        {
+            get { return _name; }
+        }
 
-    public override TypeParameterKind TypeParameterKind
-    {
-        get { return TypeParameterKind.Method; }
-    }
+        public override int Ordinal
+        {
+            get { return _ordinal; }
+        }
 
-    public override bool HasConstructorConstraint
-    {
-        get { return false; }
-    }
+        public override TypeParameterKind TypeParameterKind
+        {
+            get { return TypeParameterKind.Method; }
+        }
 
-    public override bool HasReferenceTypeConstraint
-    {
-        get { return false; }
-    }
+        public override bool HasConstructorConstraint
+        {
+            get { return false; }
+        }
 
-    public override bool IsReferenceTypeFromConstraintTypes
-    {
-        get { return false; }
-    }
+        public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
 
-    internal override bool? ReferenceTypeConstraintIsNullable
-    {
-        get { return false; }
-    }
+        public override bool IsReferenceTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
 
-    public override bool HasNotNullConstraint => false;
+        internal override bool? ReferenceTypeConstraintIsNullable
+        {
+            get { return false; }
+        }
 
-    internal override bool? IsNotNullable => null;
+        public override bool HasNotNullConstraint => false;
 
-    public override bool HasValueTypeConstraint
-    {
-        get { return false; }
-    }
+        internal override bool? IsNotNullable => null;
 
-    public override bool AllowsRefLikeType
-    {
-        get { return false; }
-    }
+        public override bool HasValueTypeConstraint
+        {
+            get { return false; }
+        }
 
-    public override bool IsValueTypeFromConstraintTypes
-    {
-        get { return false; }
-    }
+        public override bool AllowsRefLikeType
+        {
+            get { return false; }
+        }
 
-    public override bool HasUnmanagedTypeConstraint
-    {
-        get { return false; }
-    }
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
 
-    public override VarianceKind Variance
-    {
-        get { return VarianceKind.None; }
-    }
+        public override bool HasUnmanagedTypeConstraint
+        {
+            get { return false; }
+        }
 
-    public override Symbol ContainingSymbol
-    {
-        get { return _container; }
-    }
+        public override VarianceKind Variance
+        {
+            get { return VarianceKind.None; }
+        }
 
-    public override ImmutableArray<Location> Locations
-    {
-        get { throw ExceptionUtilities.Unreachable(); }
-    }
+        public override Symbol ContainingSymbol
+        {
+            get { return _container; }
+        }
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get { throw ExceptionUtilities.Unreachable(); }
-    }
+        public override ImmutableArray<Location> Locations
+        {
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
 
-    internal override void EnsureAllConstraintsAreResolved()
-    {
-    }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
 
-    internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
-    {
-        return ImmutableArray<TypeWithAnnotations>.Empty;
-    }
+        internal override void EnsureAllConstraintsAreResolved()
+        {
+        }
 
-    internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        {
+            return ImmutableArray<TypeWithAnnotations>.Empty;
+        }
 
-    internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
-    {
-        throw ExceptionUtilities.Unreachable();
+        internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }
 

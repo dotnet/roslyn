@@ -9,15 +9,16 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public static class DkmVendorId
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public static Guid Microsoft
+    public static class DkmVendorId
     {
-        get
+        public static Guid Microsoft
         {
-            return new Guid("994B45C4-E6E9-11D2-903F-00C04FA302A1");
+            get
+            {
+                return new Guid("994B45C4-E6E9-11D2-903F-00C04FA302A1");
+            }
         }
     }
 }

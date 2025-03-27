@@ -5,27 +5,28 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Roslyn.Utilities;
-
-internal static class ImmutableListExtensions
+namespace Roslyn.Utilities
 {
-    internal static ImmutableList<T> ToImmutableListOrEmpty<T>(this T[]? items)
+    internal static class ImmutableListExtensions
     {
-        if (items == null)
+        internal static ImmutableList<T> ToImmutableListOrEmpty<T>(this T[]? items)
         {
-            return ImmutableList.Create<T>();
+            if (items == null)
+            {
+                return ImmutableList.Create<T>();
+            }
+
+            return ImmutableList.Create<T>(items);
         }
 
-        return ImmutableList.Create<T>(items);
-    }
-
-    internal static ImmutableList<T> ToImmutableListOrEmpty<T>(this IEnumerable<T>? items)
-    {
-        if (items == null)
+        internal static ImmutableList<T> ToImmutableListOrEmpty<T>(this IEnumerable<T>? items)
         {
-            return ImmutableList.Create<T>();
-        }
+            if (items == null)
+            {
+                return ImmutableList.Create<T>();
+            }
 
-        return ImmutableList.CreateRange<T>(items);
+            return ImmutableList.CreateRange<T>(items);
+        }
     }
 }

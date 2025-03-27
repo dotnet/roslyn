@@ -15,36 +15,37 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.VisualStudio.Debugger.Clr;
-
-public class DkmClrAppDomain
+namespace Microsoft.VisualStudio.Debugger.Clr
 {
-    /// <summary>
-    /// This keeps a mapping of the type to attributes. This is relatively expensive to calculate (lots of 
-    /// allocations) hence we cache it here.
-    /// </summary>
-    /// <remarks>
-    /// This is a concurrent dictionary instead of regular as other lazy init members in this area are done 
-    /// in a thread aware fashion. It's unclear if this actually can be called concurrently or if it's a 
-    /// legacy of the code we are mocking here. Using concurrent dictionary here out of an abundance of caution.
-    /// </remarks>
-    internal ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>> TypeToEvalAttributesMap { get; }
-
-    internal DkmClrAppDomain(DkmClrRuntimeInstance runtime)
+    public class DkmClrAppDomain
     {
-        RuntimeInstance = runtime;
-        TypeToEvalAttributesMap = new ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>>();
-    }
+        /// <summary>
+        /// This keeps a mapping of the type to attributes. This is relatively expensive to calculate (lots of 
+        /// allocations) hence we cache it here.
+        /// </summary>
+        /// <remarks>
+        /// This is a concurrent dictionary instead of regular as other lazy init members in this area are done 
+        /// in a thread aware fashion. It's unclear if this actually can be called concurrently or if it's a 
+        /// legacy of the code we are mocking here. Using concurrent dictionary here out of an abundance of caution.
+        /// </remarks>
+        internal ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>> TypeToEvalAttributesMap { get; }
 
-    public DkmClrRuntimeInstance RuntimeInstance { get; }
+        internal DkmClrAppDomain(DkmClrRuntimeInstance runtime)
+        {
+            RuntimeInstance = runtime;
+            TypeToEvalAttributesMap = new ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>>();
+        }
 
-    public DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
-    {
-        return RuntimeInstance.FindClrModuleInstance(mvid);
-    }
+        public DkmClrRuntimeInstance RuntimeInstance { get; }
 
-    public DkmClrModuleInstance[] GetClrModuleInstances()
-    {
-        return RuntimeInstance.Modules;
+        public DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
+        {
+            return RuntimeInstance.FindClrModuleInstance(mvid);
+        }
+
+        public DkmClrModuleInstance[] GetClrModuleInstances()
+        {
+            return RuntimeInstance.Modules;
+        }
     }
 }

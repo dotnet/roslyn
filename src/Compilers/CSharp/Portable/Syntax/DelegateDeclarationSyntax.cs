@@ -6,15 +6,16 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class DelegateDeclarationSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public int Arity
+    public partial class DelegateDeclarationSyntax
     {
-        get
+        public int Arity
         {
-            return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
+            get
+            {
+                return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
+            }
         }
     }
 }

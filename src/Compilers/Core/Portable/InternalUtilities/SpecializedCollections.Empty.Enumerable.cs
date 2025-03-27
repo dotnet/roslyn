@@ -4,28 +4,29 @@
 
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities;
-
-internal partial class SpecializedCollections
+namespace Roslyn.Utilities
 {
-    private partial class Empty
+    internal partial class SpecializedCollections
     {
-        internal class Enumerable<T> : IEnumerable<T>
+        private partial class Empty
         {
-            // PERF: cache the instance of enumerator. 
-            // accessing a generic static field is kinda slow from here,
-            // but since empty enumerables are singletons, there is no harm in having 
-            // one extra instance field
-            private readonly IEnumerator<T> _enumerator = Enumerator<T>.Instance;
-
-            public IEnumerator<T> GetEnumerator()
+            internal class Enumerable<T> : IEnumerable<T>
             {
-                return _enumerator;
-            }
+                // PERF: cache the instance of enumerator. 
+                // accessing a generic static field is kinda slow from here,
+                // but since empty enumerables are singletons, there is no harm in having 
+                // one extra instance field
+                private readonly IEnumerator<T> _enumerator = Enumerator<T>.Instance;
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
+                public IEnumerator<T> GetEnumerator()
+                {
+                    return _enumerator;
+                }
+
+                System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+                {
+                    return GetEnumerator();
+                }
             }
         }
     }

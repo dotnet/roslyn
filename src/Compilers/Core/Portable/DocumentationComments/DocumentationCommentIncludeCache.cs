@@ -11,62 +11,63 @@ using System.Xml;
 using System.Xml.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis;
-
-internal sealed class DocumentationCommentIncludeCache : CachingFactory<string, KeyValuePair<string, XDocument>>
+namespace Microsoft.CodeAnalysis
 {
-    // TODO: tune
-    private const int Size = 5;
-
-    /// <summary>
-    /// WARN: This is a test hook - do not take a dependency on this.
-    /// </summary>
-    internal static int CacheMissCount { get; private set; }
-
-    public DocumentationCommentIncludeCache(XmlReferenceResolver resolver)
-        : base(Size,
-               key => MakeValue(resolver, key),
-               KeyHashCode,
-               KeyValueEquality)
+    internal sealed class DocumentationCommentIncludeCache : CachingFactory<string, KeyValuePair<string, XDocument>>
     {
-        CacheMissCount = 0;
-    }
+        // TODO: tune
+        private const int Size = 5;
 
-    public XDocument GetOrMakeDocument(string resolvedPath)
-    {
-        return GetOrMakeValue(resolvedPath).Value;
-    }
+        /// <summary>
+        /// WARN: This is a test hook - do not take a dependency on this.
+        /// </summary>
+        internal static int CacheMissCount { get; private set; }
 
-    private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
-    {
-        // Dev12 prohibits DTD
-        DtdProcessing = DtdProcessing.Prohibit
-    };
-
-    /// <exception cref="IOException"></exception>
-    /// <exception cref="XmlException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    private static KeyValuePair<string, XDocument> MakeValue(XmlReferenceResolver resolver, string resolvedPath)
-    {
-        CacheMissCount++;
-
-        using (Stream stream = resolver.OpenReadChecked(resolvedPath))
+        public DocumentationCommentIncludeCache(XmlReferenceResolver resolver)
+            : base(Size,
+                   key => MakeValue(resolver, key),
+                   KeyHashCode,
+                   KeyValueEquality)
         {
-            using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
+            CacheMissCount = 0;
+        }
+
+        public XDocument GetOrMakeDocument(string resolvedPath)
+        {
+            return GetOrMakeValue(resolvedPath).Value;
+        }
+
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        {
+            // Dev12 prohibits DTD
+            DtdProcessing = DtdProcessing.Prohibit
+        };
+
+        /// <exception cref="IOException"></exception>
+        /// <exception cref="XmlException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
+        private static KeyValuePair<string, XDocument> MakeValue(XmlReferenceResolver resolver, string resolvedPath)
+        {
+            CacheMissCount++;
+
+            using (Stream stream = resolver.OpenReadChecked(resolvedPath))
             {
-                var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
-                return KeyValuePairUtil.Create(resolvedPath, document);
+                using (XmlReader reader = XmlReader.Create(stream, s_xmlSettings))
+                {
+                    var document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                    return KeyValuePairUtil.Create(resolvedPath, document);
+                }
             }
         }
-    }
 
-    private static int KeyHashCode(string resolvedPath)
-    {
-        return resolvedPath.GetHashCode();
-    }
+        private static int KeyHashCode(string resolvedPath)
+        {
+            return resolvedPath.GetHashCode();
+        }
 
-    private static bool KeyValueEquality(string resolvedPath, KeyValuePair<string, XDocument> pathAndDocument)
-    {
-        return resolvedPath == pathAndDocument.Key;
+        private static bool KeyValueEquality(string resolvedPath, KeyValuePair<string, XDocument> pathAndDocument)
+        {
+            return resolvedPath == pathAndDocument.Key;
+        }
     }
 }

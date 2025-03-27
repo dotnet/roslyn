@@ -7,15 +7,16 @@
 using System;
 using Microsoft.DiaSymReader;
 
-namespace Roslyn.Test.PdbUtilities;
-
-internal class SymUnmanagedWriterWithoutSourceLinkSupport : DelegatingSymUnmanagedWriter
+namespace Roslyn.Test.PdbUtilities
 {
-    public SymUnmanagedWriterWithoutSourceLinkSupport(ISymWriterMetadataProvider metadataProvider)
-        : base(SymUnmanagedWriterFactory.CreateWriter(metadataProvider))
+    internal class SymUnmanagedWriterWithoutSourceLinkSupport : DelegatingSymUnmanagedWriter
     {
-    }
+        public SymUnmanagedWriterWithoutSourceLinkSupport(ISymWriterMetadataProvider metadataProvider)
+            : base(SymUnmanagedWriterFactory.CreateWriter(metadataProvider))
+        {
+        }
 
-    public override void SetSourceLinkData(byte[] data)
-        => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
+        public override void SetSourceLinkData(byte[] data)
+            => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
+    }
 }

@@ -4,20 +4,21 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Operations;
-
-internal class ForToLoopOperationUserDefinedInfo
+namespace Microsoft.CodeAnalysis.Operations
 {
-    public readonly IBinaryOperation Addition;
-    public readonly IBinaryOperation Subtraction;
-    public readonly IOperation LessThanOrEqual;
-    public readonly IOperation GreaterThanOrEqual;
-
-    public ForToLoopOperationUserDefinedInfo(IBinaryOperation addition, IBinaryOperation subtraction, IOperation lessThanOrEqual, IOperation greaterThanOrEqual)
+    internal class ForToLoopOperationUserDefinedInfo
     {
-        Addition = addition;
-        Subtraction = subtraction;
-        LessThanOrEqual = lessThanOrEqual;
-        GreaterThanOrEqual = greaterThanOrEqual;
+        public readonly IBinaryOperation Addition;
+        public readonly IBinaryOperation Subtraction;
+        public readonly IOperation LessThanOrEqual;
+        public readonly IOperation GreaterThanOrEqual;
+
+        public ForToLoopOperationUserDefinedInfo(IBinaryOperation addition, IBinaryOperation subtraction, IOperation lessThanOrEqual, IOperation greaterThanOrEqual)
+        {
+            Addition = addition;
+            Subtraction = subtraction;
+            LessThanOrEqual = lessThanOrEqual;
+            GreaterThanOrEqual = greaterThanOrEqual;
+        }
     }
 }

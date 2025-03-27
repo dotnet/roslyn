@@ -4,19 +4,20 @@
 
 using System;
 
-namespace Roslyn.Utilities;
-
-// Helpers that are missing from Dev11 implementation:
-internal static class WeakReferenceExtensions
+namespace Roslyn.Utilities
 {
-    public static T? GetTarget<T>(this WeakReference<T> reference) where T : class?
+    // Helpers that are missing from Dev11 implementation:
+    internal static class WeakReferenceExtensions
     {
-        reference.TryGetTarget(out var target);
-        return target;
-    }
+        public static T? GetTarget<T>(this WeakReference<T> reference) where T : class?
+        {
+            reference.TryGetTarget(out var target);
+            return target;
+        }
 
-    public static bool IsNull<T>(this WeakReference<T> reference) where T : class?
-    {
-        return !reference.TryGetTarget(out _);
+        public static bool IsNull<T>(this WeakReference<T> reference) where T : class?
+        {
+            return !reference.TryGetTarget(out _);
+        }
     }
 }

@@ -4,14 +4,15 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class BoundExpressionWithNullability : BoundExpression
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type)
-        : this(syntax, expression, nullableAnnotation, type, hasErrors: false)
+    internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        IsSuppressed = expression.IsSuppressed;
+        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type)
+            : this(syntax, expression, nullableAnnotation, type, hasErrors: false)
+        {
+            IsSuppressed = expression.IsSuppressed;
+        }
     }
 }
 

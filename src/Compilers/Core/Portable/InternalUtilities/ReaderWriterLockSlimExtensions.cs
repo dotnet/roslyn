@@ -6,99 +6,100 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities;
-
-internal static class ReaderWriterLockSlimExtensions
+namespace Roslyn.Utilities
 {
-    internal static ReadLockExiter DisposableRead(this ReaderWriterLockSlim @lock)
+    internal static class ReaderWriterLockSlimExtensions
     {
-        return new ReadLockExiter(@lock);
-    }
-
-    [NonCopyable]
-    internal readonly struct ReadLockExiter : IDisposable
-    {
-        private readonly ReaderWriterLockSlim _lock;
-
-        internal ReadLockExiter(ReaderWriterLockSlim @lock)
+        internal static ReadLockExiter DisposableRead(this ReaderWriterLockSlim @lock)
         {
-            _lock = @lock;
-            @lock.EnterReadLock();
+            return new ReadLockExiter(@lock);
         }
 
-        public void Dispose()
+        [NonCopyable]
+        internal readonly struct ReadLockExiter : IDisposable
         {
-            _lock.ExitReadLock();
-        }
-    }
+            private readonly ReaderWriterLockSlim _lock;
 
-    internal static UpgradeableReadLockExiter DisposableUpgradeableRead(this ReaderWriterLockSlim @lock)
-    {
-        return new UpgradeableReadLockExiter(@lock);
-    }
+            internal ReadLockExiter(ReaderWriterLockSlim @lock)
+            {
+                _lock = @lock;
+                @lock.EnterReadLock();
+            }
 
-    [NonCopyable]
-    internal readonly struct UpgradeableReadLockExiter : IDisposable
-    {
-        private readonly ReaderWriterLockSlim _lock;
-
-        internal UpgradeableReadLockExiter(ReaderWriterLockSlim @lock)
-        {
-            _lock = @lock;
-            @lock.EnterUpgradeableReadLock();
+            public void Dispose()
+            {
+                _lock.ExitReadLock();
+            }
         }
 
-        public void Dispose()
+        internal static UpgradeableReadLockExiter DisposableUpgradeableRead(this ReaderWriterLockSlim @lock)
         {
-            if (_lock.IsWriteLockHeld)
+            return new UpgradeableReadLockExiter(@lock);
+        }
+
+        [NonCopyable]
+        internal readonly struct UpgradeableReadLockExiter : IDisposable
+        {
+            private readonly ReaderWriterLockSlim _lock;
+
+            internal UpgradeableReadLockExiter(ReaderWriterLockSlim @lock)
+            {
+                _lock = @lock;
+                @lock.EnterUpgradeableReadLock();
+            }
+
+            public void Dispose()
+            {
+                if (_lock.IsWriteLockHeld)
+                {
+                    _lock.ExitWriteLock();
+                }
+
+                _lock.ExitUpgradeableReadLock();
+            }
+
+            public void EnterWrite()
+            {
+                _lock.EnterWriteLock();
+            }
+        }
+
+        internal static WriteLockExiter DisposableWrite(this ReaderWriterLockSlim @lock)
+        {
+            return new WriteLockExiter(@lock);
+        }
+
+        [NonCopyable]
+        internal readonly struct WriteLockExiter : IDisposable
+        {
+            private readonly ReaderWriterLockSlim _lock;
+
+            internal WriteLockExiter(ReaderWriterLockSlim @lock)
+            {
+                _lock = @lock;
+                @lock.EnterWriteLock();
+            }
+
+            public void Dispose()
             {
                 _lock.ExitWriteLock();
             }
-
-            _lock.ExitUpgradeableReadLock();
         }
 
-        public void EnterWrite()
+        internal static void AssertCanRead(this ReaderWriterLockSlim @lock)
         {
-            _lock.EnterWriteLock();
-        }
-    }
-
-    internal static WriteLockExiter DisposableWrite(this ReaderWriterLockSlim @lock)
-    {
-        return new WriteLockExiter(@lock);
-    }
-
-    [NonCopyable]
-    internal readonly struct WriteLockExiter : IDisposable
-    {
-        private readonly ReaderWriterLockSlim _lock;
-
-        internal WriteLockExiter(ReaderWriterLockSlim @lock)
-        {
-            _lock = @lock;
-            @lock.EnterWriteLock();
+            if (!@lock.IsReadLockHeld && !@lock.IsUpgradeableReadLockHeld && !@lock.IsWriteLockHeld)
+            {
+                throw new InvalidOperationException();
+            }
         }
 
-        public void Dispose()
+        internal static void AssertCanWrite(this ReaderWriterLockSlim @lock)
         {
-            _lock.ExitWriteLock();
-        }
-    }
-
-    internal static void AssertCanRead(this ReaderWriterLockSlim @lock)
-    {
-        if (!@lock.IsReadLockHeld && !@lock.IsUpgradeableReadLockHeld && !@lock.IsWriteLockHeld)
-        {
-            throw new InvalidOperationException();
-        }
-    }
-
-    internal static void AssertCanWrite(this ReaderWriterLockSlim @lock)
-    {
-        if (!@lock.IsWriteLockHeld)
-        {
-            throw new InvalidOperationException();
+            if (!@lock.IsWriteLockHeld)
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 }

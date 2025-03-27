@@ -9,46 +9,47 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CompilerServer;
-
-internal interface IDiagnosticListener
+namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    /// <summary>
-    /// Called when the server updates the keep alive value.
-    /// </summary>
-    void UpdateKeepAlive(TimeSpan keepAlive);
-
-    /// <summary>
-    /// Called when a connection to the server occurs.
-    /// </summary>
-    void ConnectionReceived();
-
-    /// <summary>
-    /// Called when a connection has finished processing.
-    /// </summary>
-    void ConnectionCompleted(CompletionData completionData);
-
-    /// <summary>
-    /// Called when the server is shutting down because the keep alive timeout was reached.
-    /// </summary>
-    void KeepAliveReached();
-}
-
-internal sealed class EmptyDiagnosticListener : IDiagnosticListener
-{
-    public void UpdateKeepAlive(TimeSpan keepAlive)
+    internal interface IDiagnosticListener
     {
+        /// <summary>
+        /// Called when the server updates the keep alive value.
+        /// </summary>
+        void UpdateKeepAlive(TimeSpan keepAlive);
+
+        /// <summary>
+        /// Called when a connection to the server occurs.
+        /// </summary>
+        void ConnectionReceived();
+
+        /// <summary>
+        /// Called when a connection has finished processing.
+        /// </summary>
+        void ConnectionCompleted(CompletionData completionData);
+
+        /// <summary>
+        /// Called when the server is shutting down because the keep alive timeout was reached.
+        /// </summary>
+        void KeepAliveReached();
     }
 
-    public void ConnectionReceived()
+    internal sealed class EmptyDiagnosticListener : IDiagnosticListener
     {
-    }
+        public void UpdateKeepAlive(TimeSpan keepAlive)
+        {
+        }
 
-    public void ConnectionCompleted(CompletionData completionData)
-    {
-    }
+        public void ConnectionReceived()
+        {
+        }
 
-    public void KeepAliveReached()
-    {
+        public void ConnectionCompleted(CompletionData completionData)
+        {
+        }
+
+        public void KeepAliveReached()
+        {
+        }
     }
 }

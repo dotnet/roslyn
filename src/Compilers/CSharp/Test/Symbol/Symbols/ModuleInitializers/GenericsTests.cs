@@ -8,17 +8,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers;
-
-[CompilerTrait(CompilerFeature.ModuleInitializers)]
-public sealed class GenericsTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
 {
-    private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
-
-    [Fact]
-    public void MustNotBeGenericMethod()
+    [CompilerTrait(CompilerFeature.ModuleInitializers)]
+    public sealed class GenericsTests : CSharpTestBase
     {
-        string source = @"
+        private static readonly CSharpParseOptions s_parseOptions = TestOptions.Regular9;
+
+        [Fact]
+        public void MustNotBeGenericMethod()
+        {
+            string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -29,18 +29,18 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-        var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-        compilation.VerifyEmitDiagnostics(
-            // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
-            //     [ModuleInitializer]
-            Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
-            );
-    }
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
+                );
+        }
 
-    [Fact]
-    public void MustNotBeContainedInGenericType()
-    {
-        string source = @"
+        [Fact]
+        public void MustNotBeContainedInGenericType()
+        {
+            string source = @"
 using System.Runtime.CompilerServices;
 
 class C<T>
@@ -51,18 +51,18 @@ class C<T>
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-        var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-        compilation.VerifyEmitDiagnostics(
-            // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
-            //     [ModuleInitializer]
-            Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
-            );
-    }
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
+                );
+        }
 
-    [Fact]
-    public void MustNotBeGenericAndContainedInGenericType()
-    {
-        string source = @"
+        [Fact]
+        public void MustNotBeGenericAndContainedInGenericType()
+        {
+            string source = @"
 using System.Runtime.CompilerServices;
 
 class C<T>
@@ -73,18 +73,18 @@ class C<T>
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-        var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-        compilation.VerifyEmitDiagnostics(
-            // (6,6): error CS8816: Module initializer method 'M' must not be generic and must not be contained in a generic type
-            //     [ModuleInitializer]
-            Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
-            );
-    }
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (6,6): error CS8816: Module initializer method 'M' must not be generic and must not be contained in a generic type
+                //     [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(6, 6)
+                );
+        }
 
-    [Fact]
-    public void MustNotBeContainedInGenericTypeWithParametersDeclaredByContainingGenericType()
-    {
-        string source = @"
+        [Fact]
+        public void MustNotBeContainedInGenericTypeWithParametersDeclaredByContainingGenericType()
+        {
+            string source = @"
 using System.Runtime.CompilerServices;
 
 class C<T>
@@ -98,11 +98,12 @@ class C<T>
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-        var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
-        compilation.VerifyEmitDiagnostics(
-            // (8,10): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
-            //         [ModuleInitializer]
-            Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(8, 10)
-            );
+            var compilation = CreateCompilation(source, parseOptions: s_parseOptions);
+            compilation.VerifyEmitDiagnostics(
+                // (8,10): error CS8798: Module initializer method 'M' must not be generic and must not be contained in a generic type
+                //         [ModuleInitializer]
+                Diagnostic(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, "ModuleInitializer").WithArguments("M").WithLocation(8, 10)
+                );
+        }
     }
 }

@@ -7,17 +7,18 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal sealed class NotImplementedAnalyzerLoader : IAnalyzerAssemblyLoader
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public void AddDependencyLocation(string fullPath)
+    internal sealed class NotImplementedAnalyzerLoader : IAnalyzerAssemblyLoader
     {
-        throw new NotImplementedException();
-    }
+        public void AddDependencyLocation(string fullPath)
+        {
+            throw new NotImplementedException();
+        }
 
-    public Assembly LoadFromPath(string fullPath)
-    {
-        throw new NotImplementedException();
+        public Assembly LoadFromPath(string fullPath)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

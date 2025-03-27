@@ -12,241 +12,242 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-
-internal sealed class RetargetingPropertySymbol : WrappedPropertySymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
-    /// <summary>
-    /// Owning RetargetingModuleSymbol.
-    /// </summary>
-    private readonly RetargetingModuleSymbol _retargetingModule;
-
-    //we want to compute this lazily since it may be expensive for the underlying symbol
-    private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
-    private ImmutableArray<ParameterSymbol> _lazyParameters;
-    private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
-
-    /// <summary>
-    /// Retargeted custom attributes
-    /// </summary>
-    private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-
-    private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
-
-    private TypeWithAnnotations.Boxed _lazyType;
-
-    public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
-        : base(underlyingProperty)
+    internal sealed class RetargetingPropertySymbol : WrappedPropertySymbol
     {
-        Debug.Assert((object)retargetingModule != null);
-        Debug.Assert(!(underlyingProperty is RetargetingPropertySymbol));
+        /// <summary>
+        /// Owning RetargetingModuleSymbol.
+        /// </summary>
+        private readonly RetargetingModuleSymbol _retargetingModule;
 
-        _retargetingModule = retargetingModule;
-    }
+        //we want to compute this lazily since it may be expensive for the underlying symbol
+        private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
+        private ImmutableArray<ParameterSymbol> _lazyParameters;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
-    private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
-    {
-        get
+        /// <summary>
+        /// Retargeted custom attributes
+        /// </summary>
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+
+        private TypeWithAnnotations.Boxed _lazyType;
+
+        public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
+            : base(underlyingProperty)
         {
-            return _retargetingModule.RetargetingTranslator;
+            Debug.Assert((object)retargetingModule != null);
+            Debug.Assert(!(underlyingProperty is RetargetingPropertySymbol));
+
+            _retargetingModule = retargetingModule;
         }
-    }
 
-    public RetargetingModuleSymbol RetargetingModule
-    {
-        get
+        private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
         {
-            return _retargetingModule;
-        }
-    }
-
-    public override TypeWithAnnotations TypeWithAnnotations
-    {
-        get
-        {
-            if (_lazyType is null)
+            get
             {
-                var type = this.RetargetingTranslator.Retarget(_underlyingProperty.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                if (type.Type.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))
+                return _retargetingModule.RetargetingTranslator;
+            }
+        }
+
+        public RetargetingModuleSymbol RetargetingModule
+        {
+            get
+            {
+                return _retargetingModule;
+            }
+        }
+
+        public override TypeWithAnnotations TypeWithAnnotations
+        {
+            get
+            {
+                if (_lazyType is null)
                 {
-                    type = TypeWithAnnotations.Create(asDynamic);
+                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    if (type.Type.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))
+                    {
+                        type = TypeWithAnnotations.Create(asDynamic);
+                    }
+                    Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
                 }
-                Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
+                return _lazyType.Value;
             }
-            return _lazyType.Value;
         }
-    }
 
-    public override ImmutableArray<CustomModifier> RefCustomModifiers
-    {
-        get
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            return RetargetingTranslator.RetargetModifiers(_underlyingProperty.RefCustomModifiers, ref _lazyRefCustomModifiers);
-        }
-    }
-
-    public override ImmutableArray<ParameterSymbol> Parameters
-    {
-        get
-        {
-            if (_lazyParameters.IsDefault)
+            get
             {
-                ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                return RetargetingTranslator.RetargetModifiers(_underlyingProperty.RefCustomModifiers, ref _lazyRefCustomModifiers);
             }
-
-            return _lazyParameters;
         }
-    }
 
-    private ImmutableArray<ParameterSymbol> RetargetParameters()
-    {
-        var list = _underlyingProperty.Parameters;
-        int count = list.Length;
-
-        if (count == 0)
+        public override ImmutableArray<ParameterSymbol> Parameters
         {
-            return ImmutableArray<ParameterSymbol>.Empty;
-        }
-        else
-        {
-            ParameterSymbol[] parameters = new ParameterSymbol[count];
-
-            for (int i = 0; i < count; i++)
+            get
             {
-                parameters[i] = new RetargetingPropertyParameterSymbol(this, list[i]);
+                if (_lazyParameters.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                }
+
+                return _lazyParameters;
             }
-
-            return parameters.AsImmutableOrNull();
         }
-    }
 
-    public override MethodSymbol GetMethod
-    {
-        get
+        private ImmutableArray<ParameterSymbol> RetargetParameters()
         {
-            return (object)_underlyingProperty.GetMethod == null
-                ? null
-                : this.RetargetingTranslator.Retarget(_underlyingProperty.GetMethod);
-        }
-    }
+            var list = _underlyingProperty.Parameters;
+            int count = list.Length;
 
-    public override MethodSymbol SetMethod
-    {
-        get
-        {
-            return (object)_underlyingProperty.SetMethod == null
-                ? null
-                : this.RetargetingTranslator.Retarget(_underlyingProperty.SetMethod);
-        }
-    }
-
-    internal override bool IsExplicitInterfaceImplementation
-    {
-        get
-        {
-            return _underlyingProperty.IsExplicitInterfaceImplementation;
-        }
-    }
-
-    public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
-    {
-        get
-        {
-            if (_lazyExplicitInterfaceImplementations.IsDefault)
+            if (count == 0)
             {
-                ImmutableInterlocked.InterlockedCompareExchange(
-                    ref _lazyExplicitInterfaceImplementations,
-                    this.RetargetExplicitInterfaceImplementations(),
-                    default(ImmutableArray<PropertySymbol>));
+                return ImmutableArray<ParameterSymbol>.Empty;
             }
-            return _lazyExplicitInterfaceImplementations;
-        }
-    }
-
-    private ImmutableArray<PropertySymbol> RetargetExplicitInterfaceImplementations()
-    {
-        var impls = _underlyingProperty.ExplicitInterfaceImplementations;
-
-        if (impls.IsEmpty)
-        {
-            Debug.Assert(!impls.IsDefault);
-            return impls;
-        }
-
-        // CONSIDER: we could skip the builder until the first time we see a different method after retargeting
-
-        var builder = ArrayBuilder<PropertySymbol>.GetInstance();
-
-        for (int i = 0; i < impls.Length; i++)
-        {
-            var retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
-            if ((object)retargeted != null)
+            else
             {
-                builder.Add(retargeted);
+                ParameterSymbol[] parameters = new ParameterSymbol[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    parameters[i] = new RetargetingPropertyParameterSymbol(this, list[i]);
+                }
+
+                return parameters.AsImmutableOrNull();
             }
         }
 
-        return builder.ToImmutableAndFree();
-    }
-
-    public override Symbol ContainingSymbol
-    {
-        get
+        public override MethodSymbol GetMethod
         {
-            return this.RetargetingTranslator.Retarget(_underlyingProperty.ContainingSymbol);
-        }
-    }
-
-    public override AssemblySymbol ContainingAssembly
-    {
-        get
-        {
-            return _retargetingModule.ContainingAssembly;
-        }
-    }
-
-    internal override ModuleSymbol ContainingModule
-    {
-        get
-        {
-            return _retargetingModule;
-        }
-    }
-
-    public override ImmutableArray<CSharpAttributeData> GetAttributes()
-    {
-        return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingProperty.GetAttributes(), ref _lazyCustomAttributes);
-    }
-
-    internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
-    {
-        return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(moduleBuilder));
-    }
-
-    internal override bool MustCallMethodsDirectly
-    {
-        get
-        {
-            return _underlyingProperty.MustCallMethodsDirectly;
-        }
-    }
-
-    internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
-    {
-        AssemblySymbol primaryDependency = PrimaryDependency;
-
-        if (!_lazyCachedUseSiteInfo.IsInitialized)
-        {
-            var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
-            CalculateUseSiteDiagnostic(ref result);
-            _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+            get
+            {
+                return (object)_underlyingProperty.GetMethod == null
+                    ? null
+                    : this.RetargetingTranslator.Retarget(_underlyingProperty.GetMethod);
+            }
         }
 
-        return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
-    }
+        public override MethodSymbol SetMethod
+        {
+            get
+            {
+                return (object)_underlyingProperty.SetMethod == null
+                    ? null
+                    : this.RetargetingTranslator.Retarget(_underlyingProperty.SetMethod);
+            }
+        }
 
-    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-    {
-        get { return null; }
+        internal override bool IsExplicitInterfaceImplementation
+        {
+            get
+            {
+                return _underlyingProperty.IsExplicitInterfaceImplementation;
+            }
+        }
+
+        public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
+        {
+            get
+            {
+                if (_lazyExplicitInterfaceImplementations.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedCompareExchange(
+                        ref _lazyExplicitInterfaceImplementations,
+                        this.RetargetExplicitInterfaceImplementations(),
+                        default(ImmutableArray<PropertySymbol>));
+                }
+                return _lazyExplicitInterfaceImplementations;
+            }
+        }
+
+        private ImmutableArray<PropertySymbol> RetargetExplicitInterfaceImplementations()
+        {
+            var impls = _underlyingProperty.ExplicitInterfaceImplementations;
+
+            if (impls.IsEmpty)
+            {
+                Debug.Assert(!impls.IsDefault);
+                return impls;
+            }
+
+            // CONSIDER: we could skip the builder until the first time we see a different method after retargeting
+
+            var builder = ArrayBuilder<PropertySymbol>.GetInstance();
+
+            for (int i = 0; i < impls.Length; i++)
+            {
+                var retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
+                if ((object)retargeted != null)
+                {
+                    builder.Add(retargeted);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public override Symbol ContainingSymbol
+        {
+            get
+            {
+                return this.RetargetingTranslator.Retarget(_underlyingProperty.ContainingSymbol);
+            }
+        }
+
+        public override AssemblySymbol ContainingAssembly
+        {
+            get
+            {
+                return _retargetingModule.ContainingAssembly;
+            }
+        }
+
+        internal override ModuleSymbol ContainingModule
+        {
+            get
+            {
+                return _retargetingModule;
+            }
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingProperty.GetAttributes(), ref _lazyCustomAttributes);
+        }
+
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+        {
+            return this.RetargetingTranslator.RetargetAttributes(_underlyingProperty.GetCustomAttributesToEmit(moduleBuilder));
+        }
+
+        internal override bool MustCallMethodsDirectly
+        {
+            get
+            {
+                return _underlyingProperty.MustCallMethodsDirectly;
+            }
+        }
+
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        {
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
+            {
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+                CalculateUseSiteDiagnostic(ref result);
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+            }
+
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+        }
+
+        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        {
+            get { return null; }
+        }
     }
 }

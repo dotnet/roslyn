@@ -12,104 +12,105 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class VerbatimCrefParsingTests : ParsingTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public VerbatimCrefParsingTests(ITestOutputHelper output) : base(output) { }
-
-    protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+    public class VerbatimCrefParsingTests : ParsingTests
     {
-        throw new NotSupportedException();
-    }
+        public VerbatimCrefParsingTests(ITestOutputHelper output) : base(output) { }
 
-    protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
-    {
-        var commentText = string.Format(@"/// <see cref=""{0}""/>", text);
-        var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
-        var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-        var attr = structure.DescendantNodes().OfType<XmlTextAttributeSyntax>().Single();
-        return attr;
-    }
-
-    [Fact]
-    public void NoEscapes()
-    {
-        UsingNode("T:NotARealType");
-
-        N(SyntaxKind.XmlTextAttribute);
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            N(SyntaxKind.XmlName);
-            {
-                N(SyntaxKind.IdentifierToken);
-            }
-            N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.DoubleQuoteToken);
-            N(SyntaxKind.XmlTextLiteralToken);
-            N(SyntaxKind.DoubleQuoteToken);
+            throw new NotSupportedException();
         }
-        EOF();
-    }
 
-    [Fact]
-    public void EscapedKind()
-    {
-        UsingNode("&#84;:NotARealType");
-
-        N(SyntaxKind.XmlTextAttribute);
+        protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
         {
-            N(SyntaxKind.XmlName);
-            {
-                N(SyntaxKind.IdentifierToken);
-            }
-            N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.DoubleQuoteToken);
-            N(SyntaxKind.XmlEntityLiteralToken);
-            N(SyntaxKind.XmlTextLiteralToken);
-            N(SyntaxKind.DoubleQuoteToken);
+            var commentText = string.Format(@"/// <see cref=""{0}""/>", text);
+            var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
+            var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+            var attr = structure.DescendantNodes().OfType<XmlTextAttributeSyntax>().Single();
+            return attr;
         }
-        EOF();
-    }
 
-    [Fact]
-    public void EscapedColon()
-    {
-        UsingNode("T&#58;NotARealType");
-
-        N(SyntaxKind.XmlTextAttribute);
+        [Fact]
+        public void NoEscapes()
         {
-            N(SyntaxKind.XmlName);
+            UsingNode("T:NotARealType");
+
+            N(SyntaxKind.XmlTextAttribute);
             {
-                N(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.XmlName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.DoubleQuoteToken);
+                N(SyntaxKind.XmlTextLiteralToken);
+                N(SyntaxKind.DoubleQuoteToken);
             }
-            N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.DoubleQuoteToken);
-            N(SyntaxKind.XmlTextLiteralToken);
-            N(SyntaxKind.XmlEntityLiteralToken);
-            N(SyntaxKind.XmlTextLiteralToken);
-            N(SyntaxKind.DoubleQuoteToken);
+            EOF();
         }
-        EOF();
-    }
 
-    [Fact]
-    public void EscapedKindAndColon()
-    {
-        UsingNode("&#84;&#58;NotARealType");
-
-        N(SyntaxKind.XmlTextAttribute);
+        [Fact]
+        public void EscapedKind()
         {
-            N(SyntaxKind.XmlName);
+            UsingNode("&#84;:NotARealType");
+
+            N(SyntaxKind.XmlTextAttribute);
             {
-                N(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.XmlName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.DoubleQuoteToken);
+                N(SyntaxKind.XmlEntityLiteralToken);
+                N(SyntaxKind.XmlTextLiteralToken);
+                N(SyntaxKind.DoubleQuoteToken);
             }
-            N(SyntaxKind.EqualsToken);
-            N(SyntaxKind.DoubleQuoteToken);
-            N(SyntaxKind.XmlEntityLiteralToken);
-            N(SyntaxKind.XmlEntityLiteralToken);
-            N(SyntaxKind.XmlTextLiteralToken);
-            N(SyntaxKind.DoubleQuoteToken);
+            EOF();
         }
-        EOF();
+
+        [Fact]
+        public void EscapedColon()
+        {
+            UsingNode("T&#58;NotARealType");
+
+            N(SyntaxKind.XmlTextAttribute);
+            {
+                N(SyntaxKind.XmlName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.DoubleQuoteToken);
+                N(SyntaxKind.XmlTextLiteralToken);
+                N(SyntaxKind.XmlEntityLiteralToken);
+                N(SyntaxKind.XmlTextLiteralToken);
+                N(SyntaxKind.DoubleQuoteToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void EscapedKindAndColon()
+        {
+            UsingNode("&#84;&#58;NotARealType");
+
+            N(SyntaxKind.XmlTextAttribute);
+            {
+                N(SyntaxKind.XmlName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.DoubleQuoteToken);
+                N(SyntaxKind.XmlEntityLiteralToken);
+                N(SyntaxKind.XmlEntityLiteralToken);
+                N(SyntaxKind.XmlTextLiteralToken);
+                N(SyntaxKind.DoubleQuoteToken);
+            }
+            EOF();
+        }
     }
 }

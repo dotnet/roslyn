@@ -7,15 +7,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-[CompilerTrait(CompilerFeature.IOperation)]
-public class IOperationTests_IAttributeOperation : SemanticModelTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [Fact]
-    public void TestCallerInfoImplicitCall()
+    [CompilerTrait(CompilerFeature.IOperation)]
+    public class IOperationTests_IAttributeOperation : SemanticModelTestBase
     {
-        string source = @"
+        [Fact]
+        public void TestCallerInfoImplicitCall()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -30,7 +30,7 @@ class MyAttribute : Attribute
 [/*<bind>*/My/*</bind>*/]
 class Test { }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Int32 lineNumber = -1])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -41,7 +41,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -62,16 +62,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestCallerMemberName_Class()
-    {
-        string source = @"
+        [Fact]
+        public void TestCallerMemberName_Class()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -88,7 +88,7 @@ class Test
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String callerName = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -99,15 +99,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestCallerMemberName_Method()
-    {
-        string source = @"
+        [Fact]
+        public void TestCallerMemberName_Method()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -125,7 +125,7 @@ class Test
     public void M() { }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String callerName = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -136,15 +136,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestCallerMemberName_Parameter()
-    {
-        string source = @"
+        [Fact]
+        public void TestCallerMemberName_Parameter()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -160,7 +160,7 @@ internal class MyAttribute : Attribute
     public MyAttribute([CallerMemberName] string x = null) {}
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String x = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -171,15 +171,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestNonExistingAttribute()
-    {
-        string source = @"
+        [Fact]
+        public void TestNonExistingAttribute()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My/*</bind>*/]
@@ -187,28 +187,28 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
     Children(0)
 ";
-        var expectedDiagnostics = new[]
+            var expectedDiagnostics = new[]
+            {
+                // (4,12): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(4, 12),
+                // (4,12): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(4, 12),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestAttributeWithoutArguments()
         {
-            // (4,12): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
-            // [/*<bind>*/My/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(4, 12),
-            // (4,12): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
-            // [/*<bind>*/My/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(4, 12),
-        };
-
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
-
-    [Fact]
-    public void TestAttributeWithoutArguments()
-    {
-        string source = @"
+            string source = @"
 using System;
 
 class MyAttribute : Attribute { }
@@ -218,22 +218,22 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor()) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(0)
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestAttributeWithExplicitArgument()
-    {
-        string source = @"
+        [Fact]
+        public void TestAttributeWithExplicitArgument()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -246,7 +246,7 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value"")')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.String value)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(""Value"")')
     Arguments(1):
@@ -257,15 +257,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value""
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestAttributeWithExplicitArgument_IncorrectTypePassed()
-    {
-        string source = @"
+        [Fact]
+        public void TestAttributeWithExplicitArgument_IncorrectTypePassed()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -278,26 +278,26 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(0)')
   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My(0)')
     Children(1):
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
-        var expectedDiagnostics = new[]
+            var expectedDiagnostics = new[]
+            {
+                // (9,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // [/*<bind>*/My(0)/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string").WithLocation(9, 15)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestAttributeWithExplicitArgumentOptionalParameter()
         {
-            // (9,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-            // [/*<bind>*/My(0)/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string").WithLocation(9, 15)
-        };
-
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
-
-    [Fact]
-    public void TestAttributeWithExplicitArgumentOptionalParameter()
-    {
-        string source = @"
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -310,7 +310,7 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value"")')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String value = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(""Value"")')
     Arguments(1):
@@ -321,20 +321,20 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value""
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Theory]
-    [CombinatorialData]
-    public void TestAttributeWithOptionalParameterNotPassed(bool withParentheses)
-    {
-        string attribute = withParentheses ? "My()" : "My";
+        [Theory]
+        [CombinatorialData]
+        public void TestAttributeWithOptionalParameterNotPassed(bool withParentheses)
+        {
+            string attribute = withParentheses ? "My()" : "My";
 
-        string attributeListSyntax = $"[/*<bind>*/{attribute}/*</bind>*/]";
+            string attributeListSyntax = $"[/*<bind>*/{attribute}/*</bind>*/]";
 
-        string source = @"
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -346,7 +346,7 @@ class C
 {
 }
 ";
-        string expectedOperationTree = $@"
+            string expectedOperationTree = $@"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: '{attribute}')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String value = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: '{attribute}')
     Arguments(1):
@@ -357,15 +357,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: '{attribute}'
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestAttributeWithUnorderedArguments()
-    {
-        string source = @"
+        [Fact]
+        public void TestAttributeWithUnorderedArguments()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -378,7 +378,7 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 0)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 a, System.Int32 b)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(b: 1, a: 0)')
     Arguments(2):
@@ -393,15 +393,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestAttributeWithUnorderedArgumentsAndOptionalParameters()
-    {
-        string source = @"
+        [Fact]
+        public void TestAttributeWithUnorderedArgumentsAndOptionalParameters()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -414,7 +414,7 @@ class C
 {
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 0, d: 5)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 a, System.Int32 b, [System.Int32 c = 2], [System.Int32 d = 3])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
     Arguments(4):
@@ -437,15 +437,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void TestConversion()
-    {
-        string source = @"
+        [Fact]
+        public void TestConversion()
+        {
+            string source = @"
 using System;
 
 
@@ -455,7 +455,7 @@ class MyAttribute : Attribute
     public MyAttribute(double x) { }
 }
 ";
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(0.0f)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Double x)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(0.0f)')
     Arguments(1):
@@ -469,14 +469,14 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(0.0f)')
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void SwitchExpression_Attribute()
-    {
-        string source = @"
+        [Fact]
+        public void SwitchExpression_Attribute()
+        {
+            string source = @"
 using System;
 class Program
 {
@@ -496,13 +496,13 @@ public class B
     public static implicit operator int(B b) => 2;
 }
 ";
-        var expectedDiagnostics = new DiagnosticDescription[]
-        {
-            // (5,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-            //     [/*<bind>*/My(1 switch { 1 => 1, _ => 2 })/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 19),
-        };
-        string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (5,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [/*<bind>*/My(1 switch { 1 => 1, _ => 2 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 19),
+            };
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(1 switch ... , _ => 2 })')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 Value)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My(1 switch ... , _ => 2 })')
     Arguments(1):
@@ -528,13 +528,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'M
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void BadAttributeParameterType()
-    {
-        string source = @"
+        [Fact]
+        public void BadAttributeParameterType()
+        {
+            string source = @"
 [/*<bind>*/Boom/*</bind>*/]
 class Boom : System.Attribute
 {
@@ -545,13 +545,13 @@ class Boom : System.Attribute
         typeof(Boom).GetCustomAttributes(true);
     }
 }";
-        var expectedDiagnostics = new DiagnosticDescription[]
-        {
-            // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
-            // [/*<bind>*/Boom/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
-        };
-        string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
+                // [/*<bind>*/Boom/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
+            };
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom')
   IObjectCreationOperation (Constructor: Boom..ctor([System.Int32? x = 0])) (OperationKind.ObjectCreation, Type: Boom, IsInvalid, IsImplicit) (Syntax: 'Boom')
     Arguments(1):
@@ -565,13 +565,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'B
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void BadAttributeParameterType2()
-    {
-        string source = @"
+        [Fact]
+        public void BadAttributeParameterType2()
+        {
+            string source = @"
 [/*<bind>*/Boom(null)/*</bind>*/]
 class Boom : System.Attribute
 {
@@ -582,13 +582,13 @@ class Boom : System.Attribute
         typeof(Boom).GetCustomAttributes(true);
     }
 }";
-        var expectedDiagnostics = new DiagnosticDescription[]
-        {
-            // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
-            // [/*<bind>*/Boom/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
-        };
-        string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
+                // [/*<bind>*/Boom/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
+            };
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom(null)')
   IObjectCreationOperation (Constructor: Boom..ctor([System.Int32? x = 0])) (OperationKind.ObjectCreation, Type: Boom, IsInvalid, IsImplicit) (Syntax: 'Boom(null)')
     Arguments(1):
@@ -602,13 +602,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'B
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeWithExplicitNullArgument()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeWithExplicitNullArgument()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My(null)/*</bind>*/]
@@ -619,8 +619,8 @@ class MyAttribute : Attribute
     }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(null)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(null)')
     Arguments(1):
@@ -634,13 +634,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(null)')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeWithDefaultNullArgument()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeWithDefaultNullArgument()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My/*</bind>*/]
@@ -651,8 +651,8 @@ class MyAttribute : Attribute
     }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -663,13 +663,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeWithTypeOfArgument()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeWithTypeOfArgument()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My(typeof(MyAttribute))/*</bind>*/]
@@ -680,8 +680,8 @@ class MyAttribute : Attribute
     }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(typeof(MyAttribute))')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(typeof(MyAttribute))')
     Arguments(1):
@@ -693,13 +693,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(typeof(My
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void InvalidValue()
-    {
-        string source = @"
+        [Fact]
+        public void InvalidValue()
+        {
+            string source = @"
 using System.Security.Permissions;
 
 [/*<bind>*/A/*</bind>*/]
@@ -711,16 +711,16 @@ class A : CodeAccessSecurityAttribute
 
 }
 ";
-        var expectedDiagnostics = new DiagnosticDescription[]
-        {
-            // (4,12): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
-            // [/*<bind>*/A/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A").WithArguments("A", "0").WithLocation(4, 12),
-            // (5,7): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
-            // class A : CodeAccessSecurityAttribute
-            Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
-        };
-        string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (4,12): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
+                // [/*<bind>*/A/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A").WithArguments("A", "0").WithLocation(4, 12),
+                // (5,7): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // class A : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
+            };
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A')
   IObjectCreationOperation (Constructor: A..ctor([System.Security.Permissions.SecurityAction a = (System.Security.Permissions.SecurityAction)0])) (OperationKind.ObjectCreation, Type: A, IsInvalid, IsImplicit) (Syntax: 'A')
     Arguments(1):
@@ -734,13 +734,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void InvalidAttributeParameterType()
-    {
-        string source = @"
+        [Fact]
+        public void InvalidAttributeParameterType()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My/*</bind>*/]
@@ -749,13 +749,13 @@ class MyAttribute : Attribute
     public MyAttribute(params int[][,] x) { }
 }
 ";
-        var expectedDiagnostics = new DiagnosticDescription[]
-        {
-            // (4,12): error CS0181: Attribute constructor parameter 'x' has type 'int[][*,*]', which is not a valid attribute parameter type
-            // [/*<bind>*/My/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int[][*,*]").WithLocation(4, 12)
-        };
-        string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (4,12): error CS0181: Attribute constructor parameter 'x' has type 'int[][*,*]', which is not a valid attribute parameter type
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int[][*,*]").WithLocation(4, 12)
+            };
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(params System.Int32[][,] x)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -771,21 +771,21 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'M
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Theory]
-    [InlineData("assembly")]
-    [InlineData("module")]
-    public void AssemblyAndModuleAttributeTargets(string attributeTarget)
-    {
-        string source = $"""
-            using System;
+        [Theory]
+        [InlineData("assembly")]
+        [InlineData("module")]
+        public void AssemblyAndModuleAttributeTargets(string attributeTarget)
+        {
+            string source = $"""
+                using System;
 
-            [{attributeTarget}: /*<bind>*/CLSCompliant(true)/*</bind>*/]
-            """;
+                [{attributeTarget}: /*<bind>*/CLSCompliant(true)/*</bind>*/]
+                """;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant(true)')
   IObjectCreationOperation (Constructor: System.CLSCompliantAttribute..ctor(System.Boolean isCompliant)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'CLSCompliant(true)')
     Arguments(1):
@@ -796,42 +796,42 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'CLSCompliant
     Initializer:
       null
 ";
-        var expectedDiagnostics = attributeTarget switch
-        {
-            "assembly" => DiagnosticDescription.None,
-            "module" => new DiagnosticDescription[]
+            var expectedDiagnostics = attributeTarget switch
             {
-                // (3,20): warning CS3012: You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking
-                // [module: /*<bind>*/CLSCompliant(true)/*</bind>*/]
-                Diagnostic(ErrorCode.WRN_CLS_NotOnModules, "CLSCompliant(true)").WithLocation(3, 20),
-            },
-            _ => throw TestExceptionUtilities.UnexpectedValue(attributeTarget),
-        };
-
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
-
-    [Fact]
-    public void ReturnAttributeTarget()
-    {
-        string source = """
-            using System;
-
-            class MyAttribute : Attribute
-            {
-                public MyAttribute(int i) 
+                "assembly" => DiagnosticDescription.None,
+                "module" => new DiagnosticDescription[]
                 {
+                    // (3,20): warning CS3012: You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking
+                    // [module: /*<bind>*/CLSCompliant(true)/*</bind>*/]
+                    Diagnostic(ErrorCode.WRN_CLS_NotOnModules, "CLSCompliant(true)").WithLocation(3, 20),
+                },
+                _ => throw TestExceptionUtilities.UnexpectedValue(attributeTarget),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReturnAttributeTarget()
+        {
+            string source = """
+                using System;
+
+                class MyAttribute : Attribute
+                {
+                    public MyAttribute(int i) 
+                    {
+                    }
                 }
-            }
 
-            public class C
-            {
-                [return: /*<bind>*/My(10)/*</bind>*/]
-                public string M() => null;
-            }
-            """;
+                public class C
+                {
+                    [return: /*<bind>*/My(10)/*</bind>*/]
+                    public string M() => null;
+                }
+                """;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -842,15 +842,15 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
       null
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void ComplexAttribute()
-    {
-        string source = @"
+        [Fact]
+        public void ComplexAttribute()
+        {
+            string source = @"
 using System;
 
 [/*<bind>*/My(i: 1, b: true, o: 2)/*</bind>*/]
@@ -861,8 +861,8 @@ class MyAttribute : Attribute
     }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: true, o: 2)')
     IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Boolean b, System.Int32 i, params System.Object[] o)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: true, o: 2)')
     Arguments(3):
@@ -890,13 +890,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: 
     Initializer:
         null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void ComplexAttributeWithNamedArgument()
-    {
-        string source = @"
+        [Fact]
+        public void ComplexAttributeWithNamedArgument()
+        {
+            string source = @"
 using System;
 
 [My(i: 1, b: true, o: 2)]
@@ -914,8 +914,8 @@ class MyAttribute : Attribute
     public int D { get; set; }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
     IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Boolean b, System.Int32 i, params System.Object[] o)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(i: 1, b: ...  10, D = 5)')
     Arguments(3):
@@ -958,7 +958,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(i: 1, b: 
                 Right:
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-        string expectedFlowGraph = @"
+            string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1020,14 +1020,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyFlowGraphAndDiagnosticsForTest<AttributeSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnLocalFunction()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnLocalFunction()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1041,8 +1041,8 @@ class MyAttribute : Attribute
     }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1053,13 +1053,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
         null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnBackingField()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnBackingField()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1072,8 +1072,8 @@ class MyAttribute : Attribute
     public string S { get; }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
-        string expectedOperationTree = @"
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1084,13 +1084,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
         null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void PropertyAttributeTargetOnRecordPositionalParameter()
-    {
-        string source = @"
+        [Fact]
+        public void PropertyAttributeTargetOnRecordPositionalParameter()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1102,9 +1102,9 @@ class MyAttribute : Attribute
 
 record R([property: /*<bind>*/My(10)/*</bind>*/] string S);
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1115,13 +1115,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
         null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.NetCoreApp);
+        }
 
-    [Fact]
-    public void AttributeOnInvalidLocation()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnInvalidLocation()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1141,14 +1141,14 @@ class C
     }
 }
 ";
-        var expectedDiagnostics = new[]
-        {
-            // (15,9): error CS7014: Attributes are not valid in this context.
-            //         [/*<bind>*/My(10)/*</bind>*/]
-            Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[/*<bind>*/My(10)/*</bind>*/]").WithLocation(15, 9),
-        };
+            var expectedDiagnostics = new[]
+            {
+                // (15,9): error CS7014: Attributes are not valid in this context.
+                //         [/*<bind>*/My(10)/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[/*<bind>*/My(10)/*</bind>*/]").WithLocation(15, 9),
+            };
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(10)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1159,13 +1159,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'M
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnEnumMember()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnEnumMember()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1181,9 +1181,9 @@ enum E
         A,
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1194,13 +1194,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnTypeParameter()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnTypeParameter()
+        {
+            string source = @"
 using System;
 
 class MyAttribute : Attribute
@@ -1214,9 +1214,9 @@ class C <[/*<bind>*/My(10)/*</bind>*/] T>
 {
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
   IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 i)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(10)')
     Arguments(1):
@@ -1227,13 +1227,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(10)')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnTypeParameterWithCallerMemberName_Method()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnTypeParameterWithCallerMemberName_Method()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1249,9 +1249,9 @@ class C
     void M<[/*<bind>*/My/*</bind>*/] T>() { }
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String s = ""default""])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -1262,13 +1262,13 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
-    }
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
-    [Fact]
-    public void AttributeOnTypeParameterWithCallerMemberName_Class()
-    {
-        string source = @"
+        [Fact]
+        public void AttributeOnTypeParameterWithCallerMemberName_Class()
+        {
+            string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1283,9 +1283,9 @@ class C<[/*<bind>*/My/*</bind>*/] T>
 {
 }
 ";
-        var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedDiagnostics = DiagnosticDescription.None;
 
-        string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
   IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String s = ""default""])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
     Arguments(1):
@@ -1296,6 +1296,7 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
     Initializer:
       null
 ";
-        VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

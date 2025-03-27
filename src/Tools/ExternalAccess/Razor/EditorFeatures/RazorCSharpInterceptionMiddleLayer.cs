@@ -9,34 +9,35 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using System.Text.Json;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-[Export(typeof(AbstractLanguageClientMiddleLayer))]
-[Shared]
-internal class RazorCSharpInterceptionMiddleLayerWrapper : AbstractLanguageClientMiddleLayer
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    private readonly IRazorCSharpInterceptionMiddleLayer _razorCSharpInterceptionMiddleLayer;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RazorCSharpInterceptionMiddleLayerWrapper(IRazorCSharpInterceptionMiddleLayer razorCSharpInterceptionMiddleLayer)
+    [Export(typeof(AbstractLanguageClientMiddleLayer))]
+    [Shared]
+    internal class RazorCSharpInterceptionMiddleLayerWrapper : AbstractLanguageClientMiddleLayer
     {
-        _razorCSharpInterceptionMiddleLayer = razorCSharpInterceptionMiddleLayer;
-    }
+        private readonly IRazorCSharpInterceptionMiddleLayer _razorCSharpInterceptionMiddleLayer;
 
-    public override bool CanHandle(string methodName)
-        => _razorCSharpInterceptionMiddleLayer.CanHandle(methodName);
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RazorCSharpInterceptionMiddleLayerWrapper(IRazorCSharpInterceptionMiddleLayer razorCSharpInterceptionMiddleLayer)
+        {
+            _razorCSharpInterceptionMiddleLayer = razorCSharpInterceptionMiddleLayer;
+        }
 
-    public override Task HandleNotificationAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task> sendNotification)
-    {
-        // Razor only ever looks at the method name, so it is safe to pass null for all the Newtonsoft JToken params.
-        return _razorCSharpInterceptionMiddleLayer.HandleNotificationAsync(methodName, null!, null!);
-    }
+        public override bool CanHandle(string methodName)
+            => _razorCSharpInterceptionMiddleLayer.CanHandle(methodName);
 
-    public override Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest)
-    {
-        // Razor only implements a middlelayer for semantic tokens refresh, which is a notification.
-        // Cohosting makes all this unnecessary, so keeping this as minimal as possible until then.
-        throw new NotImplementedException();
+        public override Task HandleNotificationAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task> sendNotification)
+        {
+            // Razor only ever looks at the method name, so it is safe to pass null for all the Newtonsoft JToken params.
+            return _razorCSharpInterceptionMiddleLayer.HandleNotificationAsync(methodName, null!, null!);
+        }
+
+        public override Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest)
+        {
+            // Razor only implements a middlelayer for semantic tokens refresh, which is a notification.
+            // Cohosting makes all this unnecessary, so keeping this as minimal as possible until then.
+            throw new NotImplementedException();
+        }
     }
 }

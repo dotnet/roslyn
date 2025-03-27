@@ -10,18 +10,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss;
-
-internal readonly struct PackageReference
+namespace BuildBoss
 {
-    internal string Name { get; }
-    internal string Version { get; }
-
-    internal PackageReference(string name, string version)
+    internal readonly struct PackageReference
     {
-        Name = name;
-        Version = version;
-    }
+        internal string Name { get; }
+        internal string Version { get; }
 
-    public override string ToString() => $"{Name} - {Version}";
+        internal PackageReference(string name, string version)
+        {
+            Name = name;
+            Version = version;
+        }
+
+        public override string ToString() => $"{Name} - {Version}";
+    }
 }

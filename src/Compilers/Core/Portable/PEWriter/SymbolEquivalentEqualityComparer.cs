@@ -5,87 +5,88 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.Cci;
-
-/// <summary>
-/// Allows for the comparison of two <see cref="IReference"/> instances or two <see cref="INamespace"/>
-/// instances based on underlying symbols, if any.
-/// </summary>
-internal sealed class SymbolEquivalentEqualityComparer : IEqualityComparer<IReference?>, IEqualityComparer<INamespace?>
+namespace Microsoft.Cci
 {
-    public static readonly SymbolEquivalentEqualityComparer Instance = new SymbolEquivalentEqualityComparer();
-
-    private SymbolEquivalentEqualityComparer()
+    /// <summary>
+    /// Allows for the comparison of two <see cref="IReference"/> instances or two <see cref="INamespace"/>
+    /// instances based on underlying symbols, if any.
+    /// </summary>
+    internal sealed class SymbolEquivalentEqualityComparer : IEqualityComparer<IReference?>, IEqualityComparer<INamespace?>
     {
-    }
+        public static readonly SymbolEquivalentEqualityComparer Instance = new SymbolEquivalentEqualityComparer();
 
-    public bool Equals(IReference? x, IReference? y)
-    {
-        if (x == y)
+        private SymbolEquivalentEqualityComparer()
         {
-            return true;
         }
 
-        if (x is null || y is null)
+        public bool Equals(IReference? x, IReference? y)
         {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
+
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+
             return false;
         }
 
-        var xSymbol = x.GetInternalSymbol();
-        var ySymbol = y.GetInternalSymbol();
-
-        if (xSymbol is object && ySymbol is object)
+        public int GetHashCode(IReference? obj)
         {
-            return xSymbol.Equals(ySymbol);
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return RuntimeHelpers.GetHashCode(obj);
         }
 
-        return false;
-    }
-
-    public int GetHashCode(IReference? obj)
-    {
-        var objSymbol = obj?.GetInternalSymbol();
-
-        if (objSymbol is object)
+        public bool Equals(INamespace? x, INamespace? y)
         {
-            return objSymbol.GetHashCode();
-        }
+            if (x == y)
+            {
+                return true;
+            }
 
-        return RuntimeHelpers.GetHashCode(obj);
-    }
+            if (x is null || y is null)
+            {
+                return false;
+            }
 
-    public bool Equals(INamespace? x, INamespace? y)
-    {
-        if (x == y)
-        {
-            return true;
-        }
+            var xSymbol = x.GetInternalSymbol();
+            var ySymbol = y.GetInternalSymbol();
 
-        if (x is null || y is null)
-        {
+            if (xSymbol is object && ySymbol is object)
+            {
+                return xSymbol.Equals(ySymbol);
+            }
+
             return false;
         }
 
-        var xSymbol = x.GetInternalSymbol();
-        var ySymbol = y.GetInternalSymbol();
-
-        if (xSymbol is object && ySymbol is object)
+        public int GetHashCode(INamespace? obj)
         {
-            return xSymbol.Equals(ySymbol);
+            var objSymbol = obj?.GetInternalSymbol();
+
+            if (objSymbol is object)
+            {
+                return objSymbol.GetHashCode();
+            }
+
+            return RuntimeHelpers.GetHashCode(obj);
         }
-
-        return false;
-    }
-
-    public int GetHashCode(INamespace? obj)
-    {
-        var objSymbol = obj?.GetInternalSymbol();
-
-        if (objSymbol is object)
-        {
-            return objSymbol.GetHashCode();
-        }
-
-        return RuntimeHelpers.GetHashCode(obj);
     }
 }

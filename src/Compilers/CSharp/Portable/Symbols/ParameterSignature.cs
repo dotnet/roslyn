@@ -11,62 +11,63 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal class ParameterSignature
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal readonly ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations;
-    internal readonly ImmutableArray<RefKind> parameterRefKinds;
-
-    internal static readonly ParameterSignature NoParams =
-        new ParameterSignature(ImmutableArray<TypeWithAnnotations>.Empty, default(ImmutableArray<RefKind>));
-
-    private ParameterSignature(ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
-                               ImmutableArray<RefKind> parameterRefKinds)
+    internal class ParameterSignature
     {
-        this.parameterTypesWithAnnotations = parameterTypesWithAnnotations;
-        this.parameterRefKinds = parameterRefKinds;
-    }
+        internal readonly ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations;
+        internal readonly ImmutableArray<RefKind> parameterRefKinds;
 
-    private static ParameterSignature MakeParamTypesAndRefKinds(ImmutableArray<ParameterSymbol> parameters)
-    {
-        if (parameters.Length == 0)
+        internal static readonly ParameterSignature NoParams =
+            new ParameterSignature(ImmutableArray<TypeWithAnnotations>.Empty, default(ImmutableArray<RefKind>));
+
+        private ParameterSignature(ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
+                                   ImmutableArray<RefKind> parameterRefKinds)
         {
-            return NoParams;
+            this.parameterTypesWithAnnotations = parameterTypesWithAnnotations;
+            this.parameterRefKinds = parameterRefKinds;
         }
 
-        var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-        ArrayBuilder<RefKind> refs = null;
-
-        for (int parm = 0; parm < parameters.Length; ++parm)
+        private static ParameterSignature MakeParamTypesAndRefKinds(ImmutableArray<ParameterSymbol> parameters)
         {
-            var parameter = parameters[parm];
-            types.Add(parameter.TypeWithAnnotations);
-
-            var refKind = parameter.RefKind;
-            if (refs == null)
+            if (parameters.Length == 0)
             {
-                if (refKind != RefKind.None)
+                return NoParams;
+            }
+
+            var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            ArrayBuilder<RefKind> refs = null;
+
+            for (int parm = 0; parm < parameters.Length; ++parm)
+            {
+                var parameter = parameters[parm];
+                types.Add(parameter.TypeWithAnnotations);
+
+                var refKind = parameter.RefKind;
+                if (refs == null)
                 {
-                    refs = ArrayBuilder<RefKind>.GetInstance(parm, RefKind.None);
+                    if (refKind != RefKind.None)
+                    {
+                        refs = ArrayBuilder<RefKind>.GetInstance(parm, RefKind.None);
+                        refs.Add(refKind);
+                    }
+                }
+                else
+                {
                     refs.Add(refKind);
                 }
             }
-            else
-            {
-                refs.Add(refKind);
-            }
+
+            ImmutableArray<RefKind> refKinds = refs != null ? refs.ToImmutableAndFree() : default(ImmutableArray<RefKind>);
+            return new ParameterSignature(types.ToImmutableAndFree(), refKinds);
         }
 
-        ImmutableArray<RefKind> refKinds = refs != null ? refs.ToImmutableAndFree() : default(ImmutableArray<RefKind>);
-        return new ParameterSignature(types.ToImmutableAndFree(), refKinds);
-    }
-
-    internal static void PopulateParameterSignature(ImmutableArray<ParameterSymbol> parameters, ref ParameterSignature lazySignature)
-    {
-        if (lazySignature == null)
+        internal static void PopulateParameterSignature(ImmutableArray<ParameterSymbol> parameters, ref ParameterSignature lazySignature)
         {
-            Interlocked.CompareExchange(ref lazySignature, MakeParamTypesAndRefKinds(parameters), null);
+            if (lazySignature == null)
+            {
+                Interlocked.CompareExchange(ref lazySignature, MakeParamTypesAndRefKinds(parameters), null);
+            }
         }
     }
 }

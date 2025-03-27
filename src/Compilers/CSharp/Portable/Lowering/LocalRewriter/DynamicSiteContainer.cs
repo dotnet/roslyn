@@ -8,45 +8,46 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class DynamicSiteContainer : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly MethodSymbol _topLevelMethod;
-
-    internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod, MethodSymbol containingMethod)
-        : base(name, containingMethod)
+    internal sealed class DynamicSiteContainer : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        Debug.Assert(topLevelMethod != null);
-        _topLevelMethod = topLevelMethod;
-    }
+        private readonly MethodSymbol _topLevelMethod;
 
-    public override Symbol ContainingSymbol
-    {
-        get { return _topLevelMethod.ContainingSymbol; }
-    }
+        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod, MethodSymbol containingMethod)
+            : base(name, containingMethod)
+        {
+            Debug.Assert(topLevelMethod != null);
+            _topLevelMethod = topLevelMethod;
+        }
 
-    public override TypeKind TypeKind
-    {
-        get { return TypeKind.Class; }
-    }
+        public override Symbol ContainingSymbol
+        {
+            get { return _topLevelMethod.ContainingSymbol; }
+        }
 
-    public sealed override bool AreLocalsZeroed
-    {
-        get { throw ExceptionUtilities.Unreachable(); }
-    }
+        public override TypeKind TypeKind
+        {
+            get { return TypeKind.Class; }
+        }
 
-    internal override bool IsRecord => false;
-    internal override bool IsRecordStruct => false;
-    internal override bool HasPossibleWellKnownCloneMethod() => false;
+        public sealed override bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable(); }
+        }
 
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-    {
-        get { return true; }
-    }
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-    {
-        get { return _topLevelMethod; }
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get { return true; }
+        }
+
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return _topLevelMethod; }
+        }
     }
 }

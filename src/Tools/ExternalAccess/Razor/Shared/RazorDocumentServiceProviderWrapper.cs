@@ -7,76 +7,77 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal sealed class RazorDocumentServiceProviderWrapper : IDocumentServiceProvider, IDocumentOperationService
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
-
-    // The lazily initialized service fields use StrongBox<T> to explicitly allow null as an initialized value.
-    private StrongBox<ISpanMappingService?>? _lazySpanMappingService;
-    private StrongBox<IDocumentExcerptService?>? _lazyExcerptService;
-    private StrongBox<DocumentPropertiesService?>? _lazyDocumentPropertiesService;
-
-    public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
+    internal sealed class RazorDocumentServiceProviderWrapper : IDocumentServiceProvider, IDocumentOperationService
     {
-        _innerDocumentServiceProvider = innerDocumentServiceProvider ?? throw new ArgumentNullException(nameof(innerDocumentServiceProvider));
-    }
+        private readonly IRazorDocumentServiceProvider _innerDocumentServiceProvider;
 
-    public bool CanApplyChange => _innerDocumentServiceProvider.CanApplyChange;
+        // The lazily initialized service fields use StrongBox<T> to explicitly allow null as an initialized value.
+        private StrongBox<ISpanMappingService?>? _lazySpanMappingService;
+        private StrongBox<IDocumentExcerptService?>? _lazyExcerptService;
+        private StrongBox<DocumentPropertiesService?>? _lazyDocumentPropertiesService;
 
-    public bool SupportDiagnostics => _innerDocumentServiceProvider.SupportDiagnostics;
-
-    public TService? GetService<TService>() where TService : class, IDocumentService
-    {
-        var serviceType = typeof(TService);
-        if (serviceType == typeof(ISpanMappingService))
+        public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
-            var spanMappingService = InterlockedOperations.Initialize(
-                ref _lazySpanMappingService,
-                static documentServiceProvider =>
-                {
-                    var razorMappingService = documentServiceProvider.GetService<IRazorMappingService>();
-                    if (razorMappingService is not null)
+            _innerDocumentServiceProvider = innerDocumentServiceProvider ?? throw new ArgumentNullException(nameof(innerDocumentServiceProvider));
+        }
+
+        public bool CanApplyChange => _innerDocumentServiceProvider.CanApplyChange;
+
+        public bool SupportDiagnostics => _innerDocumentServiceProvider.SupportDiagnostics;
+
+        public TService? GetService<TService>() where TService : class, IDocumentService
+        {
+            var serviceType = typeof(TService);
+            if (serviceType == typeof(ISpanMappingService))
+            {
+                var spanMappingService = InterlockedOperations.Initialize(
+                    ref _lazySpanMappingService,
+                    static documentServiceProvider =>
                     {
-                        return new RazorMappingServiceWrapper(razorMappingService);
-                    }
+                        var razorMappingService = documentServiceProvider.GetService<IRazorMappingService>();
+                        if (razorMappingService is not null)
+                        {
+                            return new RazorMappingServiceWrapper(razorMappingService);
+                        }
 
-                    return null;
-                },
-                _innerDocumentServiceProvider);
+                        return null;
+                    },
+                    _innerDocumentServiceProvider);
 
-            return (TService?)spanMappingService;
+                return (TService?)spanMappingService;
+            }
+
+            if (serviceType == typeof(IDocumentExcerptService))
+            {
+                var excerptService = InterlockedOperations.Initialize(
+                    ref _lazyExcerptService,
+                    static documentServiceProvider =>
+                    {
+                        var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
+                        return (impl != null) ? new RazorDocumentExcerptServiceWrapper(impl) : null;
+                    },
+                    _innerDocumentServiceProvider);
+
+                return (TService?)excerptService;
+            }
+
+            if (serviceType == typeof(DocumentPropertiesService))
+            {
+                var documentPropertiesService = InterlockedOperations.Initialize(
+                    ref _lazyDocumentPropertiesService,
+                    static documentServiceProvider =>
+                    {
+                        var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
+                        return razorDocumentPropertiesService is not null ? new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService) : null;
+                    },
+                    _innerDocumentServiceProvider);
+
+                return (TService?)(object?)documentPropertiesService;
+            }
+
+            return this as TService;
         }
-
-        if (serviceType == typeof(IDocumentExcerptService))
-        {
-            var excerptService = InterlockedOperations.Initialize(
-                ref _lazyExcerptService,
-                static documentServiceProvider =>
-                {
-                    var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
-                    return (impl != null) ? new RazorDocumentExcerptServiceWrapper(impl) : null;
-                },
-                _innerDocumentServiceProvider);
-
-            return (TService?)excerptService;
-        }
-
-        if (serviceType == typeof(DocumentPropertiesService))
-        {
-            var documentPropertiesService = InterlockedOperations.Initialize(
-                ref _lazyDocumentPropertiesService,
-                static documentServiceProvider =>
-                {
-                    var razorDocumentPropertiesService = documentServiceProvider.GetService<IRazorDocumentPropertiesService>();
-                    return razorDocumentPropertiesService is not null ? new RazorDocumentPropertiesServiceWrapper(razorDocumentPropertiesService) : null;
-                },
-                _innerDocumentServiceProvider);
-
-            return (TService?)(object?)documentPropertiesService;
-        }
-
-        return this as TService;
     }
 }

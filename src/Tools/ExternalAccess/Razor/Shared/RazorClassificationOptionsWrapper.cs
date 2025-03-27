@@ -4,14 +4,15 @@
 
 using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal readonly struct RazorClassificationOptionsWrapper
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    public static RazorClassificationOptionsWrapper Default = new(ClassificationOptions.Default);
+    internal readonly struct RazorClassificationOptionsWrapper
+    {
+        public static RazorClassificationOptionsWrapper Default = new(ClassificationOptions.Default);
 
-    internal readonly ClassificationOptions UnderlyingObject;
+        internal readonly ClassificationOptions UnderlyingObject;
 
-    public RazorClassificationOptionsWrapper(ClassificationOptions underlyingObject)
-        => UnderlyingObject = underlyingObject;
+        public RazorClassificationOptionsWrapper(ClassificationOptions underlyingObject)
+            => UnderlyingObject = underlyingObject;
+    }
 }

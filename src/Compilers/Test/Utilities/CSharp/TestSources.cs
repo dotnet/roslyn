@@ -4,11 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
-internal static class TestSources
+namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    internal static readonly string Span = @"
+    internal static class TestSources
+    {
+        internal static readonly string Span = @"
 namespace System
 {
     public readonly ref struct Span<T>
@@ -329,7 +329,7 @@ namespace System
     }
 }";
 
-    internal static readonly string Index = @"
+        internal static readonly string Index = @"
 
 namespace System
 {
@@ -425,7 +425,7 @@ namespace System
     }
 }";
 
-    internal static readonly string Range = @"
+        internal static readonly string Range = @"
 namespace System
 {
     using System.Runtime.CompilerServices;
@@ -495,7 +495,7 @@ namespace System
     }
 }";
 
-    public static readonly string GetSubArray = @"
+        public static readonly string GetSubArray = @"
 namespace System.Runtime.CompilerServices
 {
     public static class RuntimeHelpers
@@ -512,7 +512,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-    public static readonly string ITuple = @"
+        public static readonly string ITuple = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple
@@ -522,7 +522,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-    public static readonly string MemoryExtensions = @"
+        public static readonly string MemoryExtensions = @"
 namespace System
 {
     public static class MemoryExtensions
@@ -556,4 +556,5 @@ namespace System
         public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
     }
 }";
+    }
 }

@@ -2,39 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Represents a metadata reference that can't be or is not yet resolved.
-/// </summary>
-/// <remarks>
-/// For error reporting only, can't be used to reference a metadata file.
-/// </remarks>
-public sealed class UnresolvedMetadataReference : MetadataReference
+namespace Microsoft.CodeAnalysis
 {
-    public string Reference { get; }
-
-    internal UnresolvedMetadataReference(string reference, MetadataReferenceProperties properties)
-        : base(properties)
+    /// <summary>
+    /// Represents a metadata reference that can't be or is not yet resolved.
+    /// </summary>
+    /// <remarks>
+    /// For error reporting only, can't be used to reference a metadata file.
+    /// </remarks>
+    public sealed class UnresolvedMetadataReference : MetadataReference
     {
-        this.Reference = reference;
-    }
+        public string Reference { get; }
 
-    public override string Display
-    {
-        get
+        internal UnresolvedMetadataReference(string reference, MetadataReferenceProperties properties)
+            : base(properties)
         {
-            return CodeAnalysisResources.Unresolved + Reference;
+            this.Reference = reference;
         }
-    }
 
-    internal override bool IsUnresolved
-    {
-        get { return true; }
-    }
+        public override string Display
+        {
+            get
+            {
+                return CodeAnalysisResources.Unresolved + Reference;
+            }
+        }
 
-    internal override MetadataReference WithPropertiesImplReturningMetadataReference(MetadataReferenceProperties properties)
-    {
-        return new UnresolvedMetadataReference(this.Reference, properties);
+        internal override bool IsUnresolved
+        {
+            get { return true; }
+        }
+
+        internal override MetadataReference WithPropertiesImplReturningMetadataReference(MetadataReferenceProperties properties)
+        {
+            return new UnresolvedMetadataReference(this.Reference, properties);
+        }
     }
 }

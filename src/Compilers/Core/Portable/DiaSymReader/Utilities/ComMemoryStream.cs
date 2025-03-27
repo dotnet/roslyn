@@ -11,260 +11,261 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices;
 using STATSTG = System.Runtime.InteropServices.ComTypes.STATSTG;
 
-namespace Microsoft.DiaSymReader;
-
-/// <summary>
-/// A COM IStream implementation over memory. Supports just enough for DiaSymReader's PDB writing.
-/// Also tuned for performance:
-/// 1. SetSize (and Seek beyond the length) is very fast and doesn't re-allocate the underlying memory.
-/// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
-/// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
-/// </summary>
-internal sealed unsafe class ComMemoryStream : IUnsafeComStream
+namespace Microsoft.DiaSymReader
 {
-    // internal for testing
-    internal const int STREAM_SEEK_SET = 0;
-    internal const int STREAM_SEEK_CUR = 1;
-    internal const int STREAM_SEEK_END = 2;
-
-    private readonly int _chunkSize;
-    private readonly List<byte[]> _chunks = new List<byte[]>();
-    private int _position;
-    private int _length;
-
-    public ComMemoryStream(int chunkSize = 32768)
+    /// <summary>
+    /// A COM IStream implementation over memory. Supports just enough for DiaSymReader's PDB writing.
+    /// Also tuned for performance:
+    /// 1. SetSize (and Seek beyond the length) is very fast and doesn't re-allocate the underlying memory.
+    /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
+    /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
+    /// </summary>
+    internal sealed unsafe class ComMemoryStream : IUnsafeComStream
     {
-        _chunkSize = chunkSize;
-    }
+        // internal for testing
+        internal const int STREAM_SEEK_SET = 0;
+        internal const int STREAM_SEEK_CUR = 1;
+        internal const int STREAM_SEEK_END = 2;
 
-    public void CopyTo(Stream stream)
-    {
-        // If the target stream allows seeking set its length upfront.
-        // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
-        if (stream.CanSeek)
+        private readonly int _chunkSize;
+        private readonly List<byte[]> _chunks = new List<byte[]>();
+        private int _position;
+        private int _length;
+
+        public ComMemoryStream(int chunkSize = 32768)
         {
-            stream.SetLength(stream.Position + _length);
+            _chunkSize = chunkSize;
         }
 
-        int chunkIndex = 0;
-        int remainingBytes = _length;
-        while (remainingBytes > 0)
+        public void CopyTo(Stream stream)
         {
-            int bytesToCopy;
-            if (chunkIndex < _chunks.Count)
+            // If the target stream allows seeking set its length upfront.
+            // When writing to a large file, it helps to give a hint to the OS how big the file is going to be.
+            if (stream.CanSeek)
             {
-                var chunk = _chunks[chunkIndex];
-                bytesToCopy = Math.Min(chunk.Length, remainingBytes);
-                stream.Write(chunk, 0, bytesToCopy);
-                chunkIndex++;
+                stream.SetLength(stream.Position + _length);
             }
-            else
+
+            int chunkIndex = 0;
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
             {
-                // Fill remaining space with zero bytes
-                bytesToCopy = remainingBytes;
-                for (int i = 0; i < bytesToCopy; i++)
+                int bytesToCopy;
+                if (chunkIndex < _chunks.Count)
                 {
-                    stream.WriteByte(0);
+                    var chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    stream.Write(chunk, 0, bytesToCopy);
+                    chunkIndex++;
                 }
+                else
+                {
+                    // Fill remaining space with zero bytes
+                    bytesToCopy = remainingBytes;
+                    for (int i = 0; i < bytesToCopy; i++)
+                    {
+                        stream.WriteByte(0);
+                    }
+                }
+
+                remainingBytes -= bytesToCopy;
             }
-
-            remainingBytes -= bytesToCopy;
         }
-    }
 
-    public IEnumerable<ArraySegment<byte>> GetChunks()
-    {
-        int chunkIndex = 0;
-        int remainingBytes = _length;
-        while (remainingBytes > 0)
+        public IEnumerable<ArraySegment<byte>> GetChunks()
         {
-            int bytesToCopy;
-
-            byte[] chunk;
-            if (chunkIndex < _chunks.Count)
+            int chunkIndex = 0;
+            int remainingBytes = _length;
+            while (remainingBytes > 0)
             {
-                chunk = _chunks[chunkIndex];
-                bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                int bytesToCopy;
+
+                byte[] chunk;
+                if (chunkIndex < _chunks.Count)
+                {
+                    chunk = _chunks[chunkIndex];
+                    bytesToCopy = Math.Min(chunk.Length, remainingBytes);
+                    chunkIndex++;
+                }
+                else
+                {
+                    // The caller seeked behind the end of the stream and didn't write there.
+                    // The allocated array is not big in practice. 
+                    chunk = new byte[remainingBytes];
+                    bytesToCopy = remainingBytes;
+                }
+
+                yield return new ArraySegment<byte>(chunk, 0, bytesToCopy);
+
+                remainingBytes -= bytesToCopy;
+            }
+        }
+        private static unsafe void ZeroMemory(byte* dest, int count)
+        {
+            var p = dest;
+            while (count-- > 0)
+            {
+                *p++ = 0;
+            }
+        }
+
+        unsafe void IUnsafeComStream.Read(byte* pv, int cb, int* pcbRead)
+        {
+            int chunkIndex = _position / _chunkSize;
+            int chunkOffset = _position % _chunkSize;
+            int destinationIndex = 0;
+            int bytesRead = 0;
+
+            while (true)
+            {
+                int bytesToCopy = Math.Min(_length - _position, Math.Min(cb, _chunkSize - chunkOffset));
+                if (bytesToCopy == 0)
+                {
+                    break;
+                }
+
+                if (chunkIndex < _chunks.Count)
+                {
+                    Marshal.Copy(_chunks[chunkIndex], chunkOffset, (IntPtr)(pv + destinationIndex), bytesToCopy);
+                }
+                else
+                {
+                    ZeroMemory(pv + destinationIndex, bytesToCopy);
+                }
+
+                bytesRead += bytesToCopy;
+                _position += bytesToCopy;
+                cb -= bytesToCopy;
+                destinationIndex += bytesToCopy;
                 chunkIndex++;
+                chunkOffset = 0;
             }
-            else
+
+            if (pcbRead != null)
             {
-                // The caller seeked behind the end of the stream and didn't write there.
-                // The allocated array is not big in practice. 
-                chunk = new byte[remainingBytes];
-                bytesToCopy = remainingBytes;
+                *pcbRead = bytesRead;
             }
-
-            yield return new ArraySegment<byte>(chunk, 0, bytesToCopy);
-
-            remainingBytes -= bytesToCopy;
         }
-    }
-    private static unsafe void ZeroMemory(byte* dest, int count)
-    {
-        var p = dest;
-        while (count-- > 0)
-        {
-            *p++ = 0;
-        }
-    }
 
-    unsafe void IUnsafeComStream.Read(byte* pv, int cb, int* pcbRead)
-    {
-        int chunkIndex = _position / _chunkSize;
-        int chunkOffset = _position % _chunkSize;
-        int destinationIndex = 0;
-        int bytesRead = 0;
-
-        while (true)
+        private int SetPosition(int newPos)
         {
-            int bytesToCopy = Math.Min(_length - _position, Math.Min(cb, _chunkSize - chunkOffset));
-            if (bytesToCopy == 0)
+            if (newPos < 0)
             {
-                break;
+                newPos = 0;
             }
 
-            if (chunkIndex < _chunks.Count)
+            _position = newPos;
+
+            if (newPos > _length)
             {
-                Marshal.Copy(_chunks[chunkIndex], chunkOffset, (IntPtr)(pv + destinationIndex), bytesToCopy);
+                _length = newPos;
             }
-            else
+
+            return newPos;
+        }
+
+        unsafe void IUnsafeComStream.Seek(long dlibMove, int origin, long* plibNewPosition)
+        {
+            int newPosition;
+
+            switch (origin)
             {
-                ZeroMemory(pv + destinationIndex, bytesToCopy);
+                case STREAM_SEEK_SET:
+                    newPosition = SetPosition((int)dlibMove);
+                    break;
+
+                case STREAM_SEEK_CUR:
+                    newPosition = SetPosition(_position + (int)dlibMove);
+                    break;
+
+                case STREAM_SEEK_END:
+                    newPosition = SetPosition(_length + (int)dlibMove);
+                    break;
+
+                default:
+                    throw new ArgumentException($"{nameof(origin)} ({origin}) is invalid.", nameof(origin));
             }
 
-            bytesRead += bytesToCopy;
-            _position += bytesToCopy;
-            cb -= bytesToCopy;
-            destinationIndex += bytesToCopy;
-            chunkIndex++;
-            chunkOffset = 0;
-        }
-
-        if (pcbRead != null)
-        {
-            *pcbRead = bytesRead;
-        }
-    }
-
-    private int SetPosition(int newPos)
-    {
-        if (newPos < 0)
-        {
-            newPos = 0;
-        }
-
-        _position = newPos;
-
-        if (newPos > _length)
-        {
-            _length = newPos;
-        }
-
-        return newPos;
-    }
-
-    unsafe void IUnsafeComStream.Seek(long dlibMove, int origin, long* plibNewPosition)
-    {
-        int newPosition;
-
-        switch (origin)
-        {
-            case STREAM_SEEK_SET:
-                newPosition = SetPosition((int)dlibMove);
-                break;
-
-            case STREAM_SEEK_CUR:
-                newPosition = SetPosition(_position + (int)dlibMove);
-                break;
-
-            case STREAM_SEEK_END:
-                newPosition = SetPosition(_length + (int)dlibMove);
-                break;
-
-            default:
-                throw new ArgumentException($"{nameof(origin)} ({origin}) is invalid.", nameof(origin));
-        }
-
-        if (plibNewPosition != null)
-        {
-            *plibNewPosition = newPosition;
-        }
-    }
-
-    void IUnsafeComStream.SetSize(long libNewSize)
-    {
-        _length = (int)libNewSize;
-    }
-
-    void IUnsafeComStream.Stat(out STATSTG pstatstg, int grfStatFlag)
-    {
-        pstatstg = new STATSTG()
-        {
-            cbSize = _length
-        };
-    }
-
-    unsafe void IUnsafeComStream.Write(byte* pv, int cb, int* pcbWritten)
-    {
-        int chunkIndex = _position / _chunkSize;
-        int chunkOffset = _position % _chunkSize;
-        int bytesWritten = 0;
-        while (true)
-        {
-            int bytesToCopy = Math.Min(cb, _chunkSize - chunkOffset);
-            if (bytesToCopy == 0)
+            if (plibNewPosition != null)
             {
-                break;
+                *plibNewPosition = newPosition;
             }
-
-            while (chunkIndex >= _chunks.Count)
-            {
-                _chunks.Add(new byte[_chunkSize]);
-            }
-
-            Marshal.Copy((IntPtr)(pv + bytesWritten), _chunks[chunkIndex], chunkOffset, bytesToCopy);
-            bytesWritten += bytesToCopy;
-            cb -= bytesToCopy;
-            chunkIndex++;
-            chunkOffset = 0;
         }
 
-        SetPosition(_position + bytesWritten);
-
-        if (pcbWritten != null)
+        void IUnsafeComStream.SetSize(long libNewSize)
         {
-            *pcbWritten = bytesWritten;
+            _length = (int)libNewSize;
         }
-    }
 
-    void IUnsafeComStream.Commit(int grfCommitFlags)
-    {
-    }
+        void IUnsafeComStream.Stat(out STATSTG pstatstg, int grfStatFlag)
+        {
+            pstatstg = new STATSTG()
+            {
+                cbSize = _length
+            };
+        }
 
-    void IUnsafeComStream.Clone(out IStream ppstm)
-    {
-        throw new NotSupportedException();
-    }
+        unsafe void IUnsafeComStream.Write(byte* pv, int cb, int* pcbWritten)
+        {
+            int chunkIndex = _position / _chunkSize;
+            int chunkOffset = _position % _chunkSize;
+            int bytesWritten = 0;
+            while (true)
+            {
+                int bytesToCopy = Math.Min(cb, _chunkSize - chunkOffset);
+                if (bytesToCopy == 0)
+                {
+                    break;
+                }
 
-    void IUnsafeComStream.CopyTo(IStream pstm, long cb, int* pcbRead, int* pcbWritten)
-    {
-        throw new NotSupportedException();
-    }
+                while (chunkIndex >= _chunks.Count)
+                {
+                    _chunks.Add(new byte[_chunkSize]);
+                }
 
-    void IUnsafeComStream.LockRegion(long libOffset, long cb, int lockType)
-    {
-        throw new NotSupportedException();
-    }
+                Marshal.Copy((IntPtr)(pv + bytesWritten), _chunks[chunkIndex], chunkOffset, bytesToCopy);
+                bytesWritten += bytesToCopy;
+                cb -= bytesToCopy;
+                chunkIndex++;
+                chunkOffset = 0;
+            }
 
-    void IUnsafeComStream.Revert()
-    {
-        throw new NotSupportedException();
-    }
+            SetPosition(_position + bytesWritten);
 
-    void IUnsafeComStream.UnlockRegion(long libOffset, long cb, int lockType)
-    {
-        throw new NotSupportedException();
+            if (pcbWritten != null)
+            {
+                *pcbWritten = bytesWritten;
+            }
+        }
+
+        void IUnsafeComStream.Commit(int grfCommitFlags)
+        {
+        }
+
+        void IUnsafeComStream.Clone(out IStream ppstm)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IUnsafeComStream.CopyTo(IStream pstm, long cb, int* pcbRead, int* pcbWritten)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IUnsafeComStream.LockRegion(long libOffset, long cb, int lockType)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IUnsafeComStream.Revert()
+        {
+            throw new NotSupportedException();
+        }
+
+        void IUnsafeComStream.UnlockRegion(long libOffset, long cb, int lockType)
+        {
+            throw new NotSupportedException();
+        }
     }
 }
 

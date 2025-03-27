@@ -17,42 +17,42 @@ using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace IdeBenchmarks;
-
-public class SQLitePersistentStorageBenchmarks
+namespace IdeBenchmarks
 {
-    private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
-
-    // Run the test with different ratios of reads/writes.
-    [Params(0, 25, 50, 75, 100)]
-    public int ReadPercentage { get; set; }
-
-    private TestWorkspace _workspace;
-    private SQLitePersistentStorageService _storageService;
-    private IChecksummedPersistentStorage _storage;
-    private Document _document;
-    private Random _random;
-
-    public SQLitePersistentStorageBenchmarks()
+    public class SQLitePersistentStorageBenchmarks
     {
-        _document = null!;
-        _storage = null!;
-        _storageService = null!;
-        _workspace = null!;
-        _random = null!;
-    }
+        private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
 
-    [GlobalSetup]
-    public void GlobalSetup()
-    {
-        _useExportProviderAttribute.Before(null);
+        // Run the test with different ratios of reads/writes.
+        [Params(0, 25, 50, 75, 100)]
+        public int ReadPercentage { get; set; }
 
-        if (_workspace != null)
+        private TestWorkspace _workspace;
+        private SQLitePersistentStorageService _storageService;
+        private IChecksummedPersistentStorage _storage;
+        private Document _document;
+        private Random _random;
+
+        public SQLitePersistentStorageBenchmarks()
         {
-            throw new InvalidOperationException();
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace = null!;
+            _random = null!;
         }
 
-        _workspace = TestWorkspace.Create(
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            _useExportProviderAttribute.Before(null);
+
+            if (_workspace != null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _workspace = TestWorkspace.Create(
 @"<Workspace>
     <Project Language=""NoCompilation"" CommonReferences=""false"">
         <Document>
@@ -61,80 +61,81 @@ public class SQLitePersistentStorageBenchmarks
     </Project>
 </Workspace>");
 
-        var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage);
+            var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage);
 
-        _storageService = new SQLitePersistentStorageService(new StorageConfiguration(), asyncListener);
+            _storageService = new SQLitePersistentStorageService(new StorageConfiguration(), asyncListener);
 
-        var solution = _workspace.CurrentSolution;
-        _storage = _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            var solution = _workspace.CurrentSolution;
+            _storage = _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
-        Console.WriteLine("Storage type: " + _storage.GetType());
-        _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
-        _random = new Random(0);
-    }
-
-    [GlobalCleanup]
-    public void GlobalCleanup()
-    {
-        if (_workspace == null)
-        {
-            throw new InvalidOperationException();
+            Console.WriteLine("Storage type: " + _storage.GetType());
+            _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
+            _random = new Random(0);
         }
 
-        _document = null!;
-        _storage = null!;
-        _storageService = null!;
-        _workspace.Dispose();
-        _workspace = null!;
-
-        _useExportProviderAttribute.After(null);
-    }
-
-    private static readonly byte[] s_bytes = new byte[1000];
-
-    [Benchmark(Baseline = true)]
-    public Task PerfAsync()
-    {
-        const int capacity = 1000;
-        var tasks = new List<Task>(capacity);
-
-        // Create a lot of overlapping reads and writes to the DB to several different keys. The
-        // percentage of reads and writes is parameterized above, allowing us to validate
-        // performance with several different usage patterns.
-        for (var i = 0; i < capacity; i++)
+        [GlobalCleanup]
+        public void GlobalCleanup()
         {
-            var name = _random.Next(0, 4).ToString();
-            if (_random.Next(0, 100) < ReadPercentage)
+            if (_workspace == null)
             {
-                tasks.Add(Task.Run(async () =>
-                {
-                    using var stream = await _storage.ReadStreamAsync(_document, name);
-                }));
+                throw new InvalidOperationException();
             }
-            else
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    using var stream = new MemoryStream(s_bytes);
-                    await _storage.WriteStreamAsync(_document, name, stream);
-                }));
-            }
+
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace.Dispose();
+            _workspace = null!;
+
+            _useExportProviderAttribute.After(null);
         }
 
-        return Task.WhenAll(tasks);
-    }
+        private static readonly byte[] s_bytes = new byte[1000];
 
-    private class StorageConfiguration : IPersistentStorageConfiguration
-    {
-        public bool ThrowOnFailure => true;
-
-        public string TryGetStorageLocation(SolutionKey _)
+        [Benchmark(Baseline = true)]
+        public Task PerfAsync()
         {
-            // Store the db in a different random temp dir.
-            var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Console.WriteLine("Creating: " + tempDir);
-            Directory.CreateDirectory(tempDir);
-            return tempDir;
+            const int capacity = 1000;
+            var tasks = new List<Task>(capacity);
+
+            // Create a lot of overlapping reads and writes to the DB to several different keys. The
+            // percentage of reads and writes is parameterized above, allowing us to validate
+            // performance with several different usage patterns.
+            for (var i = 0; i < capacity; i++)
+            {
+                var name = _random.Next(0, 4).ToString();
+                if (_random.Next(0, 100) < ReadPercentage)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        using var stream = await _storage.ReadStreamAsync(_document, name);
+                    }));
+                }
+                else
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        using var stream = new MemoryStream(s_bytes);
+                        await _storage.WriteStreamAsync(_document, name, stream);
+                    }));
+                }
+            }
+
+            return Task.WhenAll(tasks);
+        }
+
+        private class StorageConfiguration : IPersistentStorageConfiguration
+        {
+            public bool ThrowOnFailure => true;
+
+            public string TryGetStorageLocation(SolutionKey _)
+            {
+                // Store the db in a different random temp dir.
+                var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                Console.WriteLine("Creating: " + tempDir);
+                Directory.CreateDirectory(tempDir);
+                return tempDir;
+            }
         }
     }
 }

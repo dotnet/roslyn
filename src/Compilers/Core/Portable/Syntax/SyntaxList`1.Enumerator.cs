@@ -7,95 +7,96 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis;
-
-public readonly partial struct SyntaxList<TNode>
+namespace Microsoft.CodeAnalysis
 {
-    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    public struct Enumerator
+    public readonly partial struct SyntaxList<TNode>
     {
-        private readonly SyntaxList<TNode> _list;
-        private int _index;
-
-        internal Enumerator(SyntaxList<TNode> list)
+        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
+        public struct Enumerator
         {
-            _list = list;
-            _index = -1;
-        }
+            private readonly SyntaxList<TNode> _list;
+            private int _index;
 
-        public bool MoveNext()
-        {
-            int newIndex = _index + 1;
-            if (newIndex < _list.Count)
+            internal Enumerator(SyntaxList<TNode> list)
             {
-                _index = newIndex;
-                return true;
+                _list = list;
+                _index = -1;
             }
 
-            return false;
-        }
-
-        public TNode Current
-        {
-            get
+            public bool MoveNext()
             {
-                return (TNode)_list.ItemInternal(_index)!;
+                int newIndex = _index + 1;
+                if (newIndex < _list.Count)
+                {
+                    _index = newIndex;
+                    return true;
+                }
+
+                return false;
             }
-        }
 
-        public void Reset()
-        {
-            _index = -1;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            throw new NotSupportedException();
-        }
-
-        public override int GetHashCode()
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    private class EnumeratorImpl : IEnumerator<TNode>
-    {
-        private Enumerator _e;
-
-        internal EnumeratorImpl(in SyntaxList<TNode> list)
-        {
-            _e = new Enumerator(list);
-        }
-
-        public bool MoveNext()
-        {
-            return _e.MoveNext();
-        }
-
-        public TNode Current
-        {
-            get
+            public TNode Current
             {
-                return _e.Current;
+                get
+                {
+                    return (TNode)_list.ItemInternal(_index)!;
+                }
+            }
+
+            public void Reset()
+            {
+                _index = -1;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override int GetHashCode()
+            {
+                throw new NotSupportedException();
             }
         }
 
-        void IDisposable.Dispose()
+        private class EnumeratorImpl : IEnumerator<TNode>
         {
-        }
+            private Enumerator _e;
 
-        object IEnumerator.Current
-        {
-            get
+            internal EnumeratorImpl(in SyntaxList<TNode> list)
             {
-                return _e.Current;
+                _e = new Enumerator(list);
             }
-        }
 
-        void IEnumerator.Reset()
-        {
-            _e.Reset();
+            public bool MoveNext()
+            {
+                return _e.MoveNext();
+            }
+
+            public TNode Current
+            {
+                get
+                {
+                    return _e.Current;
+                }
+            }
+
+            void IDisposable.Dispose()
+            {
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    return _e.Current;
+                }
+            }
+
+            void IEnumerator.Reset()
+            {
+                _e.Reset();
+            }
         }
     }
 }

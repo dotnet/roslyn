@@ -8,40 +8,41 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal sealed class AssemblyReference : IAssemblyReference
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    private readonly AssemblyIdentity _identity;
-
-    internal AssemblyReference(AssemblyIdentity identity)
+    internal sealed class AssemblyReference : IAssemblyReference
     {
-        _identity = identity;
+        private readonly AssemblyIdentity _identity;
+
+        internal AssemblyReference(AssemblyIdentity identity)
+        {
+            _identity = identity;
+        }
+
+        AssemblyIdentity IAssemblyReference.Identity => _identity;
+        Version? IAssemblyReference.AssemblyVersionPattern => null;
+        string INamedEntity.Name => _identity.Name;
+
+        IAssemblyReference IModuleReference.GetContainingAssembly(EmitContext context)
+        {
+            return this;
+        }
+
+        IDefinition? IReference.AsDefinition(EmitContext context)
+        {
+            return null;
+        }
+
+        void IReference.Dispatch(MetadataVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
+
+        IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
+        {
+            return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
+        }
+
+        Symbols.ISymbolInternal? IReference.GetInternalSymbol() => null;
     }
-
-    AssemblyIdentity IAssemblyReference.Identity => _identity;
-    Version? IAssemblyReference.AssemblyVersionPattern => null;
-    string INamedEntity.Name => _identity.Name;
-
-    IAssemblyReference IModuleReference.GetContainingAssembly(EmitContext context)
-    {
-        return this;
-    }
-
-    IDefinition? IReference.AsDefinition(EmitContext context)
-    {
-        return null;
-    }
-
-    void IReference.Dispatch(MetadataVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
-
-    IEnumerable<ICustomAttribute> IReference.GetAttributes(EmitContext context)
-    {
-        return SpecializedCollections.EmptyEnumerable<ICustomAttribute>();
-    }
-
-    Symbols.ISymbolInternal? IReference.GetInternalSymbol() => null;
 }

@@ -4,33 +4,34 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis;
-
-internal static class SpanUtilities
+namespace Microsoft.CodeAnalysis
 {
-    public static bool All<TElement, TParam>(this ReadOnlySpan<TElement> span, TParam param, Func<TElement, TParam, bool> predicate)
+    internal static class SpanUtilities
     {
-        foreach (var e in span)
+        public static bool All<TElement, TParam>(this ReadOnlySpan<TElement> span, TParam param, Func<TElement, TParam, bool> predicate)
         {
-            if (!predicate(e, param))
+            foreach (var e in span)
             {
-                return false;
+                if (!predicate(e, param))
+                {
+                    return false;
+                }
             }
+
+            return true;
         }
 
-        return true;
-    }
-
-    public static bool All<TElement>(this ReadOnlySpan<TElement> span, Func<TElement, bool> predicate)
-    {
-        foreach (var e in span)
+        public static bool All<TElement>(this ReadOnlySpan<TElement> span, Func<TElement, bool> predicate)
         {
-            if (!predicate(e))
+            foreach (var e in span)
             {
-                return false;
+                if (!predicate(e))
+                {
+                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        }
     }
 }

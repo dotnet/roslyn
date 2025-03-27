@@ -4,31 +4,32 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics;
-
-/// <summary>
-/// The first event placed into a compilation's event queue.
-/// </summary>
-internal sealed class CompilationStartedEvent : CompilationEvent
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public ImmutableArray<AdditionalText> AdditionalFiles { get; }
-
-    private CompilationStartedEvent(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles)
-        : base(compilation)
+    /// <summary>
+    /// The first event placed into a compilation's event queue.
+    /// </summary>
+    internal sealed class CompilationStartedEvent : CompilationEvent
     {
-        AdditionalFiles = additionalFiles;
-    }
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
-    public CompilationStartedEvent(Compilation compilation)
-        : this(compilation, ImmutableArray<AdditionalText>.Empty)
-    {
-    }
+        private CompilationStartedEvent(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles)
+            : base(compilation)
+        {
+            AdditionalFiles = additionalFiles;
+        }
 
-    public override string ToString()
-    {
-        return "CompilationStartedEvent";
-    }
+        public CompilationStartedEvent(Compilation compilation)
+            : this(compilation, ImmutableArray<AdditionalText>.Empty)
+        {
+        }
 
-    public CompilationStartedEvent WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
-        => new CompilationStartedEvent(Compilation, additionalFiles);
+        public override string ToString()
+        {
+            return "CompilationStartedEvent";
+        }
+
+        public CompilationStartedEvent WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
+            => new CompilationStartedEvent(Compilation, additionalFiles);
+    }
 }

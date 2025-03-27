@@ -13,18 +13,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public class DkmClrObjectFavoritesInfo
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public DkmClrObjectFavoritesInfo(IList<string> favorites, string displayString = null, string simpleDisplayString = null)
+    public class DkmClrObjectFavoritesInfo
     {
-        Favorites = new ReadOnlyCollection<string>(favorites);
-        DisplayString = displayString;
-        SimpleDisplayString = simpleDisplayString;
-    }
+        public DkmClrObjectFavoritesInfo(IList<string> favorites, string displayString = null, string simpleDisplayString = null)
+        {
+            Favorites = new ReadOnlyCollection<string>(favorites);
+            DisplayString = displayString;
+            SimpleDisplayString = simpleDisplayString;
+        }
 
-    public string DisplayString { get; }
-    public string SimpleDisplayString { get; }
-    public ReadOnlyCollection<string> Favorites { get; }
+        public string DisplayString { get; }
+        public string SimpleDisplayString { get; }
+        public ReadOnlyCollection<string> Favorites { get; }
+    }
 }

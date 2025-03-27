@@ -10,19 +10,20 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-
-public readonly struct DkmEvaluateDebuggerDisplayStringAsyncResult
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
-    public DkmEvaluateDebuggerDisplayStringAsyncResult(string result)
+    public readonly struct DkmEvaluateDebuggerDisplayStringAsyncResult
     {
-        if (result == null)
+        public DkmEvaluateDebuggerDisplayStringAsyncResult(string result)
         {
-            throw new ArgumentNullException(nameof(result));
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            Result = result;
         }
 
-        Result = result;
+        public string Result { get; }
     }
-
-    public string Result { get; }
 }

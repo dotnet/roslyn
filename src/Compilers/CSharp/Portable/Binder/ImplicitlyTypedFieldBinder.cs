@@ -7,31 +7,32 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// Tracks fields that are being bound while binding their initializers.
-/// </summary>
-/// <remarks>
-/// Used to detect circular references like:
-/// var x = y;
-/// var y = x;
-/// </remarks>
-internal sealed class ImplicitlyTypedFieldBinder : Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ConsList<FieldSymbol> _fieldsBeingBound;
-
-    public ImplicitlyTypedFieldBinder(Binder next, ConsList<FieldSymbol> fieldsBeingBound)
-        : base(next, next.Flags)
+    /// <summary>
+    /// Tracks fields that are being bound while binding their initializers.
+    /// </summary>
+    /// <remarks>
+    /// Used to detect circular references like:
+    /// var x = y;
+    /// var y = x;
+    /// </remarks>
+    internal sealed class ImplicitlyTypedFieldBinder : Binder
     {
-        _fieldsBeingBound = fieldsBeingBound;
-    }
+        private readonly ConsList<FieldSymbol> _fieldsBeingBound;
 
-    internal override ConsList<FieldSymbol> FieldsBeingBound
-    {
-        get
+        public ImplicitlyTypedFieldBinder(Binder next, ConsList<FieldSymbol> fieldsBeingBound)
+            : base(next, next.Flags)
         {
-            return _fieldsBeingBound;
+            _fieldsBeingBound = fieldsBeingBound;
+        }
+
+        internal override ConsList<FieldSymbol> FieldsBeingBound
+        {
+            get
+            {
+                return _fieldsBeingBound;
+            }
         }
     }
 }

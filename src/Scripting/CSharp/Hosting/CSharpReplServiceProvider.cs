@@ -9,21 +9,22 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
-
-internal sealed class CSharpReplServiceProvider : ReplServiceProvider
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
-    public CSharpReplServiceProvider()
+    internal sealed class CSharpReplServiceProvider : ReplServiceProvider
     {
+        public CSharpReplServiceProvider()
+        {
+        }
+
+        public override ObjectFormatter ObjectFormatter { get; } = CSharpObjectFormatter.Instance;
+        public override CommandLineParser CommandLineParser => CSharpCommandLineParser.Script;
+        public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
+
+        public override string Logo
+            => string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)));
+
+        public override Script<T> CreateScript<T>(string code, ScriptOptions options, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoader)
+            => CSharpScript.Create<T>(code, options, globalsTypeOpt, assemblyLoader);
     }
-
-    public override ObjectFormatter ObjectFormatter { get; } = CSharpObjectFormatter.Instance;
-    public override CommandLineParser CommandLineParser => CSharpCommandLineParser.Script;
-    public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
-
-    public override string Logo
-        => string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)));
-
-    public override Script<T> CreateScript<T>(string code, ScriptOptions options, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoader)
-        => CSharpScript.Create<T>(code, options, globalsTypeOpt, assemblyLoader);
 }

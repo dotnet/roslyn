@@ -6,20 +6,21 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
-
-internal sealed class SourceAssemblySymbol : AssemblySymbol, ISourceAssemblySymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 {
-    private readonly Symbols.SourceAssemblySymbol _underlying;
-
-    public SourceAssemblySymbol(Symbols.SourceAssemblySymbol underlying)
+    internal sealed class SourceAssemblySymbol : AssemblySymbol, ISourceAssemblySymbol
     {
-        Debug.Assert(underlying is object);
-        _underlying = underlying;
+        private readonly Symbols.SourceAssemblySymbol _underlying;
+
+        public SourceAssemblySymbol(Symbols.SourceAssemblySymbol underlying)
+        {
+            Debug.Assert(underlying is object);
+            _underlying = underlying;
+        }
+
+        internal override Symbols.AssemblySymbol UnderlyingAssemblySymbol => _underlying;
+        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
+
+        Compilation ISourceAssemblySymbol.Compilation => _underlying.DeclaringCompilation;
     }
-
-    internal override Symbols.AssemblySymbol UnderlyingAssemblySymbol => _underlying;
-    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-    Compilation ISourceAssemblySymbol.Compilation => _underlying.DeclaringCompilation;
 }

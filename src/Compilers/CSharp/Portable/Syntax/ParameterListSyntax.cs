@@ -6,24 +6,25 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax;
-
-public partial class ParameterListSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    internal int ParameterCount
+    public partial class ParameterListSyntax
     {
-        get
+        internal int ParameterCount
         {
-            int count = 0;
-            foreach (ParameterSyntax parameter in this.Parameters)
+            get
             {
-                // __arglist does not affect the parameter count.
-                if (!parameter.IsArgList)
+                int count = 0;
+                foreach (ParameterSyntax parameter in this.Parameters)
                 {
-                    count++;
+                    // __arglist does not affect the parameter count.
+                    if (!parameter.IsArgList)
+                    {
+                        count++;
+                    }
                 }
+                return count;
             }
-            return count;
         }
     }
 }

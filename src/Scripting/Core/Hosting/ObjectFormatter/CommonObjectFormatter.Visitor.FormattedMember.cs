@@ -6,78 +6,79 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-internal abstract partial class CommonObjectFormatter
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    private sealed partial class Visitor
+    internal abstract partial class CommonObjectFormatter
     {
-        private readonly struct FormattedMember
+        private sealed partial class Visitor
         {
-            // Non-negative if the member is an inlined element of an array (DebuggerBrowsableState.RootHidden applied on a member of array type).
-            public readonly int Index;
-
-            // Formatted name of the member or null if it doesn't have a name (Index is >=0 then).
-            public readonly string Name;
-
-            // Formatted value of the member.
-            public readonly string Value;
-
-            public FormattedMember(int index, string name, string value)
+            private readonly struct FormattedMember
             {
-                Debug.Assert((name != null) || (index >= 0));
-                Name = name;
-                Index = index;
-                Value = value;
-            }
+                // Non-negative if the member is an inlined element of an array (DebuggerBrowsableState.RootHidden applied on a member of array type).
+                public readonly int Index;
 
-            /// <remarks>
-            /// Doesn't (and doesn't need to) reflect the number of digits in <see cref="Index"/> since
-            /// it's only used for a conservative approximation (shorter is more conservative when trying
-            /// to determine the minimum number of members that will fill the output).
-            /// </remarks>
-            public int MinimalLength
-            {
-                get { return (Name != null ? Name.Length : "[0]".Length) + Value.Length; }
-            }
+                // Formatted name of the member or null if it doesn't have a name (Index is >=0 then).
+                public readonly string Name;
 
-            public string GetDisplayName()
-            {
-                return Name ?? "[" + Index.ToString() + "]";
-            }
+                // Formatted value of the member.
+                public readonly string Value;
 
-            public bool HasKeyName()
-            {
-                return Index >= 0 && Name != null && Name.Length >= 2 && Name[0] == '[' && Name[^1] == ']';
-            }
-
-            public bool AppendAsCollectionEntry(Builder result)
-            {
-                // Some BCL collections use [{key.ToString()}]: {value.ToString()} pattern to display collection entries.
-                // We want them to be printed initializer-style, i.e. { <key>, <value> } 
-                if (HasKeyName())
+                public FormattedMember(int index, string name, string value)
                 {
-                    result.AppendGroupOpening();
-                    result.AppendCollectionItemSeparator(isFirst: true, inline: true);
-                    result.Append(Name, 1, Name.Length - 2);
-                    result.AppendCollectionItemSeparator(isFirst: false, inline: true);
-                    result.Append(Value);
-                    result.AppendGroupClosing(inline: true);
-                }
-                else
-                {
-                    result.Append(Value);
+                    Debug.Assert((name != null) || (index >= 0));
+                    Name = name;
+                    Index = index;
+                    Value = value;
                 }
 
-                return true;
-            }
+                /// <remarks>
+                /// Doesn't (and doesn't need to) reflect the number of digits in <see cref="Index"/> since
+                /// it's only used for a conservative approximation (shorter is more conservative when trying
+                /// to determine the minimum number of members that will fill the output).
+                /// </remarks>
+                public int MinimalLength
+                {
+                    get { return (Name != null ? Name.Length : "[0]".Length) + Value.Length; }
+                }
 
-            public bool Append(Builder result, string separator)
-            {
-                result.Append(GetDisplayName());
-                result.Append(separator);
-                result.Append(Value);
-                return true;
+                public string GetDisplayName()
+                {
+                    return Name ?? "[" + Index.ToString() + "]";
+                }
+
+                public bool HasKeyName()
+                {
+                    return Index >= 0 && Name != null && Name.Length >= 2 && Name[0] == '[' && Name[^1] == ']';
+                }
+
+                public bool AppendAsCollectionEntry(Builder result)
+                {
+                    // Some BCL collections use [{key.ToString()}]: {value.ToString()} pattern to display collection entries.
+                    // We want them to be printed initializer-style, i.e. { <key>, <value> } 
+                    if (HasKeyName())
+                    {
+                        result.AppendGroupOpening();
+                        result.AppendCollectionItemSeparator(isFirst: true, inline: true);
+                        result.Append(Name, 1, Name.Length - 2);
+                        result.AppendCollectionItemSeparator(isFirst: false, inline: true);
+                        result.Append(Value);
+                        result.AppendGroupClosing(inline: true);
+                    }
+                    else
+                    {
+                        result.Append(Value);
+                    }
+
+                    return true;
+                }
+
+                public bool Append(Builder result, string separator)
+                {
+                    result.Append(GetDisplayName());
+                    result.Append(separator);
+                    result.Append(Value);
+                    return true;
+                }
             }
         }
     }

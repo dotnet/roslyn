@@ -7,51 +7,52 @@
 using System;
 using System.Diagnostics;
 
-namespace AnalyzerRunner;
-
-internal sealed class PerformanceTracker
+namespace AnalyzerRunner
 {
-    private readonly Stopwatch _stopwatch;
-#if NET
-    private readonly long _initialTotalAllocatedBytes;
-#endif
-
-    public PerformanceTracker(Stopwatch stopwatch, long initialTotalAllocatedBytes)
+    internal sealed class PerformanceTracker
     {
+        private readonly Stopwatch _stopwatch;
 #if NET
-        _initialTotalAllocatedBytes = initialTotalAllocatedBytes;
+        private readonly long _initialTotalAllocatedBytes;
 #endif
-        _stopwatch = stopwatch;
-    }
 
-    public static PerformanceTracker StartNew(bool preciseMemory = true)
-    {
+        public PerformanceTracker(Stopwatch stopwatch, long initialTotalAllocatedBytes)
+        {
 #if NET
-        var initialTotalAllocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory);
+            _initialTotalAllocatedBytes = initialTotalAllocatedBytes;
+#endif
+            _stopwatch = stopwatch;
+        }
+
+        public static PerformanceTracker StartNew(bool preciseMemory = true)
+        {
+#if NET
+            var initialTotalAllocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory);
 #else
-        var initialTotalAllocatedBytes = 0L;
+            var initialTotalAllocatedBytes = 0L;
 #endif
 
-        return new PerformanceTracker(Stopwatch.StartNew(), initialTotalAllocatedBytes);
-    }
+            return new PerformanceTracker(Stopwatch.StartNew(), initialTotalAllocatedBytes);
+        }
 
-    public TimeSpan Elapsed => _stopwatch.Elapsed;
+        public TimeSpan Elapsed => _stopwatch.Elapsed;
 
 #if NET
-    public long AllocatedBytes => GC.GetTotalAllocatedBytes(true) - _initialTotalAllocatedBytes;
+        public long AllocatedBytes => GC.GetTotalAllocatedBytes(true) - _initialTotalAllocatedBytes;
 #else
-    public long AllocatedBytes => 0;
+        public long AllocatedBytes => 0;
 #endif
 
-    public string GetSummary(bool preciseMemory = true)
-    {
+        public string GetSummary(bool preciseMemory = true)
+        {
 #if NET
-        var elapsedTime = Elapsed;
-        var allocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory) - _initialTotalAllocatedBytes;
+            var elapsedTime = Elapsed;
+            var allocatedBytes = GC.GetTotalAllocatedBytes(preciseMemory) - _initialTotalAllocatedBytes;
 
-        return $"{elapsedTime.TotalMilliseconds:0}ms ({allocatedBytes} bytes allocated)";
+            return $"{elapsedTime.TotalMilliseconds:0}ms ({allocatedBytes} bytes allocated)";
 #else
-        return $"{Elapsed.TotalMilliseconds:0}ms";
+            return $"{Elapsed.TotalMilliseconds:0}ms";
 #endif
+        }
     }
 }

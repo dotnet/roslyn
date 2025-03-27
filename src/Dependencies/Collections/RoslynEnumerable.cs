@@ -6,15 +6,16 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
-namespace System.Linq;
-
-internal static class RoslynEnumerable
+namespace System.Linq
 {
-    public static SegmentedList<TSource> ToSegmentedList<TSource>(this IEnumerable<TSource> source)
+    internal static class RoslynEnumerable
     {
-        if (source == null)
-            ThrowHelper.ThrowArgumentNullException(ExceptionArgument.source);
+        public static SegmentedList<TSource> ToSegmentedList<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.source);
 
-        return new SegmentedList<TSource>(source);
+            return new SegmentedList<TSource>(source);
+        }
     }
 }

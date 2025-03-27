@@ -7,40 +7,41 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Roslyn.Test.Utilities;
-
-/// <summary>
-/// Encapsulates exit code and output/error streams of a process.
-/// </summary>
-public sealed class ProcessResult
+namespace Roslyn.Test.Utilities
 {
-    public int ExitCode { get; }
-    public string Output { get; }
-    public string Errors { get; }
-
-    public ProcessResult(int exitCode, string output, string errors)
+    /// <summary>
+    /// Encapsulates exit code and output/error streams of a process.
+    /// </summary>
+    public sealed class ProcessResult
     {
-        ExitCode = exitCode;
-        Output = output;
-        Errors = errors;
-    }
+        public int ExitCode { get; }
+        public string Output { get; }
+        public string Errors { get; }
 
-    public override string ToString()
-    {
-        return "EXIT CODE: " +
-               this.ExitCode +
-               Environment.NewLine +
-               "OUTPUT STREAM:" +
-               Environment.NewLine +
-               this.Output +
-               Environment.NewLine +
-               "ERRORS:" +
-               Environment.NewLine +
-               this.Errors;
-    }
+        public ProcessResult(int exitCode, string output, string errors)
+        {
+            ExitCode = exitCode;
+            Output = output;
+            Errors = errors;
+        }
 
-    public bool ContainsErrors
-    {
-        get { return this.ExitCode != 0 || !string.IsNullOrEmpty(this.Errors); }
+        public override string ToString()
+        {
+            return "EXIT CODE: " +
+                   this.ExitCode +
+                   Environment.NewLine +
+                   "OUTPUT STREAM:" +
+                   Environment.NewLine +
+                   this.Output +
+                   Environment.NewLine +
+                   "ERRORS:" +
+                   Environment.NewLine +
+                   this.Errors;
+        }
+
+        public bool ContainsErrors
+        {
+            get { return this.ExitCode != 0 || !string.IsNullOrEmpty(this.Errors); }
+        }
     }
 }

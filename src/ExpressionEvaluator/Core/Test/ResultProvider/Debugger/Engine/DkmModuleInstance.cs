@@ -11,19 +11,20 @@
 
 using Microsoft.VisualStudio.Debugger.Symbols;
 
-namespace Microsoft.VisualStudio.Debugger;
-
-public class DkmModuleInstance
+namespace Microsoft.VisualStudio.Debugger
 {
-    internal DkmModuleInstance(DkmModule module)
+    public class DkmModuleInstance
     {
-        this.Module = module;
-    }
+        internal DkmModuleInstance(DkmModule module)
+        {
+            this.Module = module;
+        }
 
-    public readonly DkmModule Module;
+        public readonly DkmModule Module;
 
-    public string Name
-    {
-        get { return this.Module.Name; }
+        public string Name
+        {
+            get { return this.Module.Name; }
+        }
     }
 }

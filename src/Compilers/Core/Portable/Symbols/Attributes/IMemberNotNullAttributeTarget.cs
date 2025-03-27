@@ -7,21 +7,22 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis;
-
-interface IMemberNotNullAttributeTarget
+namespace Microsoft.CodeAnalysis
 {
-    void AddNotNullMember(string memberName);
+    interface IMemberNotNullAttributeTarget
+    {
+        void AddNotNullMember(string memberName);
 
-    void AddNotNullMember(ArrayBuilder<string> memberNames);
+        void AddNotNullMember(ArrayBuilder<string> memberNames);
 
-    ImmutableArray<string> NotNullMembers { get; }
+        ImmutableArray<string> NotNullMembers { get; }
 
-    void AddNotNullWhenMember(bool sense, string memberName);
+        void AddNotNullWhenMember(bool sense, string memberName);
 
-    void AddNotNullWhenMember(bool sense, ArrayBuilder<string> memberNames);
+        void AddNotNullWhenMember(bool sense, ArrayBuilder<string> memberNames);
 
-    ImmutableArray<string> NotNullWhenTrueMembers { get; }
+        ImmutableArray<string> NotNullWhenTrueMembers { get; }
 
-    ImmutableArray<string> NotNullWhenFalseMembers { get; }
+        ImmutableArray<string> NotNullWhenFalseMembers { get; }
+    }
 }

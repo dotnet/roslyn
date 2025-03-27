@@ -4,8 +4,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
-
-internal interface IRazorLanguageServerTarget
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    internal interface IRazorLanguageServerTarget
+    {
+    }
 }

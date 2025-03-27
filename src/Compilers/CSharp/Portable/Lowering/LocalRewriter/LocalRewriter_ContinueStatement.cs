@@ -6,18 +6,19 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class LocalRewriter
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public override BoundNode VisitContinueStatement(BoundContinueStatement node)
+    internal sealed partial class LocalRewriter
     {
-        BoundStatement result = new BoundGotoStatement(node.Syntax, node.Label, node.HasErrors);
-        if (this.Instrument && !node.WasCompilerGenerated)
+        public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
-            result = Instrumenter.InstrumentContinueStatement(node, result);
-        }
+            BoundStatement result = new BoundGotoStatement(node.Syntax, node.Label, node.HasErrors);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = Instrumenter.InstrumentContinueStatement(node, result);
+            }
 
-        return result;
+            return result;
+        }
     }
 }

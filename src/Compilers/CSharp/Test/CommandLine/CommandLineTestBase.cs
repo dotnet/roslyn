@@ -17,49 +17,50 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
-
-public abstract class CommandLineTestBase : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
-    public string WorkingDirectory { get; }
-    public string SdkDirectory { get; }
-    public string MscorlibFullPath { get; }
-
-    public CommandLineTestBase()
+    public abstract class CommandLineTestBase : CSharpTestBase
     {
-        WorkingDirectory = TempRoot.Root;
-        SdkDirectory = getSdkDirectory(Temp);
-        MscorlibFullPath = Path.Combine(SdkDirectory, "mscorlib.dll");
+        public string WorkingDirectory { get; }
+        public string SdkDirectory { get; }
+        public string MscorlibFullPath { get; }
 
-        // This will return a directory which contains mscorlib for use in the compiler instances created for
-        // this set of tests
-        string getSdkDirectory(TempRoot temp)
+        public CommandLineTestBase()
         {
-            if (ExecutionConditionUtil.IsCoreClr)
+            WorkingDirectory = TempRoot.Root;
+            SdkDirectory = getSdkDirectory(Temp);
+            MscorlibFullPath = Path.Combine(SdkDirectory, "mscorlib.dll");
+
+            // This will return a directory which contains mscorlib for use in the compiler instances created for
+            // this set of tests
+            string getSdkDirectory(TempRoot temp)
             {
-                var dir = temp.CreateDirectory();
-                File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), Net461.ReferenceInfos.mscorlib.ImageBytes);
-                return dir.Path;
+                if (ExecutionConditionUtil.IsCoreClr)
+                {
+                    var dir = temp.CreateDirectory();
+                    File.WriteAllBytes(Path.Combine(dir.Path, "mscorlib.dll"), Net461.ReferenceInfos.mscorlib.ImageBytes);
+                    return dir.Path;
+                }
+
+                return RuntimeEnvironment.GetRuntimeDirectory();
             }
-
-            return RuntimeEnvironment.GetRuntimeDirectory();
         }
-    }
 
-    internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory = null, string? additionalReferenceDirectories = null)
-    {
-        sdkDirectory = sdkDirectory ?? SdkDirectory;
-        return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
-    }
+        internal CSharpCommandLineArguments DefaultParse(IEnumerable<string> args, string baseDirectory, string? sdkDirectory = null, string? additionalReferenceDirectories = null)
+        {
+            sdkDirectory = sdkDirectory ?? SdkDirectory;
+            return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
+        }
 
-    internal MockCSharpCompiler CreateCSharpCompiler(string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
-    {
-        return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, loader, driverCache, additionalReferences);
-    }
+        internal MockCSharpCompiler CreateCSharpCompiler(string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
+        {
+            return CreateCSharpCompiler(null, WorkingDirectory, args, analyzers, generators, loader, driverCache, additionalReferences);
+        }
 
-    internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
-    {
-        var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
-        return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), loader, driverCache, additionalReferences.AsImmutableOrEmpty());
+        internal MockCSharpCompiler CreateCSharpCompiler(string? responseFile, string workingDirectory, string[] args, DiagnosticAnalyzer[]? analyzers = null, ISourceGenerator[]? generators = null, AnalyzerAssemblyLoader? loader = null, GeneratorDriverCache? driverCache = null, MetadataReference[]? additionalReferences = null)
+        {
+            var buildPaths = RuntimeUtilities.CreateBuildPaths(workingDirectory, sdkDirectory: SdkDirectory);
+            return new MockCSharpCompiler(responseFile, buildPaths, args, analyzers.AsImmutableOrEmpty(), generators.AsImmutableOrEmpty(), loader, driverCache, additionalReferences.AsImmutableOrEmpty());
+        }
     }
 }

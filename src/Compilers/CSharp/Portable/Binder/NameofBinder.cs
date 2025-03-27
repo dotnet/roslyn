@@ -7,97 +7,98 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-/// <summary>
-/// If a proper method named "nameof" exists in the outer scopes, <see cref="IsNameofOperator"/> is false and this binder does nothing.
-/// Otherwise, it relaxes the instance-vs-static requirement for top-level member access expressions
-/// and when inside an attribute on a method it adds type parameters from the target of that attribute.
-/// To do so, it works together with <see cref="ContextualAttributeBinder"/>.
-/// 
-/// For other attributes (on types, type parameters or parameters) we use a WithTypeParameterBinder directly
-/// in the binder chain and some filtering (<see cref="LookupOptions.MustNotBeMethodTypeParameter"/>) to keep
-/// pre-existing behavior.
-/// </summary>
-internal sealed class NameofBinder : Binder
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    private readonly ExpressionSyntax _nameofArgument;
-    private readonly WithTypeParametersBinder? _withTypeParametersBinder;
-    private readonly Binder? _withParametersBinder;
-    private ThreeState _lazyIsNameofOperator;
-
-    private readonly Dictionary<GenericNameSyntax, bool>? _allowedMap;
-
-    internal NameofBinder(ExpressionSyntax nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, Binder? withParametersBinder)
-        : base(next)
+    /// <summary>
+    /// If a proper method named "nameof" exists in the outer scopes, <see cref="IsNameofOperator"/> is false and this binder does nothing.
+    /// Otherwise, it relaxes the instance-vs-static requirement for top-level member access expressions
+    /// and when inside an attribute on a method it adds type parameters from the target of that attribute.
+    /// To do so, it works together with <see cref="ContextualAttributeBinder"/>.
+    /// 
+    /// For other attributes (on types, type parameters or parameters) we use a WithTypeParameterBinder directly
+    /// in the binder chain and some filtering (<see cref="LookupOptions.MustNotBeMethodTypeParameter"/>) to keep
+    /// pre-existing behavior.
+    /// </summary>
+    internal sealed class NameofBinder : Binder
     {
-        _nameofArgument = nameofArgument;
-        _withTypeParametersBinder = withTypeParametersBinder;
-        _withParametersBinder = withParametersBinder;
-        OpenTypeVisitor.Visit(nameofArgument, out _allowedMap);
-    }
+        private readonly ExpressionSyntax _nameofArgument;
+        private readonly WithTypeParametersBinder? _withTypeParametersBinder;
+        private readonly Binder? _withParametersBinder;
+        private ThreeState _lazyIsNameofOperator;
 
-    protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
-        => _allowedMap != null && _allowedMap.TryGetValue(syntax, out bool allowed) && allowed;
+        private readonly Dictionary<GenericNameSyntax, bool>? _allowedMap;
 
-    private bool IsNameofOperator
-    {
-        get
+        internal NameofBinder(ExpressionSyntax nameofArgument, Binder next, WithTypeParametersBinder? withTypeParametersBinder, Binder? withParametersBinder)
+            : base(next)
         {
-            if (!_lazyIsNameofOperator.HasValue())
-            {
-                _lazyIsNameofOperator = ThreeStateHelpers.ToThreeState(!NextRequired.InvocableNameofInScope());
-            }
-
-            return _lazyIsNameofOperator.Value();
+            _nameofArgument = nameofArgument;
+            _withTypeParametersBinder = withTypeParametersBinder;
+            _withParametersBinder = withParametersBinder;
+            OpenTypeVisitor.Visit(nameofArgument, out _allowedMap);
         }
-    }
 
-    internal override bool IsInsideNameof => IsNameofOperator || base.IsInsideNameof;
+        protected override bool IsUnboundTypeAllowed(GenericNameSyntax syntax)
+            => _allowedMap != null && _allowedMap.TryGetValue(syntax, out bool allowed) && allowed;
 
-    protected override SyntaxNode? EnclosingNameofArgument => IsNameofOperator ? _nameofArgument : base.EnclosingNameofArgument;
-
-    internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-    {
-        bool foundParameter = false;
-        if (_withParametersBinder is not null && IsNameofOperator)
+        private bool IsNameofOperator
         {
-            _withParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
-            if (!result.IsClear)
+            get
             {
-                if (result.IsMultiViable)
+                if (!_lazyIsNameofOperator.HasValue())
                 {
-                    return;
+                    _lazyIsNameofOperator = ThreeStateHelpers.ToThreeState(!NextRequired.InvocableNameofInScope());
                 }
 
-                foundParameter = true;
+                return _lazyIsNameofOperator.Value();
             }
         }
 
-        if (_withTypeParametersBinder is not null && IsNameofOperator)
-        {
-            if (foundParameter)
-            {
-                var tmp = LookupResult.GetInstance();
-                _withTypeParametersBinder.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
-                result.MergeEqual(tmp);
-            }
-            else
-            {
-                _withTypeParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
-            }
-        }
-    }
+        internal override bool IsInsideNameof => IsNameofOperator || base.IsInsideNameof;
 
-    internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
-    {
-        if (_withParametersBinder is not null && IsNameofOperator)
+        protected override SyntaxNode? EnclosingNameofArgument => IsNameofOperator ? _nameofArgument : base.EnclosingNameofArgument;
+
+        internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            _withParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
+            bool foundParameter = false;
+            if (_withParametersBinder is not null && IsNameofOperator)
+            {
+                _withParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                if (!result.IsClear)
+                {
+                    if (result.IsMultiViable)
+                    {
+                        return;
+                    }
+
+                    foundParameter = true;
+                }
+            }
+
+            if (_withTypeParametersBinder is not null && IsNameofOperator)
+            {
+                if (foundParameter)
+                {
+                    var tmp = LookupResult.GetInstance();
+                    _withTypeParametersBinder.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                    result.MergeEqual(tmp);
+                }
+                else
+                {
+                    _withTypeParametersBinder.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
+                }
+            }
         }
-        if (_withTypeParametersBinder is not null && IsNameofOperator)
+
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
-            _withTypeParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
+            if (_withParametersBinder is not null && IsNameofOperator)
+            {
+                _withParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
+            }
+            if (_withTypeParametersBinder is not null && IsNameofOperator)
+            {
+                _withTypeParametersBinder.AddLookupSymbolsInfoInSingleBinder(info, options, originalBinder);
+            }
         }
     }
 }

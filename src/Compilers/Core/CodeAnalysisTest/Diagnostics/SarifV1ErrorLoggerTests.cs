@@ -11,23 +11,23 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics;
-
-// See also VB and C# command line unit tests for additional coverage.
-[Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
-public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
-    internal override SarifErrorLogger CreateLogger(
-        Stream stream,
-        string toolName,
-        string toolFileVersion,
-        Version toolAssemblyVersion,
-        CultureInfo culture)
+    // See also VB and C# command line unit tests for additional coverage.
+    [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
+    public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
     {
-        return new SarifV1ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture);
-    }
+        internal override SarifErrorLogger CreateLogger(
+            Stream stream,
+            string toolName,
+            string toolFileVersion,
+            Version toolAssemblyVersion,
+            CultureInfo culture)
+        {
+            return new SarifV1ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture);
+        }
 
-    protected override string ExpectedOutputForAdditionalLocationsAsRelatedLocations =>
+        protected override string ExpectedOutputForAdditionalLocationsAsRelatedLocations =>
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
   ""version"": ""1.0.0"",
@@ -48,8 +48,8 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
             {
               ""resultFile"": {
                 ""uri"": """ + (PathUtilities.IsUnixLikePlatform
-                                ? "Z:/Main%20Location.cs"
-                                : "file:///Z:/Main%20Location.cs") + @""",
+                                    ? "Z:/Main%20Location.cs"
+                                    : "file:///Z:/Main%20Location.cs") + @""",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,
@@ -88,13 +88,13 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
   ]
 }";
 
-    [Fact]
-    public void AdditionalLocationsAsRelatedLocations()
-    {
-        AdditionalLocationsAsRelatedLocationsImpl();
-    }
+        [Fact]
+        public void AdditionalLocationsAsRelatedLocations()
+        {
+            AdditionalLocationsAsRelatedLocationsImpl();
+        }
 
-    protected override string ExpectedOutputForDescriptorIdCollision =>
+        protected override string ExpectedOutputForDescriptorIdCollision =>
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
   ""version"": ""1.0.0"",
@@ -370,16 +370,16 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
   ]
 }";
 
-    [Fact]
-    public void DescriptorIdCollision()
-    {
-        DescriptorIdCollisionImpl();
-    }
+        [Fact]
+        public void DescriptorIdCollision()
+        {
+            DescriptorIdCollisionImpl();
+        }
 
-    [Fact]
-    public void PathToUri()
-    {
-        PathToUriImpl(@"{{
+        [Fact]
+        public void PathToUri()
+        {
+            PathToUriImpl(@"{{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
   ""version"": ""1.0.0"",
   ""runs"": [
@@ -425,5 +425,6 @@ public class SarifV1ErrorLoggerTests : SarifErrorLoggerTests
     }}
   ]
 }}");
+        }
     }
 }

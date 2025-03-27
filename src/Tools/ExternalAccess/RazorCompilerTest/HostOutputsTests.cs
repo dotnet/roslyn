@@ -10,41 +10,42 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests;
-
-public class HostOutputsTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests
 {
-    [Fact]
-    public void Added()
+    public class HostOutputsTests : CSharpTestBase
     {
-        var source = """
-            class C { }
-            """;
-        var parseOptions = TestOptions.Regular;
-        var compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
-        compilation.VerifyDiagnostics();
-
-        Assert.Single(compilation.SyntaxTrees);
-
-        var generator = new PipelineCallbackGenerator(ctx =>
+        [Fact]
+        public void Added()
         {
-            var syntaxProvider = ctx.SyntaxProvider.CreateSyntaxProvider((n, _) => n.IsKind(SyntaxKind.ClassDeclaration), (c, _) => c.Node);
+            var source = """
+                class C { }
+                """;
+            var parseOptions = TestOptions.Regular;
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
 
-            ctx.RegisterHostOutput(syntaxProvider, static (hpc, node, _) =>
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
             {
-                hpc.AddOutput("test", node.ToFullString());
+                var syntaxProvider = ctx.SyntaxProvider.CreateSyntaxProvider((n, _) => n.IsKind(SyntaxKind.ClassDeclaration), (c, _) => c.Node);
+
+                ctx.RegisterHostOutput(syntaxProvider, static (hpc, node, _) =>
+                {
+                    hpc.AddOutput("test", node.ToFullString());
+                });
             });
-        });
 
-        GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
-        driver = driver.RunGenerators(compilation);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
 
-        var result = driver.GetRunResult().Results.Single();
-        Assert.Empty(result.Diagnostics);
+            var result = driver.GetRunResult().Results.Single();
+            Assert.Empty(result.Diagnostics);
 
-        var hostOutputs = result.GetHostOutputs();
-        Assert.Equal(1, hostOutputs.Length);
-        Assert.Equal("test", hostOutputs[0].Key);
-        Assert.Equal(source, hostOutputs[0].Value);
+            var hostOutputs = result.GetHostOutputs();
+            Assert.Equal(1, hostOutputs.Length);
+            Assert.Equal("test", hostOutputs[0].Key);
+            Assert.Equal(source, hostOutputs[0].Value);
+        }
     }
 }

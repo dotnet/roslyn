@@ -15,92 +15,93 @@ using System.Reflection.Metadata;
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-
-internal sealed class PEGlobalNamespaceSymbol
-    : PENamespaceSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
-    /// <summary>
-    /// The module containing the namespace.
-    /// </summary>
-    /// <remarks></remarks>
-    private readonly PEModuleSymbol _moduleSymbol;
-
-    internal PEGlobalNamespaceSymbol(PEModuleSymbol moduleSymbol)
+    internal sealed class PEGlobalNamespaceSymbol
+        : PENamespaceSymbol
     {
-        Debug.Assert((object)moduleSymbol != null);
-        _moduleSymbol = moduleSymbol;
-    }
+        /// <summary>
+        /// The module containing the namespace.
+        /// </summary>
+        /// <remarks></remarks>
+        private readonly PEModuleSymbol _moduleSymbol;
 
-    public override Symbol ContainingSymbol
-    {
-        get
+        internal PEGlobalNamespaceSymbol(PEModuleSymbol moduleSymbol)
         {
-            return _moduleSymbol;
+            Debug.Assert((object)moduleSymbol != null);
+            _moduleSymbol = moduleSymbol;
         }
-    }
 
-    internal override PEModuleSymbol ContainingPEModule
-    {
-        get
+        public override Symbol ContainingSymbol
         {
-            return _moduleSymbol;
-        }
-    }
-
-    public override string Name
-    {
-        get
-        {
-            return string.Empty;
-        }
-    }
-
-    public override bool IsGlobalNamespace
-    {
-        get
-        {
-            return true;
-        }
-    }
-
-    public override AssemblySymbol ContainingAssembly
-    {
-        get
-        {
-            return _moduleSymbol.ContainingAssembly;
-        }
-    }
-
-    internal override ModuleSymbol ContainingModule
-    {
-        get
-        {
-            return _moduleSymbol;
-        }
-    }
-
-    protected override void EnsureAllMembersLoaded()
-    {
-        if (Volatile.Read(ref lazyTypes) == null || Volatile.Read(ref lazyNamespaces) == null)
-        {
-            IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
-
-            try
+            get
             {
-                groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
+                return _moduleSymbol;
             }
-            catch (BadImageFormatException)
-            {
-                groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeDefinitionHandle>>();
-            }
-
-            LoadAllMembers(groups);
         }
-    }
 
-    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-    {
-        get { return null; }
+        internal override PEModuleSymbol ContainingPEModule
+        {
+            get
+            {
+                return _moduleSymbol;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return string.Empty;
+            }
+        }
+
+        public override bool IsGlobalNamespace
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override AssemblySymbol ContainingAssembly
+        {
+            get
+            {
+                return _moduleSymbol.ContainingAssembly;
+            }
+        }
+
+        internal override ModuleSymbol ContainingModule
+        {
+            get
+            {
+                return _moduleSymbol;
+            }
+        }
+
+        protected override void EnsureAllMembersLoaded()
+        {
+            if (Volatile.Read(ref lazyTypes) == null || Volatile.Read(ref lazyNamespaces) == null)
+            {
+                IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
+
+                try
+                {
+                    groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
+                }
+                catch (BadImageFormatException)
+                {
+                    groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeDefinitionHandle>>();
+                }
+
+                LoadAllMembers(groups);
+            }
+        }
+
+        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        {
+            get { return null; }
+        }
     }
 }

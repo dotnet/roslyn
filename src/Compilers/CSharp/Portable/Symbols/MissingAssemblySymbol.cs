@@ -15,213 +15,214 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// A <see cref="MissingAssemblySymbol"/> is a special kind of <see cref="AssemblySymbol"/> that represents
-/// an assembly that couldn't be found.
-/// </summary>
-internal class MissingAssemblySymbol : AssemblySymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    protected readonly AssemblyIdentity identity;
-    protected readonly MissingModuleSymbol moduleSymbol;
-
-    private ImmutableArray<ModuleSymbol> _lazyModules;
-
-    public MissingAssemblySymbol(AssemblyIdentity identity)
+    /// <summary>
+    /// A <see cref="MissingAssemblySymbol"/> is a special kind of <see cref="AssemblySymbol"/> that represents
+    /// an assembly that couldn't be found.
+    /// </summary>
+    internal class MissingAssemblySymbol : AssemblySymbol
     {
-        Debug.Assert(identity != null);
-        this.identity = identity;
-        moduleSymbol = new MissingModuleSymbol(this, 0);
-    }
+        protected readonly AssemblyIdentity identity;
+        protected readonly MissingModuleSymbol moduleSymbol;
 
-    internal sealed override bool IsMissing
-    {
-        get
+        private ImmutableArray<ModuleSymbol> _lazyModules;
+
+        public MissingAssemblySymbol(AssemblyIdentity identity)
         {
-            return true;
+            Debug.Assert(identity != null);
+            this.identity = identity;
+            moduleSymbol = new MissingModuleSymbol(this, 0);
         }
-    }
 
-    internal override bool IsLinked
-    {
-        get
+        internal sealed override bool IsMissing
         {
-            return false;
-        }
-    }
-
-    internal override Symbol GetDeclaredSpecialTypeMember(SpecialMember member)
-    {
-        return null;
-    }
-
-    public override AssemblyIdentity Identity
-    {
-        get
-        {
-            return identity;
-        }
-    }
-
-    public override Version AssemblyVersionPattern => null;
-
-    internal override ImmutableArray<byte> PublicKey
-    {
-        get { return Identity.PublicKey; }
-    }
-
-    public override ImmutableArray<ModuleSymbol> Modules
-    {
-        get
-        {
-            if (_lazyModules.IsDefault)
+            get
             {
-                _lazyModules = ImmutableArray.Create<ModuleSymbol>(moduleSymbol);
+                return true;
+            }
+        }
+
+        internal override bool IsLinked
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override Symbol GetDeclaredSpecialTypeMember(SpecialMember member)
+        {
+            return null;
+        }
+
+        public override AssemblyIdentity Identity
+        {
+            get
+            {
+                return identity;
+            }
+        }
+
+        public override Version AssemblyVersionPattern => null;
+
+        internal override ImmutableArray<byte> PublicKey
+        {
+            get { return Identity.PublicKey; }
+        }
+
+        public override ImmutableArray<ModuleSymbol> Modules
+        {
+            get
+            {
+                if (_lazyModules.IsDefault)
+                {
+                    _lazyModules = ImmutableArray.Create<ModuleSymbol>(moduleSymbol);
+                }
+
+                return _lazyModules;
+            }
+        }
+
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
+        public override int GetHashCode()
+        {
+            return identity.GetHashCode();
+        }
+
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        {
+            return Equals(obj as MissingAssemblySymbol);
+        }
+
+        public bool Equals(MissingAssemblySymbol other)
+        {
+            if ((object)other == null)
+            {
+                return false;
             }
 
-            return _lazyModules;
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return identity.Equals(other.Identity);
         }
-    }
 
-    internal override bool HasImportedFromTypeLibAttribute => false;
-
-    internal override bool HasPrimaryInteropAssemblyAttribute => false;
-
-    public override int GetHashCode()
-    {
-        return identity.GetHashCode();
-    }
-
-    public override bool Equals(Symbol obj, TypeCompareKind compareKind)
-    {
-        return Equals(obj as MissingAssemblySymbol);
-    }
-
-    public bool Equals(MissingAssemblySymbol other)
-    {
-        if ((object)other == null)
+        public override ImmutableArray<Location> Locations
         {
-            return false;
+            get
+            {
+                return ImmutableArray<Location>.Empty;
+            }
         }
 
-        if (ReferenceEquals(this, other))
+        internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            return true;
+            throw ExceptionUtilities.Unreachable();
         }
 
-        return identity.Equals(other.Identity);
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
         {
-            return ImmutableArray<Location>.Empty;
+            return ImmutableArray<AssemblySymbol>.Empty;
         }
-    }
 
-    internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
-    {
-        return ImmutableArray<AssemblySymbol>.Empty;
-    }
-
-    internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
-    {
-        return ImmutableArray<AssemblySymbol>.Empty;
-    }
-
-    public sealed override NamespaceSymbol GlobalNamespace
-    {
-        get
+        internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            return this.moduleSymbol.GlobalNamespace;
+            throw ExceptionUtilities.Unreachable();
         }
-    }
 
-    public override ICollection<string> TypeNames
-    {
-        get
+        internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
         {
-            return SpecializedCollections.EmptyCollection<string>();
+            return ImmutableArray<AssemblySymbol>.Empty;
         }
-    }
 
-    public override ICollection<string> NamespaceNames
-    {
-        get
+        public sealed override NamespaceSymbol GlobalNamespace
         {
-            return SpecializedCollections.EmptyCollection<string>();
+            get
+            {
+                return this.moduleSymbol.GlobalNamespace;
+            }
         }
-    }
+
+        public override ICollection<string> TypeNames
+        {
+            get
+            {
+                return SpecializedCollections.EmptyCollection<string>();
+            }
+        }
+
+        public override ICollection<string> NamespaceNames
+        {
+            get
+            {
+                return SpecializedCollections.EmptyCollection<string>();
+            }
+        }
 
 #nullable enable
 
-    internal override NamedTypeSymbol LookupDeclaredOrForwardedTopLevelMetadataType(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
-    {
-        return new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedName);
-    }
+        internal override NamedTypeSymbol LookupDeclaredOrForwardedTopLevelMetadataType(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
+        {
+            return new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedName);
+        }
 
-    internal override NamedTypeSymbol? LookupDeclaredTopLevelMetadataType(ref MetadataTypeName emittedName)
-    {
-        return null;
-    }
+        internal override NamedTypeSymbol? LookupDeclaredTopLevelMetadataType(ref MetadataTypeName emittedName)
+        {
+            return null;
+        }
 
 #nullable disable
 
-    internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
-    {
-        throw ExceptionUtilities.Unreachable();
-    }
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
 
-    internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
-    {
-        return false;
-    }
-
-    internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
-    {
-        return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
-    }
-
-    internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
-    {
-        return SpecializedCollections.EmptyEnumerable<string>();
-    }
-
-    public override bool MightContainExtensionMethods
-    {
-        get
+        internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
         {
             return false;
         }
-    }
 
-    internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+        internal override IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
+        {
+            return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
+        }
 
-    public override AssemblyMetadata GetMetadata() => null;
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return SpecializedCollections.EmptyEnumerable<string>();
+        }
 
-    internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
-    {
-        return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
-    }
+        public override bool MightContainExtensionMethods
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
+        public override AssemblyMetadata GetMetadata() => null;
+
+        internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
+        {
+            return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
+        }
 
 #nullable enable
-    internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
 
-    internal override bool GetGuidString(out string? guidString)
-    {
-        guidString = null;
-        return false;
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
     }
 }

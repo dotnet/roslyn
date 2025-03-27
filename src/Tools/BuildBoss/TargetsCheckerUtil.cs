@@ -11,114 +11,115 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss;
-
-internal sealed class TargetsCheckerUtil : ICheckerUtil
+namespace BuildBoss
 {
-    private readonly string _targetDir;
-
-    internal TargetsCheckerUtil(string targetDir)
+    internal sealed class TargetsCheckerUtil : ICheckerUtil
     {
-        _targetDir = targetDir;
-    }
+        private readonly string _targetDir;
 
-    public bool Check(TextWriter textWriter)
-    {
-        var allGood = true;
-
-        foreach (var filePath in Directory.GetFiles(_targetDir))
+        internal TargetsCheckerUtil(string targetDir)
         {
-            var fileName = Path.GetFileName(filePath);
-            if (fileName == "README.md")
+            _targetDir = targetDir;
+        }
+
+        public bool Check(TextWriter textWriter)
+        {
+            var allGood = true;
+
+            foreach (var filePath in Directory.GetFiles(_targetDir))
             {
-                continue;
+                var fileName = Path.GetFileName(filePath);
+                if (fileName == "README.md")
+                {
+                    continue;
+                }
+
+                textWriter.WriteLine($"Checking {fileName}");
+                if (SharedUtil.IsPropsFile(filePath))
+                {
+                    allGood &= CheckProps(new ProjectUtil(filePath), textWriter);
+                }
+                else if (SharedUtil.IsTargetsFile(filePath))
+                {
+                    allGood &= CheckTargets(new ProjectUtil(filePath), textWriter);
+                }
+                else if (SharedUtil.IsXslt(filePath))
+                {
+                    // Nothing to verify
+                }
+                else
+                {
+                    textWriter.WriteLine("Unrecognized file type");
+                    allGood = false;
+                }
             }
 
-            textWriter.WriteLine($"Checking {fileName}");
-            if (SharedUtil.IsPropsFile(filePath))
+            return allGood;
+        }
+
+        private bool CheckProps(ProjectUtil util, TextWriter textWriter)
+        {
+            var allGood = true;
+            foreach (var project in GetImportProjects(util))
             {
-                allGood &= CheckProps(new ProjectUtil(filePath), textWriter);
+                if (!SharedUtil.IsPropsFile(project))
+                {
+                    textWriter.WriteLine($"Props files should only Import other props files");
+                    allGood = false;
+                }
             }
-            else if (SharedUtil.IsTargetsFile(filePath))
+
+            if (util.GetTargets().Any())
             {
-                allGood &= CheckTargets(new ProjectUtil(filePath), textWriter);
-            }
-            else if (SharedUtil.IsXslt(filePath))
-            {
-                // Nothing to verify
-            }
-            else
-            {
-                textWriter.WriteLine("Unrecognized file type");
+                textWriter.WriteLine($"Props files should not contain <Target> elements");
                 allGood = false;
             }
+
+            return allGood;
         }
 
-        return allGood;
-    }
-
-    private bool CheckProps(ProjectUtil util, TextWriter textWriter)
-    {
-        var allGood = true;
-        foreach (var project in GetImportProjects(util))
+        private bool CheckTargets(ProjectUtil util, TextWriter textWriter)
         {
-            if (!SharedUtil.IsPropsFile(project))
+            var allGood = true;
+            foreach (var project in GetImportProjects(util))
             {
-                textWriter.WriteLine($"Props files should only Import other props files");
-                allGood = false;
+                if (SharedUtil.IsPropsFile(project))
+                {
+                    textWriter.WriteLine($"Targets files should not Import props files");
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
+
+        private static IEnumerable<string> GetImportProjects(ProjectUtil util)
+        {
+            foreach (var project in util.GetImportProjects())
+            {
+                if (IsReplacedValue(project))
+                {
+                    continue;
+                }
+
+                yield return project;
             }
         }
 
-        if (util.GetTargets().Any())
+        /// <summary>
+        /// Is this a whole replaced MSBuild value like $(Trick)
+        /// </summary>
+        private static bool IsReplacedValue(string value)
         {
-            textWriter.WriteLine($"Props files should not contain <Target> elements");
-            allGood = false;
-        }
-
-        return allGood;
-    }
-
-    private bool CheckTargets(ProjectUtil util, TextWriter textWriter)
-    {
-        var allGood = true;
-        foreach (var project in GetImportProjects(util))
-        {
-            if (SharedUtil.IsPropsFile(project))
+            if (value.Length <= 3)
             {
-                textWriter.WriteLine($"Targets files should not Import props files");
-                allGood = false;
-            }
-        }
-
-        return allGood;
-    }
-
-    private static IEnumerable<string> GetImportProjects(ProjectUtil util)
-    {
-        foreach (var project in util.GetImportProjects())
-        {
-            if (IsReplacedValue(project))
-            {
-                continue;
+                return false;
             }
 
-            yield return project;
+            return
+                value[0] == '$' &&
+                value[1] == '(' &&
+                value[value.Length - 1] == ')';
         }
-    }
-
-    /// <summary>
-    /// Is this a whole replaced MSBuild value like $(Trick)
-    /// </summary>
-    private static bool IsReplacedValue(string value)
-    {
-        if (value.Length <= 3)
-        {
-            return false;
-        }
-
-        return
-            value[0] == '$' &&
-            value[1] == '(' &&
-            value[value.Length - 1] == ')';
     }
 }

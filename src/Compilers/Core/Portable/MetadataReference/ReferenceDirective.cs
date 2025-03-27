@@ -5,22 +5,23 @@
 using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis;
-
-/// <summary>
-/// Represents the value of #r reference along with its source location.
-/// </summary>
-internal readonly struct ReferenceDirective
+namespace Microsoft.CodeAnalysis
 {
-    public readonly string? File;
-    public readonly Location? Location;
-
-    public ReferenceDirective(string file, Location location)
+    /// <summary>
+    /// Represents the value of #r reference along with its source location.
+    /// </summary>
+    internal readonly struct ReferenceDirective
     {
-        Debug.Assert(file != null);
-        Debug.Assert(location != null);
+        public readonly string? File;
+        public readonly Location? Location;
 
-        File = file;
-        Location = location;
+        public ReferenceDirective(string file, Location location)
+        {
+            Debug.Assert(file != null);
+            Debug.Assert(location != null);
+
+            File = file;
+            Location = location;
+        }
     }
 }

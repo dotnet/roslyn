@@ -5,18 +5,19 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace AnalyzerRunner;
-
-public static class AnalyzerRunnerHelper
+namespace AnalyzerRunner
 {
-    public static MSBuildWorkspace CreateWorkspace()
+    public static class AnalyzerRunnerHelper
     {
-        var properties = new Dictionary<string, string>
+        public static MSBuildWorkspace CreateWorkspace()
         {
-            // Use the latest language version to force the full set of available analyzers to run on the project.
-            { "LangVersion", "latest" },
-        };
+            var properties = new Dictionary<string, string>
+            {
+                // Use the latest language version to force the full set of available analyzers to run on the project.
+                { "LangVersion", "latest" },
+            };
 
-        return MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices);
+            return MSBuildWorkspace.Create(properties, AnalyzerRunnerMefHostServices.DefaultServices);
+        }
     }
 }

@@ -8,158 +8,159 @@ using System.Globalization;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-/// <summary>
-/// Represents an event that is based on another event.
-/// When inheriting from this class, one shouldn't assume that 
-/// the default behavior it has is appropriate for every case.
-/// That behavior should be carefully reviewed and derived type
-/// should override behavior as appropriate.
-/// </summary>
-internal abstract class WrappedEventSymbol : EventSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// The underlying EventSymbol.
+    /// Represents an event that is based on another event.
+    /// When inheriting from this class, one shouldn't assume that 
+    /// the default behavior it has is appropriate for every case.
+    /// That behavior should be carefully reviewed and derived type
+    /// should override behavior as appropriate.
     /// </summary>
-    protected readonly EventSymbol _underlyingEvent;
-
-    public WrappedEventSymbol(EventSymbol underlyingEvent)
+    internal abstract class WrappedEventSymbol : EventSymbol
     {
-        RoslynDebug.Assert((object)underlyingEvent != null);
-        _underlyingEvent = underlyingEvent;
-    }
+        /// <summary>
+        /// The underlying EventSymbol.
+        /// </summary>
+        protected readonly EventSymbol _underlyingEvent;
 
-    public EventSymbol UnderlyingEvent
-    {
-        get
+        public WrappedEventSymbol(EventSymbol underlyingEvent)
         {
-            return _underlyingEvent;
+            RoslynDebug.Assert((object)underlyingEvent != null);
+            _underlyingEvent = underlyingEvent;
         }
-    }
 
-    public override bool IsImplicitlyDeclared
-    {
-        get
+        public EventSymbol UnderlyingEvent
         {
-            return _underlyingEvent.IsImplicitlyDeclared;
+            get
+            {
+                return _underlyingEvent;
+            }
         }
-    }
 
-    internal override bool HasSpecialName
-    {
-        get
+        public override bool IsImplicitlyDeclared
         {
-            return _underlyingEvent.HasSpecialName;
+            get
+            {
+                return _underlyingEvent.IsImplicitlyDeclared;
+            }
         }
-    }
 
-    public override string Name
-    {
-        get
+        internal override bool HasSpecialName
         {
-            return _underlyingEvent.Name;
+            get
+            {
+                return _underlyingEvent.HasSpecialName;
+            }
         }
-    }
 
-    public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-    {
-        return _underlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-    }
-
-    public override ImmutableArray<Location> Locations
-    {
-        get
+        public override string Name
         {
-            return _underlyingEvent.Locations;
+            get
+            {
+                return _underlyingEvent.Name;
+            }
         }
-    }
 
-    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-    {
-        get
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _underlyingEvent.DeclaringSyntaxReferences;
+            return _underlyingEvent.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
-    }
 
-    public override Accessibility DeclaredAccessibility
-    {
-        get
+        public override ImmutableArray<Location> Locations
         {
-            return _underlyingEvent.DeclaredAccessibility;
+            get
+            {
+                return _underlyingEvent.Locations;
+            }
         }
-    }
 
-    public override bool IsStatic
-    {
-        get
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            return _underlyingEvent.IsStatic;
+            get
+            {
+                return _underlyingEvent.DeclaringSyntaxReferences;
+            }
         }
-    }
 
-    public override bool IsVirtual
-    {
-        get
+        public override Accessibility DeclaredAccessibility
         {
-            return _underlyingEvent.IsVirtual;
+            get
+            {
+                return _underlyingEvent.DeclaredAccessibility;
+            }
         }
-    }
 
-    public override bool IsOverride
-    {
-        get
+        public override bool IsStatic
         {
-            return _underlyingEvent.IsOverride;
+            get
+            {
+                return _underlyingEvent.IsStatic;
+            }
         }
-    }
 
-    public override bool IsAbstract
-    {
-        get
+        public override bool IsVirtual
         {
-            return _underlyingEvent.IsAbstract;
+            get
+            {
+                return _underlyingEvent.IsVirtual;
+            }
         }
-    }
 
-    public override bool IsSealed
-    {
-        get
+        public override bool IsOverride
         {
-            return _underlyingEvent.IsSealed;
+            get
+            {
+                return _underlyingEvent.IsOverride;
+            }
         }
-    }
 
-    public override bool IsExtern
-    {
-        get
+        public override bool IsAbstract
         {
-            return _underlyingEvent.IsExtern;
+            get
+            {
+                return _underlyingEvent.IsAbstract;
+            }
         }
-    }
 
-    internal override ObsoleteAttributeData? ObsoleteAttributeData
-    {
-        get
+        public override bool IsSealed
         {
-            return _underlyingEvent.ObsoleteAttributeData;
+            get
+            {
+                return _underlyingEvent.IsSealed;
+            }
         }
-    }
 
-    public override bool IsWindowsRuntimeEvent
-    {
-        get
+        public override bool IsExtern
         {
-            return _underlyingEvent.IsWindowsRuntimeEvent;
+            get
+            {
+                return _underlyingEvent.IsExtern;
+            }
         }
-    }
 
-    internal override bool HasRuntimeSpecialName
-    {
-        get
+        internal override ObsoleteAttributeData? ObsoleteAttributeData
         {
-            return _underlyingEvent.HasRuntimeSpecialName;
+            get
+            {
+                return _underlyingEvent.ObsoleteAttributeData;
+            }
+        }
+
+        public override bool IsWindowsRuntimeEvent
+        {
+            get
+            {
+                return _underlyingEvent.IsWindowsRuntimeEvent;
+            }
+        }
+
+        internal override bool HasRuntimeSpecialName
+        {
+            get
+            {
+                return _underlyingEvent.HasRuntimeSpecialName;
+            }
         }
     }
 }

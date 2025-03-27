@@ -9,144 +9,145 @@ using System.Reflection.Metadata;
 using Microsoft.Cci;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Emit.EditAndContinue;
-
-internal sealed class DeletedSourceMethodDefinition
-    : DeletedSourceDefinition<IMethodDefinition>, IDeletedMethodDefinition
+namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
-    private readonly MethodDefinitionHandle _handle;
-    private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
-    private readonly DeletedMethodBody _body;
-
-    public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, ImmutableArray<byte> bodyIL, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
-        : base(oldMethod, typesUsedByDeletedMembers)
+    internal sealed class DeletedSourceMethodDefinition
+        : DeletedSourceDefinition<IMethodDefinition>, IDeletedMethodDefinition
     {
-        _handle = handle;
-        _parameters = WrapParameters(oldMethod.Parameters);
-        _body = new DeletedMethodBody(this, bodyIL);
-    }
+        private readonly MethodDefinitionHandle _handle;
+        private readonly ImmutableArray<DeletedSourceParameterDefinition> _parameters;
+        private readonly DeletedMethodBody _body;
 
-    public MethodDefinitionHandle MetadataHandle
-        => _handle;
+        public DeletedSourceMethodDefinition(IMethodDefinition oldMethod, MethodDefinitionHandle handle, ImmutableArray<byte> bodyIL, Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> typesUsedByDeletedMembers)
+            : base(oldMethod, typesUsedByDeletedMembers)
+        {
+            _handle = handle;
+            _parameters = WrapParameters(oldMethod.Parameters);
+            _body = new DeletedMethodBody(this, bodyIL);
+        }
 
-    public IEnumerable<IGenericMethodParameter> GenericParameters
-        => throw ExceptionUtilities.Unreachable();
+        public MethodDefinitionHandle MetadataHandle
+            => _handle;
 
-    public bool HasDeclarativeSecurity => OldDefinition.HasDeclarativeSecurity;
+        public IEnumerable<IGenericMethodParameter> GenericParameters
+            => throw ExceptionUtilities.Unreachable();
 
-    public bool IsAbstract => OldDefinition.IsAbstract;
+        public bool HasDeclarativeSecurity => OldDefinition.HasDeclarativeSecurity;
 
-    public bool IsAccessCheckedOnOverride => OldDefinition.IsAccessCheckedOnOverride;
+        public bool IsAbstract => OldDefinition.IsAbstract;
 
-    public bool IsConstructor => OldDefinition.IsConstructor;
+        public bool IsAccessCheckedOnOverride => OldDefinition.IsAccessCheckedOnOverride;
 
-    public bool IsExternal => OldDefinition.IsExternal;
+        public bool IsConstructor => OldDefinition.IsConstructor;
 
-    public bool IsHiddenBySignature => OldDefinition.IsHiddenBySignature;
+        public bool IsExternal => OldDefinition.IsExternal;
 
-    public bool IsNewSlot => OldDefinition.IsNewSlot;
+        public bool IsHiddenBySignature => OldDefinition.IsHiddenBySignature;
 
-    public bool IsPlatformInvoke => OldDefinition.IsPlatformInvoke;
+        public bool IsNewSlot => OldDefinition.IsNewSlot;
 
-    public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
+        public bool IsPlatformInvoke => OldDefinition.IsPlatformInvoke;
 
-    public bool IsSealed => OldDefinition.IsSealed;
+        public bool IsRuntimeSpecial => OldDefinition.IsRuntimeSpecial;
 
-    public bool IsSpecialName => OldDefinition.IsSpecialName;
+        public bool IsSealed => OldDefinition.IsSealed;
 
-    public bool IsStatic => OldDefinition.IsStatic;
+        public bool IsSpecialName => OldDefinition.IsSpecialName;
 
-    public bool IsVirtual => OldDefinition.IsVirtual;
+        public bool IsStatic => OldDefinition.IsStatic;
 
-    public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
+        public bool IsVirtual => OldDefinition.IsVirtual;
 
-    public IPlatformInvokeInformation PlatformInvokeData => OldDefinition.PlatformInvokeData;
+        public ImmutableArray<IParameterDefinition> Parameters => StaticCast<IParameterDefinition>.From(_parameters);
 
-    public bool RequiresSecurityObject => OldDefinition.RequiresSecurityObject;
+        public IPlatformInvokeInformation PlatformInvokeData => OldDefinition.PlatformInvokeData;
 
-    public bool ReturnValueIsMarshalledExplicitly => OldDefinition.ReturnValueIsMarshalledExplicitly;
+        public bool RequiresSecurityObject => OldDefinition.RequiresSecurityObject;
 
-    public IMarshallingInformation ReturnValueMarshallingInformation => OldDefinition.ReturnValueMarshallingInformation;
+        public bool ReturnValueIsMarshalledExplicitly => OldDefinition.ReturnValueIsMarshalledExplicitly;
 
-    public ImmutableArray<byte> ReturnValueMarshallingDescriptor => OldDefinition.ReturnValueMarshallingDescriptor;
+        public IMarshallingInformation ReturnValueMarshallingInformation => OldDefinition.ReturnValueMarshallingInformation;
 
-    public IEnumerable<SecurityAttribute> SecurityAttributes => OldDefinition.SecurityAttributes;
+        public ImmutableArray<byte> ReturnValueMarshallingDescriptor => OldDefinition.ReturnValueMarshallingDescriptor;
 
-    public INamespace ContainingNamespace => OldDefinition.ContainingNamespace;
+        public IEnumerable<SecurityAttribute> SecurityAttributes => OldDefinition.SecurityAttributes;
 
-    public ITypeDefinition ContainingTypeDefinition => throw ExceptionUtilities.Unreachable();
+        public INamespace ContainingNamespace => OldDefinition.ContainingNamespace;
 
-    public TypeMemberVisibility Visibility => OldDefinition.Visibility;
+        public ITypeDefinition ContainingTypeDefinition => throw ExceptionUtilities.Unreachable();
 
-    public bool AcceptsExtraArguments => OldDefinition.AcceptsExtraArguments;
+        public TypeMemberVisibility Visibility => OldDefinition.Visibility;
 
-    public ushort GenericParameterCount => OldDefinition.GenericParameterCount;
+        public bool AcceptsExtraArguments => OldDefinition.AcceptsExtraArguments;
 
-    public ImmutableArray<IParameterTypeInformation> ExtraParameters => OldDefinition.ExtraParameters;
+        public ushort GenericParameterCount => OldDefinition.GenericParameterCount;
 
-    public IGenericMethodInstanceReference? AsGenericMethodInstanceReference => OldDefinition.AsGenericMethodInstanceReference;
+        public ImmutableArray<IParameterTypeInformation> ExtraParameters => OldDefinition.ExtraParameters;
 
-    public ISpecializedMethodReference? AsSpecializedMethodReference => OldDefinition.AsSpecializedMethodReference;
+        public IGenericMethodInstanceReference? AsGenericMethodInstanceReference => OldDefinition.AsGenericMethodInstanceReference;
 
-    public CallingConvention CallingConvention => OldDefinition.CallingConvention;
+        public ISpecializedMethodReference? AsSpecializedMethodReference => OldDefinition.AsSpecializedMethodReference;
 
-    public ushort ParameterCount => (ushort)_parameters.Length;
+        public CallingConvention CallingConvention => OldDefinition.CallingConvention;
 
-    public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => OldDefinition.ReturnValueCustomModifiers;
+        public ushort ParameterCount => (ushort)_parameters.Length;
 
-    public ImmutableArray<ICustomModifier> RefCustomModifiers => OldDefinition.RefCustomModifiers;
+        public ImmutableArray<ICustomModifier> ReturnValueCustomModifiers => OldDefinition.ReturnValueCustomModifiers;
 
-    public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
+        public ImmutableArray<ICustomModifier> RefCustomModifiers => OldDefinition.RefCustomModifiers;
 
-    public string? Name => OldDefinition.Name;
+        public bool ReturnValueIsByRef => OldDefinition.ReturnValueIsByRef;
 
-    public override void Dispatch(MetadataVisitor visitor)
-    {
-        visitor.Visit(this);
-    }
+        public string? Name => OldDefinition.Name;
 
-    public bool HasBody
-        => true;
+        public override void Dispatch(MetadataVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
 
-    public IMethodBody GetBody(EmitContext context)
-        => _body;
+        public bool HasBody
+            => true;
 
-    public ITypeReference GetContainingType(EmitContext context)
-        => throw ExceptionUtilities.Unreachable();
+        public IMethodBody GetBody(EmitContext context)
+            => _body;
 
-    public MethodImplAttributes GetImplementationAttributes(EmitContext context)
-    {
-        return OldDefinition.GetImplementationAttributes(context);
-    }
+        public ITypeReference GetContainingType(EmitContext context)
+            => throw ExceptionUtilities.Unreachable();
 
-    public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
-    {
-        return StaticCast<IParameterTypeInformation>.From(_parameters);
-    }
+        public MethodImplAttributes GetImplementationAttributes(EmitContext context)
+        {
+            return OldDefinition.GetImplementationAttributes(context);
+        }
 
-    public IMethodDefinition GetResolvedMethod(EmitContext context)
-    {
-        return this;
-    }
+        public ImmutableArray<IParameterTypeInformation> GetParameters(EmitContext context)
+        {
+            return StaticCast<IParameterTypeInformation>.From(_parameters);
+        }
 
-    public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
-        // attributes shouldn't be emitted for deleted definitions
-        => throw ExceptionUtilities.Unreachable();
+        public IMethodDefinition GetResolvedMethod(EmitContext context)
+        {
+            return this;
+        }
 
-    public ITypeReference GetType(EmitContext context)
-    {
-        return WrapType(OldDefinition.GetType(context));
-    }
+        public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
+            // attributes shouldn't be emitted for deleted definitions
+            => throw ExceptionUtilities.Unreachable();
 
-    public sealed override bool Equals(object? obj)
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
-    }
+        public ITypeReference GetType(EmitContext context)
+        {
+            return WrapType(OldDefinition.GetType(context));
+        }
 
-    public sealed override int GetHashCode()
-    {
-        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-        throw ExceptionUtilities.Unreachable();
+        public sealed override bool Equals(object? obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

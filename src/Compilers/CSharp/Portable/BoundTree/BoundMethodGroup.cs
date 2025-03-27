@@ -6,74 +6,75 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public BoundMethodGroup(
-        SyntaxNode syntax,
-        ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
-        BoundExpression receiverOpt,
-        string name,
-        ImmutableArray<MethodSymbol> methods,
-        LookupResult lookupResult,
-        BoundMethodGroupFlags flags,
-        Binder binder,
-        bool hasErrors = false)
-        : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
+    internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        FunctionType?.SetExpression(this);
-    }
-
-    private static FunctionTypeSymbol? GetFunctionType(Binder binder, SyntaxNode syntax)
-    {
-        return FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
-    }
-
-    public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax
-    {
-        get
+        public BoundMethodGroup(
+            SyntaxNode syntax,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
+            BoundExpression receiverOpt,
+            string name,
+            ImmutableArray<MethodSymbol> methods,
+            LookupResult lookupResult,
+            BoundMethodGroupFlags flags,
+            Binder binder,
+            bool hasErrors = false)
+            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
-            return this.Syntax as MemberAccessExpressionSyntax;
+            FunctionType?.SetExpression(this);
         }
-    }
 
-    public SyntaxNode NameSyntax
-    {
-        get
+        private static FunctionTypeSymbol? GetFunctionType(Binder binder, SyntaxNode syntax)
         {
-            var memberAccess = this.MemberAccessExpressionSyntax;
-            if (memberAccess != null)
+            return FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
+        }
+
+        public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax
+        {
+            get
             {
-                return memberAccess.Name;
-            }
-            else
-            {
-                return this.Syntax;
+                return this.Syntax as MemberAccessExpressionSyntax;
             }
         }
-    }
 
-    public BoundExpression? InstanceOpt
-    {
-        get
+        public SyntaxNode NameSyntax
         {
-            if (this.ReceiverOpt == null || this.ReceiverOpt.Kind == BoundKind.TypeExpression)
+            get
             {
-                return null;
-            }
-            else
-            {
-                return this.ReceiverOpt;
+                var memberAccess = this.MemberAccessExpressionSyntax;
+                if (memberAccess != null)
+                {
+                    return memberAccess.Name;
+                }
+                else
+                {
+                    return this.Syntax;
+                }
             }
         }
-    }
 
-    public bool SearchExtensionMethods
-    {
-        get
+        public BoundExpression? InstanceOpt
         {
-            return (this.Flags & BoundMethodGroupFlags.SearchExtensionMethods) != 0;
+            get
+            {
+                if (this.ReceiverOpt == null || this.ReceiverOpt.Kind == BoundKind.TypeExpression)
+                {
+                    return null;
+                }
+                else
+                {
+                    return this.ReceiverOpt;
+                }
+            }
+        }
+
+        public bool SearchExtensionMethods
+        {
+            get
+            {
+                return (this.Flags & BoundMethodGroupFlags.SearchExtensionMethods) != 0;
+            }
         }
     }
 }

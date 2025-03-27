@@ -9,14 +9,15 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests;
-
-public class TextLineCollectionTests : TestBase
+namespace Microsoft.CodeAnalysis.UnitTests
 {
-    [Fact]
-    public void Equality()
+    public class TextLineCollectionTests : TestBase
     {
-        Assert.Throws<NotSupportedException>(() => default(TextLineCollection.Enumerator).Equals(default(TextLineCollection.Enumerator)));
-        Assert.Throws<NotSupportedException>(() => default(TextLineCollection.Enumerator).GetHashCode());
+        [Fact]
+        public void Equality()
+        {
+            Assert.Throws<NotSupportedException>(() => default(TextLineCollection.Enumerator).Equals(default(TextLineCollection.Enumerator)));
+            Assert.Throws<NotSupportedException>(() => default(TextLineCollection.Enumerator).GetHashCode());
+        }
     }
 }

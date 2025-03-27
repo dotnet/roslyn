@@ -12,53 +12,54 @@
 using System;
 using Microsoft.VisualStudio.Debugger.CallStack;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation;
-
-public abstract class DkmEvaluationResult : DkmDataContainer
+namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
-    public readonly DkmInspectionContext InspectionContext;
-    public readonly DkmStackWalkFrame StackFrame;
-    public readonly string Name;
-    public readonly string FullName;
-    public readonly DkmEvaluationResultFlags Flags;
-    public readonly string Type;
-
-    internal DkmEvaluationResult(
-        DkmInspectionContext InspectionContext,
-        DkmStackWalkFrame StackFrame,
-        string Name,
-        string FullName,
-        DkmEvaluationResultFlags Flags,
-        string Type,
-        DkmDataItem DataItem)
+    public abstract class DkmEvaluationResult : DkmDataContainer
     {
-        this.InspectionContext = InspectionContext;
-        this.StackFrame = StackFrame;
-        this.Name = Name;
-        this.FullName = FullName;
-        this.Flags = Flags;
-        this.Type = Type;
+        public readonly DkmInspectionContext InspectionContext;
+        public readonly DkmStackWalkFrame StackFrame;
+        public readonly string Name;
+        public readonly string FullName;
+        public readonly DkmEvaluationResultFlags Flags;
+        public readonly string Type;
 
-        if (DataItem != null)
+        internal DkmEvaluationResult(
+            DkmInspectionContext InspectionContext,
+            DkmStackWalkFrame StackFrame,
+            string Name,
+            string FullName,
+            DkmEvaluationResultFlags Flags,
+            string Type,
+            DkmDataItem DataItem)
         {
-            this.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
-        }
-    }
+            this.InspectionContext = InspectionContext;
+            this.StackFrame = StackFrame;
+            this.Name = Name;
+            this.FullName = FullName;
+            this.Flags = Flags;
+            this.Type = Type;
 
-    public void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
-    {
-        InspectionContext.InspectionSession.InvokeResultProvider(
-            this,
-            MethodId.GetChildren,
-            r =>
+            if (DataItem != null)
             {
-                r.GetChildren(this, workList, initialRequestSize, inspectionContext, completionRoutine);
-                return (object)null;
-            });
-    }
+                this.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
+            }
+        }
 
-    public string GetUnderlyingString()
-    {
-        return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetUnderlyingString, r => r.GetUnderlyingString(this));
+        public void GetChildren(DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
+        {
+            InspectionContext.InspectionSession.InvokeResultProvider(
+                this,
+                MethodId.GetChildren,
+                r =>
+                {
+                    r.GetChildren(this, workList, initialRequestSize, inspectionContext, completionRoutine);
+                    return (object)null;
+                });
+        }
+
+        public string GetUnderlyingString()
+        {
+            return InspectionContext.InspectionSession.InvokeResultProvider(this, MethodId.GetUnderlyingString, r => r.GetUnderlyingString(this));
+        }
     }
 }

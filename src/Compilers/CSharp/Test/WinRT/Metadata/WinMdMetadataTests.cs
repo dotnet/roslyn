@@ -23,128 +23,128 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-// Unit tests for programs that use the Windows.winmd file.
-// 
-// Checks to see that types are forwarded correctly, that 
-// metadata files are loaded as they should, etc.
-public class WinMdMetadataTests : CSharpTestBase
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    /// <summary>
-    /// Make sure that the members of a function are forwarded to their appropriate types.
-    /// We do this by checking that the first parameter of
-    /// Windows.UI.Text.ITextRange.SetPoint(Point p...) gets forwarded to the 
-    /// System.Runtime.WindowsRuntime assembly.
-    /// </summary> 
-    [Fact]
-    public void FunctionSignatureForwarded()
+    // Unit tests for programs that use the Windows.winmd file.
+    // 
+    // Checks to see that types are forwarded correctly, that 
+    // metadata files are loaded as they should, etc.
+    public class WinMdMetadataTests : CSharpTestBase
     {
-        var text = "public class A{};";
-        var comp = CreateCompilationWithWinRT(text);
+        /// <summary>
+        /// Make sure that the members of a function are forwarded to their appropriate types.
+        /// We do this by checking that the first parameter of
+        /// Windows.UI.Text.ITextRange.SetPoint(Point p...) gets forwarded to the 
+        /// System.Runtime.WindowsRuntime assembly.
+        /// </summary> 
+        [Fact]
+        public void FunctionSignatureForwarded()
+        {
+            var text = "public class A{};";
+            var comp = CreateCompilationWithWinRT(text);
 
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-        wns1 = wns1.GetMember<NamespaceSymbol>("UI");
-        wns1 = wns1.GetMember<NamespaceSymbol>("Text");
-        var itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
-        var func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
-        var pt = ((PEParameterSymbol)(func.Parameters[0])).Type as PENamedTypeSymbol;
-        Assert.Equal("System.Runtime.WindowsRuntime", pt.ContainingAssembly.Name);
-    }
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            wns1 = wns1.GetMember<NamespaceSymbol>("UI");
+            wns1 = wns1.GetMember<NamespaceSymbol>("Text");
+            var itextrange = wns1.GetMember<PENamedTypeSymbol>("ITextRange");
+            var func = itextrange.GetMember<PEMethodSymbol>("SetPoint");
+            var pt = ((PEParameterSymbol)(func.Parameters[0])).Type as PENamedTypeSymbol;
+            Assert.Equal("System.Runtime.WindowsRuntime", pt.ContainingAssembly.Name);
+        }
 
-    /// <summary>
-    /// Make sure that a delegate defined in Windows.winmd has a public constructor
-    /// (by default, all delegates in Windows.winmd have a private constructor).
-    /// </summary> 
-    [Fact]
-    public void DelegateConstructorMarkedPublic()
-    {
-        var text = "public class A{};";
-        var comp = CreateCompilationWithWinRT(text);
+        /// <summary>
+        /// Make sure that a delegate defined in Windows.winmd has a public constructor
+        /// (by default, all delegates in Windows.winmd have a private constructor).
+        /// </summary> 
+        [Fact]
+        public void DelegateConstructorMarkedPublic()
+        {
+            var text = "public class A{};";
+            var comp = CreateCompilationWithWinRT(text);
 
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-        wns1 = wns1.GetMember<NamespaceSymbol>("UI");
-        wns1 = wns1.GetMember<NamespaceSymbol>("Xaml");
-        var itextrange = wns1.GetMember<PENamedTypeSymbol>("SuspendingEventHandler");
-        var func = itextrange.GetMember<PEMethodSymbol>(".ctor");
-        Assert.Equal(Accessibility.Public, func.DeclaredAccessibility);
-    }
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            wns1 = wns1.GetMember<NamespaceSymbol>("UI");
+            wns1 = wns1.GetMember<NamespaceSymbol>("Xaml");
+            var itextrange = wns1.GetMember<PENamedTypeSymbol>("SuspendingEventHandler");
+            var func = itextrange.GetMember<PEMethodSymbol>(".ctor");
+            Assert.Equal(Accessibility.Public, func.DeclaredAccessibility);
+        }
 
-    /// <summary>
-    /// Verify that Windows.Foundation.Uri forwards successfully
-    /// to System.Uri
-    /// </summary>
-    [Fact]
-    public void TypeForwardingRenaming()
-    {
-        var text = "public class A{};";
-        var comp = CreateCompilationWithWinRT(text);
+        /// <summary>
+        /// Verify that Windows.Foundation.Uri forwards successfully
+        /// to System.Uri
+        /// </summary>
+        [Fact]
+        public void TypeForwardingRenaming()
+        {
+            var text = "public class A{};";
+            var comp = CreateCompilationWithWinRT(text);
 
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
 
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-        wns1 = wns1.GetMember<NamespaceSymbol>("Foundation");
-        var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
-        var func = iref.GetMember<PEMethodSymbol>("CombineUri");
-        var ret = func.ReturnTypeWithAnnotations;
-        Assert.Equal("System.Uri", func.ReturnType.ToTestDisplayString());
-    }
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            wns1 = wns1.GetMember<NamespaceSymbol>("Foundation");
+            var iref = wns1.GetMember<PENamedTypeSymbol>("IUriRuntimeClass");
+            var func = iref.GetMember<PEMethodSymbol>("CombineUri");
+            var ret = func.ReturnTypeWithAnnotations;
+            Assert.Equal("System.Uri", func.ReturnType.ToTestDisplayString());
+        }
 
-    /// <summary>
-    /// Verify that WinMd types are marked as private so that the
-    /// C# developer cannot instantiate them.
-    /// </summary>
-    [Fact]
-    public void WinMdTypesDefPrivate()
-    {
-        var text = "public class A{};";
-        var comp = CreateCompilationWithWinRT(text);
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+        /// <summary>
+        /// Verify that WinMd types are marked as private so that the
+        /// C# developer cannot instantiate them.
+        /// </summary>
+        [Fact]
+        public void WinMdTypesDefPrivate()
+        {
+            var text = "public class A{};";
+            var comp = CreateCompilationWithWinRT(text);
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
 
-        var wns2 = wns1.GetMember<NamespaceSymbol>("Foundation");
-        var clas = wns2.GetMember<PENamedTypeSymbol>("Point");
-        Assert.Equal(Accessibility.Internal, clas.DeclaredAccessibility);
-    }
+            var wns2 = wns1.GetMember<NamespaceSymbol>("Foundation");
+            var clas = wns2.GetMember<PENamedTypeSymbol>("Point");
+            Assert.Equal(Accessibility.Internal, clas.DeclaredAccessibility);
+        }
 
-    /// <summary>
-    /// Verify that Windows.UI.Colors.Black is forwarded to the
-    /// System.Runtime.WindowsRuntime.dll assembly.
-    /// </summary>
-    [Fact]
-    public void WinMdColorType()
-    {
-        var text = "public class A{};";
+        /// <summary>
+        /// Verify that Windows.UI.Colors.Black is forwarded to the
+        /// System.Runtime.WindowsRuntime.dll assembly.
+        /// </summary>
+        [Fact]
+        public void WinMdColorType()
+        {
+            var text = "public class A{};";
 
-        var comp = CreateCompilationWithWinRT(text);
+            var comp = CreateCompilationWithWinRT(text);
 
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-        var wns2 = wns1.GetMember<NamespaceSymbol>("UI");
-        var clas = wns2.GetMember<TypeSymbol>("Colors");
-        var blk = clas.GetMembers("Black").Single();
-        //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
-        //to System.Runtime.WindowsRuntime
-        Assert.Equal("System.Runtime.WindowsRuntime.dll", ((PENamedTypeSymbol)((((PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString());
-    }
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            var wns2 = wns1.GetMember<NamespaceSymbol>("UI");
+            var clas = wns2.GetMember<TypeSymbol>("Colors");
+            var blk = clas.GetMembers("Black").Single();
+            //The windows.winmd module points to a Windows.UI.Color which should be modified to belong
+            //to System.Runtime.WindowsRuntime
+            Assert.Equal("System.Runtime.WindowsRuntime.dll", ((PENamedTypeSymbol)((((PropertySymbol)(blk)).GetMethod).ReturnType)).ContainingModule.ToString());
+        }
 
-    /// <summary>
-    /// Ensure that a simple program that uses projected types can compile
-    /// and run.
-    /// </summary>
-    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
-    public void WinMdColorTest()
-    {
-        var text = @"using Windows.UI;
+        /// <summary>
+        /// Ensure that a simple program that uses projected types can compile
+        /// and run.
+        /// </summary>
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        public void WinMdColorTest()
+        {
+            var text = @"using Windows.UI;
                              using Windows.Foundation;
                          
                              public class A{
@@ -155,40 +155,40 @@ public class WinMdMetadataTests : CSharpTestBase
                                 }
                              };";
 
-        CompileAndVerify(text, WinRtRefs, targetFramework: TargetFramework.Empty, expectedOutput: "#FF000000");
-    }
+            CompileAndVerify(text, WinRtRefs, targetFramework: TargetFramework.Empty, expectedOutput: "#FF000000");
+        }
 
-    /// <summary>
-    /// Test that the metadata adapter correctly projects IReference to INullable
-    /// </summary>
-    [Fact]
-    public void IReferenceToINullableType()
-    {
-        var text = "public class A{};";
+        /// <summary>
+        /// Test that the metadata adapter correctly projects IReference to INullable
+        /// </summary>
+        [Fact]
+        public void IReferenceToINullableType()
+        {
+            var text = "public class A{};";
 
-        var comp = CreateCompilationWithWinRT(text);
+            var comp = CreateCompilationWithWinRT(text);
 
-        var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
-        var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
-        var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
-        var wns2 = wns1.GetMember<NamespaceSymbol>("Globalization");
-        var wns3 = wns2.GetMember<NamespaceSymbol>("NumberFormatting");
-        var clas = wns3.GetMember<TypeSymbol>("DecimalFormatter");
-        var puint = clas.GetMembers("ParseUInt").Single();
+            var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
+            var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
+            var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
+            var wns2 = wns1.GetMember<NamespaceSymbol>("Globalization");
+            var wns3 = wns2.GetMember<NamespaceSymbol>("NumberFormatting");
+            var clas = wns3.GetMember<TypeSymbol>("DecimalFormatter");
+            var puint = clas.GetMembers("ParseUInt").Single();
 
-        // The return type of ParseUInt should be Nullable<ulong>, not IReference<ulong>
-        Assert.Equal("ulong?",
-            ((Microsoft.CodeAnalysis.CSharp.Symbols.ConstructedNamedTypeSymbol)
-            (((Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol)puint).ReturnType)).ToString());
-    }
+            // The return type of ParseUInt should be Nullable<ulong>, not IReference<ulong>
+            Assert.Equal("ulong?",
+                ((Microsoft.CodeAnalysis.CSharp.Symbols.ConstructedNamedTypeSymbol)
+                (((Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol)puint).ReturnType)).ToString());
+        }
 
-    /// <summary>
-    /// Test that a program projects IReference to INullable.
-    /// </summary>
-    [Fact]
-    public void WinMdIReferenceINullableTest()
-    {
-        var source =
+        /// <summary>
+        /// Test that a program projects IReference to INullable.
+        /// </summary>
+        [Fact]
+        public void WinMdIReferenceINullableTest()
+        {
+            var source =
 @"using System;
 using Windows.Globalization.NumberFormatting;
 
@@ -203,15 +203,15 @@ public class C
         Console.WriteLine(result);
     }
 }";
-        var verifier = this.CompileAndVerifyOnWin8Only(source,
-            expectedOutput: "10\r\n0");
-        verifier.VerifyDiagnostics();
-    }
+            var verifier = this.CompileAndVerifyOnWin8Only(source,
+                expectedOutput: "10\r\n0");
+            verifier.VerifyDiagnostics();
+        }
 
-    [Fact, WorkItem(1169511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1169511")]
-    public void WinMdAssemblyQualifiedType()
-    {
-        var source =
+        [Fact, WorkItem(1169511, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1169511")]
+        public void WinMdAssemblyQualifiedType()
+        {
+            var source =
 @"using System;
 
 [MyAttribute(typeof(C1))]
@@ -229,19 +229,20 @@ public class MyAttribute : System.Attribute
     }
 }
 ";
-        CompileAndVerify(
-            source,
-            WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
-            targetFramework: TargetFramework.Empty,
-            symbolValidator: m =>
-        {
-            var module = (PEModuleSymbol)m;
-            var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
-            var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
-            string value;
-            module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
+            CompileAndVerify(
+                source,
+                WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
+                targetFramework: TargetFramework.Empty,
+                symbolValidator: m =>
+            {
+                var module = (PEModuleSymbol)m;
+                var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
+                var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
+                string value;
+                module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
 
-            Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
-        });
+                Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
+            });
+        }
     }
 }

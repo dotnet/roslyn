@@ -5,42 +5,43 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols;
-
-internal sealed class SynthesizedInlineArrayFirstElementRefReadOnlyMethod : SynthesizedGlobalMethodSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal SynthesizedInlineArrayFirstElementRefReadOnlyMethod(SynthesizedPrivateImplementationDetailsType privateImplType, string synthesizedMethodName)
-        : base(privateImplType, synthesizedMethodName)
+    internal sealed class SynthesizedInlineArrayFirstElementRefReadOnlyMethod : SynthesizedGlobalMethodSymbol
     {
-        this.SetTypeParameters(ImmutableArray.Create<TypeParameterSymbol>(new SynthesizedSimpleMethodTypeParameterSymbol(this, 0, "TBuffer"), new SynthesizedSimpleMethodTypeParameterSymbol(this, 1, "TElement")));
-        this.SetReturnType(TypeParameters[1]);
-        this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(TypeParameters[0]), 0, RefKind.In, "buffer")));
-    }
-
-    public override RefKind RefKind => RefKind.RefReadOnly;
-
-    internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-    {
-        SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-        f.CurrentFunction = this;
-
-        try
+        internal SynthesizedInlineArrayFirstElementRefReadOnlyMethod(SynthesizedPrivateImplementationDetailsType privateImplType, string synthesizedMethodName)
+            : base(privateImplType, synthesizedMethodName)
         {
-            // return ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef<TBuffer>(in buffer))
-
-            var body = f.Return(f.Call(null,
-                                       f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
-                                       f.Call(null,
-                                              f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T).Construct(TypeParameters[0]),
-                                              f.Parameter(Parameters[0]))));
-
-            // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
-            f.CloseMethod(body);
+            this.SetTypeParameters(ImmutableArray.Create<TypeParameterSymbol>(new SynthesizedSimpleMethodTypeParameterSymbol(this, 0, "TBuffer"), new SynthesizedSimpleMethodTypeParameterSymbol(this, 1, "TElement")));
+            this.SetReturnType(TypeParameters[1]);
+            this.SetParameters(ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(TypeParameters[0]), 0, RefKind.In, "buffer")));
         }
-        catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+
+        public override RefKind RefKind => RefKind.RefReadOnly;
+
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            diagnostics.Add(ex.Diagnostic);
-            f.CloseMethod(f.ThrowNull());
+            SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            f.CurrentFunction = this;
+
+            try
+            {
+                // return ref Unsafe.As<TBuffer, TElement>(ref Unsafe.AsRef<TBuffer>(in buffer))
+
+                var body = f.Return(f.Call(null,
+                                           f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T).Construct(ImmutableArray<TypeSymbol>.CastUp(TypeParameters)),
+                                           f.Call(null,
+                                                  f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T).Construct(TypeParameters[0]),
+                                                  f.Parameter(Parameters[0]))));
+
+                // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
+                f.CloseMethod(body);
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
+            {
+                diagnostics.Add(ex.Diagnostic);
+                f.CloseMethod(f.ThrowNull());
+            }
         }
     }
 }

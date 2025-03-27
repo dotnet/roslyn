@@ -6,46 +6,47 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal readonly struct UnaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public readonly UnaryOperatorSignature Signature;
-    public readonly Conversion Conversion;
-    public readonly OperatorAnalysisResultKind Kind;
-
-    private UnaryOperatorAnalysisResult(OperatorAnalysisResultKind kind, UnaryOperatorSignature signature, Conversion conversion)
+    internal readonly struct UnaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
-        this.Kind = kind;
-        this.Signature = signature;
-        this.Conversion = conversion;
-    }
+        public readonly UnaryOperatorSignature Signature;
+        public readonly Conversion Conversion;
+        public readonly OperatorAnalysisResultKind Kind;
 
-    public bool IsValid
-    {
-        get { return this.Kind == OperatorAnalysisResultKind.Applicable; }
-    }
+        private UnaryOperatorAnalysisResult(OperatorAnalysisResultKind kind, UnaryOperatorSignature signature, Conversion conversion)
+        {
+            this.Kind = kind;
+            this.Signature = signature;
+            this.Conversion = conversion;
+        }
 
-    public bool HasValue
-    {
-        get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
-    }
+        public bool IsValid
+        {
+            get { return this.Kind == OperatorAnalysisResultKind.Applicable; }
+        }
 
-    bool IMemberResolutionResultWithPriority<MethodSymbol>.IsApplicable => IsValid;
-    MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
+        public bool HasValue
+        {
+            get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
+        }
 
-    public static UnaryOperatorAnalysisResult Applicable(UnaryOperatorSignature signature, Conversion conversion)
-    {
-        return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Applicable, signature, conversion);
-    }
+        bool IMemberResolutionResultWithPriority<MethodSymbol>.IsApplicable => IsValid;
+        MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
 
-    public static UnaryOperatorAnalysisResult Inapplicable(UnaryOperatorSignature signature, Conversion conversion)
-    {
-        return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Inapplicable, signature, conversion);
-    }
+        public static UnaryOperatorAnalysisResult Applicable(UnaryOperatorSignature signature, Conversion conversion)
+        {
+            return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Applicable, signature, conversion);
+        }
 
-    public UnaryOperatorAnalysisResult Worse()
-    {
-        return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.Conversion);
+        public static UnaryOperatorAnalysisResult Inapplicable(UnaryOperatorSignature signature, Conversion conversion)
+        {
+            return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Inapplicable, signature, conversion);
+        }
+
+        public UnaryOperatorAnalysisResult Worse()
+        {
+            return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.Conversion);
+        }
     }
 }

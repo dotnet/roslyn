@@ -11,40 +11,41 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
-public static class ScriptTestFixtures
+namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
-    internal static MetadataReference HostRef = MetadataReference.CreateFromAssemblyInternal(typeof(ScriptTestFixtures).GetTypeInfo().Assembly);
-
-    public class B
+    public static class ScriptTestFixtures
     {
-        public int x = 1, w = 4;
-    }
+        internal static MetadataReference HostRef = MetadataReference.CreateFromAssemblyInternal(typeof(ScriptTestFixtures).GetTypeInfo().Assembly);
 
-    public class C : B, I
-    {
-        public static readonly int StaticField = 123;
-        public int Y => 2;
-        public string N { get; set; } = "2";
-        public int Z() => 3;
-        public override int GetHashCode() => 123;
-    }
+        public class B
+        {
+            public int x = 1, w = 4;
+        }
 
-    public interface I
-    {
-        string N { get; set; }
-        int Z();
-    }
+        public class C : B, I
+        {
+            public static readonly int StaticField = 123;
+            public int Y => 2;
+            public string N { get; set; } = "2";
+            public int Z() => 3;
+            public override int GetHashCode() => 123;
+        }
 
-    private class PrivateClass : I
-    {
-        public string N { get; set; } = null;
-        public int Z() => 3;
-    }
+        public interface I
+        {
+            string N { get; set; }
+            int Z();
+        }
 
-    public class B2
-    {
-        public int x = 1, w = 4;
+        private class PrivateClass : I
+        {
+            public string N { get; set; } = null;
+            public int Z() => 3;
+        }
+
+        public class B2
+        {
+            public int x = 1, w = 4;
+        }
     }
 }

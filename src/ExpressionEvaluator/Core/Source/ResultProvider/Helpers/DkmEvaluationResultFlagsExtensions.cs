@@ -6,22 +6,23 @@
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
-
-internal static class DkmEvaluationResultFlagsExtensions
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    public static bool Includes(this DkmEvaluationResultFlags flags, DkmEvaluationResultFlags desired)
+    internal static class DkmEvaluationResultFlagsExtensions
     {
-        return (flags & desired) == desired;
-    }
+        public static bool Includes(this DkmEvaluationResultFlags flags, DkmEvaluationResultFlags desired)
+        {
+            return (flags & desired) == desired;
+        }
 
-    internal static DkmInspectionContext With(this DkmInspectionContext inspectionContext, DkmEvaluationFlags flags)
-    {
-        return inspectionContext.WithProperties(
-            inspectionContext.Timeout,
-            inspectionContext.EvaluationFlags | flags,
-            inspectionContext.FuncEvalFlags,
-            inspectionContext.Radix
-            );
+        internal static DkmInspectionContext With(this DkmInspectionContext inspectionContext, DkmEvaluationFlags flags)
+        {
+            return inspectionContext.WithProperties(
+                inspectionContext.Timeout,
+                inspectionContext.EvaluationFlags | flags,
+                inspectionContext.FuncEvalFlags,
+                inspectionContext.Radix
+                );
+        }
     }
 }

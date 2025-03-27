@@ -6,16 +6,17 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting;
-
-/// <summary>
-/// Object pretty printer.
-/// </summary>
-public abstract class ObjectFormatter
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public string FormatObject(object obj) => FormatObject(obj, new PrintOptions());
+    /// <summary>
+    /// Object pretty printer.
+    /// </summary>
+    public abstract class ObjectFormatter
+    {
+        public string FormatObject(object obj) => FormatObject(obj, new PrintOptions());
 
-    public abstract string FormatObject(object obj, PrintOptions options);
+        public abstract string FormatObject(object obj, PrintOptions options);
 
-    public abstract string FormatException(Exception e);
+        public abstract string FormatException(Exception e);
+    }
 }

@@ -13,333 +13,334 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
-
-public class SyntaxTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    private static void AssertIncompleteSubmission(string code)
+    public class SyntaxTests
     {
-        Assert.False(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
-    }
+        private static void AssertIncompleteSubmission(string code)
+        {
+            Assert.False(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
+        }
 
-    private static void AssertCompleteSubmission(string code)
-    {
-        Assert.True(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
-    }
+        private static void AssertCompleteSubmission(string code)
+        {
+            Assert.True(SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree(code, options: TestOptions.Script)));
+        }
 
-    [Fact]
-    public void TextIsCompleteSubmission()
-    {
-        Assert.Throws<ArgumentNullException>(() => SyntaxFactory.IsCompleteSubmission(null));
-        Assert.Throws<ArgumentException>(() =>
-            SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree("", options: TestOptions.Regular)));
+        [Fact]
+        public void TextIsCompleteSubmission()
+        {
+            Assert.Throws<ArgumentNullException>(() => SyntaxFactory.IsCompleteSubmission(null));
+            Assert.Throws<ArgumentException>(() =>
+                SyntaxFactory.IsCompleteSubmission(SyntaxFactory.ParseSyntaxTree("", options: TestOptions.Regular)));
 
-        AssertCompleteSubmission("");
-        AssertCompleteSubmission("//hello");
-        AssertCompleteSubmission("@");
-        AssertCompleteSubmission("$");
-        AssertCompleteSubmission("#");
+            AssertCompleteSubmission("");
+            AssertCompleteSubmission("//hello");
+            AssertCompleteSubmission("@");
+            AssertCompleteSubmission("$");
+            AssertCompleteSubmission("#");
 
-        AssertIncompleteSubmission("#if F");
-        AssertIncompleteSubmission("#region R");
-        AssertCompleteSubmission("#r");
-        AssertCompleteSubmission("#r \"");
-        AssertCompleteSubmission("#define");
-        AssertCompleteSubmission("#line \"");
-        AssertCompleteSubmission("#pragma");
+            AssertIncompleteSubmission("#if F");
+            AssertIncompleteSubmission("#region R");
+            AssertCompleteSubmission("#r");
+            AssertCompleteSubmission("#r \"");
+            AssertCompleteSubmission("#define");
+            AssertCompleteSubmission("#line \"");
+            AssertCompleteSubmission("#pragma");
 
-        AssertIncompleteSubmission("using X; /*");
+            AssertIncompleteSubmission("using X; /*");
 
-        AssertIncompleteSubmission(@"
+            AssertIncompleteSubmission(@"
 void goo() 
 {
 #if F
 }
 ");
 
-        AssertIncompleteSubmission(@"
+            AssertIncompleteSubmission(@"
 void goo() 
 {
 #region R
 }
 ");
 
-        AssertCompleteSubmission("1");
-        AssertCompleteSubmission("1;");
+            AssertCompleteSubmission("1");
+            AssertCompleteSubmission("1;");
 
-        AssertIncompleteSubmission("\"");
-        AssertIncompleteSubmission("'");
+            AssertIncompleteSubmission("\"");
+            AssertIncompleteSubmission("'");
 
-        AssertIncompleteSubmission("@\"xxx");
-        AssertIncompleteSubmission("/* ");
+            AssertIncompleteSubmission("@\"xxx");
+            AssertIncompleteSubmission("/* ");
 
-        AssertIncompleteSubmission("1.");
-        AssertIncompleteSubmission("1+");
-        AssertIncompleteSubmission("f(");
-        AssertIncompleteSubmission("f,");
-        AssertIncompleteSubmission("f(a");
-        AssertIncompleteSubmission("f(a,");
-        AssertIncompleteSubmission("f(a:");
-        AssertIncompleteSubmission("new");
-        AssertIncompleteSubmission("new T(");
-        AssertIncompleteSubmission("new T {");
-        AssertIncompleteSubmission("new T");
-        AssertIncompleteSubmission("1 + new T");
+            AssertIncompleteSubmission("1.");
+            AssertIncompleteSubmission("1+");
+            AssertIncompleteSubmission("f(");
+            AssertIncompleteSubmission("f,");
+            AssertIncompleteSubmission("f(a");
+            AssertIncompleteSubmission("f(a,");
+            AssertIncompleteSubmission("f(a:");
+            AssertIncompleteSubmission("new");
+            AssertIncompleteSubmission("new T(");
+            AssertIncompleteSubmission("new T {");
+            AssertIncompleteSubmission("new T");
+            AssertIncompleteSubmission("1 + new T");
 
-        // invalid escape sequence in a string
-        AssertCompleteSubmission("\"\\q\"");
+            // invalid escape sequence in a string
+            AssertCompleteSubmission("\"\\q\"");
 
-        AssertIncompleteSubmission("void goo(");
-        AssertIncompleteSubmission("void goo()");
-        AssertIncompleteSubmission("void goo() {");
-        AssertCompleteSubmission("void goo() {}");
-        AssertCompleteSubmission("void goo() { int a = 1 }");
+            AssertIncompleteSubmission("void goo(");
+            AssertIncompleteSubmission("void goo()");
+            AssertIncompleteSubmission("void goo() {");
+            AssertCompleteSubmission("void goo() {}");
+            AssertCompleteSubmission("void goo() { int a = 1 }");
 
-        AssertIncompleteSubmission("int goo {");
-        AssertCompleteSubmission("int goo { }");
-        AssertCompleteSubmission("int goo { get }");
+            AssertIncompleteSubmission("int goo {");
+            AssertCompleteSubmission("int goo { }");
+            AssertCompleteSubmission("int goo { get }");
 
-        AssertIncompleteSubmission("enum goo {");
-        AssertCompleteSubmission("enum goo {}");
-        AssertCompleteSubmission("enum goo { a = }");
-        AssertIncompleteSubmission("class goo {");
-        AssertCompleteSubmission("class goo {}");
-        AssertCompleteSubmission("class goo { void }");
-        AssertIncompleteSubmission("struct goo {");
-        AssertCompleteSubmission("struct goo {}");
-        AssertCompleteSubmission("[A struct goo {}");
-        AssertIncompleteSubmission("interface goo {");
-        AssertCompleteSubmission("interface goo {}");
-        AssertCompleteSubmission("interface goo : {}");
+            AssertIncompleteSubmission("enum goo {");
+            AssertCompleteSubmission("enum goo {}");
+            AssertCompleteSubmission("enum goo { a = }");
+            AssertIncompleteSubmission("class goo {");
+            AssertCompleteSubmission("class goo {}");
+            AssertCompleteSubmission("class goo { void }");
+            AssertIncompleteSubmission("struct goo {");
+            AssertCompleteSubmission("struct goo {}");
+            AssertCompleteSubmission("[A struct goo {}");
+            AssertIncompleteSubmission("interface goo {");
+            AssertCompleteSubmission("interface goo {}");
+            AssertCompleteSubmission("interface goo : {}");
 
-        AssertCompleteSubmission("partial");
-        AssertIncompleteSubmission("partial class");
+            AssertCompleteSubmission("partial");
+            AssertIncompleteSubmission("partial class");
 
-        AssertIncompleteSubmission("int x = 1");
-        AssertCompleteSubmission("int x = 1;");
+            AssertIncompleteSubmission("int x = 1");
+            AssertCompleteSubmission("int x = 1;");
 
-        AssertIncompleteSubmission("delegate T F()");
-        AssertIncompleteSubmission("delegate T F<");
-        AssertCompleteSubmission("delegate T F();");
+            AssertIncompleteSubmission("delegate T F()");
+            AssertIncompleteSubmission("delegate T F<");
+            AssertCompleteSubmission("delegate T F();");
 
-        AssertIncompleteSubmission("using");
-        AssertIncompleteSubmission("using X");
-        AssertCompleteSubmission("using X;");
+            AssertIncompleteSubmission("using");
+            AssertIncompleteSubmission("using X");
+            AssertCompleteSubmission("using X;");
 
-        AssertIncompleteSubmission("extern");
-        AssertIncompleteSubmission("extern alias");
-        AssertIncompleteSubmission("extern alias X");
-        AssertCompleteSubmission("extern alias X;");
+            AssertIncompleteSubmission("extern");
+            AssertIncompleteSubmission("extern alias");
+            AssertIncompleteSubmission("extern alias X");
+            AssertCompleteSubmission("extern alias X;");
 
-        AssertIncompleteSubmission("[");
-        AssertIncompleteSubmission("[A");
-        AssertCompleteSubmission("[assembly: A]");
+            AssertIncompleteSubmission("[");
+            AssertIncompleteSubmission("[A");
+            AssertCompleteSubmission("[assembly: A]");
 
-        AssertIncompleteSubmission("try");
-        AssertIncompleteSubmission("try {");
-        AssertIncompleteSubmission("try { }");
-        AssertIncompleteSubmission("try { } finally");
-        AssertIncompleteSubmission("try { } finally {");
-        AssertIncompleteSubmission("try { } catch");
-        AssertIncompleteSubmission("try { } catch {");
-        AssertIncompleteSubmission("try { } catch (");
-        AssertIncompleteSubmission("try { } catch (Exception");
-        AssertIncompleteSubmission("try { } catch (Exception e");
-        AssertIncompleteSubmission("try { } catch (Exception e)");
-        AssertIncompleteSubmission("try { } catch (Exception e) {");
+            AssertIncompleteSubmission("try");
+            AssertIncompleteSubmission("try {");
+            AssertIncompleteSubmission("try { }");
+            AssertIncompleteSubmission("try { } finally");
+            AssertIncompleteSubmission("try { } finally {");
+            AssertIncompleteSubmission("try { } catch");
+            AssertIncompleteSubmission("try { } catch {");
+            AssertIncompleteSubmission("try { } catch (");
+            AssertIncompleteSubmission("try { } catch (Exception");
+            AssertIncompleteSubmission("try { } catch (Exception e");
+            AssertIncompleteSubmission("try { } catch (Exception e)");
+            AssertIncompleteSubmission("try { } catch (Exception e) {");
 
-        AssertCompleteSubmission("from x in await GetStuffAsync() where x > 2 select x * x");
-    }
-
-    [Fact]
-    public void TestBug530094()
-    {
-        var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
-    }
-
-    [Fact]
-    public void TestBug991510()
-    {
-        var section = SyntaxFactory.SwitchSection();
-        var span = section.Span;
-        Assert.Equal(default(TextSpan), span);
-    }
-
-    [Theory]
-    [InlineData("x", "x")]
-    [InlineData("x.y", "y")]
-    [InlineData("x?.y", "y")]
-    [InlineData("this.y", "y")]
-    [InlineData("M()", null)]
-    [InlineData("new C()", null)]
-    [InlineData("x.M()", null)]
-    [InlineData("-x", null)]
-    [InlineData("this", null)]
-    [InlineData("default(x)", null)]
-    [InlineData("typeof(x)", null)]
-    public void TestTryGetInferredMemberName(string source, string expected)
-    {
-        var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
-        var actual = SyntaxFacts.TryGetInferredMemberName(expr);
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [InlineData("Item0", false)]
-    [InlineData("Item01", false)]
-    [InlineData("Item1", true)]
-    [InlineData("Item2", true)]
-    [InlineData("Item10", true)]
-    [InlineData("Rest", true)]
-    [InlineData("ToString", true)]
-    [InlineData("GetHashCode", true)]
-    [InlineData("item1", false)]
-    [InlineData("item10", false)]
-    [InlineData("Alice", false)]
-    public void TestIsReservedTupleElementName(string elementName, bool isReserved)
-    {
-        Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
-    }
-
-    [Theory]
-    [InlineData(SyntaxKind.StringLiteralToken)]
-    [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
-    [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
-    [InlineData(SyntaxKind.CharacterLiteralToken)]
-    [InlineData(SyntaxKind.NumericLiteralToken)]
-    [InlineData(SyntaxKind.XmlTextLiteralToken)]
-    [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
-    [InlineData(SyntaxKind.XmlEntityLiteralToken)]
-    public void TestIsLiteral(SyntaxKind kind)
-    {
-        Assert.True(SyntaxFacts.IsLiteral(kind));
-    }
-
-    [Theory]
-    [InlineData(SyntaxKind.StringLiteralToken)]
-    [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
-    [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
-    [InlineData(SyntaxKind.CharacterLiteralToken)]
-    [InlineData(SyntaxKind.NumericLiteralToken)]
-    [InlineData(SyntaxKind.XmlTextLiteralToken)]
-    [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
-    [InlineData(SyntaxKind.XmlEntityLiteralToken)]
-    public void TestIsAnyToken(SyntaxKind kind)
-    {
-        Assert.True(SyntaxFacts.IsAnyToken(kind));
-    }
-
-    [Theory]
-    [InlineData(SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteralExpression)]
-    [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
-    [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
-    [InlineData(SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteralExpression)]
-    [InlineData(SyntaxKind.NumericLiteralToken, SyntaxKind.NumericLiteralExpression)]
-    [InlineData(SyntaxKind.NullKeyword, SyntaxKind.NullLiteralExpression)]
-    [InlineData(SyntaxKind.TrueKeyword, SyntaxKind.TrueLiteralExpression)]
-    [InlineData(SyntaxKind.FalseKeyword, SyntaxKind.FalseLiteralExpression)]
-    [InlineData(SyntaxKind.ArgListKeyword, SyntaxKind.ArgListExpression)]
-    public void TestGetLiteralExpression(SyntaxKind tokenKind, SyntaxKind expressionKind)
-    {
-        Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
-    }
-
-    [Fact]
-    public void Punctuation()
-    {
-        foreach (var kind in SyntaxFacts.GetPunctuationKinds())
-        {
-            Assert.True(SyntaxFacts.IsPunctuation(kind));
+            AssertCompleteSubmission("from x in await GetStuffAsync() where x > 2 select x * x");
         }
-    }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67485")]
-    public void IsAttributeTargetSpecifier()
-    {
-        foreach (var kind in (SyntaxKind[])Enum.GetValues(typeof(SyntaxKind)))
+        [Fact]
+        public void TestBug530094()
         {
-            switch (kind)
-            {
-                case SyntaxKind.AssemblyKeyword:
-                case SyntaxKind.ModuleKeyword:
-                case SyntaxKind.EventKeyword:
-                case SyntaxKind.FieldKeyword:
-                case SyntaxKind.MethodKeyword:
-                case SyntaxKind.ParamKeyword:
-                case SyntaxKind.PropertyKeyword:
-                case SyntaxKind.ReturnKeyword:
-                case SyntaxKind.TypeKeyword:
-                case SyntaxKind.TypeVarKeyword:
-                    Assert.True(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be true""");
-                    break;
+            var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
+        }
 
-                default:
-                    Assert.False(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be false""");
-                    break;
+        [Fact]
+        public void TestBug991510()
+        {
+            var section = SyntaxFactory.SwitchSection();
+            var span = section.Span;
+            Assert.Equal(default(TextSpan), span);
+        }
+
+        [Theory]
+        [InlineData("x", "x")]
+        [InlineData("x.y", "y")]
+        [InlineData("x?.y", "y")]
+        [InlineData("this.y", "y")]
+        [InlineData("M()", null)]
+        [InlineData("new C()", null)]
+        [InlineData("x.M()", null)]
+        [InlineData("-x", null)]
+        [InlineData("this", null)]
+        [InlineData("default(x)", null)]
+        [InlineData("typeof(x)", null)]
+        public void TestTryGetInferredMemberName(string source, string expected)
+        {
+            var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
+            var actual = SyntaxFacts.TryGetInferredMemberName(expr);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("Item0", false)]
+        [InlineData("Item01", false)]
+        [InlineData("Item1", true)]
+        [InlineData("Item2", true)]
+        [InlineData("Item10", true)]
+        [InlineData("Rest", true)]
+        [InlineData("ToString", true)]
+        [InlineData("GetHashCode", true)]
+        [InlineData("item1", false)]
+        [InlineData("item10", false)]
+        [InlineData("Alice", false)]
+        public void TestIsReservedTupleElementName(string elementName, bool isReserved)
+        {
+            Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsLiteral(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsLiteral(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsAnyToken(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsAnyToken(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteralExpression)]
+        [InlineData(SyntaxKind.NumericLiteralToken, SyntaxKind.NumericLiteralExpression)]
+        [InlineData(SyntaxKind.NullKeyword, SyntaxKind.NullLiteralExpression)]
+        [InlineData(SyntaxKind.TrueKeyword, SyntaxKind.TrueLiteralExpression)]
+        [InlineData(SyntaxKind.FalseKeyword, SyntaxKind.FalseLiteralExpression)]
+        [InlineData(SyntaxKind.ArgListKeyword, SyntaxKind.ArgListExpression)]
+        public void TestGetLiteralExpression(SyntaxKind tokenKind, SyntaxKind expressionKind)
+        {
+            Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
+        }
+
+        [Fact]
+        public void Punctuation()
+        {
+            foreach (var kind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(SyntaxFacts.IsPunctuation(kind));
             }
         }
-    }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
-    public void TestAllKindsReturnedFromGetKindsMethodsExist()
-    {
-        foreach (var method in typeof(SyntaxFacts).GetMethods(BindingFlags.Public | BindingFlags.Static))
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67485")]
+        public void IsAttributeTargetSpecifier()
         {
-            if (method.ReturnType == typeof(IEnumerable<SyntaxKind>) && method.GetParameters() is [])
+            foreach (var kind in (SyntaxKind[])Enum.GetValues(typeof(SyntaxKind)))
             {
-                foreach (var kind in (IEnumerable<SyntaxKind>)method.Invoke(null, null))
+                switch (kind)
                 {
-                    Assert.True(Enum.IsDefined(typeof(SyntaxKind), kind), $"Nonexistent kind '{kind}' returned from method '{method.Name}'");
+                    case SyntaxKind.AssemblyKeyword:
+                    case SyntaxKind.ModuleKeyword:
+                    case SyntaxKind.EventKeyword:
+                    case SyntaxKind.FieldKeyword:
+                    case SyntaxKind.MethodKeyword:
+                    case SyntaxKind.ParamKeyword:
+                    case SyntaxKind.PropertyKeyword:
+                    case SyntaxKind.ReturnKeyword:
+                    case SyntaxKind.TypeKeyword:
+                    case SyntaxKind.TypeVarKeyword:
+                        Assert.True(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be true""");
+                        break;
+
+                    default:
+                        Assert.False(SyntaxFacts.IsAttributeTargetSpecifier(kind), $$"""IsAttributeTargetSpecific({{kind}}) should be false""");
+                        break;
                 }
             }
         }
-    }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
-    [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.ElifKeyword)]
-    [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.BoolKeyword)]
-    [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.YieldKeyword)]
-    public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind lowerBoundInclusive, SyntaxKind upperBoundExclusive)
-    {
-        var method = typeof(SyntaxFacts).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
-
-        Assert.NotNull(method);
-        Assert.Equal(0, method.GetParameters().Length);
-        Assert.Equal(typeof(IEnumerable<SyntaxKind>), method.ReturnType);
-
-        var returnedKindsInts = ((IEnumerable<SyntaxKind>)method.Invoke(null, null)).Select(static k => (int)k).ToHashSet();
-
-        for (int i = (int)lowerBoundInclusive; i < (int)upperBoundExclusive; i++)
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        public void TestAllKindsReturnedFromGetKindsMethodsExist()
         {
-            if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
+            foreach (var method in typeof(SyntaxFacts).GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (method.ReturnType == typeof(IEnumerable<SyntaxKind>) && method.GetParameters() is [])
+                {
+                    foreach (var kind in (IEnumerable<SyntaxKind>)method.Invoke(null, null))
+                    {
+                        Assert.True(Enum.IsDefined(typeof(SyntaxKind), kind), $"Nonexistent kind '{kind}' returned from method '{method.Name}'");
+                    }
+                }
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.ElifKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.BoolKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.YieldKeyword)]
+        public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind lowerBoundInclusive, SyntaxKind upperBoundExclusive)
+        {
+            var method = typeof(SyntaxFacts).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+
+            Assert.NotNull(method);
+            Assert.Equal(0, method.GetParameters().Length);
+            Assert.Equal(typeof(IEnumerable<SyntaxKind>), method.ReturnType);
+
+            var returnedKindsInts = ((IEnumerable<SyntaxKind>)method.Invoke(null, null)).Select(static k => (int)k).ToHashSet();
+
+            for (int i = (int)lowerBoundInclusive; i < (int)upperBoundExclusive; i++)
+            {
+                if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
+                {
+                    Assert.True(returnedKindsInts.Remove(i));
+                }
+                else
+                {
+                    Assert.DoesNotContain(i, returnedKindsInts);
+                }
+            }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
+        }
+
+        [Fact]
+        public void TestGetPreprocessorKeywordKindsReturnsExpectedResults()
+        {
+            var returnedKindsInts = SyntaxFacts.GetPreprocessorKeywordKinds().Select(static k => (int)k).ToHashSet();
+
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.TrueKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.FalseKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.DefaultKeyword));
+
+            for (int i = (int)SyntaxKind.ElifKeyword; i < (int)SyntaxKind.ReferenceKeyword; i++)
             {
                 Assert.True(returnedKindsInts.Remove(i));
             }
-            else
-            {
-                Assert.DoesNotContain(i, returnedKindsInts);
-            }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
         }
-
-        // We've already removed all expected kinds from the set. It should be empty now
-        Assert.Empty(returnedKindsInts);
-    }
-
-    [Fact]
-    public void TestGetPreprocessorKeywordKindsReturnsExpectedResults()
-    {
-        var returnedKindsInts = SyntaxFacts.GetPreprocessorKeywordKinds().Select(static k => (int)k).ToHashSet();
-
-        Assert.True(returnedKindsInts.Remove((int)SyntaxKind.TrueKeyword));
-        Assert.True(returnedKindsInts.Remove((int)SyntaxKind.FalseKeyword));
-        Assert.True(returnedKindsInts.Remove((int)SyntaxKind.DefaultKeyword));
-
-        for (int i = (int)SyntaxKind.ElifKeyword; i < (int)SyntaxKind.ReferenceKeyword; i++)
-        {
-            Assert.True(returnedKindsInts.Remove(i));
-        }
-
-        // We've already removed all expected kinds from the set. It should be empty now
-        Assert.Empty(returnedKindsInts);
     }
 }

@@ -7,22 +7,23 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal sealed class SynthesizedClosureEnvironmentConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal SynthesizedClosureEnvironmentConstructor(SynthesizedClosureEnvironment frame)
-        : base(frame)
+    internal sealed class SynthesizedClosureEnvironmentConstructor : SynthesizedInstanceConstructor, ISynthesizedMethodBodyImplementationSymbol
     {
-    }
+        internal SynthesizedClosureEnvironmentConstructor(SynthesizedClosureEnvironment frame)
+            : base(frame)
+        {
+        }
 
-    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-    {
-        get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
-    }
+        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+        {
+            get { return ((ISynthesizedMethodBodyImplementationSymbol)this.ContainingSymbol).Method; }
+        }
 
-    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-    {
-        get { return false; }
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+        {
+            get { return false; }
+        }
     }
 }

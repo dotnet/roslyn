@@ -8,219 +8,220 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-
-/// <summary>
-/// Represents a parameter of a RetargetingMethodSymbol. Essentially this is a wrapper around 
-/// another ParameterSymbol that is responsible for retargeting symbols from one assembly to another. 
-/// It can retarget symbols for multiple assemblies at the same time.
-/// </summary>
-internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
-    private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
-
     /// <summary>
-    /// Retargeted custom attributes
+    /// Represents a parameter of a RetargetingMethodSymbol. Essentially this is a wrapper around 
+    /// another ParameterSymbol that is responsible for retargeting symbols from one assembly to another. 
+    /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
-    private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-
-    private TypeWithAnnotations.Boxed? _lazyTypeWithAnnotations;
-
-    protected RetargetingParameterSymbol(ParameterSymbol underlyingParameter)
-        : base(underlyingParameter)
+    internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
-        Debug.Assert(!(underlyingParameter is RetargetingParameterSymbol));
-    }
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
-    protected abstract RetargetingModuleSymbol RetargetingModule
-    {
-        get;
-    }
+        /// <summary>
+        /// Retargeted custom attributes
+        /// </summary>
+        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-    public sealed override TypeWithAnnotations TypeWithAnnotations
-    {
-        get
+        private TypeWithAnnotations.Boxed? _lazyTypeWithAnnotations;
+
+        protected RetargetingParameterSymbol(ParameterSymbol underlyingParameter)
+            : base(underlyingParameter)
         {
-            if (_lazyTypeWithAnnotations is null)
+            Debug.Assert(!(underlyingParameter is RetargetingParameterSymbol));
+        }
+
+        protected abstract RetargetingModuleSymbol RetargetingModule
+        {
+            get;
+        }
+
+        public sealed override TypeWithAnnotations TypeWithAnnotations
+        {
+            get
             {
-                Interlocked.CompareExchange(ref _lazyTypeWithAnnotations,
-                    new TypeWithAnnotations.Boxed(this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode)),
-                    null);
+                if (_lazyTypeWithAnnotations is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeWithAnnotations,
+                        new TypeWithAnnotations.Boxed(this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode)),
+                        null);
+                }
+
+                return _lazyTypeWithAnnotations.Value;
             }
-
-            return _lazyTypeWithAnnotations.Value;
         }
-    }
 
-    public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
-    {
-        get
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
-            return RetargetingModule.RetargetingTranslator.RetargetModifiers(_underlyingParameter.RefCustomModifiers, ref _lazyRefCustomModifiers);
+            get
+            {
+                return RetargetingModule.RetargetingTranslator.RetargetModifiers(_underlyingParameter.RefCustomModifiers, ref _lazyRefCustomModifiers);
+            }
         }
-    }
 
-    public sealed override Symbol ContainingSymbol
-    {
-        get
+        public sealed override Symbol ContainingSymbol
         {
-            return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.ContainingSymbol);
+            get
+            {
+                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.ContainingSymbol);
+            }
         }
-    }
 
-    public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
-    {
-        return this.RetargetingModule.RetargetingTranslator.GetRetargetedAttributes(_underlyingParameter.GetAttributes(), ref _lazyCustomAttributes);
-    }
-
-    internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
-    {
-        return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(moduleBuilder));
-    }
-
-    public sealed override AssemblySymbol ContainingAssembly
-    {
-        get
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.RetargetingModule.ContainingAssembly;
+            return this.RetargetingModule.RetargetingTranslator.GetRetargetedAttributes(_underlyingParameter.GetAttributes(), ref _lazyCustomAttributes);
         }
-    }
 
-    internal sealed override ModuleSymbol ContainingModule
-    {
-        get
+        internal sealed override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
-            return this.RetargetingModule;
+            return this.RetargetingModule.RetargetingTranslator.RetargetAttributes(_underlyingParameter.GetCustomAttributesToEmit(moduleBuilder));
         }
-    }
 
-    internal sealed override bool HasMetadataConstantValue
-    {
-        get
+        public sealed override AssemblySymbol ContainingAssembly
         {
-            return _underlyingParameter.HasMetadataConstantValue;
+            get
+            {
+                return this.RetargetingModule.ContainingAssembly;
+            }
         }
-    }
 
-    internal sealed override bool IsMarshalledExplicitly
-    {
-        get
+        internal sealed override ModuleSymbol ContainingModule
         {
-            return _underlyingParameter.IsMarshalledExplicitly;
+            get
+            {
+                return this.RetargetingModule;
+            }
         }
-    }
 
-    internal override MarshalPseudoCustomAttributeData MarshallingInformation
-    {
-        get
+        internal sealed override bool HasMetadataConstantValue
         {
-            return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.MarshallingInformation);
+            get
+            {
+                return _underlyingParameter.HasMetadataConstantValue;
+            }
         }
-    }
 
-    internal override ImmutableArray<byte> MarshallingDescriptor
-    {
-        get
+        internal sealed override bool IsMarshalledExplicitly
         {
-            return _underlyingParameter.MarshallingDescriptor;
+            get
+            {
+                return _underlyingParameter.IsMarshalledExplicitly;
+            }
+        }
+
+        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        {
+            get
+            {
+                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.MarshallingInformation);
+            }
+        }
+
+        internal override ImmutableArray<byte> MarshallingDescriptor
+        {
+            get
+            {
+                return _underlyingParameter.MarshallingDescriptor;
+            }
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        /// <remarks>
+        /// This override is done for performance reasons. Lacking the override this would redirect to 
+        /// <see cref="RetargetingModuleSymbol.DeclaringCompilation"/> which returns null. The override 
+        /// short circuits the overhead in <see cref="Symbol.DeclaringCompilation"/> and the extra virtual
+        /// dispatch and just returns null.
+        /// </remarks>
+        internal sealed override CSharpCompilation? DeclaringCompilation
+        {
+            get { return null; }
+        }
+
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+    }
+
+    internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol
+    {
+        /// <summary>
+        /// Owning RetargetingMethodSymbol.
+        /// </summary>
+        private readonly RetargetingMethodSymbol _retargetingMethod;
+
+        public RetargetingMethodParameterSymbol(RetargetingMethodSymbol retargetingMethod, ParameterSymbol underlyingParameter)
+            : base(underlyingParameter)
+        {
+            Debug.Assert((object)retargetingMethod != null);
+            _retargetingMethod = retargetingMethod;
+        }
+
+        protected override RetargetingModuleSymbol RetargetingModule
+        {
+            get { return _retargetingMethod.RetargetingModule; }
+        }
+
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
+
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
+
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
         }
     }
 
-    /// <summary>
-    /// <inheritdoc/>
-    /// </summary>
-    /// <remarks>
-    /// This override is done for performance reasons. Lacking the override this would redirect to 
-    /// <see cref="RetargetingModuleSymbol.DeclaringCompilation"/> which returns null. The override 
-    /// short circuits the overhead in <see cref="Symbol.DeclaringCompilation"/> and the extra virtual
-    /// dispatch and just returns null.
-    /// </remarks>
-    internal sealed override CSharpCompilation? DeclaringCompilation
+    internal sealed class RetargetingPropertyParameterSymbol : RetargetingParameterSymbol
     {
-        get { return null; }
-    }
+        /// <summary>
+        /// Owning RetargetingPropertySymbol.
+        /// </summary>
+        private readonly RetargetingPropertySymbol _retargetingProperty;
 
-    internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+        public RetargetingPropertyParameterSymbol(RetargetingPropertySymbol retargetingProperty, ParameterSymbol underlyingParameter)
+            : base(underlyingParameter)
+        {
+            Debug.Assert((object)retargetingProperty != null);
+            _retargetingProperty = retargetingProperty;
+        }
 
-    internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
-}
+        protected override RetargetingModuleSymbol RetargetingModule
+        {
+            get { return _retargetingProperty.RetargetingModule; }
+        }
 
-internal sealed class RetargetingMethodParameterSymbol : RetargetingParameterSymbol
-{
-    /// <summary>
-    /// Owning RetargetingMethodSymbol.
-    /// </summary>
-    private readonly RetargetingMethodSymbol _retargetingMethod;
+        internal override bool IsCallerLineNumber
+        {
+            get { return _underlyingParameter.IsCallerLineNumber; }
+        }
 
-    public RetargetingMethodParameterSymbol(RetargetingMethodSymbol retargetingMethod, ParameterSymbol underlyingParameter)
-        : base(underlyingParameter)
-    {
-        Debug.Assert((object)retargetingMethod != null);
-        _retargetingMethod = retargetingMethod;
-    }
+        internal override bool IsCallerFilePath
+        {
+            get { return _underlyingParameter.IsCallerFilePath; }
+        }
 
-    protected override RetargetingModuleSymbol RetargetingModule
-    {
-        get { return _retargetingMethod.RetargetingModule; }
-    }
+        internal override bool IsCallerMemberName
+        {
+            get { return _underlyingParameter.IsCallerMemberName; }
+        }
 
-    internal override bool IsCallerLineNumber
-    {
-        get { return _underlyingParameter.IsCallerLineNumber; }
-    }
-
-    internal override bool IsCallerFilePath
-    {
-        get { return _underlyingParameter.IsCallerFilePath; }
-    }
-
-    internal override bool IsCallerMemberName
-    {
-        get { return _underlyingParameter.IsCallerMemberName; }
-    }
-
-    internal override int CallerArgumentExpressionParameterIndex
-    {
-        get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
-    }
-}
-
-internal sealed class RetargetingPropertyParameterSymbol : RetargetingParameterSymbol
-{
-    /// <summary>
-    /// Owning RetargetingPropertySymbol.
-    /// </summary>
-    private readonly RetargetingPropertySymbol _retargetingProperty;
-
-    public RetargetingPropertyParameterSymbol(RetargetingPropertySymbol retargetingProperty, ParameterSymbol underlyingParameter)
-        : base(underlyingParameter)
-    {
-        Debug.Assert((object)retargetingProperty != null);
-        _retargetingProperty = retargetingProperty;
-    }
-
-    protected override RetargetingModuleSymbol RetargetingModule
-    {
-        get { return _retargetingProperty.RetargetingModule; }
-    }
-
-    internal override bool IsCallerLineNumber
-    {
-        get { return _underlyingParameter.IsCallerLineNumber; }
-    }
-
-    internal override bool IsCallerFilePath
-    {
-        get { return _underlyingParameter.IsCallerFilePath; }
-    }
-
-    internal override bool IsCallerMemberName
-    {
-        get { return _underlyingParameter.IsCallerMemberName; }
-    }
-
-    internal override int CallerArgumentExpressionParameterIndex
-    {
-        get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _underlyingParameter.CallerArgumentExpressionParameterIndex; }
+        }
     }
 }

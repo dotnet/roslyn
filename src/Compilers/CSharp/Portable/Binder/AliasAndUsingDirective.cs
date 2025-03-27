@@ -5,18 +5,19 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp;
-
-internal readonly struct AliasAndUsingDirective
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    public readonly AliasSymbol Alias;
-    public readonly SyntaxReference? UsingDirectiveReference;
-
-    public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax? usingDirective)
+    internal readonly struct AliasAndUsingDirective
     {
-        this.Alias = alias;
-        this.UsingDirectiveReference = usingDirective?.GetReference();
-    }
+        public readonly AliasSymbol Alias;
+        public readonly SyntaxReference? UsingDirectiveReference;
 
-    public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
+        public AliasAndUsingDirective(AliasSymbol alias, UsingDirectiveSyntax? usingDirective)
+        {
+            this.Alias = alias;
+            this.UsingDirectiveReference = usingDirective?.GetReference();
+        }
+
+        public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
+    }
 }

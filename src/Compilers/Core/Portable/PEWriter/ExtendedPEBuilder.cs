@@ -12,91 +12,92 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.Cci;
-
-/// <summary>
-/// This PEBuilder adds an .mvid section.
-/// </summary>
-internal sealed class ExtendedPEBuilder
-    : ManagedPEBuilder
+namespace Microsoft.Cci
 {
-    private const string MvidSectionName = ".mvid";
-    public const int SizeOfGuid = 16;
-
-    // When the section is built with a placeholder, the placeholder blob is saved for later fixing up.
-    private Blob _mvidSectionFixup = default(Blob);
-
-    // Only include the .mvid section in ref assemblies
-    private readonly bool _withMvidSection;
-
-    public ExtendedPEBuilder(
-        PEHeaderBuilder header,
-        MetadataRootBuilder metadataRootBuilder,
-        BlobBuilder ilStream,
-        BlobBuilder? mappedFieldData,
-        BlobBuilder? managedResources,
-        ResourceSectionBuilder? nativeResources,
-        DebugDirectoryBuilder? debugDirectoryBuilder,
-        int strongNameSignatureSize,
-        MethodDefinitionHandle entryPoint,
-        CorFlags flags,
-        Func<IEnumerable<Blob>, BlobContentId>? deterministicIdProvider,
-        bool withMvidSection)
-        : base(header, metadataRootBuilder, ilStream, mappedFieldData, managedResources, nativeResources,
-              debugDirectoryBuilder, strongNameSignatureSize, entryPoint, flags, deterministicIdProvider)
+    /// <summary>
+    /// This PEBuilder adds an .mvid section.
+    /// </summary>
+    internal sealed class ExtendedPEBuilder
+        : ManagedPEBuilder
     {
-        _withMvidSection = withMvidSection;
-    }
+        private const string MvidSectionName = ".mvid";
+        public const int SizeOfGuid = 16;
 
-    protected override ImmutableArray<Section> CreateSections()
-    {
-        var baseSections = base.CreateSections();
+        // When the section is built with a placeholder, the placeholder blob is saved for later fixing up.
+        private Blob _mvidSectionFixup = default(Blob);
 
-        if (_withMvidSection)
+        // Only include the .mvid section in ref assemblies
+        private readonly bool _withMvidSection;
+
+        public ExtendedPEBuilder(
+            PEHeaderBuilder header,
+            MetadataRootBuilder metadataRootBuilder,
+            BlobBuilder ilStream,
+            BlobBuilder? mappedFieldData,
+            BlobBuilder? managedResources,
+            ResourceSectionBuilder? nativeResources,
+            DebugDirectoryBuilder? debugDirectoryBuilder,
+            int strongNameSignatureSize,
+            MethodDefinitionHandle entryPoint,
+            CorFlags flags,
+            Func<IEnumerable<Blob>, BlobContentId>? deterministicIdProvider,
+            bool withMvidSection)
+            : base(header, metadataRootBuilder, ilStream, mappedFieldData, managedResources, nativeResources,
+                  debugDirectoryBuilder, strongNameSignatureSize, entryPoint, flags, deterministicIdProvider)
         {
-            var builder = ArrayBuilder<Section>.GetInstance(baseSections.Length + 1);
-
-            builder.Add(new Section(MvidSectionName, SectionCharacteristics.MemRead |
-                SectionCharacteristics.ContainsInitializedData |
-                SectionCharacteristics.MemDiscardable));
-
-            builder.AddRange(baseSections);
-            return builder.ToImmutableAndFree();
-        }
-        else
-        {
-            return baseSections;
-        }
-    }
-
-    protected override BlobBuilder SerializeSection(string name, SectionLocation location)
-    {
-        if (name.Equals(MvidSectionName, StringComparison.Ordinal))
-        {
-            Debug.Assert(_withMvidSection);
-            return SerializeMvidSection();
+            _withMvidSection = withMvidSection;
         }
 
-        return base.SerializeSection(name, location);
-    }
+        protected override ImmutableArray<Section> CreateSections()
+        {
+            var baseSections = base.CreateSections();
 
-    internal BlobContentId Serialize(BlobBuilder peBlob, out Blob mvidSectionFixup)
-    {
-        var result = base.Serialize(peBlob);
-        mvidSectionFixup = _mvidSectionFixup;
-        return result;
-    }
+            if (_withMvidSection)
+            {
+                var builder = ArrayBuilder<Section>.GetInstance(baseSections.Length + 1);
 
-    private BlobBuilder SerializeMvidSection()
-    {
-        var sectionBuilder = new BlobBuilder();
+                builder.Add(new Section(MvidSectionName, SectionCharacteristics.MemRead |
+                    SectionCharacteristics.ContainsInitializedData |
+                    SectionCharacteristics.MemDiscardable));
 
-        // The guid will be filled in later:
-        _mvidSectionFixup = sectionBuilder.ReserveBytes(SizeOfGuid);
-        var mvidWriter = new BlobWriter(_mvidSectionFixup);
-        mvidWriter.WriteBytes(0, _mvidSectionFixup.Length);
-        Debug.Assert(mvidWriter.RemainingBytes == 0);
+                builder.AddRange(baseSections);
+                return builder.ToImmutableAndFree();
+            }
+            else
+            {
+                return baseSections;
+            }
+        }
 
-        return sectionBuilder;
+        protected override BlobBuilder SerializeSection(string name, SectionLocation location)
+        {
+            if (name.Equals(MvidSectionName, StringComparison.Ordinal))
+            {
+                Debug.Assert(_withMvidSection);
+                return SerializeMvidSection();
+            }
+
+            return base.SerializeSection(name, location);
+        }
+
+        internal BlobContentId Serialize(BlobBuilder peBlob, out Blob mvidSectionFixup)
+        {
+            var result = base.Serialize(peBlob);
+            mvidSectionFixup = _mvidSectionFixup;
+            return result;
+        }
+
+        private BlobBuilder SerializeMvidSection()
+        {
+            var sectionBuilder = new BlobBuilder();
+
+            // The guid will be filled in later:
+            _mvidSectionFixup = sectionBuilder.ReserveBytes(SizeOfGuid);
+            var mvidWriter = new BlobWriter(_mvidSectionFixup);
+            mvidWriter.WriteBytes(0, _mvidSectionFixup.Length);
+            Debug.Assert(mvidWriter.RemainingBytes == 0);
+
+            return sectionBuilder;
+        }
     }
 }

@@ -10,29 +10,30 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-
-public struct DkmEvaluationAsyncResult
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
-    public DkmEvaluationAsyncResult(DkmEvaluationResult Result)
-        : this()
+    public struct DkmEvaluationAsyncResult
     {
-        if (Result == null)
+        public DkmEvaluationAsyncResult(DkmEvaluationResult Result)
+            : this()
         {
-            throw new ArgumentNullException(nameof(Result));
+            if (Result == null)
+            {
+                throw new ArgumentNullException(nameof(Result));
+            }
+
+            this.Result = Result;
         }
 
-        this.Result = Result;
-    }
+        public int ErrorCode { get { throw new NotImplementedException(); } }
 
-    public int ErrorCode { get { throw new NotImplementedException(); } }
+        public readonly DkmEvaluationResult Result { get; }
 
-    public readonly DkmEvaluationResult Result { get; }
+        internal Exception Exception { get; set; }
 
-    internal Exception Exception { get; set; }
-
-    public static DkmEvaluationAsyncResult CreateErrorResult(Exception exception)
-    {
-        return new DkmEvaluationAsyncResult() { Exception = exception };
+        public static DkmEvaluationAsyncResult CreateErrorResult(Exception exception)
+        {
+            return new DkmEvaluationAsyncResult() { Exception = exception };
+        }
     }
 }
