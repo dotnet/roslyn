@@ -149,6 +149,8 @@ try {
 
   $dotnet = Ensure-DotnetSdk
 
+  # TODO remove
+  $branchName = "main"
   if ($branchName -ne "" -and $releaseName -ne "") {
     Write-Host "Can only specify -branchName or -releaseName, not both"
     exit 1
