@@ -41,8 +41,7 @@ internal sealed partial class DiagnosticAnalyzerService
             _stateManager = new StateManager(analyzerInfoCache);
 
             var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
-                enabled, analyzerInfoCache, analyzerService.Listener);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
         }
 
         internal IGlobalOptionService GlobalOptions { get; }
@@ -51,7 +50,7 @@ internal sealed partial class DiagnosticAnalyzerService
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
             => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
-        private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
     }
 }
