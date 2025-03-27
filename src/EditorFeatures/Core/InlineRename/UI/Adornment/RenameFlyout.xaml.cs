@@ -107,7 +107,7 @@ internal partial class RenameFlyout : InlineRenameAdornment
     public string SubmitText
         => _viewModel.SmartRenameViewModel is not null
         ? _viewModel.SmartRenameViewModel.SubmitTextOverride
-        : EditorFeaturesResources.Enter_to_rename_shift_enter_to_preview;
+        : EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
     private void TextView_ViewPortChanged(object sender, EventArgs e)
