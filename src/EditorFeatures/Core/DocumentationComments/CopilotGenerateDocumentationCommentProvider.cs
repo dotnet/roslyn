@@ -70,22 +70,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var intelliCodeLineCompletionsDisposable = await _suggestionManager.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
             var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
-            var suggestionSessionStarted = await suggestion.StartSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-            if (!suggestionSessionStarted)
+            Func<CancellationToken, Task<ProposalBase?>> generateProposal = async (cancellationToken) =>
             {
-                return;
-            }
+                var proposalEdits = await GetProposedEditsAsync(
+                    snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
-            var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
+                return Proposal.TryCreateProposal(description: null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
+            };
 
-            var proposal = Proposal.TryCreateProposal(description: null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
-            if (proposal is null)
-            {
-                await suggestion.DismissSuggestionSessionAsync(cancellationToken).ConfigureAwait(false);
-                return;
-            }
-
-            await suggestion.TryDisplayDocumentationSuggestionAsync(proposal, cancellationToken).ConfigureAwait(false);
+            await suggestion.StartSuggestionSessionWithProposalAsync(generateProposal, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
