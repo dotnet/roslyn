@@ -17,8 +17,8 @@ internal static class UnusedReferenceExtensions
             (ReferenceType)projectSystemReference.ReferenceType,
             projectSystemReference.ItemSpecification,
             projectSystemReference.TreatAsUsed,
-            ImmutableArray<string>.Empty,
-            ImmutableArray<ReferenceInfo>.Empty);
+            [],
+            []);
     }
 
     public static ProjectSystemReferenceUpdate ToProjectSystemReferenceUpdate(this ReferenceUpdate referenceUpdate)

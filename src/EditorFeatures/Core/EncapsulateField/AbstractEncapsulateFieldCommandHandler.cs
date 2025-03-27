@@ -75,7 +75,7 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         var document = await subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context).ConfigureAwait(false);
         Contract.ThrowIfNull(document);
 
-        var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
+        var service = document.GetRequiredLanguageService<IEncapsulateFieldService>();
 
         var result = await service.EncapsulateFieldsInSpanAsync(
             document, span.Span.ToTextSpan(), useDefaultBehavior: true, cancellationToken).ConfigureAwait(false);

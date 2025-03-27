@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -173,5 +174,40 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             useProgress: useProgress);
 
         AssertJsonEquals(results2, expectedResult);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task DoesNotIncludeSourceGeneratedDocuments(bool mutatingLspWorkspace, bool useProgress)
+    {
+        var source =
+            """
+            namespace M
+            {
+                class A
+                {
+                    public {|caret:|}B b;
+                }
+            }
+            """;
+        var generated =
+            """
+            namespace M
+            {
+                class B
+                {
+                }
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+
+        var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
+        var results = await RunGetRelatedDocumentsAsync(
+            testLspServer,
+            project.Documents.First().GetURI(),
+            useProgress: useProgress);
+
+        Assert.Empty(results);
     }
 }

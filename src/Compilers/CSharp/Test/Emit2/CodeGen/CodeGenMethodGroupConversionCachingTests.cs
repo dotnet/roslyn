@@ -6349,6 +6349,47 @@ class Test
 ");
     }
 
+    [Fact]
+    public void CompilerLoweringPreserveAttribute_01()
+    {
+        string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+        string source2 = @"
+class Test1
+{
+    System.Action M2<[Preserve1][Preserve2]T>()
+    {
+        return (System.Action)D.Target<T>;
+    }
+}
+
+class D
+{
+    public static void Target<B>() { }
+}
+
+";
+        var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+        CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SequenceEqual(
+                ["Preserve1Attribute"],
+                m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>O__0_0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+        }
+    }
+
     private static Action<ModuleSymbol> VerifyCacheContainer(string typeName, int arity, params string[] expectedFields)
     {
         return module =>

@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
                 throw ExceptionUtilities.Unreachable();
             }
@@ -764,8 +764,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 lambdaSymbol,
+                hasParams: OverloadResolution.IsValidParams(Binder, lambdaSymbol, disallowExpandedNonArrayParams: false, out _),
                 parameterScopesBuilder.ToImmutableAndFree(),
-                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
+                lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules),
                 returnRefKind,
                 returnType);
         }

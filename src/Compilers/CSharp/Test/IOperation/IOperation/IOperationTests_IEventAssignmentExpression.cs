@@ -967,21 +967,24 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(c.MyEvent  ... ndler) = 0;')
-          Expression: 
+          Expression:
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '(c.MyEvent  ... andler) = 0')
-              Left: 
+              Left:
                 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
                   Children(1):
                       IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
-                        Event Reference: 
+                        Event Reference:
                           IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'c.MyEvent')
-                            Instance Receiver: 
+                            Instance Receiver:
                               IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-                        Handler: 
+                        Handler:
                           IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler, IsInvalid) (Syntax: 'handler')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-
+              Right:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Void, IsImplicit) (Syntax: '0')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (NoConversion)
+                  Operand:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
@@ -1019,7 +1022,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     CaptureIds: [0] [2]
@@ -1027,20 +1029,18 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
-              Value: 
+              Value:
                 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
                   Children(1):
                       IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
-                        Event Reference: 
+                        Event Reference:
                           IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'c.MyEvent')
-                            Instance Receiver: 
+                            Instance Receiver:
                               IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
-                        Handler: 
+                        Handler:
                           IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler, IsInvalid) (Syntax: 'handler')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [1]
@@ -1048,53 +1048,50 @@ Block[B0] - Entry
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
-                  Value: 
+                  Value:
                     IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x1')
-
             Jump if True (Regular) to Block[B4]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x1')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x1')
                 Leaving: {R2}
-
             Next (Regular) Block[B3]
         Block[B3] - Block
             Predecessors: [B2]
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
-                  Value: 
+                  Value:
                     IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'x1')
-                      Instance Receiver: 
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'x1')
                       Arguments(0)
-
             Next (Regular) Block[B5]
                 Leaving: {R2}
     }
-
     Block[B4] - Block
         Predecessors: [B2]
         Statements (1)
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
-              Value: 
+              Value:
                 IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
-
         Next (Regular) Block[B5]
     Block[B5] - Block
         Predecessors: [B3] [B4]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(c.MyEvent  ... = x1 ?? x2;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '(c.MyEvent  ...  = x1 ?? x2')
-                  Left: 
+                  Left:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
-                  Right: 
-                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Void, IsImplicit) (Syntax: 'x1 ?? x2')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NoConversion)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
         Next (Regular) Block[B6]
             Leaving: {R1}
 }
-
 Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)

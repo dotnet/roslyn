@@ -19,7 +19,7 @@ internal static class IComparerExtensions
         return new InverseComparer<T>(comparer);
     }
 
-    private class InverseComparer<T> : IComparer<T>
+    private sealed class InverseComparer<T> : IComparer<T>
     {
         private readonly IComparer<T> _comparer;
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (configurationOptions != null)
             {
                 var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
-                workspaceConfigurationService.Options = configurationOptions.Value;
+                workspaceConfigurationService.Options = configurationOptions;
             }
 
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 var metadataService = Services.GetRequiredService<IMetadataService>();
-                var metadataResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(fileReferenceProvider: metadataService.GetReference);
+                var metadataResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(createFromFileFunc: metadataService.GetReference);
                 var syntaxFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
                 var compilationOptions = compilationFactory.GetDefaultCompilationOptions()

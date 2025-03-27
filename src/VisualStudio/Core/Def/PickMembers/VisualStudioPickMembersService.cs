@@ -38,9 +38,7 @@ internal class VisualStudioPickMembersService : IPickMembersService
         if (result == true)
         {
             return new PickMembersResult(
-                viewModel.MemberContainers.Where(c => c.IsChecked)
-                                          .Select(c => c.Symbol)
-                                          .ToImmutableArray(),
+                [.. viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol)],
                 options,
                 viewModel.SelectedAll);
         }

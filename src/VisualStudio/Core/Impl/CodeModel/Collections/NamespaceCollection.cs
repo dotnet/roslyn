@@ -95,15 +95,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             var parentElement = !this.IsRootNamespace
                 ? (AbstractCodeElement)this.Parent
                 : null;
-
-            var nodesBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
-            nodesBuilder.AddRange(CodeModelService.GetOptionNodes(node));
-            nodesBuilder.AddRange(CodeModelService.GetImportNodes(node));
-            nodesBuilder.AddRange(CodeModelService.GetAttributeNodes(node));
-            nodesBuilder.AddRange(CodeModelService.GetLogicalSupportedMemberNodes(node));
-
             return new NodeSnapshot(this.State, _fileCodeModel, node, parentElement,
-                nodesBuilder.ToImmutableAndFree());
+                [
+                    .. CodeModelService.GetOptionNodes(node),
+                    .. CodeModelService.GetImportNodes(node),
+                    .. CodeModelService.GetAttributeNodes(node),
+                    .. CodeModelService.GetLogicalSupportedMemberNodes(node),
+                ]);
         }
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)

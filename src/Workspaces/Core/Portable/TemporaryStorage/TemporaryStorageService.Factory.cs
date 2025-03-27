@@ -10,12 +10,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-internal partial class TemporaryStorageService
+internal sealed partial class TemporaryStorageService
 {
     [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageServiceInternal), ServiceLayer.Default), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal partial class Factory(
+    internal sealed partial class Factory(
         [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService) : IWorkspaceServiceFactory
     {
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]

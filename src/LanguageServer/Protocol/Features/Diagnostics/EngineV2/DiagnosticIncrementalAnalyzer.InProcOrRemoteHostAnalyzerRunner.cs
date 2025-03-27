@@ -122,14 +122,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-            var (projectAnalysisResult, hostAnalysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
+            var (analysisResult, additionalPragmaSuppressionDiagnostics) = await compilationWithAnalyzers.GetAnalysisResultAsync(
                 documentAnalysisScope, project, AnalyzerInfoCache, cancellationToken).ConfigureAwait(false);
 
             if (logPerformanceInfo)
             {
                 // if remote host is there, report performance data
                 var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
-                var _ = FireAndForgetReportAnalyzerPerformanceAsync(documentAnalysisScope, project, client, projectAnalysisResult, hostAnalysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
+                var _ = FireAndForgetReportAnalyzerPerformanceAsync(documentAnalysisScope, project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
 
             var projectAnalyzers = documentAnalysisScope?.ProjectAnalyzers ?? compilationWithAnalyzers.ProjectAnalyzers;
@@ -138,37 +138,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // get compiler result builder map
             var builderMap = ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>.Empty;
-            if (projectAnalysisResult is not null)
+            if (analysisResult is not null)
             {
-                var map = await projectAnalysisResult.ToResultBuilderMapAsync(
+                var map = await analysisResult.ToResultBuilderMapAsync(
                     additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                    compilationWithAnalyzers.ProjectCompilation!, projectAnalyzers, skippedAnalyzersInfo,
-                    compilationWithAnalyzers.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                builderMap = builderMap.AddRange(map);
-            }
-
-            if (hostAnalysisResult is not null)
-            {
-                var map = await hostAnalysisResult.ToResultBuilderMapAsync(
-                    additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                    compilationWithAnalyzers.HostCompilation!, hostAnalyzers, skippedAnalyzersInfo,
+                    projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
                     compilationWithAnalyzers.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 builderMap = builderMap.AddRange(map);
             }
 
             var result = builderMap.ToImmutableDictionary(kv => kv.Key, kv => DiagnosticAnalysisResult.CreateFromBuilder(kv.Value));
             var telemetry = ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty;
-            if (getTelemetryInfo)
+            if (getTelemetryInfo && analysisResult is not null)
             {
-                if (projectAnalysisResult is not null)
-                {
-                    telemetry = telemetry.AddRange(projectAnalysisResult.AnalyzerTelemetryInfo);
-                }
-
-                if (hostAnalysisResult is not null)
-                {
-                    telemetry = telemetry.AddRange(hostAnalysisResult.AnalyzerTelemetryInfo);
-                }
+                telemetry = analysisResult.MergedAnalyzerTelemetryInfo;
             }
 
             return DiagnosticAnalysisResultMap.Create(result, telemetry);
@@ -178,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisScope? documentAnalysisScope,
             Project project,
             RemoteHostClient? client,
-            AnalysisResult? projectAnalysisResult,
-            AnalysisResult? hostAnalysisResult,
+            AnalysisResultPair? analysisResult,
             CancellationToken cancellationToken)
         {
             if (client == null)
@@ -194,14 +176,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var forSpanAnalysis = documentAnalysisScope?.Span.HasValue ?? false;
 
                 ImmutableArray<AnalyzerPerformanceInfo> performanceInfo = [];
-                if (projectAnalysisResult is not null)
+                if (analysisResult is not null)
                 {
-                    performanceInfo = performanceInfo.AddRange(projectAnalysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache));
-                }
-
-                if (hostAnalysisResult is not null)
-                {
-                    performanceInfo = performanceInfo.AddRange(hostAnalysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache));
+                    performanceInfo = performanceInfo.AddRange(analysisResult.MergedAnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(AnalyzerInfoCache));
                 }
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(

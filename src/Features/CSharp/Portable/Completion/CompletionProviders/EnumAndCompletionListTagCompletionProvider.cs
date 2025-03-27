@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
 [Shared]
-internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
+internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
 {
     private static readonly CompletionItemRules s_enumTypeRules =
         CompletionItemRules.Default.WithCommitCharacterRules([CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')])
@@ -174,7 +174,7 @@ internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletio
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText,
                 displayTextSuffix: "",
-                symbols: ImmutableArray.Create(symbol),
+                symbols: [symbol],
                 rules: s_enumTypeRules,
                 contextPosition: position,
                 sortText: sortText));
@@ -202,7 +202,7 @@ internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletio
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: memberDisplayName,
                     displayTextSuffix: "",
-                    symbols: ImmutableArray.Create<ISymbol>(field),
+                    symbols: [field],
                     rules: CompletionItemRules.Default,
                     contextPosition: position,
                     sortText: $"{sortText}_{index:0000}",
@@ -258,7 +258,7 @@ internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletio
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: memberDisplayName,
                     displayTextSuffix: "",
-                    symbols: ImmutableArray.Create(staticSymbol),
+                    symbols: [staticSymbol],
                     rules: CompletionItemRules.Default,
                     contextPosition: position,
                     sortText: memberDisplayName,

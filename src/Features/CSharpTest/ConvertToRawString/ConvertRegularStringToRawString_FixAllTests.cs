@@ -7,13 +7,14 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertStringToRawStringCodeRefactoringProvider();
@@ -270,10 +271,7 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 var singleLine1 = "a";
                 var singleLine2 = @"goo""bar";
 
-                var multiLine1 = """
-                    goo
-                    bar
-                    """;
+                var multiLine1 = "goo\r\nbar";
                 var multiLine2 = """
                     goo
                     bar
@@ -296,10 +294,7 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 var singleLine1 = "a";
                 var singleLine2 = @"goo""bar";
 
-                var multiLine1 = """
-                    goo
-                    bar
-                    """;
+                var multiLine1 = "goo\r\nbar";
                 var multiLine2 = """
                     goo
                     bar
@@ -970,5 +965,118 @@ public class ConvertRegularStringToRawString_FixAllTests : AbstractCSharpCodeAct
                 }
             }
             """", index: 1);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public async Task FixAllInDocument_MultiLineShouldNotImpactExplicitEscapedString()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = {|FixAllInDocument:|}@"
+
+            ";
+
+                    var second = Regex.Replace(description, "(\r?\n)", "$1$1");
+                }
+            }
+            """,
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+            
+                        """;
+            
+                    var second = Regex.Replace(description, "(\r?\n)", "$1$1");
+                }
+            }
+            """");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public async Task FixAllInDocument_EscapedCanAffectMultiLine()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = @"
+
+            ";
+
+                    var second = Regex.Replace(description, {|FixAllInDocument:|}"(\r\n)", "$1$1");
+                }
+            }
+            """,
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+
+                        """;
+            
+                    var second = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                }
+            }
+            """");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    public async Task FixAllInDocument_EscapedCanAffectMultiLine2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    var description = @"
+
+            ";
+
+                    var second = Regex.Replace(description, {|FixAllInDocument:|}"(\r\n)", "$1$1");
+                    var third = Regex.Replace(description, "(\r\n)", "$1$1");
+                }
+            }
+            """,
+            """"
+            class C
+            {
+                void M()
+                {
+                    var description = """
+
+
+
+                        """;
+            
+                    var second = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                    var third = Regex.Replace(description, """
+                        (
+                        )
+                        """, "$1$1");
+                }
+            }
+            """");
     }
 }

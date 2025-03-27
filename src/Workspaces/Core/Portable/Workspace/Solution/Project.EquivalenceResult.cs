@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis;
 
 public partial class Project
 {
-    private class EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
+    private sealed class EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
     {
         public readonly bool PubliclyEquivalent = publiclyEquivalent;
         public readonly bool PrivatelyEquivalent = privatelyEquivalent;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.PullMemberUp), Shared]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-internal class CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService service) : AbstractPullMemberUpRefactoringProvider(service)
+internal sealed class CSharpPullMemberUpCodeRefactoringProvider(IPullMemberUpOptionsService? service)
+    : AbstractPullMemberUpRefactoringProvider(service)
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

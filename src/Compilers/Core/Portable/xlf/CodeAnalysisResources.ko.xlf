@@ -17,6 +17,11 @@
         <target state="translated">'{0}' 형식을 포함하는 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="translated">특성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">기본 제공 연산자 이름 '{0}'이(가) 잘못되었습니다.</target>
@@ -80,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">'end'는 'start'보다 작을 수 없습니다. start='{0}' end='{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; 파일이 {1} 잠겼을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -263,9 +273,19 @@
         <target state="translated">SuppressionDescriptor에 null, 빈 문자열 및 공백만 포함된 문자열이 아닌 ID가 있어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="translated">디버그 메타데이터 크기 {1} 제한 {2} 초과하여 메서드 '{0}' 네이티브 PDB를 내보낼 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">튜플 요소 nullable 주석이 지정된 경우, 주석 수는 튜플의 카디널리티와 일치해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="translated">'{0}' 형식에 필요한 생성자가 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

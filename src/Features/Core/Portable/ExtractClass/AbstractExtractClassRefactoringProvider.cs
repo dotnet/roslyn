@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -106,8 +107,9 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
             return (null, false);
         }
 
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var action = new ExtractClassWithDialogCodeAction(
-            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, selectedMembers);
+            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, selectedMembers, formattingOptions);
 
         return (action, false);
     }
@@ -133,8 +135,9 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
             return null;
         }
 
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new ExtractClassWithDialogCodeAction(
-            document, span, optionsService, selectedType, selectedClassNode, selectedMembers: []);
+            document, span, optionsService, selectedType, selectedClassNode, selectedMembers: [], formattingOptions);
     }
 
     private static bool HasBaseType(INamedTypeSymbol containingType) => containingType.BaseType?.SpecialType != SpecialType.System_Object;

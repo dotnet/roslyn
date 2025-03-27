@@ -402,5 +402,9 @@ namespace Microsoft.CodeAnalysis
         internal const string LockTypeName = "Lock";
         internal const string EnterScopeMethodName = "EnterScope";
         internal const string LockScopeTypeName = "Scope";
+
+        internal const string CastUpMethodName = "CastUp";
+        internal const string MemoryExtensionsTypeFullName = "System.MemoryExtensions";
+        internal const string AsSpanMethodName = "AsSpan";
     }
 }

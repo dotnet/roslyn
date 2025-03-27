@@ -16515,10 +16515,7 @@ class ErrorCS1676
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(11, 34),
                 // (11,34): error CS1002: ; expected
                 //             Console.WriteLine(");
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34),
-                // (9,13): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'OutParam' because it has one or more out parameters
-                //         o = delegate  // CS1688
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("OutParam").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 34));
         }
 
         [Fact]

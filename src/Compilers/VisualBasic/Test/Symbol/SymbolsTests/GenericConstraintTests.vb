@@ -4686,7 +4686,7 @@ End Interface
             compilation.AssertTheseDiagnostics(<expected>
 BC32044: Type argument 'String' does not inherit from or implement the constraint type 'IStoreable'.
     Public ReadOnly Property Deleted As IEnumerable(Of UpdateResult(Of String))
-                                                                       ~~~~~~
+                             ~~~~~~~
                                           </expected>)
         End Sub
 
@@ -5014,10 +5014,10 @@ Delegate Sub D(Of T As New)()
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Event E As D(Of B)
-                    ~
+          ~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Custom Event E As D(Of C)
-                           ~
+                 ~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         AddHandler(value As D(Of C))
                    ~~~~~
@@ -5099,7 +5099,7 @@ Class A
       ~
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     ReadOnly Property P As IA(Of A) Implements IA(Of A).P
-                                 ~
+                      ~
 BC32083: Type argument 'A' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     ReadOnly Property P As IA(Of A) Implements IA(Of A).P
                                                      ~
@@ -5195,10 +5195,10 @@ BC32083: Type argument 'A' must have a public parameterless instance constructor
                           ~
 BC32083: Type argument 'B' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Property P2 As I(Of B)
-                        ~
+             ~~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
     Property P3 As I(Of C)
-                        ~
+             ~~
 BC32083: Type argument 'C' must have a public parameterless instance constructor to satisfy the 'New' constraint for type parameter 'T'.
         Set(value As I(Of C))
             ~~~~~

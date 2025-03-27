@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// Symbol set used when <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> is <see

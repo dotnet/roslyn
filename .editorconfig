@@ -151,6 +151,9 @@ dotnet_public_api_analyzer.require_api_files = true
 # Workaround for https://github.com/dotnet/roslyn/issues/70570
 dotnet_diagnostic.IDE0055.severity = warning
 
+# https://github.com/dotnet/roslyn-analyzers/issues/7436 - False positives from valid GetDeclaredSymbol calls
+dotnet_diagnostic.RS1039.severity = none
+
 # These xUnit analyzers were disabled temporarily to let us move to the 
 # new xUnit and get past several component governance issues. The
 # following issue tracks enabling them

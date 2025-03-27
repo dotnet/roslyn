@@ -19,7 +19,7 @@ internal partial class RemoveUnusedReferencesDialog : DialogWindow
     public string RemoveUnusedReferences => ServicesVSResources.Remove_Unused_References;
     public string HelpText => ServicesVSResources.Choose_which_action_you_would_like_to_perform_on_the_unused_references;
     public string Apply => ServicesVSResources.Apply;
-    public string Cancel => ServicesVSResources.Cancel;
+    public string Cancel => EditorFeaturesResources.Cancel;
 
     private readonly UnusedReferencesTableProvider _tableProvider;
 

@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 {
                     if (previousResult.TextDocument != null)
                     {
-                        var document = context.Solution.GetDocument(previousResult.TextDocument);
+                        var document = await context.Solution.GetDocumentAsync(previousResult.TextDocument, cancellationToken).ConfigureAwait(false);
                         if (document == null)
                         {
                             // We can no longer get this document, return null for both diagnostics and resultId
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var project = document.Project;
-            return xamlDiagnostics.Value.Select(d => new VSDiagnostic()
+            return [.. xamlDiagnostics.Value.Select(d => new VSDiagnostic()
             {
                 Code = d.Code,
                 Message = d.Message ?? string.Empty,
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                         ProjectName = project.Name,
                     },
                 ],
-            }).ToArray();
+            })];
         }
 
         private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(XamlDiagnosticSeverity severity)

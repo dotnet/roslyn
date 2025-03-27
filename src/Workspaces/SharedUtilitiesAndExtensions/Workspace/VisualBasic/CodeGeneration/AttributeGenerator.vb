@@ -28,14 +28,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateAttribute(attribute As AttributeData, options As CodeGenerationContextInfo, target As SyntaxToken?) As AttributeSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForAttribute(Of AttributeSyntax)(attribute, options)
+            Dim reusableSyntax = If(options.Context.ReuseSyntax,
+                GetReuseableSyntaxNodeForAttribute(Of AttributeSyntax)(attribute),
+                Nothing)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If
 
-            Return SyntaxFactory.Attribute(If(target.HasValue, SyntaxFactory.AttributeTarget(target.Value), Nothing),
-                                           attribute.AttributeClass.GenerateTypeSyntax(),
-                                           GenerateArgumentList(options.Generator, attribute))
+            Return SyntaxFactory.Attribute(
+                If(target.HasValue, SyntaxFactory.AttributeTarget(target.Value), Nothing),
+                attribute.AttributeClass.GenerateTypeSyntax(),
+                GenerateArgumentList(options.Generator, attribute))
         End Function
 
         Private Function GenerateArgumentList(generator As SyntaxGenerator, attribute As AttributeData) As ArgumentListSyntax

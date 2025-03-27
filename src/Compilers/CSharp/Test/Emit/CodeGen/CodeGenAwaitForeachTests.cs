@@ -4821,8 +4821,8 @@ public static class Extensions
             CompileAndVerify(comp, expectedOutput: "NextAsync(0) Current(1) Got(1,-1) NextAsync(1) Current(2) Got(2,-2) NextAsync(2) Dispose(3) Done");
         }
 
-        [Fact]
-        public void TestWithPatternAndObsolete()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
+        public void TestWithPatternAndObsolete_WithDisposableInterface()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -4852,6 +4852,9 @@ class C
 }";
             var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.DisposeAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.DisposeAsync()").WithLocation(7, 15),
                 // (7,15): warning CS0612: 'C.GetAsyncEnumerator(CancellationToken)' is obsolete
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(7, 15),
@@ -4862,7 +4865,81 @@ class C
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 15)
                 );
-            // Note: Obsolete on DisposeAsync is not reported since always called through IAsyncDisposable interface
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    [System.Obsolete]
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        throw null;
+    }
+    [System.Obsolete]
+    public sealed class AsyncEnumerator
+    {
+        [System.Obsolete]
+        public int Current { get => throw null; }
+        [System.Obsolete]
+        public Task<bool> MoveNextAsync() => throw null;
+        [System.Obsolete]
+        public ValueTask DisposeAsync() => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.DisposeAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.DisposeAsync()").WithLocation(7, 15),
+                // (7,15): warning CS0612: 'C.GetAsyncEnumerator(CancellationToken)' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetAsyncEnumerator(System.Threading.CancellationToken)").WithLocation(7, 15),
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.MoveNextAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(7, 15),
+                // (7,15): warning CS0612: 'C.AsyncEnumerator.Current' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 15)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
+        public void TestWithPatternAndObsolete_WithExplicitInterfaceImplementation()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        throw null;
+    }
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current { get => throw null; }
+        public Task<bool> MoveNextAsync() => throw null;
+        [System.Obsolete]
+        ValueTask System.IAsyncDisposable.DisposeAsync() => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -8495,6 +8572,9 @@ public static class Extensions
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (8,15): warning CS0612: 'C.Enumerator.DisposeAsync()' is obsolete
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.Enumerator.DisposeAsync()").WithLocation(8, 15),
                 // (8,15): warning CS0612: 'Extensions.GetAsyncEnumerator(C)' is obsolete
                 //         await foreach (var i in new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("Extensions.GetAsyncEnumerator(C)").WithLocation(8, 15),

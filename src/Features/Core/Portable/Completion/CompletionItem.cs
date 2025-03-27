@@ -543,7 +543,14 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     }
 
     internal string GetEntireDisplayText()
-        => _lazyEntireDisplayText ??= DisplayTextPrefix + DisplayText + DisplayTextSuffix;
+    {
+        // Avoid allocating in common case where prefix and suffix are empty
+        _lazyEntireDisplayText ??= (DisplayTextPrefix.Length > 0 || DisplayTextSuffix.Length > 0)
+            ? DisplayTextPrefix + DisplayText + DisplayTextSuffix
+            : DisplayText;
+
+        return _lazyEntireDisplayText;
+    }
 
     public override string ToString() => GetEntireDisplayText();
 }

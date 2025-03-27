@@ -302,6 +302,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property IsOverloads As Boolean
 
         ''' <summary>
+        ''' Gets the resolution priority of this property, 0 if not set.
+        ''' </summary>
+        Public ReadOnly Property OverloadResolutionPriority As Integer
+            Get
+                Return If(CanHaveOverloadResolutionPriority, GetOverloadResolutionPriority(), 0)
+            End Get
+        End Property
+
+        Public MustOverride Function GetOverloadResolutionPriority() As Integer
+
+        Public ReadOnly Property CanHaveOverloadResolutionPriority As Boolean
+            Get
+                Return Not IsOverrides
+            End Get
+        End Property
+
+        ''' <summary>
         ''' If this property overrides another property (because it both had the Overrides modifier
         ''' and there correctly was a property to override), returns the overridden property.
         ''' </summary>

@@ -60,7 +60,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
         SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+        var ifStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;

@@ -587,7 +587,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+        public static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
         protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
@@ -760,6 +760,20 @@ namespace System.Diagnostics.CodeAnalysis
                 .property instance int32 Priority()
                 {
                     .get instance int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::get_Priority()
+                }
+            }
+            """;
+
+        /// <summary>
+        /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
+        /// </summary>
+        internal const string CompilerLoweringPreserveAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+                public class CompilerLoweringPreserveAttribute : Attribute
+                {
+                    public CompilerLoweringPreserveAttribute() { }
                 }
             }
             """;
@@ -1311,7 +1325,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
-                assemblyName == "" ? GetUniqueName() : assemblyName,
+                string.IsNullOrEmpty(assemblyName) ? GetUniqueName() : assemblyName,
                 syntaxTrees,
                 references,
                 options);
@@ -2345,6 +2359,24 @@ namespace System.Diagnostics.CodeAnalysis
             else
             {
                 var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+                return CreateCompilation(
+                    text,
+                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    options: options,
+                    parseOptions: parseOptions);
+            }
+        }
+
+        protected static CSharpCompilation CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, TargetFramework targetFramework = TargetFramework.NetCoreApp)
+        {
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                return CreateCompilation(text, targetFramework: targetFramework, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilation(new[] { TestSources.Index, TestSources.Range, TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
                 return CreateCompilation(
                     text,

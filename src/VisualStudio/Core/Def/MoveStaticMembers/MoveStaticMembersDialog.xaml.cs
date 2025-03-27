@@ -5,6 +5,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
@@ -17,7 +18,7 @@ internal partial class MoveStaticMembersDialog : DialogWindow
     public string MoveStaticMembersDialogTitle => ServicesVSResources.Move_static_members_to_another_type_colon;
     public string DestinationLabelText => ServicesVSResources.Type_Name;
     public string OK => ServicesVSResources.OK;
-    public string Cancel => ServicesVSResources.Cancel;
+    public string Cancel => EditorFeaturesResources.Cancel;
     public string SelectMembers => ServicesVSResources.Select_members_colon;
 
     public MoveStaticMembersDialogViewModel ViewModel { get; }

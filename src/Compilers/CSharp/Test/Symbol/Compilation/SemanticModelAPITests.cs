@@ -4745,6 +4745,24 @@ class C(out Type[M2(out object y)])
             Assert.Null(model.GetAliasInfo(identifier));
         }
 
+        [Fact]
+        public void CommonPreprocessingSymbolProperties()
+        {
+            var text = """
+                #if NET5_0_OR_GREATER
+                #endif
+                """;
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var identifier = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().First();
+            var model = compilation.GetSemanticModel(tree);
+            var preprocessingSymbol = model.GetPreprocessingSymbolInfo(identifier).Symbol;
+            Assert.NotNull(preprocessingSymbol);
+            Assert.Equal("NET5_0_OR_GREATER", preprocessingSymbol.Name);
+            Assert.True(preprocessingSymbol.CanBeReferencedByName);
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {

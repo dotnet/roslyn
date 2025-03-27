@@ -81,6 +81,8 @@ internal static class BrokeredServiceDescriptors
         CreateDebuggerServiceDescriptor("SymbolLocatorService", new Version(0, 1), new MultiplexingStream.Options { ProtocolMajorVersion = 3 });
     public static readonly ServiceRpcDescriptor DebuggerSourceLinkService =
         CreateDebuggerServiceDescriptor("SourceLinkService", new Version(0, 1), new MultiplexingStream.Options { ProtocolMajorVersion = 3 });
+    public static readonly ServiceRpcDescriptor ProjectSystemQueryExecutionService =
+        CreateDescriptor(new ServiceMoniker("Microsoft.VisualStudio.ProjectSystem.Query.Remoting.QueryExecutionService", new Version(0, 2)));
 
     public static ServiceMoniker CreateMoniker(string namespaceName, string componentName, string serviceName, Version? version)
         => new(namespaceName + "." + componentName + "." + serviceName, version);

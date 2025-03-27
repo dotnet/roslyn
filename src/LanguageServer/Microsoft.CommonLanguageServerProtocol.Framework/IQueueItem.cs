@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,6 +37,12 @@ internal interface IQueueItem<TRequestContext>
     /// If there was a recoverable failure in creating the request, this will return null and the caller should stop processing the request.
     /// </summary>
     Task<(TRequestContext, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Handles when the queue needs to manually fail a request before the
+    /// handler is invoked without shutting down the entire queue.
+    /// </summary>
+    void FailRequest(string message);
 
     /// <summary>
     /// Provides access to LSP services.

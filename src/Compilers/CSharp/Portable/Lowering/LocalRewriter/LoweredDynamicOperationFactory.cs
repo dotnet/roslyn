@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -547,8 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RefKind.None;
             }
 
-            var hasHome = Binder.HasHome(loweredReceiver,
-                Binder.AddressKind.Writeable,
+            var hasHome = CodeGenerator.HasHome(loweredReceiver,
+                CodeGenerator.AddressKind.Writeable,
                 _factory.CurrentFunction,
                 peVerifyCompatEnabled: false,
                 stackLocalsOpt: null);

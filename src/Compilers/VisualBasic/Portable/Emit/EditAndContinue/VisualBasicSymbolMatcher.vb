@@ -478,6 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Debug.Assert(type.AllowsRefLikeType = other.AllowsRefLikeType)
                 Debug.Assert(type.HasReferenceTypeConstraint = other.HasReferenceTypeConstraint)
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length = other.ConstraintTypesNoUseSiteDiagnostics.Length)
+                Debug.Assert(type.HasUnmanagedTypeConstraint = other.HasUnmanagedTypeConstraint)
                 Return True
             End Function
 

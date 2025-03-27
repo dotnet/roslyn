@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -51,35 +52,54 @@ internal static class ITextImageHelpers
         }
 
         if (changes == null)
-        {
             return [];
-        }
-        else
+
+        var builder = new FixedSizeArrayBuilder<TextChangeRange>(changes.Count);
+        for (var i = 0; i < changes.Count; i++)
         {
-            return ImmutableArray.CreateRange(changes.Select(forward ? s_forwardTextChangeRange : s_backwardTextChangeRange));
+            var change = changes[i];
+            builder.Add(forward ? s_forwardTextChangeRange(change) : s_backwardTextChangeRange(change));
         }
+
+        return builder.MoveToImmutable();
     }
 
     private static TextChangeRange GetChangeRanges(ITextImageVersion oldVersion, ITextImageVersion newVersion, bool forward)
     {
         TextChangeRange? range = null;
-        var iterator = GetMultipleVersionTextChanges(oldVersion, newVersion, forward);
-        foreach (var changes in forward ? iterator : iterator.Reverse())
+        using var _ = ArrayBuilder<ArrayBuilder<TextChangeRange>>.GetInstance(out var builder);
+
+        GetMultipleVersionTextChanges(oldVersion, newVersion, forward, builder);
+        foreach (var changes in builder)
         {
             range = range.Accumulate(changes);
+            changes.Free();
         }
 
         RoslynDebug.Assert(range.HasValue);
         return range.Value;
     }
 
-    private static IEnumerable<IEnumerable<TextChangeRange>> GetMultipleVersionTextChanges(
-        ITextImageVersion oldVersion, ITextImageVersion newVersion, bool forward)
+    private static void GetMultipleVersionTextChanges(
+        ITextImageVersion oldVersion,
+        ITextImageVersion newVersion,
+        bool forward,
+        ArrayBuilder<ArrayBuilder<TextChangeRange>> builder)
     {
         for (var version = oldVersion; version != newVersion; version = version.Next)
         {
-            yield return version.Changes.Select(forward ? s_forwardTextChangeRange : s_backwardTextChangeRange);
+            var changes = ArrayBuilder<TextChangeRange>.GetInstance(version.Changes.Count);
+            for (var i = 0; i < version.Changes.Count; i++)
+            {
+                var change = version.Changes[i];
+                changes.Add(forward ? s_forwardTextChangeRange(change) : s_backwardTextChangeRange(change));
+            }
+
+            builder.Add(changes);
         }
+
+        if (!forward)
+            builder.ReverseContents();
     }
 
     private static TextChangeRange CreateTextChangeRange(ITextChange change, bool forward)

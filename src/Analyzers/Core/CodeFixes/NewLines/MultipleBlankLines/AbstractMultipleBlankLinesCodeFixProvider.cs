@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveBlankLines), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
+internal sealed class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.MultipleBlankLinesDiagnosticId];
@@ -130,7 +130,7 @@ internal class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
             currentStart++;
         }
 
-        return new SyntaxTriviaList(builder.ToImmutable());
+        return [.. builder.ToImmutable()];
     }
 
     private static bool IsEndOfLine(ISyntaxKindsService syntaxKinds, SyntaxTriviaList triviaList, int index)

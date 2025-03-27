@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis;
 // <Metalama> Changed from C# 12 using for a tuple to direct usages of the tuple type in this file, so avoid breaking .Net 6 JSON source generator
 // using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal readonly record struct MetadataReferenceInfo(MetadataReferenceProperties Properties, string? FilePath)
     {

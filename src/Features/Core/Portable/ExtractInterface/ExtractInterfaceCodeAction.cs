@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
 
-internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
+internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
 {
     private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
     private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
@@ -22,12 +22,13 @@ internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extrac
             ? string.Empty
             : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-        return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
+        return AbstractExtractInterfaceService.GetExtractInterfaceOptions(
             _typeAnalysisResult.DocumentToExtractFrom,
             _typeAnalysisResult.TypeToExtractFrom,
             _typeAnalysisResult.ExtractableMembers,
             containingNamespaceDisplay,
-            cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            _typeAnalysisResult.FormattingOptions,
+            cancellationToken);
     }
 
     protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
@@ -37,16 +38,14 @@ internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extrac
 
         if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
         {
-            var extractInterfaceResult = await _extractInterfaceService
-                    .ExtractInterfaceFromAnalyzedTypeAsync(_typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
+            var extractInterfaceResult = await _extractInterfaceService.ExtractInterfaceFromAnalyzedTypeAsync(
+                _typeAnalysisResult, extractInterfaceOptions, cancellationToken).ConfigureAwait(false);
 
             if (extractInterfaceResult.Succeeded)
             {
-                operations = new CodeActionOperation[]
-                {
+                operations = [
                     new ApplyChangesOperation(extractInterfaceResult.UpdatedSolution),
-                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)
-                };
+                    new DocumentNavigationOperation(extractInterfaceResult.NavigationDocumentId, position: 0)];
             }
         }
 

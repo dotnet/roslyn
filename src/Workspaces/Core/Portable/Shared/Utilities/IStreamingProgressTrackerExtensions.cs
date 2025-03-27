@@ -23,7 +23,7 @@ internal static class IStreamingProgressTrackerExtensions
     public static ValueTask ItemCompletedAsync(this IStreamingProgressTracker tracker, CancellationToken cancellationToken)
         => tracker.ItemsCompletedAsync(1, cancellationToken);
 
-    private class StreamingProgressDisposer(IStreamingProgressTracker progressTracker, CancellationToken cancellationToken) : IAsyncDisposable
+    private sealed class StreamingProgressDisposer(IStreamingProgressTracker progressTracker, CancellationToken cancellationToken) : IAsyncDisposable
     {
         public async ValueTask DisposeAsync()
             => await progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);

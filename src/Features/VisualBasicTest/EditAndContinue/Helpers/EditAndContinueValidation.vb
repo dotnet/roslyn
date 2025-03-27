@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Friend Module EditAndContinueValidation
         <Extension>
         Friend Sub VerifyLineEdits(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             lineEdits As SourceLineUpdate(),
             Optional semanticEdits As SemanticEditDescription() = Nothing,
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifyLineEdits(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             lineEdits As SequencePointUpdates(),
             Optional semanticEdits As SemanticEditDescription() = Nothing,
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemanticDiagnostics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             ParamArray diagnostics As RudeEditDiagnosticDescription())
 
             VerifySemanticDiagnostics(editScript, activeStatements:=Nothing, targetFrameworks:=Nothing, capabilities:=Nothing, diagnostics)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemanticDiagnostics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             activeStatements As ActiveStatementsDescription,
             ParamArray diagnostics As RudeEditDiagnosticDescription())
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemanticDiagnostics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             diagnostics As RudeEditDiagnosticDescription(),
             capabilities As EditAndContinueCapabilities?)
 
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemanticDiagnostics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             Optional activeStatements As ActiveStatementsDescription = Nothing,
             Optional targetFrameworks As TargetFramework() = Nothing,
             Optional capabilities As EditAndContinueCapabilities? = Nothing,
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemantics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             Optional activeStatements As ActiveStatementsDescription = Nothing,
             Optional semanticEdits As SemanticEditDescription() = Nothing,
             Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemantics(
-            editScripts As EditScript(Of SyntaxNode)(),
+            editScripts As EditScriptDescription(),
             expected As DocumentAnalysisResultsDescription(),
             Optional targetFrameworks As TargetFramework() = Nothing,
             Optional capabilities As EditAndContinueCapabilities? = Nothing)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemantics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             semanticEdits As SemanticEditDescription(),
             capabilities As EditAndContinueCapabilities)
 
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         <Extension>
         Friend Sub VerifySemantics(
-            editScript As EditScript(Of SyntaxNode),
+            editScript As EditScriptDescription,
             ParamArray semanticEdits As SemanticEditDescription())
 
             VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits)

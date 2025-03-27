@@ -105,7 +105,7 @@ internal readonly struct SerializableRenameLocation(
     }
 }
 
-internal partial class LightweightRenameLocations
+internal sealed partial class LightweightRenameLocations
 {
     public SerializableRenameLocations Dehydrate()
         => new(
@@ -115,7 +115,7 @@ internal partial class LightweightRenameLocations
             _referencedSymbols);
 }
 
-internal partial class SymbolicRenameLocations
+internal sealed partial class SymbolicRenameLocations
 {
     internal static async Task<SymbolicRenameLocations?> TryRehydrateAsync(
         ISymbol symbol, Solution solution, SerializableRenameLocations serializableLocations, CancellationToken cancellationToken)

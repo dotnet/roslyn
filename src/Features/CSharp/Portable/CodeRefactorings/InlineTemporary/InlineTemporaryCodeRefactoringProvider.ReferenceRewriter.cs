@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 
-internal partial class CSharpInlineTemporaryCodeRefactoringProvider
+internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
 {
-    private class ReferenceRewriter : CSharpSyntaxRewriter
+    private sealed class ReferenceRewriter : CSharpSyntaxRewriter
     {
         private readonly ISet<IdentifierNameSyntax> _conflictReferences;
         private readonly ISet<IdentifierNameSyntax> _nonConflictReferences;

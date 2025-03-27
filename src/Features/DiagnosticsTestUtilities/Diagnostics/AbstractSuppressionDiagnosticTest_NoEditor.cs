@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         {
-            return actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
+            return [.. actions.SelectMany(a => a is AbstractConfigurationActionWithNestedActions
                 ? a.NestedActions
-                : ImmutableArray.Create(a)).ToImmutableArray();
+                : [a])];
         }
 
         private ImmutableArray<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 diagnostics = diagnostics.Where(d => d.IsSuppressed);
             }
 
-            return diagnostics.ToImmutableArray();
+            return [.. diagnostics];
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(

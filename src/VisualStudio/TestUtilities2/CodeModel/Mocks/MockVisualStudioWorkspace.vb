@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             Throw New NotImplementedException()
         End Sub
 
-        Friend Overrides Function GetBrowseObject(symbolListItem As SymbolListItem) As Object
+        Friend Overrides Function GetBrowseObjectAsync(symbolListItem As SymbolListItem, cancellationToken As CancellationToken) As Task(Of Object)
             Throw New NotImplementedException()
         End Function
 

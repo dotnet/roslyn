@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
+                    CodeAnalysisEventSource.Log.CreateAssemblyLoadContext(fullDirectoryPath);
                     loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
@@ -111,9 +112,11 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     context.Unload();
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString());
                 }
             }
 

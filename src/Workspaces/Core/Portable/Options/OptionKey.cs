@@ -26,12 +26,12 @@ public readonly record struct OptionKey
 
         if (language != null && !option.IsPerLanguage)
         {
-            throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
+            throw new ArgumentException(CompilerExtensionsResources.A_language_name_cannot_be_specified_for_this_option);
         }
 
         if (language == null && option.IsPerLanguage)
         {
-            throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
+            throw new ArgumentNullException(CompilerExtensionsResources.A_language_name_must_be_specified_for_this_option);
         }
 
         Option = option;

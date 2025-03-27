@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -29,44 +28,35 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
         if (GetInitializedType(document, semanticModel, position, cancellationToken) is not var (type, initializerLocation))
-        {
             return;
-        }
 
         if (type is ITypeParameterSymbol typeParameterSymbol)
-        {
             type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
-        }
 
         if (type is not INamedTypeSymbol initializedType)
-        {
             return;
-        }
 
         if (await IsExclusiveAsync(document, position, cancellationToken).ConfigureAwait(false))
-        {
             context.IsExclusive = true;
-        }
 
         var enclosing = semanticModel.GetEnclosingNamedType(position, cancellationToken);
         Contract.ThrowIfNull(enclosing);
 
         // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
-        IEnumerable<ISymbol> members = semanticModel.LookupSymbols(position, initializedType);
-        members = members.Where(m => IsInitializable(m, enclosing) &&
-                                     m.CanBeReferencedByName &&
-                                     IsLegalFieldOrProperty(m) &&
-                                     !m.IsImplicitlyDeclared);
+        var members = semanticModel
+            .LookupSymbols(position, initializedType)
+            .Where(m => IsInitializableFieldOrProperty(m, enclosing));
 
         // Filter out those members that have already been typed
         var alreadyTypedMembers = GetInitializedMembers(semanticModel.SyntaxTree, position, cancellationToken);
         var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
         // Sort the members by name so if we preselect one, it'll be stable
-        uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
-                                                   .OrderBy(m => m.Name);
+        uninitializedMembers = uninitializedMembers
+            .Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
+            .OrderBy(m => m.Name);
 
-        var firstUnitializedRequiredMember = true;
+        var firstUninitializedRequiredMember = true;
 
         foreach (var uninitializedMember in uninitializedMembers)
         {
@@ -74,17 +64,17 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
             // We'll hard select the first required member to make it a bit easier to type out an object initializer
             // with a bunch of members.
-            if (firstUnitializedRequiredMember && uninitializedMember.IsRequired())
+            if (firstUninitializedRequiredMember && uninitializedMember.IsRequired())
             {
                 rules = rules.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect);
-                firstUnitializedRequiredMember = false;
+                firstUninitializedRequiredMember = false;
             }
 
             context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: EscapeIdentifier(uninitializedMember),
                 displayTextSuffix: "",
                 insertionText: null,
-                symbols: ImmutableArray.Create(uninitializedMember),
+                symbols: [uninitializedMember],
                 contextPosition: initializerLocation.SourceSpan.Start,
                 inlineDescription: uninitializedMember.IsRequired() ? FeaturesResources.Required : null,
                 rules: rules));
@@ -96,36 +86,82 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
     protected abstract Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken);
 
-    private static bool IsLegalFieldOrProperty(ISymbol symbol)
-    {
-        return symbol.IsWriteableFieldOrProperty()
-            || symbol.ContainingType.IsAnonymousType
-            || CanSupportObjectInitializer(symbol);
-    }
-
     private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(enterKeyRule: EnterKeyRule.Never);
 
-    protected virtual bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
+    protected virtual bool IsInitializableFieldOrProperty(ISymbol fieldOrProperty, INamedTypeSymbol containingType)
     {
-        return
-            !member.IsStatic &&
-            member.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
-            member.IsAccessibleWithin(containingType);
-    }
-
-    private static bool CanSupportObjectInitializer(ISymbol symbol)
-    {
-        Debug.Assert(!symbol.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
-
-        if (symbol is IFieldSymbol fieldSymbol)
+        if (!fieldOrProperty.IsStatic &&
+            !fieldOrProperty.IsImplicitlyDeclared &&
+            fieldOrProperty.CanBeReferencedByName &&
+            fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
+            fieldOrProperty.IsAccessibleWithin(containingType))
         {
-            return !fieldSymbol.Type.IsStructType();
-        }
-        else if (symbol is IPropertySymbol propertySymbol)
-        {
-            return !propertySymbol.Type.IsStructType();
+            if (fieldOrProperty.IsWriteableFieldOrProperty() ||
+                fieldOrProperty.ContainingType.IsAnonymousType ||
+                CanSupportObjectInitializer(fieldOrProperty))
+            {
+                return true;
+            }
         }
 
-        throw ExceptionUtilities.Unreachable();
+        return false;
+
+        static bool CanSupportObjectInitializer(ISymbol fieldOrProperty)
+        {
+            Debug.Assert(!fieldOrProperty.IsWriteableFieldOrProperty(), "Assertion failed - expected writable field/property check before calling this method.");
+
+            return MemberTypeCanSupportObjectInitializer(fieldOrProperty switch
+            {
+                IFieldSymbol fieldSymbol => fieldSymbol.Type,
+                IPropertySymbol propertySymbol => propertySymbol.Type,
+                _ => throw ExceptionUtilities.Unreachable()
+            });
+        }
+
+        static bool MemberTypeCanSupportObjectInitializer(ITypeSymbol type)
+        {
+            // NOTE: While in C# it is legal to write 'Member = {}' on a member of any of
+            // the ruled out types below, it has no effects and is thus a needless recommendation
+            // Example of the above case:
+            /*
+                class C
+                {
+                    string S { get; }
+                }
+
+                new C()
+                {
+                    S = {},
+                };
+            */
+
+            // We avoid some types that are common and easy to rule out
+            var definition = type.OriginalDefinition;
+            switch (definition.SpecialType)
+            {
+                case SpecialType.System_Enum:
+                case SpecialType.System_String:
+                case SpecialType.System_Object:
+                case SpecialType.System_Delegate:
+                case SpecialType.System_MulticastDelegate:
+
+                // We cannot use collection initializers in symbols of type `System.Array` (as opposed to actual
+                // instantiations like `int[]`).
+                case SpecialType.System_Array:
+
+                // We cannot add to an enumerable or enumerator
+                // so we cannot use a collection initializer
+                case SpecialType.System_Collections_IEnumerable:
+                case SpecialType.System_Collections_IEnumerator:
+                case SpecialType.System_Collections_Generic_IEnumerable_T:
+                case SpecialType.System_Collections_Generic_IEnumerator_T:
+                    return false;
+            }
+
+            // - Delegate types have no settable members, which is the case for Delegate and MulticastDelegate too
+            // - Non-settable struct members cannot be used in object initializers
+            // - Pointers and function pointers do not have accessible members
+            return type.TypeKind is not (TypeKind.Delegate or TypeKind.Struct or TypeKind.FunctionPointer or TypeKind.Pointer);
+        }
     }
 }

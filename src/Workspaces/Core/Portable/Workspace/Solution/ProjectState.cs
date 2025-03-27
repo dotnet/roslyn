@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -24,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class ProjectState
+internal sealed partial class ProjectState
 {
     public readonly LanguageServices LanguageServices;
 
@@ -49,10 +47,11 @@ internal partial class ProjectState
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentVersion;
     private readonly AsyncLazy<VersionStamp> _lazyLatestDocumentTopLevelChangeVersion;
 
-    // Checksums for this solution state
-    private readonly AsyncLazy<ProjectStateChecksums> _lazyChecksums;
+    // Checksums for this solution state (access via LazyChecksums)
+    private AsyncLazy<ProjectStateChecksums>? _lazyChecksums;
 
-    private readonly AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> _lazyContentHashToDocumentId;
+    // Mapping from content has to document id (access via LazyContentHashToDocumentId)
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>>? _lazyContentHashToDocumentId;
 
     /// <summary>
     /// Analyzer config options to be used for specific trees.
@@ -87,9 +86,6 @@ internal partial class ProjectState
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
@@ -128,9 +124,6 @@ internal partial class ProjectState
         // the info has changed by DocumentState.
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
-
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
-        _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
@@ -158,6 +151,38 @@ internal partial class ProjectState
         return result;
     }
 
+    private AsyncLazy<ProjectStateChecksums> LazyChecksums
+    {
+        get
+        {
+            if (_lazyChecksums is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyChecksums,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyChecksums;
+        }
+    }
+
+    private AsyncLazy<Dictionary<ImmutableArray<byte>, DocumentId>> LazyContentHashToDocumentId
+    {
+        get
+        {
+            if (_lazyContentHashToDocumentId is null)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyContentHashToDocumentId,
+                    AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this),
+                    null);
+            }
+
+            return _lazyContentHashToDocumentId;
+        }
+    }
+
     private static ProjectInfo ClearAllDocumentsFromProjectInfo(ProjectInfo projectInfo)
     {
         return projectInfo
@@ -168,7 +193,7 @@ internal partial class ProjectState
 
     public async ValueTask<DocumentId?> GetDocumentIdAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
-        var map = await _lazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        var map = await LazyContentHashToDocumentId.GetValueAsync(cancellationToken).ConfigureAwait(false);
         return map.TryGetValue(contentHash, out var documentId) ? documentId : null;
     }
 
@@ -597,9 +622,9 @@ internal partial class ProjectState
     {
         var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
-        // This is unfortunate, however the impact of this is that *any* change to our project-state version will 
+        // This is unfortunate, however the impact of this is that *any* change to our project-state version will
         // cause us to think the semantic version of the project has changed.  Thus, any change to a project property
-        // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is 
+        // that does *not* flow into the compiler still makes us think the semantic version has changed.  This is
         // likely to not be too much of an issue as these changes should be rare, and it's better to be conservative
         // and assume there was a change than to wrongly presume there was not.
         return docVersion.GetNewerVersion(this.Version);
@@ -675,6 +700,9 @@ internal partial class ProjectState
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public bool RunAnalyzers => this.ProjectInfo.RunAnalyzers;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    internal bool HasSdkCodeStyleAnalyzers => this.ProjectInfo.HasSdkCodeStyleAnalyzers;
+
     private ProjectState With(
         ProjectInfo? projectInfo = null,
         TextDocumentStates<DocumentState>? documentStates = null,
@@ -735,6 +763,9 @@ internal partial class ProjectState
 
     public ProjectState WithRunAnalyzers(bool runAnalyzers)
         => (runAnalyzers == RunAnalyzers) ? this : WithNewerAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+
+    internal ProjectState WithHasSdkCodeStyleAnalyzers(bool hasSdkCodeStyleAnalyzers)
+    => (hasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers) ? this : WithNewerAttributes(Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers, version: Version.GetNewerVersion()));
 
     public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
     {
@@ -840,7 +871,7 @@ internal partial class ProjectState
         return With(projectInfo: ProjectInfo.With(metadataReferences: metadataReferences).WithVersion(Version.GetNewerVersion()));
     }
 
-    public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+    public ProjectState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
         if (analyzerReferences == AnalyzerReferences)
         {
@@ -962,7 +993,7 @@ internal partial class ProjectState
 
         var newDocumentStates = DocumentStates.SetStates(newDocuments);
 
-        // When computing the latest dependent version, we just need to know how 
+        // When computing the latest dependent version, we just need to know how
         GetLatestDependentVersions(
             newDocumentStates,
             AdditionalDocumentStates,

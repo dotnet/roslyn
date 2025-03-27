@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// Caches the skeleton references produced for a given project/compilation under the varying <see

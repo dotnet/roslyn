@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +37,7 @@ internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerate
     protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         => node is SimpleNameSyntax or PropertyDeclarationSyntax or MemberBindingExpressionSyntax;
 
-    protected override SyntaxNode GetTargetNode(SyntaxNode node)
+    protected override SyntaxNode? GetTargetNode(SyntaxNode node)
     {
         if (node.IsKind(SyntaxKind.MemberBindingExpression))
         {
@@ -54,10 +51,17 @@ internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerate
         return base.GetTargetNode(node);
     }
 
-    protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+    protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
+        // While this service is defined for C#, we support running in a torn environment, where we have compiled
+        // against the version in the features layer, but the value is provided from the code-fix layer.  In that case
+        // we just bail out.  This will not be necessary once we have the code that ensures no torn code scenarios
+        // happen regardless of which SDK you are running against.
         var service = document.GetLanguageService<IGenerateVariableService>();
-        return service.GenerateVariableAsync(document, node, cancellationToken);
+        if (service is null)
+            return [];
+
+        return await service.GenerateVariableAsync(document, node, cancellationToken).ConfigureAwait(false);
     }
 }

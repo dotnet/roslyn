@@ -9239,15 +9239,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundInterpolatedStringExpression
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, contents As ImmutableArray(Of BoundNode), constructionOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.InterpolatedStringExpression, syntax, type, hasErrors OrElse contents.NonNullAndHasErrors() OrElse constructionOpt.NonNullAndHasErrors())
 
             Debug.Assert(Not (contents.IsDefault), "Field 'contents' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Contents = contents
-            Me._Binder = binder
+            Me._ConstructionOpt = constructionOpt
 
             Validate()
         End Sub
@@ -9263,10 +9262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Binder As Binder
-        Public ReadOnly Property Binder As Binder
+        Private ReadOnly _ConstructionOpt As BoundExpression
+        Public ReadOnly Property ConstructionOpt As BoundExpression
             Get
-                Return _Binder
+                Return _ConstructionOpt
             End Get
         End Property
 
@@ -9275,9 +9274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitInterpolatedStringExpression(Me)
         End Function
 
-        Public Function Update(contents As ImmutableArray(Of BoundNode), binder As Binder, type As TypeSymbol) As BoundInterpolatedStringExpression
-            If contents <> Me.Contents OrElse binder IsNot Me.Binder OrElse type IsNot Me.Type Then
-                Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, binder, type, Me.HasErrors)
+        Public Function Update(contents As ImmutableArray(Of BoundNode), constructionOpt As BoundExpression, type As TypeSymbol) As BoundInterpolatedStringExpression
+            If contents <> Me.Contents OrElse constructionOpt IsNot Me.ConstructionOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundInterpolatedStringExpression(Me.Syntax, contents, constructionOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -13126,8 +13125,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
             Dim contents As ImmutableArray(Of BoundNode) = Me.VisitList(node.Contents)
+            Dim constructionOpt As BoundExpression = node.ConstructionOpt
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(contents, node.Binder, type)
+            Return node.Update(contents, constructionOpt, type)
         End Function
 
         Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
@@ -14589,7 +14589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("interpolatedStringExpression", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("contents", Nothing, From x In node.Contents Select Visit(x, Nothing)),
-                New TreeDumperNode("binder", node.Binder, Nothing),
+                New TreeDumperNode("constructionOpt", Nothing, new TreeDumperNode() {Visit(node.ConstructionOpt, Nothing)}),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

@@ -40,7 +40,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 searchResult,
                 new HighlightedText(
                     searchResult.NavigableItem.DisplayTaggedParts.JoinText(),
-                    searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan()).ToArray()),
+                    [.. searchResult.NameMatchSpans.NullToEmpty().Select(m => m.ToSpan())]),
                 new HighlightedText(
                     searchResult.AdditionalInformation,
                     []),
@@ -64,9 +64,9 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 return null;
 
             Uri? absoluteUri;
-            if (document.IsSourceGeneratedDocument)
+            if (document.SourceGeneratedDocumentIdentity is not null)
             {
-                absoluteUri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value);
             }
             else
             {

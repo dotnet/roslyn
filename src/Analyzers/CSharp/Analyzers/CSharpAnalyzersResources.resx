@@ -422,4 +422,7 @@
     <value>Use 'System.Threading.Lock'</value>
     <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
   </data>
+  <data name="Use_unbound_generic_type" xml:space="preserve">
+    <value>Use unbound generic type</value>
+  </data>
 </root>

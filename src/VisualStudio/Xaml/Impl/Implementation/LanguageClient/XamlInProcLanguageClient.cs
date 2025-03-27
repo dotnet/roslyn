@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
         }
 
-        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
+        protected override ImmutableArray<string> SupportedLanguages => [StringConstants.XamlLanguageName];
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {

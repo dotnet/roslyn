@@ -506,9 +506,7 @@ internal static partial class DependentTypeFinder
 
         // Finally, because we're searching metadata and source symbols, this needs to be a project
         // that actually supports compilations.
-        return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                             .Select(solution.GetRequiredProject)
-                                             .ToImmutableArray();
+        return [.. projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn).Select(solution.GetRequiredProject)];
     }
 
     private static bool TypeHasBaseTypeInSet(INamedTypeSymbol type, SymbolSet set)

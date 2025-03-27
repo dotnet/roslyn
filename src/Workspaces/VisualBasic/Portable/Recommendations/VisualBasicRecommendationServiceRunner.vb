@@ -368,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         Return associatedSymbol.Kind <> SymbolKind.Event AndAlso associatedSymbol.Kind <> SymbolKind.Property
                     End If
                 ElseIf s.Kind = SymbolKind.NamedType AndAlso s.IsImplicitlyDeclared Then
-                    Return Not TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol Is IEventSymbol
+                    Return TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol IsNot IEventSymbol
                 End If
 
                 Return True

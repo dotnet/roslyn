@@ -9398,7 +9398,7 @@ public static class CExt
             );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73934")]
         public void UnmanagedCallersOnlyDeclaredOnPatternDispose()
         {
             var comp = CreateCompilation(new[] { @"
@@ -9424,10 +9424,44 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
+                // 0.cs(7,9): error CS8901: 'SEnumerator.Dispose()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         foreach (var i in s) {}
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "foreach (var i in s) {}").WithArguments("SEnumerator.Dispose()").WithLocation(7, 9),
                 // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
-            );
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73934")]
+        public void UnmanagedCallersOnlyDeclaredOnPatternDispose_CollectionExpression()
+        {
+            var comp = CreateCompilation(new[] { @"
+using System.Runtime.InteropServices;
+public struct S
+{
+    public static void M2(S s)
+    {
+        int[] a = [42, ..s];
+    }
+    public SEnumerator GetEnumerator() => throw null;
+}
+public ref struct SEnumerator
+{
+    public bool MoveNext() => throw null;
+    public int Current => throw null;
+    [UnmanagedCallersOnly]
+    public void Dispose() => throw null;
+}
+", UnmanagedCallersOnlyAttribute });
+
+            comp.VerifyDiagnostics(
+                // 0.cs(7,24): error CS8901: 'SEnumerator.Dispose()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                //         int[] a = [42, ..s];
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "..s").WithArguments("SEnumerator.Dispose()").WithLocation(7, 24),
+                // 0.cs(15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
+                //     [UnmanagedCallersOnly]
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 6));
         }
 
         [Fact]

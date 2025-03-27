@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaSymbol : SourceMethodSymbolWithAttributes
+    internal sealed class LambdaSymbol : SourceMethodSymbol
     {
         private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
