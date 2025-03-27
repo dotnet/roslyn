@@ -77,8 +77,7 @@ internal sealed class DiagnosticArguments
         AnalysisKind? documentAnalysisKind,
         ProjectId projectId,
         ImmutableArray<string> projectAnalyzerIds,
-        ImmutableArray<string> hostAnalyzerIds,
-        bool isExplicit)
+        ImmutableArray<string> hostAnalyzerIds)
     {
         Debug.Assert(documentId != null || documentSpan == null);
         Debug.Assert(documentId != null || documentAnalysisKind == null);
