@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [UserVisible(true)]
-        private class InlineDiagnosticsErrorFormatDefinition : EditorFormatDefinition
+        private sealed class InlineDiagnosticsErrorFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
         [UserVisible(true)]
-        private class InlineDiagnosticsWarningFormatDefinition : EditorFormatDefinition
+        private sealed class InlineDiagnosticsWarningFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [UserVisible(true)]
-        private class InlineDiagnosticsRudeEditFormatDefinition : EditorFormatDefinition
+        private sealed class InlineDiagnosticsRudeEditFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
     [Name(RenameConflictTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class RenameConflictTagDefinition : MarkerFormatDefinition
+    internal sealed class RenameConflictTagDefinition : MarkerFormatDefinition
     {
         public static double StrokeThickness => 1.5;
         public static double[] StrokeDashArray => [8.0, 4.0];

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
-    public class EditorConfigOptionParserTests
+    public sealed class EditorConfigOptionParserTests
     {
         [Theory]
         [InlineData("expressions", SpacePlacementWithinParentheses.Expressions, "expressions")]

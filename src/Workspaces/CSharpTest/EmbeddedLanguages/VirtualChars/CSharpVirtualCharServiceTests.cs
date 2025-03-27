@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 {
-    public class CSharpVirtualCharServiceTests
+    public sealed class CSharpVirtualCharServiceTests
     {
         private const string _statementPrefix = "var v = ";
 

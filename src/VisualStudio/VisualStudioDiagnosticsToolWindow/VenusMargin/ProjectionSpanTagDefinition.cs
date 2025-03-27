@@ -15,7 +15,7 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 {
     [Export(typeof(EditorFormatDefinition))]
     [Name(ProjectionSpanTag.TagId)]
-    internal class ProjectionSpanTagDefinition : MarkerFormatDefinition
+    internal sealed class ProjectionSpanTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 {
-    public partial class CSharpJsonParserNstTests : CSharpJsonParserTests
+    public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     {
         private void TestNST(
             string stringText, string expected, string _, string strictDiagnostics, [CallerMemberName] string caller = "")

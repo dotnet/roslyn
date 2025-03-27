@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
-    internal class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSuggestedActionSet>
+    internal sealed class UnifiedSuggestedActionSetComparer : IComparer<UnifiedSuggestedActionSet>
     {
         private readonly TextSpan? _targetSpan;
 

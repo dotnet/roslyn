@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
-    public class WordSimilarityCheckerTests
+    public sealed class WordSimilarityCheckerTests
     {
         [Fact]
         public void TestCloseMatch()

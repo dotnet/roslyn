@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing a unicode character class for completion continuation.
     /// </summary>
-    internal class VSInternalContinueCharacterClass
+    internal sealed class VSInternalContinueCharacterClass
     {
         /// <summary>
         /// Gets the type value.

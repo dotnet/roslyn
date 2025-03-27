@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Services
 {
-    public class PerformanceTrackerServiceTests
+    public sealed class PerformanceTrackerServiceTests
     {
         private const int TestMinSampleSizeForDocumentAnalysis = 100;
         private const int TestMinSampleSizeForSpanAnalysis = 10;

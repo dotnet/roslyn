@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
 {
-    internal class CodeElementSnapshot : Snapshot
+    internal sealed class CodeElementSnapshot : Snapshot
     {
         private readonly ImmutableArray<EnvDTE.CodeElement> _elements;
 

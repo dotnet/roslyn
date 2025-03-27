@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// Cached data from a real <see cref="ProjectState"/> instance to the cached diagnostic data produced by

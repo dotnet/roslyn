@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Represents a view model for <see cref="NotificationOption"/>
     /// </summary>
-    internal class NotificationOptionViewModel
+    internal sealed class NotificationOptionViewModel
     {
         public NotificationOptionViewModel(NotificationOption2 notification, ImageMoniker moniker)
         {

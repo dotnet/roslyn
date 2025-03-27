@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
     // in Text.Logic and IntelliSense layers as an editor host provided service.
     [Export]
-    internal partial class TestExportJoinableTaskContext
+    internal sealed partial class TestExportJoinableTaskContext
     {
         public readonly IDispatcherTaskJoiner? DispatcherTaskJoiner;
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         // HACK: Part of ResetThreadAffinity
-        private class JoinableTaskFactoryTaskScheduler : TaskScheduler
+        private sealed class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {
             private readonly JoinableTaskFactory _joinableTaskFactory;
 

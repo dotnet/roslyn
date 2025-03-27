@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         public int GetHashCode(Diagnostic obj)
             => Hash.Combine(obj.Id, obj.Descriptor.Category.GetHashCode());
 
-        internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
+        internal sealed class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {
             private readonly DiagnosticDescriptor _descriptor =
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);

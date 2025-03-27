@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class TopLevelEditingTests : EditingTestBase
+public sealed class TopLevelEditingTests : EditingTestBase
 {
     private static readonly string s_attributeSource = @"
 [System.AttributeUsage(System.AttributeTargets.All)]class A : System.Attribute { public A() {} public A(int x) { } }

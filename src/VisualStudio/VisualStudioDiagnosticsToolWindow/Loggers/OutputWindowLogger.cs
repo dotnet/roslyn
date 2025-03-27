@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             OutputPane.WriteLine(string.Format("[{0}] End({1}) : [{2}ms] {3}", Environment.CurrentManagedThreadId, uniquePairId, delta, functionString));
         }
 
-        private class OutputPane
+        private sealed class OutputPane
         {
             private static readonly Guid s_outputPaneGuid = new Guid("BBAFF416-4AF5-41F2-9F93-91F283E43C3B");
 

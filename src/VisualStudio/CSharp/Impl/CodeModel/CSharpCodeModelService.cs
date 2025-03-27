@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     using static CSharpSyntaxTokens;
 
-    internal partial class CSharpCodeModelService : AbstractCodeModelService
+    internal sealed partial class CSharpCodeModelService : AbstractCodeModelService
     {
         private static readonly SyntaxTree s_emptyTree = SyntaxFactory.ParseSyntaxTree(SourceText.From("", encoding: null, SourceHashAlgorithms.Default));
 
@@ -3213,7 +3213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return GetEncompassingSpan(root, startToken, endToken);
         }
 
-        protected SyntaxNode InsertMemberNodeIntoContainerCore(int index, SyntaxNode member, SyntaxNode container)
+        private static SyntaxNode InsertMemberNodeIntoContainerCore(int index, SyntaxNode member, SyntaxNode container)
         {
             if (container is CompilationUnitSyntax compilationUnit)
             {

@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class ProjectInfoTests
+    public sealed class ProjectInfoTests
     {
         [Fact]
         public void Create_Errors_NullReferences()

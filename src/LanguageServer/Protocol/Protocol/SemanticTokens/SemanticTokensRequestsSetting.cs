@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensRequestsSetting
+    internal sealed class SemanticTokensRequestsSetting
     {
         /// <summary>
         /// The client will send the <c>textDocument/semanticTokens/range</c> request

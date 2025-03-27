@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
 {
-    public class NamingStylePreferenceEditorConfigStorageLocationTests
+    public sealed class NamingStylePreferenceEditorConfigStorageLocationTests
     {
         [Fact]
         public void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()

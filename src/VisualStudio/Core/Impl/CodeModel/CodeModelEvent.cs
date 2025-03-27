@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
-    internal class CodeModelEvent : IEquatable<CodeModelEvent>
+    internal sealed class CodeModelEvent : IEquatable<CodeModelEvent>
     {
         public readonly SyntaxNode Node;
         public readonly SyntaxNode ParentNode;

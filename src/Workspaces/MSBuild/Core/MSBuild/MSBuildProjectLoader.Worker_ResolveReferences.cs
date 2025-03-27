@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     public partial class MSBuildProjectLoader
     {
-        private partial class Worker
+        private sealed partial class Worker
         {
             private readonly struct ResolvedReferences
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// This type helps produces lists of metadata and project references. Initially, it contains a list of metadata references.
             /// As project references are added, the metadata references that match those project references are removed.
             /// </summary>
-            private class ResolvedReferencesBuilder
+            private sealed class ResolvedReferencesBuilder
             {
                 /// <summary>
                 /// The full list of <see cref="MetadataReference"/>s.

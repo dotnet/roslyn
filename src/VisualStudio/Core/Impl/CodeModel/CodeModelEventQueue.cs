@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
-    internal class CodeModelEventQueue
+    internal sealed class CodeModelEventQueue
     {
         private readonly Queue<CodeModelEvent> _eventQueue;
 

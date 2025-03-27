@@ -19,12 +19,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
-    internal partial class CSharpCodeModelService
+    internal sealed partial class CSharpCodeModelService
     {
         protected override AbstractNodeLocator CreateNodeLocator()
             => new NodeLocator();
 
-        private class NodeLocator : AbstractNodeLocator
+        private sealed class NodeLocator : AbstractNodeLocator
         {
             protected override string LanguageName => LanguageNames.CSharp;
 

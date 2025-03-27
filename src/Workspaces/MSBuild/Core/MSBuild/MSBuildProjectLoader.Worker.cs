@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     public partial class MSBuildProjectLoader
     {
-        private partial class Worker
+        private sealed partial class Worker
         {
             private readonly SolutionServices _solutionServices;
             private readonly DiagnosticReporter _diagnosticReporter;

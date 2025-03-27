@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     [Guid(Guids.CSharpOptionPageNamingStyleIdString)]
-    internal class NamingStylesOptionPage : AbstractOptionPage
+    internal sealed class NamingStylesOptionPage : AbstractOptionPage
     {
         private NamingStyleOptionPageControl _grid;
         private INotificationService _notificationService;

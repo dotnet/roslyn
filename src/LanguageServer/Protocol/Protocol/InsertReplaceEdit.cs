@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class InsertReplaceEdit
+    internal sealed class InsertReplaceEdit
     {
         /// <summary>
         /// Gets or sets the string to be inserted.

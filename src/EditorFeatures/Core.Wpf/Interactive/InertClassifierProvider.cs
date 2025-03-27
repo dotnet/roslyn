@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Interactive
     /// </summary>
     [Export(typeof(IClassifierProvider))]
     [TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)]
-    internal partial class InertClassifierProvider : IClassifierProvider
+    internal sealed partial class InertClassifierProvider : IClassifierProvider
     {
         private static readonly object s_classificationsKey = new object();
 

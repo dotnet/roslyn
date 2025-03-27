@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Xaml.Features
 {
     [ExportContentTypeLanguageService(ContentTypeNames.XamlContentType, StringConstants.XamlLanguageName), Shared]
-    internal class XamlContentTypeLanguageService : IContentTypeLanguageService
+    internal sealed class XamlContentTypeLanguageService : IContentTypeLanguageService
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
 

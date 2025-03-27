@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _loadedProjectInfo = _loadedProjectInfo.Clear();
         }
 
-        private class RemoteLanguageServiceSession : ICollaborationService, IDisposable
+        private sealed class RemoteLanguageServiceSession : ICollaborationService, IDisposable
         {
             public event EventHandler Disposed;
 

@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingTests_Patterns : CSharpFormattingTestBase
+    public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
     {
         [Theory, CombinatorialData]
         public async Task FormatRelationalPatterns1(

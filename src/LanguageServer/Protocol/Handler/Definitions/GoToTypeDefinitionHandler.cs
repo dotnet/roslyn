@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(GoToTypeDefinitionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentTypeDefinitionName)]
-    internal class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
+    internal sealed class GoToTypeDefinitionHandler : AbstractGoToDefinitionHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 {
-    internal class ExternalFilePeekableItem : PeekableItem
+    internal sealed class ExternalFilePeekableItem : PeekableItem
     {
         private readonly FileLinePositionSpan _span;
         private readonly IPeekRelationship _relationship;

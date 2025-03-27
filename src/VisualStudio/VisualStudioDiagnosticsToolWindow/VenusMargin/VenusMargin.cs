@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Projection;
 
 namespace Roslyn.Hosting.Diagnostics.VenusMargin
 {
-    internal class VenusMargin : IWpfTextViewMargin
+    internal sealed class VenusMargin : IWpfTextViewMargin
     {
         public const string MarginName = "VenusMargin";
 

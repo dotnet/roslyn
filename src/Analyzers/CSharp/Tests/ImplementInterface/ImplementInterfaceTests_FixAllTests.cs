@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpImplementInterfaceCodeFixProvider>;
 
-public class ImplementInterfaceTests_FixAllTests
+public sealed class ImplementInterfaceTests_FixAllTests
 {
     #region "Fix all occurrences tests"
 

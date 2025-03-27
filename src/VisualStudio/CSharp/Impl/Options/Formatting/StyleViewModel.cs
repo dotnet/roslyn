@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// <remarks>
     /// The codestyle options page is defined in <see cref="CodeStylePage"/>
     /// </remarks>
-    internal class StyleViewModel : AbstractOptionPreviewViewModel
+    internal sealed class StyleViewModel : AbstractOptionPreviewViewModel
     {
         #region "Preview Text"
 

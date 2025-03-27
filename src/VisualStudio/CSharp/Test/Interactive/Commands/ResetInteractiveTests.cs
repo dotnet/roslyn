@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     [UseExportProvider]
-    public class ResetInteractiveTests
+    public sealed class ResetInteractiveTests
     {
         private const string WorkspaceXmlStr =
 @"<Workspace>

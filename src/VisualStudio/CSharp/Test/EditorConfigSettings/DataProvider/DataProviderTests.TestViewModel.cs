@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider
 {
-    public partial class DataProviderTests
+    public sealed partial class DataProviderTests
     {
-        private class TestViewModel : ISettingsEditorViewModel
+        private sealed class TestViewModel : ISettingsEditorViewModel
         {
             public void NotifyOfUpdate() { }
 

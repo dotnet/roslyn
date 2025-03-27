@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 {
     [Export]
-    internal class CSharpLspRazorProjectFactory
+    internal sealed class CSharpLspRazorProjectFactory
     {
         private readonly RemoteLanguageServiceWorkspaceHost _remoteLanguageServiceWorkspaceHost;
         private readonly Dictionary<string, ProjectId> _projects = [];

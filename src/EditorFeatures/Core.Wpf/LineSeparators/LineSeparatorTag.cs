@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     /// <summary>
     /// Tag that specifies line separator.
     /// </summary>
-    internal class LineSeparatorTag : GraphicsTag
+    internal sealed class LineSeparatorTag : GraphicsTag
     {
         public LineSeparatorTag(IEditorFormatMap editorFormatMap)
             : base(editorFormatMap)

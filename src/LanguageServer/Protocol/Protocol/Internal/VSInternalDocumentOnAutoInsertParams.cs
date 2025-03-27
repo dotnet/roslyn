@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing the parameters sent for a textDocument/_ms_onAutoInsert request.
     /// </summary>
-    internal class VSInternalDocumentOnAutoInsertParams : ITextDocumentPositionParams
+    internal sealed class VSInternalDocumentOnAutoInsertParams : ITextDocumentPositionParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> representing the document to format.

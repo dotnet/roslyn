@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
-    internal partial class CSharpCodeModelService
+    internal sealed partial class CSharpCodeModelService
     {
         protected override AbstractNodeNameGenerator CreateNodeNameGenerator()
             => new NodeNameGenerator();
 
-        private class NodeNameGenerator : AbstractNodeNameGenerator
+        private sealed class NodeNameGenerator : AbstractNodeNameGenerator
         {
             protected override bool IsNameableNode(SyntaxNode node)
                 => CSharpCodeModelService.IsNameableNode(node);

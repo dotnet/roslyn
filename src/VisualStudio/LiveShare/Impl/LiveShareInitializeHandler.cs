@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
 
     [ExportLspRequestHandler(LiveShareConstants.RoslynContractName, Methods.InitializeName)]
     [Obsolete("Used for backwards compatibility with old liveshare clients.")]
-    internal class RoslynInitializeHandlerShim : LiveShareInitializeHandler
+    internal sealed class RoslynInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     }
 
     [ExportLspRequestHandler(LiveShareConstants.CSharpContractName, Methods.InitializeName)]
-    internal class CSharpInitializeHandlerShim : LiveShareInitializeHandler
+    internal sealed class CSharpInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Shims
     }
 
     [ExportLspRequestHandler(LiveShareConstants.VisualBasicContractName, Methods.InitializeName)]
-    internal class VisualBasicInitializeHandlerShim : LiveShareInitializeHandler
+    internal sealed class VisualBasicInitializeHandlerShim : LiveShareInitializeHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

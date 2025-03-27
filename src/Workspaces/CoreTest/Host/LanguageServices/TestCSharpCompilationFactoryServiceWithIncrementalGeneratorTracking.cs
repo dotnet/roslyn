@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [ExportLanguageService(typeof(ICompilationFactoryService), LanguageNames.CSharp, ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal class TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking : ICompilationFactoryService
+    internal sealed class TestCSharpCompilationFactoryServiceWithIncrementalGeneratorTracking : ICompilationFactoryService
     {
         private static readonly CSharpCompilationOptions s_defaultOptions = new(OutputKind.ConsoleApplication, concurrentBuild: false);
 

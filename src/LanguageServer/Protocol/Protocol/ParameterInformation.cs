@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     [JsonConverter(typeof(ParameterInformationConverter))]
-    internal class ParameterInformation
+    internal sealed class ParameterInformation
     {
         /// <summary>
         /// The label of this parameter information.

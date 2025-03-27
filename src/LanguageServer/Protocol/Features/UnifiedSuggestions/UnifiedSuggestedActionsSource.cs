@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Provides mutual code action logic for both local and LSP scenarios
     /// via intermediate interface <see cref="IUnifiedSuggestedAction"/>.
     /// </summary>
-    internal class UnifiedSuggestedActionsSource
+    internal sealed class UnifiedSuggestedActionsSource
     {
         /// <summary>
         /// Gets, filters, and orders code fixes.

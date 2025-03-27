@@ -8,7 +8,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class CSharpProjectFile : ProjectFile
+    internal sealed class CSharpProjectFile : ProjectFile
     {
         public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
             : base(loader, project, buildManager, log)

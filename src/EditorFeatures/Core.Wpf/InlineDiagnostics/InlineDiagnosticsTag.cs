@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal class InlineDiagnosticsTag : GraphicsTag
+    internal sealed class InlineDiagnosticsTag : GraphicsTag
     {
         public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;

@@ -200,7 +200,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 CancellationToken.None);
         }
 
-        private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
+        private sealed class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
         {
             private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
 

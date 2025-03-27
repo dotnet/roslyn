@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class AndKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class AndKeywordRecommenderTests : KeywordRecommenderTests
     {
         private const string InitializeObjectE = """
             var e = new object();

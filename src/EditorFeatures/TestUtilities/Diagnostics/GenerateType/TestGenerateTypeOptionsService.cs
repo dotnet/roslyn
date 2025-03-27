@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
     [ExportWorkspaceService(typeof(IGenerateTypeOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal class TestGenerateTypeOptionsService : IGenerateTypeOptionsService
+    internal sealed class TestGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         public Accessibility Accessibility = Accessibility.NotApplicable;
         public TypeKind TypeKind = TypeKind.Class;

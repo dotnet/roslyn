@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    internal class ManageNamingStylesDialogViewModel : AbstractNotifyPropertyChanged, IManageNamingStylesInfoDialogViewModel
+    internal sealed class ManageNamingStylesDialogViewModel : AbstractNotifyPropertyChanged, IManageNamingStylesInfoDialogViewModel
     {
         private readonly INotificationService _notificationService;
 

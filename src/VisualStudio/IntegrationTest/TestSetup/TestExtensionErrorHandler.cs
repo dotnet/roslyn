@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     /// <summary>This class causes a crash if an exception is encountered by the editor.</summary>
     [Shared, Export(typeof(IExtensionErrorHandler)), Export(typeof(TestExtensionErrorHandler))]
-    public class TestExtensionErrorHandler : IExtensionErrorHandler
+    public sealed class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

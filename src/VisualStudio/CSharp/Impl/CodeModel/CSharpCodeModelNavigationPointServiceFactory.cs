@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     [ExportLanguageServiceFactory(typeof(ICodeModelNavigationPointService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
+    internal sealed partial class CSharpCodeModelNavigationPointServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

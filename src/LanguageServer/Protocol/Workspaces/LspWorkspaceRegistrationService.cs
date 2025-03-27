@@ -82,7 +82,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
 }
 
-internal class LspWorkspaceRegisteredEventArgs : EventArgs
+internal sealed class LspWorkspaceRegisteredEventArgs : EventArgs
 {
     public Workspace Workspace { get; }
 

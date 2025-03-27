@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 {
 
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class LabelPositionOptionsViewModelFactory : IEnumSettingViewModelFactory
+    internal sealed class LabelPositionOptionsViewModelFactory : IEnumSettingViewModelFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
             => key.Option.Type == typeof(LabelPositionOptions);
     }
 
-    internal class LabelPositionOptionsViewModel : EnumSettingViewModel<LabelPositionOptions>
+    internal sealed class LabelPositionOptionsViewModel : EnumSettingViewModel<LabelPositionOptions>
     {
         private readonly Setting _setting;
 

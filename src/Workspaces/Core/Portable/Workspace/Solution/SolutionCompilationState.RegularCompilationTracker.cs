@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public class CompilationTrackerValidationException : Exception
+            public sealed class CompilationTrackerValidationException : Exception
             {
                 public CompilationTrackerValidationException() { }
                 public CompilationTrackerValidationException(string message) : base(message) { }

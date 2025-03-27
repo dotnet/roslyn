@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     [Trait(Traits.Feature, Traits.Features.CodeModel)]
-    public class FileCodeVariableTests : AbstractFileCodeElementTests
+    public sealed class FileCodeVariableTests : AbstractFileCodeElementTests
     {
         public FileCodeVariableTests()
             : base(@"using System;

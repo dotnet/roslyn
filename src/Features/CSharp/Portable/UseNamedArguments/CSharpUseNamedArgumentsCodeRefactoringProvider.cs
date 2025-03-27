@@ -18,7 +18,7 @@ using static SyntaxFactory;
 
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseNamedArguments), Shared]
-internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
+internal sealed class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
 {
     private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
         where TSyntax : SyntaxNode

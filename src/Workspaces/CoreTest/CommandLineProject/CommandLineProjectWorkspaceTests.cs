@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class CommandLineProjectWorkspaceTests
+    public sealed class CommandLineProjectWorkspaceTests
     {
         [Fact]
         public async Task TestAddProject_CommandLineProjectAsync()

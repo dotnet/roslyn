@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class VisualStudioDiagnosticAnalyzerExecutorTests
+    public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
     {
         [Theory]
         [CombinatorialData]
@@ -259,7 +259,7 @@ End Class";
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class MyAnalyzer : DiagnosticAnalyzer
+        private sealed class MyAnalyzer : DiagnosticAnalyzer
         {
             private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
                 [new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true)];
@@ -279,7 +279,7 @@ End Class";
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class DuplicateAnalyzer : DiagnosticAnalyzer
+        private sealed class DuplicateAnalyzer : DiagnosticAnalyzer
         {
             private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
                 [new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true)];

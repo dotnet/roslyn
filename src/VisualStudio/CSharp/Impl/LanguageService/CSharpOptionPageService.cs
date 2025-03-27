@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [ExportLanguageService(typeof(IOptionPageService), LanguageNames.CSharp), Shared]
-    internal class CSharpOptionPageService : IOptionPageService
+    internal sealed class CSharpOptionPageService : IOptionPageService
     {
         private readonly CSharpPackage _package;
         private readonly IThreadingContext _threadingContext;

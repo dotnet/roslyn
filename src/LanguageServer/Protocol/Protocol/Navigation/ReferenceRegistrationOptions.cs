@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#referenceRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class ReferenceRegistrationOptions : ReferenceOptions, ITextDocumentRegistrationOptions
+    internal sealed class ReferenceRegistrationOptions : ReferenceOptions, ITextDocumentRegistrationOptions
     {
         /// <summary>
         /// A document selector to identify the scope of the registration. If set to

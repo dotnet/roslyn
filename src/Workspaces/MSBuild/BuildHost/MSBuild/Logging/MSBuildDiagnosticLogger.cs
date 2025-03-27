@@ -7,7 +7,7 @@ using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
+    internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     {
         private string? _projectFilePath;
         private DiagnosticLog? _log;

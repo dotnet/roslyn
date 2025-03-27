@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
-    internal partial class SignatureHelpPresenter
+    internal sealed partial class SignatureHelpPresenter
     {
         private sealed class SignatureHelpSource(IThreadingContext threadingContext) : ISignatureHelpSource
         {

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
-    internal partial class MockTextManagerAdapter
+    internal sealed partial class MockTextManagerAdapter
     {
         internal sealed class TextPoint : EnvDTE.TextPoint
         {

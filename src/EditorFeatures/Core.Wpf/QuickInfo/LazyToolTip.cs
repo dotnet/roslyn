@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
-    internal partial class ContentControlService
+    internal sealed partial class ContentControlService
     {
         /// <summary>
         /// Class which allows us to provide a delay-created tooltip for our reference entries.

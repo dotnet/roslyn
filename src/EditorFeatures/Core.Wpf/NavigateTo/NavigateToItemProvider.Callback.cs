@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal partial class NavigateToItemProvider
     {
-        private class NavigateToItemProviderCallback : INavigateToSearchCallback
+        private sealed class NavigateToItemProviderCallback : INavigateToSearchCallback
         {
             private readonly Solution _solution;
             private readonly INavigateToItemDisplayFactory _displayFactory;

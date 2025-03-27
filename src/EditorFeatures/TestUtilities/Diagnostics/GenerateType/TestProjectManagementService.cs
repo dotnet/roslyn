@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
 {
     [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Default), Shared]
-    internal class TestProjectManagementService : IProjectManagementService
+    internal sealed class TestProjectManagementService : IProjectManagementService
     {
         private string _defaultNamespace;
 

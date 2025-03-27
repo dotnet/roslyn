@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     /// Mock object for editor options.
     /// not sure why, but Moq throw Null exception when DefaultOptions.StaticXXXField is used in Moq
     /// </summary>
-    public class TestEditorOptions : IEditorOptions
+    public sealed class TestEditorOptions : IEditorOptions
     {
         public static IEditorOptions Instance = new TestEditorOptions();
 

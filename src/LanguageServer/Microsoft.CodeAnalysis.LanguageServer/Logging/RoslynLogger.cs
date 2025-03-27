@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging
 {
-    internal class RoslynLogger : ILogger
+    internal sealed class RoslynLogger : ILogger
     {
         private static RoslynLogger? _instance;
         private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = [];

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
-    public class ScopedKeywordRecommenderTests : RecommenderTests
+    public sealed class ScopedKeywordRecommenderTests : RecommenderTests
     {
         protected override string KeywordText => "scoped";
 

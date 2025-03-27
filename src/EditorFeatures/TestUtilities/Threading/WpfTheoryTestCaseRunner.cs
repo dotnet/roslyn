@@ -13,7 +13,7 @@ using Xunit.Sdk;
 
 namespace Roslyn.Test.Utilities
 {
-    public class WpfTheoryTestCaseRunner : XunitTheoryTestCaseRunner
+    public sealed class WpfTheoryTestCaseRunner : XunitTheoryTestCaseRunner
     {
         public WpfTestSharedData SharedData { get; }
 

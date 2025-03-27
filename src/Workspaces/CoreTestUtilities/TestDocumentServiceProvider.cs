@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal class TestDocumentServiceProvider : IDocumentServiceProvider
+    internal sealed class TestDocumentServiceProvider : IDocumentServiceProvider
     {
         public TestDocumentServiceProvider(bool canApplyChange = true, bool supportDiagnostics = true, bool supportsMappingImportDirectives = false)
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
-        private class TestDocumentOperationService : IDocumentOperationService
+        private sealed class TestDocumentOperationService : IDocumentOperationService
         {
             public TestDocumentOperationService()
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public bool SupportDiagnostics { get; set; }
         }
 
-        private class TestSpanMappingService : ISpanMappingService
+        private sealed class TestSpanMappingService : ISpanMappingService
         {
             public TestSpanMappingService(bool supportsMappingImportDirectives)
             {

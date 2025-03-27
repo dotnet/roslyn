@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
+    internal sealed class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
     {
         private const string LayerName = "RoslynInlineDiagnostics";
         private readonly IClassificationFormatMapService _classificationFormatMapService;

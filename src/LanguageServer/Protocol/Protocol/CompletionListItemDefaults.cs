@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// is the completion list that do not provide a value for those properties.
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class CompletionListItemDefaults
+    internal sealed class CompletionListItemDefaults
     {
         /// <summary>
         /// A default commit character set.

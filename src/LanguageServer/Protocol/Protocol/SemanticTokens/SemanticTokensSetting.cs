@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensSetting : DynamicRegistrationSetting
+    internal sealed class SemanticTokensSetting : DynamicRegistrationSetting
     {
         /// <summary>
         /// Which requests the client supports and might send to the server

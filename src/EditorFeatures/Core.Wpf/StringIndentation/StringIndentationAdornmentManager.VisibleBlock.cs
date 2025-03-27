@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.StringIndentation
 {
-    internal partial class StringIndentationAdornmentManager
+    internal sealed partial class StringIndentationAdornmentManager
     {
         /// <summary>
         /// Represents the X position of the vertical line we're drawing, and the chunks of that vertical line if we

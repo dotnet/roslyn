@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensPartialResult
+    internal sealed class SemanticTokensPartialResult
     {
         /// <summary>
         /// Gets or sets and array containing encoded semantic tokens data.

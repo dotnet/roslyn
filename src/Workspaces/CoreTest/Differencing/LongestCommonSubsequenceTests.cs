@@ -9,11 +9,11 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
-    public class LongestCommonSubsequenceTests
+    public sealed class LongestCommonSubsequenceTests
     {
         private readonly LongestCommonSubsequenceString lcs = new LongestCommonSubsequenceString();
 
-        private class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
+        private sealed class LongestCommonSubsequenceString : LongestCommonSubsequence<string>
         {
             protected override bool ItemsEqual(string oldSequence, int oldIndex, string newSequence, int newIndex)
                 => oldSequence[oldIndex] == newSequence[newIndex];

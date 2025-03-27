@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
+    internal sealed class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
     {
         /// <summary>
         /// The completion context. This is only available if the client specifies the

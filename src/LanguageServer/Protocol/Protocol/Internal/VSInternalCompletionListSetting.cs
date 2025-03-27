@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents initialization setting for completion list.
     /// </summary>
-    internal class VSInternalCompletionListSetting
+    internal sealed class VSInternalCompletionListSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether completion lists can have Data bags. These data bags get propagated

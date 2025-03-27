@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
     [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal class MockPreviewPaneService : IPreviewPaneService
+    internal sealed class MockPreviewPaneService : IPreviewPaneService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

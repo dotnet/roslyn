@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintParams : ITextDocumentParams, IWorkDoneProgressParams
+    internal sealed class InlayHintParams : ITextDocumentParams, IWorkDoneProgressParams
     {
         /// <summary>
         /// Gets or sets the document identifier to fetch inlay hints results for.

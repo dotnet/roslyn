@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class CSharpCompilerOptionsTests : TestBase
+    public sealed class CSharpCompilerOptionsTests : TestBase
     {
         [WpfFact]
         public async Task DocumentationModeSetToDiagnoseIfProducingDocFile_CPS()

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Core.Imaging;
 namespace Microsoft.CodeAnalysis.Editor.Tags
 {
     [ExportImageIdService(Name = Name)]
-    internal class DefaultImageIdService : IImageIdService
+    internal sealed class DefaultImageIdService : IImageIdService
     {
         public const string Name = nameof(DefaultImageIdService);
 

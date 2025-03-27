@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     [Export(typeof(IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>))]
     [Name(PredefinedSignatureHelpPresenterNames.RoslynSignatureHelpPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class SignatureHelpPresenter : IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
+    internal sealed partial class SignatureHelpPresenter : IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
     {
         private static readonly object s_augmentSessionKey = new();
         private readonly IThreadingContext _threadingContext;

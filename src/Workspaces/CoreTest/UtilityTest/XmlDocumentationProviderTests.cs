@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class XmlDocumentationProviderTests
+    public sealed class XmlDocumentationProviderTests
     {
         [Fact]
         public void XmlDocumentationProviderReturnsEntireMemberNode()

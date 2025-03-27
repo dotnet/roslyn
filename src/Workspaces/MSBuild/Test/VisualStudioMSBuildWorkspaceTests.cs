@@ -35,7 +35,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-    public class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
+    public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
         public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
         {
@@ -3360,7 +3360,7 @@ class C { }";
             Assert.Equal(["..", "MyDir"], linkedDocument.Folders);
         }
 
-        private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
+        private sealed class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
             {

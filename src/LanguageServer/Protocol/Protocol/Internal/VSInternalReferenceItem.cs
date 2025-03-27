@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents references information.
     /// </summary>
-    internal class VSInternalReferenceItem
+    internal sealed class VSInternalReferenceItem
     {
         private object? definitionTextValue = null;
         private object? textValue = null;

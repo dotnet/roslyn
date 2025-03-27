@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class used to extend <see cref="FoldingRangeSetting" /> to add internal capabilities.
     /// </summary>
-    internal class VSFoldingRangeSetting : FoldingRangeSetting
+    internal sealed class VSFoldingRangeSetting : FoldingRangeSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether if client only supports entire line folding only.

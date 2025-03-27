@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 {
-    internal class LineSeparatorAdornmentManager : AbstractAdornmentManager<LineSeparatorTag>
+    internal sealed class LineSeparatorAdornmentManager : AbstractAdornmentManager<LineSeparatorTag>
     {
         public LineSeparatorAdornmentManager(IThreadingContext threadingContext, IWpfTextView textView,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService, IAsynchronousOperationListener asyncListener, string adornmentLayerName)

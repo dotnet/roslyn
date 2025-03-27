@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    internal partial class Controller
+    internal sealed partial class Controller
     {
-        internal partial class Session
+        internal sealed partial class Session
         {
             private void SetModelExplicitlySelectedItem(Func<Model, SignatureHelpItem> selector)
             {

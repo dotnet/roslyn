@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class WhenKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class WhenKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestForCatchClause_AfterCatch()

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [Name(RenameTrackingTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class RenameTrackingTagDefinition : MarkerFormatDefinition
+    internal sealed class RenameTrackingTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Text
             protected override TextLineCollection GetLinesCore()
                 => new LineInfo(this);
 
-            private class LineInfo : TextLineCollection
+            private sealed class LineInfo : TextLineCollection
             {
                 private readonly SnapshotSourceText _text;
 
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// Perf: Optimize calls to GetChangeRanges after WithChanges by using editor snapshots
             /// </summary>
-            private class ChangedSourceText : SnapshotSourceText
+            private sealed class ChangedSourceText : SnapshotSourceText
             {
                 private readonly SnapshotSourceText _baseText;
                 private readonly ITextImage _baseTextImage;

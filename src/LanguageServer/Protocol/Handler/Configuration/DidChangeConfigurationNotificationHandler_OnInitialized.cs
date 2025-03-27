@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
-    internal partial class DidChangeConfigurationNotificationHandler
+    internal sealed partial class DidChangeConfigurationNotificationHandler
     {
         public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {

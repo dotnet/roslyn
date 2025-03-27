@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 {
     [Export(typeof(IPeekableItemFactory))]
-    internal class PeekableItemFactory : IPeekableItemFactory
+    internal sealed class PeekableItemFactory : IPeekableItemFactory
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;

@@ -39,7 +39,7 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
     [Export]
-    internal class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
+    internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpdateSolutionEvents
     {
         private readonly AnalyzerItemsTracker _tracker;
         private readonly AnalyzerReferenceManager _analyzerReferenceManager;

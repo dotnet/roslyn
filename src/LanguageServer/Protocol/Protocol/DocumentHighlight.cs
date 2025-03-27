@@ -16,7 +16,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentHighlight">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentHighlight
+    internal sealed class DocumentHighlight
     {
         /// <summary>
         /// Gets or sets the range that the highlight applies to.

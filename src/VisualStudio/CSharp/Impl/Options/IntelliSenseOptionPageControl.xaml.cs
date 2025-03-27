@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
-    internal partial class IntelliSenseOptionPageControl : AbstractOptionPageControl
+    internal sealed partial class IntelliSenseOptionPageControl : AbstractOptionPageControl
     {
         public IntelliSenseOptionPageControl(OptionStore optionStore) : base(optionStore)
         {

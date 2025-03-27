@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     [Export(typeof(IClassifierProvider))]
     [ContentType(ContentTypeNames.CSharpSignatureHelpContentType)]
     [ContentType(ContentTypeNames.VisualBasicSignatureHelpContentType)]
-    internal partial class SignatureHelpClassifierProvider : IClassifierProvider
+    internal sealed partial class SignatureHelpClassifierProvider : IClassifierProvider
     {
         private readonly ClassificationTypeMap _typeMap;
 

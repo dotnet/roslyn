@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp
 {
-    internal class TestPullMemberUpService : IPullMemberUpOptionsService
+    internal sealed class TestPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IEnumerable<(string member, bool makeAbstract)> _selectedMembers;
 

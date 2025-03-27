@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
     [Name(RenameFieldBackgroundAndBorderTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class RenameFieldBackgroundAndBorderTagDefinition : MarkerFormatDefinition
+    internal sealed class RenameFieldBackgroundAndBorderTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

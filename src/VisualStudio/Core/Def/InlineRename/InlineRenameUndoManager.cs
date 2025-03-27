@@ -60,7 +60,7 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
             }
         }
 
-        private class RedoPrimitive : RenameUndoPrimitive
+        private sealed class RedoPrimitive : RenameUndoPrimitive
         {
             private readonly IOleUndoManager _undoManager;
 
@@ -72,7 +72,7 @@ internal sealed class VisualStudioInlineRenameUndoManagerServiceFactory(
                 => _undoManager.Add(this);
         }
 
-        internal class BufferUndoState
+        internal sealed class BufferUndoState
         {
             public IOleUndoManager UndoManager { get; set; }
             public ITextUndoHistory TextUndoHistory { get; set; }

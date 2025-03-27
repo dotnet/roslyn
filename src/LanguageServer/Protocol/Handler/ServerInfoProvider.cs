@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal class ServerInfoProvider
+    internal sealed class ServerInfoProvider
     {
         public ServerInfoProvider(WellKnownLspServerKinds serverKind, ImmutableArray<string> supportedLanguages)
         {

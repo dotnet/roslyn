@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
-    internal class GraphicsResult : IDisposable
+    internal sealed class GraphicsResult : IDisposable
     {
         public UIElement VisualElement { get; }
         private Action? _dispose;

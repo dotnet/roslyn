@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FailingMutatingRequestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class FailingMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
+    internal sealed class FailingMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingMutatingRequestHandler);
         private const int Delay = 100;

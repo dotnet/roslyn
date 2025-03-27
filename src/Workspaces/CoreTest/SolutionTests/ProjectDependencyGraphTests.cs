@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class ProjectDependencyGraphTests : TestBase
+    public sealed class ProjectDependencyGraphTests : TestBase
     {
         #region GetTopologicallySortedProjects
 

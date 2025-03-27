@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [Name(ClassificationTypeDefinitions.InlineRenameField)]
         [Order(After = Priority.High)]
         [UserVisible(true)]
-        private class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
+        private sealed class InlineRenameFieldFormatDefinition : ClassificationFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

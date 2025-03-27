@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
 {
-    internal class XamlDiagnostic
+    internal sealed class XamlDiagnostic
     {
         public string? Code { get; set; }
         public string? Message { get; set; }

@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     /// <summary>
     /// Interaction logic for FormattingNewLinesOptionControl.xaml
     /// </summary>
-    internal class NewLinesViewModel : AbstractOptionPreviewViewModel
+    internal sealed class NewLinesViewModel : AbstractOptionPreviewViewModel
     {
         private static readonly Conversions<NewLineBeforeOpenBracePlacement, int> s_newLinesForBracesConversions = new(v => (int)v, v => (NewLineBeforeOpenBracePlacement)v);
 

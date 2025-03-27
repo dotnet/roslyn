@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class OptionBinding<T> : INotifyPropertyChanged
+    internal sealed class OptionBinding<T> : INotifyPropertyChanged
     {
         private readonly OptionStore _optionStore;
         private readonly Option2<T> _option;

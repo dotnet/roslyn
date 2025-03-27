@@ -12,9 +12,9 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal partial class InertClassifierProvider
+    internal sealed partial class InertClassifierProvider
     {
-        private class InertClassifier : IClassifier
+        private sealed class InertClassifier : IClassifier
         {
             private readonly ITextBuffer _textBuffer;
 

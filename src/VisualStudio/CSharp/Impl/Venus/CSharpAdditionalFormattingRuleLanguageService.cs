@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus
 {
     [ExportLanguageService(typeof(IAdditionalFormattingRuleLanguageService), LanguageNames.CSharp), Shared]
-    internal class CSharpAdditionalFormattingRuleLanguageService : IAdditionalFormattingRuleLanguageService
+    internal sealed class CSharpAdditionalFormattingRuleLanguageService : IAdditionalFormattingRuleLanguageService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class RecordKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class RecordKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()

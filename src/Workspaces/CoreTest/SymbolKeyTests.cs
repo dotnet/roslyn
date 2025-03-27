@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SymbolKeyTests : TestBase
+    public sealed class SymbolKeyTests : TestBase
     {
         [Fact]
         public void TestVersionMismatch()

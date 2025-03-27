@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentFilter">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class DocumentFilter
+    internal sealed class DocumentFilter
     {
         /// <summary>
         /// Gets or sets a language id for the filter (e.g. 'typescript').

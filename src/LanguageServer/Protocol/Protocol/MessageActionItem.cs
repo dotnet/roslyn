@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#messageActionItem">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class MessageActionItem
+    internal sealed class MessageActionItem
     {
         /// <summary>
         /// A short title like 'Retry', 'Open Log' etc.

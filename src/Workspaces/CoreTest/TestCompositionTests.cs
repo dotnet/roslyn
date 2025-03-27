@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     using static SourceGeneratorTelemetryCollectorWorkspaceServiceTests;
 
-    public class TestCompositionTests
+    public sealed class TestCompositionTests
     {
         [Fact]
         public void FactoryReuse()

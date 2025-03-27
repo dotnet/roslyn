@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class AssetProviderTests
+    public sealed class AssetProviderTests
     {
         private static Workspace CreateRemoteWorkspace()
             => new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());

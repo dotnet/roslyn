@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
-    public class FormattingRangeHelperTests
+    public sealed class FormattingRangeHelperTests
     {
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33560")]
         public void TestAreTwoTokensOnSameLineTrue()

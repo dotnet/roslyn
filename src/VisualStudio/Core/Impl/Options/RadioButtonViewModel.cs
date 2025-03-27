@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class RadioButtonViewModel<TOptionValue> : AbstractRadioButtonViewModel
+    internal sealed class RadioButtonViewModel<TOptionValue> : AbstractRadioButtonViewModel
     {
         private readonly Option2<TOptionValue> _option;
         private readonly TOptionValue _value;

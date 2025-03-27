@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing single continue character for completion.
     /// </summary>
-    internal class VSInternalContinueCharacterSingle
+    internal sealed class VSInternalContinueCharacterSingle
     {
         /// <summary>
         /// Gets the type value.

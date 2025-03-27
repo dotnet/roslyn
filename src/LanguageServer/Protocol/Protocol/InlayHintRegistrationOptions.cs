@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+    internal sealed class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
     {
         /// <inheritdoc/>
         [JsonPropertyName("documentSelector")]

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportStatelessXamlLspService(typeof(FormatDocumentOnTypeHandler)), Shared]
     [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal class FormatDocumentOnTypeHandler : ILspServiceRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    internal sealed class FormatDocumentOnTypeHandler : ILspServiceRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// This class represents the view model for a <see cref="CodeStyleOption2{T}"/>
     /// that binds to the codestyle options UI.
     /// </summary>
-    internal class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
+    internal sealed class BooleanCodeStyleOptionViewModel : AbstractCodeStyleOptionViewModel
     {
         private readonly string _truePreview;
         private readonly string _falsePreview;

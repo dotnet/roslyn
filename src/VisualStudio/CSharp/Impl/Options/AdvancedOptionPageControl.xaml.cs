@@ -47,7 +47,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
-    internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
+    internal sealed partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
         {

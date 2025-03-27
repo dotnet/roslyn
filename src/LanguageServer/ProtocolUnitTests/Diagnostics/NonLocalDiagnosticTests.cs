@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
-    public class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
+    public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
     {
         public NonLocalDiagnosticTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

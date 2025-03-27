@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class CommandLineProjectTests : TestBase
+    public sealed class CommandLineProjectTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()

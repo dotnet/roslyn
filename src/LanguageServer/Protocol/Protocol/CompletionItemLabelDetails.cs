@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class CompletionItemLabelDetails
+    internal sealed class CompletionItemLabelDetails
     {
         /// <summary>
         /// An optional string which is rendered less prominently directly after

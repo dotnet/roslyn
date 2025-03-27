@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
     [Export]
     [Shared]
-    internal class AsyncCompletionTracker
+    internal sealed class AsyncCompletionTracker
     {
         private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;
         private readonly IAsyncCompletionBroker _asyncCompletionBroker;

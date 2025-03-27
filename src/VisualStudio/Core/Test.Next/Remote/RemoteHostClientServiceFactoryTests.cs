@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class RemoteHostClientServiceFactoryTests
+    public sealed class RemoteHostClientServiceFactoryTests
     {
         private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 CancellationToken.None));
         }
 
-        private class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
+        private sealed class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
             {

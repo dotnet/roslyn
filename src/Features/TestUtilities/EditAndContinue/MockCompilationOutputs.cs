@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class MockCompilationOutputs : CompilationOutputs
+    internal sealed class MockCompilationOutputs : CompilationOutputs
     {
         private readonly Guid _mvid;
 

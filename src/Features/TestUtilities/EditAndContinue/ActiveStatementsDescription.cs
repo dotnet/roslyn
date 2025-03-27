@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class ActiveStatementsDescription
+    internal sealed class ActiveStatementsDescription
     {
         internal static readonly ActiveStatementsDescription Empty = new();
 

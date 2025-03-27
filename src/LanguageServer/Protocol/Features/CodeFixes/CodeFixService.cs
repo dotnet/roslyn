@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     using LanguageKind = String;
 
     [Export(typeof(ICodeFixService)), Shared]
-    internal partial class CodeFixService : ICodeFixService
+    internal sealed partial class CodeFixService : ICodeFixService
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;

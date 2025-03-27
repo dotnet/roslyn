@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal class TestTraceListener : TraceListener
+    internal sealed class TestTraceListener : TraceListener
     {
         private ImmutableList<Exception> _failures = [];
 

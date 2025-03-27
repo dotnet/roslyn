@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Differencing.UnitTests
 {
-    public class MatchTests
+    public sealed class MatchTests
     {
         [Fact]
         public void KnownMatches()

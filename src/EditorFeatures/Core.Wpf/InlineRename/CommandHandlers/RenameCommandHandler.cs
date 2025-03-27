@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal partial class RenameCommandHandler(
+    internal sealed partial class RenameCommandHandler(
         IThreadingContext threadingContext,
         InlineRenameService renameService,
         IGlobalOptionService globalOptionService,

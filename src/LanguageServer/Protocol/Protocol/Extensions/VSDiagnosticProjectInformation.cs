@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// <see cref="VSDiagnosticProjectInformation"/> represents the project and context in which the <see cref="VSDiagnostic"/> is generated.
     /// </summary>
-    internal class VSDiagnosticProjectInformation
+    internal sealed class VSDiagnosticProjectInformation
     {
         /// <summary>
         /// Gets or sets a human-readable identifier for the project in which the diagnostic was generated.

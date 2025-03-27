@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class ProjectSemanticVersionTests
+    public sealed class ProjectSemanticVersionTests
     {
         [Fact]
         public async Task AddingDocumentWithNewClassChangesVersion()

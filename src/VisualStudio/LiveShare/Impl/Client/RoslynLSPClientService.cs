@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
-    internal class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
+    internal sealed class CSharpLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new CSharpLSPClientLifeTimeService();
 
-        private class CSharpLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        private sealed class CSharpLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
         {
         }
     }
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
-    internal class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
+    internal sealed class VisualBasicLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new VisualBasicLSPClientLifeTimeService();
 
-        private class VisualBasicLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        private sealed class VisualBasicLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
         {
         }
     }
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                 Role = ServiceRole.LocalService,
                                 Features = "LspServices",
                                 CreationPriority = (int)ServiceRole.LocalService + 2000)]
-    internal class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
+    internal sealed class TypeScriptLspClientServiceFactory : AbstractLspClientServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         protected override RoslynLSPClientLifeTimeService LspClientLifeTimeService => new TypeScriptLSPClientLifeTimeService();
 
-        private class TypeScriptLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
+        private sealed class TypeScriptLSPClientLifeTimeService : RoslynLSPClientLifeTimeService
         {
         }
     }

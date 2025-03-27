@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 {
     // These tests came from tests found at:
     // https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/tests/
-    public partial class CSharpRegexParserTests
+    public sealed partial class CSharpRegexParserTests
     {
         [Fact]
         public void NegativeTest0()

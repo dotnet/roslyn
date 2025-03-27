@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class DynamicKeywordRecommenderTests : RecommenderTests
+    public sealed class DynamicKeywordRecommenderTests : RecommenderTests
     {
         protected override string KeywordText => "dynamic";
 

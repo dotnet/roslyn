@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensRequestsFullSetting
+    internal sealed class SemanticTokensRequestsFullSetting
     {
         /// <summary>
         /// Gets or sets a value indicating whether the client will send the

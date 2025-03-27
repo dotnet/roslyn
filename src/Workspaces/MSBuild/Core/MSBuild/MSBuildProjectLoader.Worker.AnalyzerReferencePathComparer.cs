@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 {
     public partial class MSBuildProjectLoader
     {
-        private partial class Worker
+        private sealed partial class Worker
         {
-            private class AnalyzerReferencePathComparer : IEqualityComparer<AnalyzerReference?>
+            private sealed class AnalyzerReferencePathComparer : IEqualityComparer<AnalyzerReference?>
             {
                 public static AnalyzerReferencePathComparer Instance = new();
 

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    public class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
+    public sealed class VisualBasicTestWorkspaceFixture : TestWorkspaceFixture
     {
         protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
         {

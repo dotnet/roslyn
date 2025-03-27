@@ -19,9 +19,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Options)]
-    public class OptionViewModelTests
+    public sealed class OptionViewModelTests
     {
-        private class MockServiceProvider : IServiceProvider
+        private sealed class MockServiceProvider : IServiceProvider
         {
             private readonly MockComponentModel _componentModel;
 

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
-    internal class SignatureHelpClassifier : IClassifier
+    internal sealed class SignatureHelpClassifier : IClassifier
     {
         private readonly ITextBuffer _subjectBuffer;
         private readonly ClassificationTypeMap _typeMap;

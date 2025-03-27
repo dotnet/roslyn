@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal partial class CodeFixService
+    internal sealed partial class CodeFixService
     {
-        private class ProjectCodeFixProvider
+        private sealed class ProjectCodeFixProvider
             : AbstractProjectExtensionProvider<ProjectCodeFixProvider, CodeFixProvider, ExportCodeFixProviderAttribute>
         {
             protected override ImmutableArray<string> GetLanguages(ExportCodeFixProviderAttribute exportAttribute)

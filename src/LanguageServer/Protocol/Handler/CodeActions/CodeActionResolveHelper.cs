@@ -18,7 +18,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
-    internal class CodeActionResolveHelper
+    internal sealed class CodeActionResolveHelper
     {
         public static Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 /// <summary>
                 /// A 'holder' for a native memory allocation. The allocation is freed in the finalizer.
                 /// </summary>
-                private class CoTaskMemPtr
+                private sealed class CoTaskMemPtr
                 {
                     public readonly IntPtr VTablePtr;
 

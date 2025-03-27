@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class CSharpReferenceTests
+    public sealed class CSharpReferenceTests
     {
         [WpfFact]
         public async Task AddRemoveProjectAndMetadataReference_CPS()

@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    internal class CompletionResolveData
+    internal sealed class CompletionResolveData
     {
         public Guid ProjectGuid { get; set; }
         public Guid DocumentGuid { get; set; }

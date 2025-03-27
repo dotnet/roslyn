@@ -13,7 +13,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 {
-    public class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTests
+    public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTests
     {
         public FormatDocumentOnTypeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

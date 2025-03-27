@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#optionalVersionedTextDocumentIdentifier">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class OptionalVersionedTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<OptionalVersionedTextDocumentIdentifier>
+    internal sealed class OptionalVersionedTextDocumentIdentifier : TextDocumentIdentifier, IEquatable<OptionalVersionedTextDocumentIdentifier>
     {
         /// <summary>
         /// Gets or sets the version of the document.

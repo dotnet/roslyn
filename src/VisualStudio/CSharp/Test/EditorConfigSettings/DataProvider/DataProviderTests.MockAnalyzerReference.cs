@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.DataProvider
 {
-    public partial class DataProviderTests
+    public sealed partial class DataProviderTests
     {
-        private class MockAnalyzerReference : AnalyzerReference
+        private sealed class MockAnalyzerReference : AnalyzerReference
         {
             public readonly CodeFixProvider? Fixer;
             public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             public ImmutableArray<CodeFixProvider> GetFixers()
                 => Fixer != null ? [Fixer] : [];
 
-            public class MockFixer : CodeFixProvider
+            public sealed class MockFixer : CodeFixProvider
             {
                 public const string Id = "MyDiagnostic";
                 public bool Called;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
                 }
             }
 
-            public class MockDiagnosticAnalyzer : DiagnosticAnalyzer
+            public sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
             {
                 public MockDiagnosticAnalyzer(ImmutableArray<(string id, string category)> reportedDiagnosticIdsWithCategories)
                     => SupportedDiagnostics = CreateSupportedDiagnostics(reportedDiagnosticIdsWithCategories);

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to CodeFixSuggestionAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedCodeFixSuggestedAction : UnifiedSuggestedAction, ICodeFixSuggestedAction
+    internal sealed class UnifiedCodeFixSuggestedAction : UnifiedSuggestedAction, ICodeFixSuggestedAction
     {
         public CodeFix CodeFix { get; }
 

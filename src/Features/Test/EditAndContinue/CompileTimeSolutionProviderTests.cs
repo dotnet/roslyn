@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
     [UseExportProvider]
-    public class CompileTimeSolutionProviderTests
+    public sealed class CompileTimeSolutionProviderTests
     {
         [Theory]
         [InlineData("razor")]

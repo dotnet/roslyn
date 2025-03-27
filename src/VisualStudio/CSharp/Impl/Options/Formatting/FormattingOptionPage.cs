@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
     [GuidAttribute(Guids.CSharpOptionPageFormattingGeneralIdString)]
-    internal class FormattingOptionPage : AbstractOptionPage
+    internal sealed class FormattingOptionPage : AbstractOptionPage
     {
         private FormattingOptionPageControl _optionPageControl;
 

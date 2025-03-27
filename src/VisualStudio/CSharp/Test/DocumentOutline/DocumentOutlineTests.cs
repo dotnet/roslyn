@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
     [Trait(Traits.Feature, Traits.Features.DocumentOutline)]
-    public class DocumentOutlineTests : DocumentOutlineTestsBase
+    public sealed class DocumentOutlineTests : DocumentOutlineTestsBase
     {
         private const string TestCode = """
             private class MyClass

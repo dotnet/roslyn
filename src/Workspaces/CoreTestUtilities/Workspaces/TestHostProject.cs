@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class TestHostProject : TestHostProject<TestHostDocument>
+    public sealed class TestHostProject : TestHostProject<TestHostDocument>
     {
         public TestHostProject(
             HostLanguageServices languageServices,

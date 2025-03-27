@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.Tags
     [Name(PreviewWarningTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class PreviewWarningTagDefinition : MarkerFormatDefinition
+    internal sealed class PreviewWarningTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

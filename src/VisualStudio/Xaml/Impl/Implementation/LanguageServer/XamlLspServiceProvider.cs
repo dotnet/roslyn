@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
     [Export(typeof(XamlLspServiceProvider)), Shared]
-    internal class XamlLspServiceProvider : AbstractLspServiceProvider
+    internal sealed class XamlLspServiceProvider : AbstractLspServiceProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

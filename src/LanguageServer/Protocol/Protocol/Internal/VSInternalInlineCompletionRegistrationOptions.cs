@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#inlineCompletionRegistrationOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class VSInternalInlineCompletionRegistrationOptions : VSInternalInlineCompletionOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+    internal sealed class VSInternalInlineCompletionRegistrationOptions : VSInternalInlineCompletionOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.

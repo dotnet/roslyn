@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
     /// Caches completion lists in between calls to CompletionHandler and
     /// CompletionResolveHandler. Used to avoid unnecessary recomputation.
     /// </summary>
-    internal class CompletionListCache : ResolveCache<CacheEntry>
+    internal sealed class CompletionListCache : ResolveCache<CacheEntry>
     {
         public CompletionListCache() : base(maxCacheSize: 3)
         {
         }
 
-        public record CacheEntry(CompletionList CompletionList);
+        public sealed record CacheEntry(CompletionList CompletionList);
     }
 }

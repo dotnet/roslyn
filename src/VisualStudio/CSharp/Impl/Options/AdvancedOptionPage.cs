@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     [Guid(Guids.CSharpOptionPageAdvancedIdString)]
-    internal class AdvancedOptionPage : AbstractOptionPage
+    internal sealed class AdvancedOptionPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {

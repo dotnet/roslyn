@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-    public class RemoveUnnecessaryLineContinuationTests
+    public sealed class RemoveUnnecessaryLineContinuationTests
     {
         [Fact]
         public async Task ColonTrivia()

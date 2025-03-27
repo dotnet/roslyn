@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Roslyn.Hosting.Diagnostics.VenusMargin
 {
-    internal class ProjectionSpanTag : TextMarkerTag
+    internal sealed class ProjectionSpanTag : TextMarkerTag
     {
         public const string TagId = "ProjectionTag";
 

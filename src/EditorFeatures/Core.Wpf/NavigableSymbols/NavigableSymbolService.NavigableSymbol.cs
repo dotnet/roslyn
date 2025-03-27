@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
     internal partial class NavigableSymbolService
     {
-        private class NavigableSymbol : INavigableSymbol
+        private sealed class NavigableSymbol : INavigableSymbol
         {
             private readonly NavigableSymbolService _service;
             private readonly ITextView _textView;

@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     [Export(typeof(IPreviewFactoryService)), Shared]
-    internal class PreviewFactoryService : AbstractPreviewFactoryService<IWpfDifferenceViewer>
+    internal sealed class PreviewFactoryService : AbstractPreviewFactoryService<IWpfDifferenceViewer>
     {
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IWpfDifferenceViewerFactoryService _differenceViewerService;

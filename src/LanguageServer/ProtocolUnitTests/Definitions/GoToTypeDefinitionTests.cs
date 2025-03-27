@@ -16,7 +16,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 {
-    public class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTests
+    public sealed class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTests
     {
         public GoToTypeDefinitionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

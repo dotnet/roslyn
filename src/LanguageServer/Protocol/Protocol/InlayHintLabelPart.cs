@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintLabelPart
+    internal sealed class InlayHintLabelPart
     {
         /// <summary>
         /// The value of this label part.

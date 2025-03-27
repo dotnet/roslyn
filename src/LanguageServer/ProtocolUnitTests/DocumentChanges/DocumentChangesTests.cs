@@ -13,7 +13,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 {
-    public partial class DocumentChangesTests : AbstractLanguageServerProtocolTests
+    public sealed partial class DocumentChangesTests : AbstractLanguageServerProtocolTests
     {
         public DocumentChangesTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class MockManagedEditAndContinueDebuggerService : IManagedHotReloadService
+    internal sealed class MockManagedEditAndContinueDebuggerService : IManagedHotReloadService
     {
         public Func<Guid, ManagedHotReloadAvailability>? IsEditAndContinueAvailable;
         public Dictionary<Guid, ManagedHotReloadAvailability>? LoadedModules;

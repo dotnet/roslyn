@@ -26,7 +26,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     [CollectionDefinition(Name)]
-    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    public sealed class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
     {
         public const string Name = nameof(AssemblyLoadTestFixtureCollection);
         private AssemblyLoadTestFixtureCollection() { }
@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return new AnalyzerFileReference(original, new MockShadowCopyAnalyzerAssemblyLoader(ImmutableDictionary<string, string>.Empty.Add(original, shadow.Path)));
         }
 
-        private class MissingAnalyzerLoader() : IAnalyzerAssemblyLoader
+        private sealed class MissingAnalyzerLoader() : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
             {
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => throw new FileNotFoundException(fullPath);
         }
 
-        private class MissingMetadataReference : PortableExecutableReference
+        private sealed class MissingMetadataReference : PortableExecutableReference
         {
             public MissingMetadataReference()
                 : base(MetadataReferenceProperties.Assembly, "missing_reference", XmlDocumentationProvider.Default)
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => this;
         }
 
-        private class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+        private sealed class MockShadowCopyAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
         {
             private readonly ImmutableDictionary<string, string> _map;
 
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 => Assembly.LoadFrom(_map[fullPath]);
         }
 
-        private class NotSerializableEncoding : Encoding
+        private sealed class NotSerializableEncoding : Encoding
         {
             private readonly Encoding _real = Encoding.UTF8;
 

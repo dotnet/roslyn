@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(ICodeModelFactory))]
-    internal partial class CPSCodeModelFactory : ICodeModelFactory
+    internal sealed partial class CPSCodeModelFactory : ICodeModelFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

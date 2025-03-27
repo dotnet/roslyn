@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
     [Export(typeof(EditorFormatDefinition))]
     [Name(DefinitionHighlightTag.TagId)]
     [UserVisible(true)]
-    internal class DefinitionHighlightTagDefinition : MarkerFormatDefinition
+    internal sealed class DefinitionHighlightTagDefinition : MarkerFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

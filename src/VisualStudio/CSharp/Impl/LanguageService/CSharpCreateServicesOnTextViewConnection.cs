@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class CSharpCreateServicesOnTextViewConnection : AbstractCreateServicesOnTextViewConnection
+    internal sealed class CSharpCreateServicesOnTextViewConnection : AbstractCreateServicesOnTextViewConnection
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

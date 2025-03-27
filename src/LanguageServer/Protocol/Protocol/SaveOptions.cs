@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#saveOptions">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class SaveOptions
+    internal sealed class SaveOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether clients include text content on save.

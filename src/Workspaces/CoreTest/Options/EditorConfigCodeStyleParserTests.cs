@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 {
-    public class EditorConfigCodeStyleParserTests
+    public sealed class EditorConfigCodeStyleParserTests
     {
         [Theory]
         [InlineData("true:none", true, ReportDiagnostic.Suppress)]

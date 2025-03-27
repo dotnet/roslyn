@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     /// that is selected by the user in the dialog.
     /// </summary>
     [Export]
-    internal class AnalyzerReferenceManager : IVsReferenceManagerUser
+    internal sealed class AnalyzerReferenceManager : IVsReferenceManagerUser
     {
         private readonly IServiceProvider _serviceProvider;
         private IVsReferenceManager? _referenceManager;

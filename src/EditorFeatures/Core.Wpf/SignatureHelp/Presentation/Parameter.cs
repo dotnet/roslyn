@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
-    internal class Parameter : IParameter
+    internal sealed class Parameter : IParameter
     {
         private readonly SignatureHelpParameter _parameter;
         private string _documentation;

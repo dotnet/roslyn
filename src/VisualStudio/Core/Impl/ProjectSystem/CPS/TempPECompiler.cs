@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(ITempPECompiler))]
-    internal class TempPECompiler : ITempPECompiler
+    internal sealed class TempPECompiler : ITempPECompiler
     {
         private readonly VisualStudioWorkspace _workspace;
 

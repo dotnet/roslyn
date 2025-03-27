@@ -9,12 +9,12 @@ using System.Windows.Controls;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class TextBlockWithDataItemControlType : TextBlock
+    internal sealed class TextBlockWithDataItemControlType : TextBlock
     {
         protected override AutomationPeer OnCreateAutomationPeer()
             => new TextBlockWithDataItemControlTypeAutomationPeer(this);
 
-        private class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
+        private sealed class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
         {
             public TextBlockWithDataItemControlTypeAutomationPeer(TextBlock owner) : base(owner)
             {

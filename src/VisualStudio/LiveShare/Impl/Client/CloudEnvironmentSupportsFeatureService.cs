@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
     [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), [WorkspaceKind.CloudEnvironmentClientWorkspace]), Shared]
-    internal class CloudEnvironmentSupportsFeatureService : ITextBufferSupportsFeatureService
+    internal sealed class CloudEnvironmentSupportsFeatureService : ITextBufferSupportsFeatureService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

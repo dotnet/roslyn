@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(KeywordCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(NamedParameterCompletionProvider))]
 [Shared]
-internal class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSharpSyntaxContext>
+internal sealed class KeywordCompletionProvider : AbstractKeywordCompletionProvider<CSharpSyntaxContext>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

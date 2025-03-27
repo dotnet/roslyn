@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Response class when asking server to resolve the rendering information of a string kind.
     /// </summary>
-    internal class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
+    internal sealed class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
     {
         /// <summary>
         /// Gets or sets the ImageElements for a certain kind.

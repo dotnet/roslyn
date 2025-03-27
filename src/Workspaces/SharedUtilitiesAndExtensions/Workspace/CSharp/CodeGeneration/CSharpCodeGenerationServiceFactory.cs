@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
 [ExportLanguageServiceFactory(typeof(ICodeGenerationService), LanguageNames.CSharp), Shared]
-internal partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
+internal sealed partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

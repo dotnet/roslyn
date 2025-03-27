@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 {
-    internal class Model
+    internal sealed class Model
     {
         private readonly DisconnectedBufferGraph _disconnectedBufferGraph;
 

@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeTextDocumentParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DidChangeTextDocumentParams : ITextDocumentParams
+    internal sealed class DidChangeTextDocumentParams : ITextDocumentParams
     {
         /// <summary>
         /// The document that did change. The version number points

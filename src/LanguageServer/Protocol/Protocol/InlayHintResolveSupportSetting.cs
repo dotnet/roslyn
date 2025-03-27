@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class InlayHintResolveSupportSetting
+    internal sealed class InlayHintResolveSupportSetting
     {
         /// <summary>
         /// The names of the <see cref="InlayHint"/> properties that the client can resolve lazily.

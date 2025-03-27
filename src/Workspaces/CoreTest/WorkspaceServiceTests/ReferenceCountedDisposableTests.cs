@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class ReferenceCountedDisposableTests
+    public sealed class ReferenceCountedDisposableTests
     {
         [Fact]
         public void TestArgumentValidation()

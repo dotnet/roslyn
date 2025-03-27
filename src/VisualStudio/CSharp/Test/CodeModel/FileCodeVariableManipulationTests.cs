@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
-    public class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
+    public sealed class FileCodeVariableManipulationTests : AbstractFileCodeElementTests
     {
         public FileCodeVariableManipulationTests()
             : base(@"class Goo

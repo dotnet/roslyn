@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection;
 
 [ExportLanguageService(typeof(ICommentSelectionService), LanguageNames.CSharp), Shared]
-internal class CSharpCommentSelectionService : AbstractCommentSelectionService
+internal sealed class CSharpCommentSelectionService : AbstractCommentSelectionService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

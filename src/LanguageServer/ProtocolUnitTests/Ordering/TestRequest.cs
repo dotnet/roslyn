@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    internal class TestRequest
+    internal sealed class TestRequest
     {
         public string MethodName { get; }
 

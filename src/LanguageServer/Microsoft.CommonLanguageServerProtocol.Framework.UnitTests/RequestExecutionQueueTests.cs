@@ -13,9 +13,9 @@ using Xunit;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public class RequestExecutionQueueTests
+public sealed class RequestExecutionQueueTests
 {
-    private class MockServer : NewtonsoftLanguageServer<TestRequestContext>
+    private sealed class MockServer : NewtonsoftLanguageServer<TestRequestContext>
     {
         public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), JsonSerializer.CreateDefault(), NoOpLspLogger.Instance)
         {
@@ -151,7 +151,7 @@ public class RequestExecutionQueueTests
         Assert.True(task2.IsCompleted);
     }
 
-    private class TestRequestExecutionQueue : RequestExecutionQueue<TestRequestContext>
+    private sealed class TestRequestExecutionQueue : RequestExecutionQueue<TestRequestContext>
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 

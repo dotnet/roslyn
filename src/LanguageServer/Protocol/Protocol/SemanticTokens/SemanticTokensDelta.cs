@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.16</remarks>
-    internal class SemanticTokensDelta
+    internal sealed class SemanticTokensDelta
     {
         /// <summary>
         /// The ID of this result, which can then be used as a base for future deltas.

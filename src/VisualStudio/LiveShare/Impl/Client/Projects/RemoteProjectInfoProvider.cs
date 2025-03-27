@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     /// Discovers project information for remote directories
     /// </summary>
     [Export(typeof(RemoteProjectInfoProvider))]
-    internal class RemoteProjectInfoProvider
+    internal sealed class RemoteProjectInfoProvider
     {
         private readonly IEnumerable<IRemoteProjectInfoProvider> _remoteProjectInfoProviders;
 

@@ -18,7 +18,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLens">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class CodeLens
+    internal sealed class CodeLens
     {
         /// <summary>
         /// The range in which this code lens is valid. Should only span a single line.

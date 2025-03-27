@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml;
 namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
 {
     [ExportLanguageService(typeof(IOrganizeImportsService), StringConstants.XamlLanguageName), Shared]
-    internal partial class XamlOrganizeImportsService : IOrganizeImportsService
+    internal sealed partial class XamlOrganizeImportsService : IOrganizeImportsService
     {
         private readonly IXamlOrganizeNamespacesService _organizeService;
 

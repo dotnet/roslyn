@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-    public class SolutionAssetCacheTests
+    public sealed class SolutionAssetCacheTests
     {
         private static void ForceGC()
         {

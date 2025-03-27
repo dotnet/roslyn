@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class PathResolver
+    internal sealed class PathResolver
     {
         private readonly DiagnosticReporter _diagnosticReporter;
 

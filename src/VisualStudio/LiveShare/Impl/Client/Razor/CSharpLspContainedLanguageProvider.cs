@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Razor
 {
     [Export(typeof(IContainedLanguageProvider))]
-    internal class CSharpLspContainedLanguageProvider : IContainedLanguageProvider
+    internal sealed class CSharpLspContainedLanguageProvider : IContainedLanguageProvider
     {
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly SVsServiceProvider _serviceProvider;

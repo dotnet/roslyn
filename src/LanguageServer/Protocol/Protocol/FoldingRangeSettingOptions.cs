@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    internal class FoldingRangeSettingOptions
+    internal sealed class FoldingRangeSettingOptions
     {
         /// <summary>
         /// If set, the client signals that it supports setting <see cref="FoldingRange.CollapsedText"/>

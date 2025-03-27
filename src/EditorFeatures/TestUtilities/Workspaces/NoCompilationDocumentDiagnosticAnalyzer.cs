@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     [DiagnosticAnalyzer(NoCompilationConstants.LanguageName)]
-    internal class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    internal sealed class NoCompilationDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
     {
         public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
             "NC0000", "No Compilation Syntax Error", "No Compilation Syntax Error", "Error", DiagnosticSeverity.Error, isEnabledByDefault: true);

@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class StringEscapingTests
+    public sealed class StringEscapingTests
     {
         [Fact]
         public void TestEscaping()

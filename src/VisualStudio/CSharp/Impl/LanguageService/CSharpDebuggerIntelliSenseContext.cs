@@ -23,7 +23,7 @@ using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal class CSharpDebuggerIntelliSenseContext : AbstractDebuggerIntelliSenseContext
+    internal sealed class CSharpDebuggerIntelliSenseContext : AbstractDebuggerIntelliSenseContext
     {
         private const string StatementTerminator = ";";
 

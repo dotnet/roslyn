@@ -9,7 +9,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
-    internal class InlayHintRefreshQueue : AbstractRefreshQueue
+    internal sealed class InlayHintRefreshQueue : AbstractRefreshQueue
     {
         private readonly IGlobalOptionService _globalOptionService;
 

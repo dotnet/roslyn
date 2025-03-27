@@ -6,7 +6,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 {
-    internal class StringConstants
+    internal sealed class StringConstants
     {
         public const string BaseRemoteAssemblyTitle = "Base Remote Language Service";
 

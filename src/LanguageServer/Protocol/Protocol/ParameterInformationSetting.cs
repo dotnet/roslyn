@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.14</remarks>
-    internal class ParameterInformationSetting
+    internal sealed class ParameterInformationSetting
     {
         /// <summary>
         /// The client supports processing label offsets instead of a simple label string.

@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// The client's capabilities specific to the <see cref="CompletionItem.InsertTextMode"/> property.
     /// </summary>
     /// <remarks>Since 3.16</remarks>
-    internal class InsertTextModeSupportSetting
+    internal sealed class InsertTextModeSupportSetting
     {
         /// <summary>
         /// The <see cref="InsertTextMode"/> values that the client supports

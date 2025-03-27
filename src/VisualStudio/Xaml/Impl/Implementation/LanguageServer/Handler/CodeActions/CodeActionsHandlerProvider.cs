@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
-    internal class XamlCodeActionsHandler : CodeActionsHandler
+    internal sealed class XamlCodeActionsHandler : CodeActionsHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     }
 
     [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
-    internal class XamlCodeActionResolveHandler : CodeActionResolveHandler
+    internal sealed class XamlCodeActionResolveHandler : CodeActionResolveHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

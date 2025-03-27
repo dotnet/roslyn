@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return true;
         }
 
-        private class TypeWithOneMember<T> : IEquatable<TypeWithOneMember<T>>
+        private sealed class TypeWithOneMember<T> : IEquatable<TypeWithOneMember<T>>
         {
             private readonly T _member;
 

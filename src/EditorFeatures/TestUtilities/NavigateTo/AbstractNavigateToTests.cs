@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         private static readonly ImmutableArray<Func<NavigateToItem, IComparable>> s_comparisonComponents =
             [item => (int)item.PatternMatch.Kind, item => item.Name, item => item.Kind, item => item.SecondarySort];
 
-        private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
+        private sealed class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {
             private readonly Workspace _workspace;
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
                 => [_workspace.CurrentSolution.Projects.First().DocumentIds.First()];
 
             [ExportWorkspaceServiceFactory(typeof(IDocumentTrackingService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-            public class Factory : IWorkspaceServiceFactory
+            public sealed class Factory : IWorkspaceServiceFactory
             {
                 [ImportingConstructor]
                 [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

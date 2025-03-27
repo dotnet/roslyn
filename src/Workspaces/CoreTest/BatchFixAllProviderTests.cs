@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class BatchFixAllProviderTests
+    public sealed class BatchFixAllProviderTests
     {
         [Fact]
         public async Task TestDefaultSelectionNestedFixers()
@@ -47,7 +47,7 @@ class TestClass {{
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class LiteralZeroAnalyzer : DiagnosticAnalyzer
+        private sealed class LiteralZeroAnalyzer : DiagnosticAnalyzer
         {
             internal static readonly DiagnosticDescriptor Descriptor =
                 new DiagnosticDescriptor("LiteralZero", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
@@ -72,7 +72,7 @@ class TestClass {{
             }
         }
 
-        private class ReplaceZeroFix : CodeFixProvider
+        private sealed class ReplaceZeroFix : CodeFixProvider
         {
             private readonly ImmutableArray<int> _replacements;
             private readonly bool _nested;
@@ -125,7 +125,7 @@ class TestClass {{
             }
         }
 
-        private class CSharpTest : CodeFixTest<DefaultVerifier>
+        private sealed class CSharpTest : CodeFixTest<DefaultVerifier>
         {
             private readonly ImmutableArray<ImmutableArray<int>> _replacementGroups;
             private readonly bool _nested;

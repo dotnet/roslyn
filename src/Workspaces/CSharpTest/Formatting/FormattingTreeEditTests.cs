@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
-    public class FormattingTreeEditTests : CSharpFormattingTestBase
+    public sealed class FormattingTreeEditTests : CSharpFormattingTestBase
     {
         private static Document GetDocument(string code)
         {

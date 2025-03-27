@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     /// <remarks>Since LSP 3.13</remarks>
     [Kind("create")]
-    internal class CreateFile : IAnnotatedChange
+    internal sealed class CreateFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.

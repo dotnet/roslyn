@@ -15,7 +15,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 {
     [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-    public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
+    public sealed class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
         public OnAutoInsertTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
     /// This class creates a mock execution state that allows to send CopyToInteractive and ExeciteInInteractive.
     /// Commands against a mock InteractiveWindow.
     /// </summary>
-    internal class InteractiveWindowCommandHandlerTestState : AbstractCommandHandlerTestState
+    internal sealed class InteractiveWindowCommandHandlerTestState : AbstractCommandHandlerTestState
     {
         public InteractiveWindowTestHost TestHost { get; }
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeAnonymousFunctionSt
 using VerifyCS = CSharpCodeFixVerifier<MakeAnonymousFunctionStaticDiagnosticAnalyzer, CSharpMakeAnonymousFunctionStaticCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeAnonymousFunctionStatic)]
-public class MakeAnonymousFunctionStaticTests
+public sealed class MakeAnonymousFunctionStaticTests
 {
     private static async Task TestWithCSharp9Async(string code, string fixedCode)
     {

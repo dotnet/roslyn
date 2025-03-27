@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class DocumentInfoTests
+    public sealed class DocumentInfoTests
     {
         [Fact]
         public void Create_Errors()

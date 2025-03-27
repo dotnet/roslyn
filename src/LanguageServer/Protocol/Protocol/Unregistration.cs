@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#unregistration">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class Unregistration
+    internal sealed class Unregistration
     {
         /// <summary>
         /// Gets or sets the id of the unregistration.

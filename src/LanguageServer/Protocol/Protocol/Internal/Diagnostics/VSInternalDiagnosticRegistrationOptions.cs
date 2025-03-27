@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Diagnostic registration options.
     /// </summary>
-    internal record class VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+    internal sealed record class VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
     {
         /// <summary>
         /// Gets or sets the document filters for this registration option.

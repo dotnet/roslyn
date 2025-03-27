@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class ProjectFileExtensionRegistry
+    internal sealed class ProjectFileExtensionRegistry
     {
         private readonly SolutionServices _solutionServices;
         private readonly DiagnosticReporter _diagnosticReporter;

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class VisualStudioOptionStorageTests
+public sealed class VisualStudioOptionStorageTests
 {
     public static IEnumerable<object[]> ConfigNames
     {

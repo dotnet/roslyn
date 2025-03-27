@@ -30,7 +30,7 @@ internal sealed class ExtensionMethodImportCompletionCacheEntry
         ReceiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
     }
 
-    public class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
+    public sealed class Builder(Checksum checksum, string langauge, IEqualityComparer<string> comparer)
     {
         private readonly Checksum _checksum = checksum;
         private readonly string _language = langauge;

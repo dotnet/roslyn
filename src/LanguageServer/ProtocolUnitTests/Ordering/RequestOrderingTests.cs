@@ -17,7 +17,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
+    public sealed partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
         public RequestOrderingTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

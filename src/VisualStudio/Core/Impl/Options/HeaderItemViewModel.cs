@@ -6,7 +6,7 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
-    internal class HeaderItemViewModel
+    internal sealed class HeaderItemViewModel
     {
         public string Header { get; internal set; }
     }

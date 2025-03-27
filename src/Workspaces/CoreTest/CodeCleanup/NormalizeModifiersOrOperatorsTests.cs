@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
-    public class NormalizeModifiersOrOperatorsTests
+    public sealed class NormalizeModifiersOrOperatorsTests
     {
         [Fact]
         public async Task PartialMethod()

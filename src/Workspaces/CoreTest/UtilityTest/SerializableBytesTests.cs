@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class SerializableBytesTests
+    public sealed class SerializableBytesTests
     {
         [Fact]
         public async Task ReadableStreamTestReadAByteAtATime()

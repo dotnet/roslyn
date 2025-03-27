@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     }
 
     [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared, PartNotDiscoverable]
-    internal class TestPickMembersService : IPickMembersService
+    internal sealed class TestPickMembersService : IPickMembersService
     {
         public ImmutableArray<string> MemberNames;
         public Action<ImmutableArray<PickMembersOption>> OptionsCallback;

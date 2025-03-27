@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-    internal class ExportStatelessXamlLspServiceAttribute : ExportStatelessLspServiceAttribute
+    internal sealed class ExportStatelessXamlLspServiceAttribute : ExportStatelessLspServiceAttribute
     {
         public ExportStatelessXamlLspServiceAttribute(Type handlerType) : base(handlerType, StringConstants.XamlLspLanguagesContract, WellKnownLspServerKinds.XamlLspServer)
         {

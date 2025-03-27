@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     [UseExportProvider]
-    public class SyntaxEditorTests
+    public sealed class SyntaxEditorTests
     {
         private Workspace _emptyWorkspace;
 

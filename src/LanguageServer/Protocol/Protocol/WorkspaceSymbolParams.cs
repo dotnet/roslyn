@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class WorkspaceSymbolParams
+    internal sealed class WorkspaceSymbolParams
 #pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not
         : IPartialResultParams<SumType<SymbolInformation[], WorkspaceSymbol[]>>, IWorkDoneProgressParams
 #pragma warning restore CS0618

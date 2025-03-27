@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SourceTextSerializationTests
+    public sealed class SourceTextSerializationTests
     {
         [Fact]
         public void TestSourceTextSerialization()

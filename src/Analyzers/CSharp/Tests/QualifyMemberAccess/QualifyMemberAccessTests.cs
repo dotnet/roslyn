@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-public partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class QualifyMemberAccessTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public QualifyMemberAccessTests(ITestOutputHelper logger)
       : base(logger)

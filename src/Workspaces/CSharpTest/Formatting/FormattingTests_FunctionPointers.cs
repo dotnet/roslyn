@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingTests_FunctionPointers : CSharpFormattingTestBase
+    public sealed class FormattingTests_FunctionPointers : CSharpFormattingTestBase
     {
         [Fact]
         public async Task FormatFunctionPointer()

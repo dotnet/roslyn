@@ -13,7 +13,7 @@ using VSLangProj80;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities
 {
     [ExportLanguageService(typeof(ICompilationOptionsChangingService), LanguageNames.CSharp), Shared]
-    internal class CSharpCompilationOptionsChangingService : ICompilationOptionsChangingService
+    internal sealed class CSharpCompilationOptionsChangingService : ICompilationOptionsChangingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

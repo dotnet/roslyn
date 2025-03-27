@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class FindReferencesTests : TestBase
+    public sealed class FindReferencesTests : TestBase
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());

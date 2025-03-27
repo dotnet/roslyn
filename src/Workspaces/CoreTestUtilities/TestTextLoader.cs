@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {
-    internal class TestTextLoader : TextLoader
+    internal sealed class TestTextLoader : TextLoader
     {
         private readonly TextAndVersion _textAndVersion;
 

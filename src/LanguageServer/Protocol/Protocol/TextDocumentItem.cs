@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentItem">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class TextDocumentItem
+    internal sealed class TextDocumentItem
     {
         /// <summary>
         /// Gets or sets the document URI.

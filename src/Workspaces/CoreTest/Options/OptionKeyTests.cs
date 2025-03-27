@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Options
 {
-    public class OptionKeyTests
+    public sealed class OptionKeyTests
     {
         private sealed class TestOptionStorageLocation : OptionStorageLocation
         {

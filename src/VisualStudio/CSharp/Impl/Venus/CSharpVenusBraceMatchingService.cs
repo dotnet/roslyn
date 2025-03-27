@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus
 {
     [ExportLanguageService(typeof(IVenusBraceMatchingService), LanguageNames.CSharp), Shared]
-    internal class CSharpVenusBraceMatchingService : IVenusBraceMatchingService
+    internal sealed class CSharpVenusBraceMatchingService : IVenusBraceMatchingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

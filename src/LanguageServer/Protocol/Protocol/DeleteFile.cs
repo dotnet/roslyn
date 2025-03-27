@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     /// <remarks>Since LSP 3.13</remarks>
     [Kind("delete")]
-    internal class DeleteFile : IAnnotatedChange
+    internal sealed class DeleteFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.

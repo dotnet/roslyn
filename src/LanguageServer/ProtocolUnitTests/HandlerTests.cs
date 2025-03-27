@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     [UseExportProvider]
-    public class HandlerTests : AbstractLanguageServerProtocolTests
+    public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     {
         public HandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
@@ -297,11 +297,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             await testLspServer.AssertServerShuttingDownAsync();
         }
 
-        internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
+        internal sealed record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
-        internal record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
+        internal sealed record TestRequestTypeTwo([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);
 
-        internal record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
+        internal sealed record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
 
         [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
         [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]

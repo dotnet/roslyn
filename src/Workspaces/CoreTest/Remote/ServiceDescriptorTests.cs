@@ -43,7 +43,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     [UseExportProvider]
-    public class ServiceDescriptorTests
+    public sealed class ServiceDescriptorTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors

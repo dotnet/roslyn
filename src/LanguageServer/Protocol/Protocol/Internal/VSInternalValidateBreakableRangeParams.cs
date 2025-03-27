@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing the parameters sent for the textDocument/validateBreakableRange request.
     /// </summary>
-    internal class VSInternalValidateBreakableRangeParams : ITextDocumentParams
+    internal sealed class VSInternalValidateBreakableRangeParams : ITextDocumentParams
     {
         /// <summary>
         /// Gets or sets the <see cref="TextDocumentIdentifier"/> for the request.

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class EditAndContinueTestAnalyzerConfigOptions : AnalyzerConfigOptions
+    internal sealed class EditAndContinueTestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         private readonly Dictionary<string, string> _options;
 

@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
 {
     [ExportLanguageService(typeof(ILibraryService), LanguageNames.CSharp), Shared]
-    internal class CSharpLibraryService : AbstractLibraryService
+    internal sealed class CSharpLibraryService : AbstractLibraryService
     {
         private static readonly SymbolDisplayFormat s_typeDisplayFormat = new(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,

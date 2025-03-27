@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpMakeStatementAsynchronousCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsMakeStatementAsynchronous)]
-public class CSharpMakeStatementAsynchronousCodeFixTests
+public sealed class CSharpMakeStatementAsynchronousCodeFixTests
 {
     [Fact]
     public async Task FixAllForeach()

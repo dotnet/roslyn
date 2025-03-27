@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EditorConfigParsing
 {
-    public class SectionParserTests
+    public sealed class SectionParserTests
     {
         [Theory]
         [InlineData((Language.CSharp | Language.VisualBasic), "*.{cs,vb}")]

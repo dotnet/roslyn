@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// write tests once and have them run against all <see cref="IPersistentStorageService"/>
     /// implementations.
     /// </remarks>
-    public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
+    public sealed class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
         [Fact]
         public async Task TestCrashInNewConnection()
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             }
         }
 
-        private class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
+        private sealed class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
         {
             private readonly Action? _onNewConnection;
             private readonly Action<Exception>? _onFatalError;

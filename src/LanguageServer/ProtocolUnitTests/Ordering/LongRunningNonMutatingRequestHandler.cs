@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class LongRunningNonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
+    internal sealed class LongRunningNonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(LongRunningNonMutatingRequestHandler);
 

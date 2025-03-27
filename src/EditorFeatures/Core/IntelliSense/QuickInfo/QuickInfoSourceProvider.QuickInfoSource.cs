@@ -27,7 +27,7 @@ using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.Q
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 
-internal partial class QuickInfoSourceProvider
+internal sealed partial class QuickInfoSourceProvider
 {
     private sealed class QuickInfoSource(
         ITextBuffer subjectBuffer,

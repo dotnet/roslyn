@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentHighlightParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DocumentHighlightParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<DocumentHighlight[]>
+    internal sealed class DocumentHighlightParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<DocumentHighlight[]>
     {
         /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]

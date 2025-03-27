@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class AnalyzersTests : TestBase
+    public sealed class AnalyzersTests : TestBase
     {
         [WpfFact]
         public async Task RuleSet_GeneralOption_CPS()

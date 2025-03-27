@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
-    internal class TestResetInteractive : ResetInteractive
+    internal sealed class TestResetInteractive : ResetInteractive
     {
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 

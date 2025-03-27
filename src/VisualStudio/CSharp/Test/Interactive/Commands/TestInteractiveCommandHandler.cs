@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
-    internal class TestInteractiveCommandHandler : InteractiveCommandHandler
+    internal sealed class TestInteractiveCommandHandler : InteractiveCommandHandler
     {
         private readonly IInteractiveWindow _interactiveWindow;
 

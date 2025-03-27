@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
 {
-    internal class XamlStructureTag
+    internal sealed class XamlStructureTag
     {
         public string Type { get; set; }
         public TextSpan TextSpan { get; set; }

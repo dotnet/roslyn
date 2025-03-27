@@ -23,7 +23,7 @@ using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
-internal class DiagnosticComputer
+internal sealed class DiagnosticComputer
 {
     /// <summary>
     /// Cache of <see cref="CompilationWithAnalyzers"/> and a map from analyzer IDs to <see cref="DiagnosticAnalyzer"/>s

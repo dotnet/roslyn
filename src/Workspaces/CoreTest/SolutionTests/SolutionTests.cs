@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class SolutionTests : TestBase
+    public sealed class SolutionTests : TestBase
     {
 #nullable enable
         private static readonly string s_projectDir = Path.GetDirectoryName(typeof(SolutionTests).Assembly.Location)!;
@@ -2960,7 +2960,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             await ValidateSolutionAndCompilationsAsync(solution);
         }
 
-        private class MockDiagnosticAnalyzer : DiagnosticAnalyzer
+        private sealed class MockDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             {
@@ -3880,7 +3880,7 @@ End Class";
         }
 
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, ServiceLayer.Default), Shared, PartNotDiscoverable]
-        private class TestLanguageServiceA : ITestLanguageService
+        private sealed class TestLanguageServiceA : ITestLanguageService
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -3890,7 +3890,7 @@ End Class";
         }
 
         [ExportLanguageService(typeof(ITestLanguageService), LanguageNames.CSharp, "Quasimodo"), Shared, PartNotDiscoverable]
-        private class TestLanguageServiceB : ITestLanguageService
+        private sealed class TestLanguageServiceB : ITestLanguageService
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

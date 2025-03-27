@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     using static ActiveStatementTestHelpers;
 
     [UseExportProvider]
-    public class ActiveStatementsMapTests
+    public sealed class ActiveStatementsMapTests
     {
         [Theory]
         [InlineData(/*span*/ 3, 0, 5, 2,     /*expected*/ 0, 4)]

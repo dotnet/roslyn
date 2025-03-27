@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Interactive)]
-    public class InteractiveCommandHandlerTests
+    public sealed class InteractiveCommandHandlerTests
     {
         private const string Caret = "$$";
         private const string ExampleCode1 = @"var x = 1;";

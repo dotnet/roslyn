@@ -20,7 +20,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
-    public class CompletionTests : AbstractLanguageServerProtocolTests
+    public sealed class CompletionTests : AbstractLanguageServerProtocolTests
     {
         private static readonly LSP.VSInternalClientCapabilities s_vsCompletionCapabilities = CreateCoreCompletionCapabilities();
 

@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ManagedKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class ManagedKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestInFunctionPointerDeclaration()

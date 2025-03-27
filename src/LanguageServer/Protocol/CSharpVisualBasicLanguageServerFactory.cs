@@ -14,7 +14,7 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Export(typeof(ILanguageServerFactory)), Shared]
-    internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
+    internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         private readonly AbstractLspServiceProvider _lspServiceProvider;
 

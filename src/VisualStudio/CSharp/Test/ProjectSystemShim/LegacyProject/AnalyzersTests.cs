@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-    public class AnalyzersTests : TestBase
+    public sealed class AnalyzersTests : TestBase
     {
         [WpfFact]
         public void RuleSet_GeneralOption()

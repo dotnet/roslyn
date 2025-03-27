@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
     [UseExportProvider]
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class GlobalOptionServiceTests
+    public sealed class GlobalOptionServiceTests
     {
         private static IGlobalOptionService GetGlobalOptionService(HostWorkspaceServices services)
             => services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// ITextBuffer implementation of SourceTextContainer
         /// </summary>
-        internal class TextBufferContainer : SourceTextContainer
+        internal sealed class TextBufferContainer : SourceTextContainer
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();

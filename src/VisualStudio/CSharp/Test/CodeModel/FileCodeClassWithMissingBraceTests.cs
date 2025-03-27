@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
     [Trait(Traits.Feature, Traits.Features.CodeModel)]
-    public class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
+    public sealed class FileCodeClassWithMissingBraceTests : AbstractFileCodeElementTests
     {
         public FileCodeClassWithMissingBraceTests()
             : base(@"using System;

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class InlineRenameAdornmentProvider : IWpfTextViewConnectionListener
+    internal sealed class InlineRenameAdornmentProvider : IWpfTextViewConnectionListener
     {
         private readonly InlineRenameService _renameService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;

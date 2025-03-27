@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
+    public sealed class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
     {
         [Fact]
         public async Task EndOfLine()

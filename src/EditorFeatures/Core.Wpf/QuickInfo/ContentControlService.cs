@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 {
     [ExportWorkspaceService(typeof(IContentControlService), layer: ServiceLayer.Editor), Shared]
-    internal partial class ContentControlService : IContentControlService
+    internal sealed partial class ContentControlService : IContentControlService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITextEditorFactoryService _textEditorFactoryService;

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// Similar to SuggestedActionSet, but in a location that can be used
     /// by both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedSuggestedActionSet
+    internal sealed class UnifiedSuggestedActionSet
     {
         public Solution OriginalSolution { get; }
 

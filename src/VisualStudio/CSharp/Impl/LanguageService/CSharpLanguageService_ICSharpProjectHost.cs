@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    internal partial class CSharpLanguageService : ICSharpProjectHost
+    internal sealed partial class CSharpLanguageService : ICSharpProjectHost
     {
         public void BindToProject(ICSharpProjectRoot projectRoot, IVsHierarchy hierarchy)
         {

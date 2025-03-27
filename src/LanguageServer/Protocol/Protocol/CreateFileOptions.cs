@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.13</remarks>
-    internal class CreateFileOptions
+    internal sealed class CreateFileOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether the creation should overwrite the file if it already exists.

@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
-    public class BKTreeTests
+    public sealed class BKTreeTests
     {
         private static ImmutableArray<string> Find(BKTree tree, string value, int? threshold)
         {

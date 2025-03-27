@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     [Export(typeof(VisualStudioWorkspace))]
     [Export(typeof(VisualStudioWorkspaceImpl))]
-    internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
+    internal sealed class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IThreadingContext _threadingContext;
 

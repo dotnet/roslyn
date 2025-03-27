@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
 {
     [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-    public class NamingStylePreferencesTests
+    public sealed class NamingStylePreferencesTests
     {
         private static string ReserializePreferences(string serializedPreferences)
         {

@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class GeneratedCodeRecognitionTests
+    public sealed class GeneratedCodeRecognitionTests
     {
         [Fact]
         public void TestFileNamesNotGenerated()

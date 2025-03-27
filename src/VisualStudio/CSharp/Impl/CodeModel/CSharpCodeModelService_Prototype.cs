@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
-    internal partial class CSharpCodeModelService
+    internal sealed partial class CSharpCodeModelService
     {
         public override string GetPrototype(SyntaxNode node, ISymbol symbol, PrototypeFlags flags)
         {

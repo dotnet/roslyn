@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
     [Export(typeof(Commanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(PredefinedCommandHandlerNames.ClassView)]
-    internal class CSharpSyncClassViewCommandHandler : AbstractSyncClassViewCommandHandler
+    internal sealed class CSharpSyncClassViewCommandHandler : AbstractSyncClassViewCommandHandler
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

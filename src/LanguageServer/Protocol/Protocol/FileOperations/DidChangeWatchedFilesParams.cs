@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeWatchedFilesParams">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    internal class DidChangeWatchedFilesParams
+    internal sealed class DidChangeWatchedFilesParams
     {
         /// <summary>
         /// Gets or sets of the collection of file change events.

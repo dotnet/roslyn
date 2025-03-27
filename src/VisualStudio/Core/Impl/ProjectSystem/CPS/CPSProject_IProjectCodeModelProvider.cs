@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             return _projectCodeModel.GetOrCreateFileCodeModel(filePath, item);
         }
 
-        private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
+        private sealed class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
         {
             private readonly CPSProject _project;
 

@@ -13,9 +13,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class TryApplyChangesTests
+    public sealed class TryApplyChangesTests
     {
-        private class CustomizedCanApplyWorkspace : Workspace
+        private sealed class CustomizedCanApplyWorkspace : Workspace
         {
             private readonly ImmutableArray<ApplyChangesKind> _allowedKinds;
             private readonly Func<ParseOptions, ParseOptions, bool>? _canApplyParseOptions;

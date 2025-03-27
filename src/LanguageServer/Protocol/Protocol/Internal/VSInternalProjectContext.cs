@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class for a project context.
     /// </summary>
-    internal class VSInternalProjectContext : VSProjectContext, IEquatable<VSInternalProjectContext>
+    internal sealed class VSInternalProjectContext : VSProjectContext, IEquatable<VSInternalProjectContext>
     {
         /// <summary>
         /// Gets or sets the string context kind of the project context.

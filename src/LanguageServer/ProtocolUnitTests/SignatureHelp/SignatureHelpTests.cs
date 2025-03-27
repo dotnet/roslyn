@@ -12,7 +12,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
 {
-    public class SignatureHelpTests : AbstractLanguageServerProtocolTests
+    public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
     {
         public SignatureHelpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {

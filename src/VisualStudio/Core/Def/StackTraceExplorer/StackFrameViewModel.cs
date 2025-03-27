@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
 using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
 
-internal class StackFrameViewModel(
+internal sealed class StackFrameViewModel(
     ParsedStackFrame frame,
     IThreadingContext threadingContext,
     Workspace workspace,

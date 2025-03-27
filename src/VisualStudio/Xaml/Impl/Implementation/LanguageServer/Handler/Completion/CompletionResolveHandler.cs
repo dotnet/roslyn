@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportStatelessXamlLspService(typeof(CompletionResolveHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly IGlobalOptionService _globalOptions;
 

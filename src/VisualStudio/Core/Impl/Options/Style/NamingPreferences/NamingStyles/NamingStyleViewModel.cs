@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
 {
-    internal class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
+    internal sealed class NamingStyleViewModel : AbstractNotifyPropertyChanged, INamingStylesInfoDialogViewModel
     {
         private readonly MutableNamingStyle _style;
         private readonly INotificationService _notificationService;
@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         // For screen readers
         public override string ToString() => ItemName;
 
-        public class CapitalizationDisplay
+        public sealed class CapitalizationDisplay
         {
             public Capitalization Capitalization { get; set; }
             public string Name { get; set; }

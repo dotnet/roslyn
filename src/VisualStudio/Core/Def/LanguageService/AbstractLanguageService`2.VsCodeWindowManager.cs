@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
 {
-    internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
+    internal sealed class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
     {
         private readonly TLanguageService _languageService;
         private readonly IVsCodeWindow _codeWindow;

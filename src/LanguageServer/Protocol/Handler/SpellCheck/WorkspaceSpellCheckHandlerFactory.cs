@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceSpellCheckHandler)), Shared]
-    internal class WorkspaceSpellCheckHandlerFactory : ILspServiceFactory
+    internal sealed class WorkspaceSpellCheckHandlerFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

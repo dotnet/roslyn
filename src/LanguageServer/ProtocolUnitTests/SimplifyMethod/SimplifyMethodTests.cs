@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod
 {
-    public class SimplifyMethodTests : AbstractLanguageServerProtocolTests
+    public sealed class SimplifyMethodTests : AbstractLanguageServerProtocolTests
     {
         public SimplifyMethodTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
         {

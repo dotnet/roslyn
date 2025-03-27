@@ -15,7 +15,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider, Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class WorkspaceTests
+    public sealed class WorkspaceTests
     {
         [Fact]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<NotSupportedException>(() => ws.TryApplyChanges(newSolution)).Message);
         }
 
-        private class NoChangesAllowedWorkspace : Workspace
+        private sealed class NoChangesAllowedWorkspace : Workspace
         {
             public NoChangesAllowedWorkspace(HostServices services, string workspaceKind = "Custom")
                 : base(services, workspaceKind)

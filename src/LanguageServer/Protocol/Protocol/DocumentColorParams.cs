@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.6</remarks>
-    internal class DocumentColorParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorInformation[]>
+    internal sealed class DocumentColorParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<ColorInformation[]>
     {
         /// <summary>
         /// The <see cref="TextDocumentIdentifier"/> to provide color information for.

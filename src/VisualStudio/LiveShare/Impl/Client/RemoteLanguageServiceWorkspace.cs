@@ -466,7 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <summary>
         /// Marker class to easily group error reporting for missing live share text buffers.
         /// </summary>
-        private class LiveShareTextBufferMissingException : Exception
+        private sealed class LiveShareTextBufferMissingException : Exception
         {
         }
 

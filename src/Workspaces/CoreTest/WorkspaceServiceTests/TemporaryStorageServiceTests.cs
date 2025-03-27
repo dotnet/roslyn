@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [SupportedOSPlatform("windows")]
 #endif
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public class TemporaryStorageServiceTests
+    public sealed class TemporaryStorageServiceTests
     {
         [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStorageText()

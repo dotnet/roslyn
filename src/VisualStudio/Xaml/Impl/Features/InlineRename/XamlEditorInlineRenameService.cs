@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
 {
     [ExportLanguageService(typeof(IEditorInlineRenameService), StringConstants.XamlLanguageName), Shared]
-    internal class XamlEditorInlineRenameService : IEditorInlineRenameService
+    internal sealed class XamlEditorInlineRenameService : IEditorInlineRenameService
     {
         private readonly IXamlRenameInfoService _renameService;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             return new InlineRenameInfo(document, renameInfo);
         }
 
-        private class InlineRenameInfo : IInlineRenameInfo
+        private sealed class InlineRenameInfo : IInlineRenameInfo
         {
             private readonly Document _document;
             private readonly IXamlRenameInfo _renameInfo;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
             public InlineRenameFileRenameInfo GetFileRenameInfo()
                 => InlineRenameFileRenameInfo.NotAllowed;
 
-            private class InlineRenameLocationSet : IInlineRenameLocationSet
+            private sealed class InlineRenameLocationSet : IInlineRenameLocationSet
             {
                 private readonly IXamlRenameInfo _renameInfo;
                 private readonly Solution _oldSolution;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.Features.InlineRename
                     return new InlineRenameReplacementInfo(this, newSolution, replacementText);
                 }
 
-                private class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
+                private sealed class InlineRenameReplacementInfo : IInlineRenameReplacementInfo
                 {
                     private readonly InlineRenameLocationSet _inlineRenameLocationSet;
                     private readonly string _replacementText;
