@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
-            await TaskScheduler.Default;
-
             // Checks to see if the feature is enabled and if the suggestionManager is available
             if (!Enabled)
             {
                 return;
             }
+
+            await TaskScheduler.Default;
 
             // MemberNode is not null at this point, checked when determining if the file is excluded.
             var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);

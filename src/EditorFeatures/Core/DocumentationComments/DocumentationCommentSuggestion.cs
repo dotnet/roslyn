@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Copilot;
@@ -140,12 +141,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         /// </summary>
         private async Task DismissSuggestionSessionAsync(CancellationToken cancellationToken)
         {
-            await DisposeIntelliCodeCompletionsDisposableAsync().ConfigureAwait(false);
             await RunWithEnqueueActionAsync<bool>(
                 "DismissSuggestionSession",
                 async () =>
                 {
-                    await _suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);
+                    await ClearSuggestionAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);/*_suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);*/
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         {
             Assumes.NotNull(SuggestionManager);
 
-            var taskCompletionSource = new TaskCompletionSource<T>();
+            var taskCompletionSource = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             await providerInstance.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             SuggestionManager.EnqueueAction(description, async () =>
             {
                 try
                 {
-                    var result = await action().ConfigureAwait(false);
+                    var result = await action().ConfigureAwaitRunInline();
                     taskCompletionSource.TrySetResult(result);
                 }
                 catch (OperationCanceledException operationCanceledException)
