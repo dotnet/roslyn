@@ -5107,7 +5107,37 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("S1",
+"""
+.class private sequential ansi sealed beforefieldinit S1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 06 4d 79 4e 61 6d 65 00 00
+    )
+    .pack 0
+    .size 1
+    // Methods
+    .method public hidebysig specialname 
+        instance int32 get_MyName (
+            int32 x
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    } // end of method S1::get_MyName
+    // Properties
+    .property instance int32 MyName(
+        int32 x
+    )
+    {
+        .get instance int32 S1::get_MyName(int32)
+    }
+} // end of class S1
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76842")]
@@ -5126,7 +5156,39 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+
+            // Note, the indexer name in metadata is "Item", expected "MyName"
+            CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("S1",
+"""
+.class private sequential ansi sealed beforefieldinit S1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    .pack 0
+    .size 1
+    // Methods
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int32 x
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    } // end of method S1::get_Item
+    // Properties
+    .property instance int32 Item(
+        int32 x
+    )
+    {
+        .get instance int32 S1::get_Item(int32)
+    }
+} // end of class S1
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
     }
 }

@@ -35,54 +35,56 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
             using System.Threading.Tasks;
+            using System.Linq;
 
             public class MathService : IMathService
             {
-                public int Add(int a, int b)
+                public int {|IDE3000:Add|}(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Add method not implemented");|}
                 }
-            
-                public int Subtract(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
-            
-                public int Multiply(int a, int b) {
+        
+                public int {|IDE3000:Subtract|}(int a, int b) => {|IDE3000:throw new NotImplementedException("Subtract method not implemented")|};
+        
+                public int {|IDE3000:Multiply|}(int a, int b) {
                     {|IDE3000:throw new NotImplementedException("Multiply method not implemented");|}
                 }
-            
-                public double Divide(int a, int b)
+        
+                public double {|IDE3000:Divide|}(int a, int b)
                 {
                     {|IDE3000:throw new NotImplementedException("Divide method not implemented");|}
                 }
-            
-                public double CalculateSquareRoot(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
-            
-                public int Factorial(int number)
+        
+                public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
+        
+                public int {|IDE3000:Factorial|}(int number)
                 {
                     {|IDE3000:throw new NotImplementedException("Factorial method not implemented");|}
                 }
-            
+        
                 public int ConstantValue => {|IDE3000:throw new NotImplementedException("Property not implemented")|};
-            
-                public MathService()
+        
+                public {|IDE3000:MathService|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Constructor not implemented");|}
                 }
-            
-                ~MathService()
+        
+                ~{|IDE3000:MathService|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Destructor not implemented");|}
                 }
-            
+        
                 public event EventHandler MyEvent
                 {
-                    add { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
-                    remove { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
+                    {|IDE3000:add|} { {|IDE3000:throw new NotImplementedException("Event add not implemented");|} }
+                    {|IDE3000:remove|} { {|IDE3000:throw new NotImplementedException("Event remove not implemented");|} }
                 }
-            
-                public static MathService operator +(MathService a, MathService b)
+        
+                public static MathService operator {|IDE3000:+|}(MathService a, MathService b)
                 {
                     {|IDE3000:throw new NotImplementedException("Operator not implemented");|}
                 }
@@ -103,6 +105,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             FixedCode = """
             using System;
             using System.Threading.Tasks;
+            using System.Linq;
 
             public class MathService : IMathService
             {
@@ -110,30 +113,30 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     return a + b;
                 }
-            
+        
                 public int Subtract(int a, int b) => a - b;
-            
+        
                 public int Multiply(int a, int b)
                 {
                     return a * b;
                 }
-            
+        
                 public double Divide(int a, int b)
                 {
                     if (b == 0) throw new DivideByZeroException("Division by zero is not allowed");
                     return (double)a / b;
                 }
-            
+        
                 public double CalculateSquareRoot(double number) => Math.Sqrt(number);
-            
+        
                 public int Factorial(int number)
                 {
                     if (number < 0) throw new ArgumentException("Number must be non-negative", nameof(number));
                     return number == 0 ? 1 : number * Factorial(number - 1);
                 }
-            
+        
                 public int ConstantValue => 42;
-            
+        
                 public MathService()
                 {
                     // Constructor implementation
@@ -143,19 +146,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 {
                     // Destructor implementation
                 }
-            
+        
                 public event EventHandler MyEvent
                 {
                     add { /* Event add implementation */ }
                     remove { /* Event remove implementation */ }
                 }
-            
+        
                 public static MathService operator +(MathService a, MathService b)
                 {
                     return new MathService(); // Operator implementation
                 }
             }
-            
+        
             public interface IMathService
             {
                 int Add(int a, int b);
@@ -188,38 +191,9 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                     ["MathService"] = "public MathService()\n{\n    // Constructor implementation\n}\n",
                     ["~MathService"] = "~MathService()\n{\n    // Destructor implementation\n}\n",
                     ["MyEvent"] = "public event EventHandler MyEvent\n{\n    add { /* Event add implementation */ }\n    remove { /* Event remove implementation */ }\n}\n",
-                    ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n"
+                    ["operator +"] = "public static MathService operator +(MathService a, MathService b)\n{\n    return new MathService(); // Operator implementation\n}\n",
                 };
-
-                // Process each member reference and create implementation details
-                var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
-                foreach (var memberReference in memberReferences)
-                {
-                    var memberNode = memberReference.Key;
-
-                    // Get the identifier based on node type
-                    var identifier = memberNode switch
-                    {
-                        MethodDeclarationSyntax method => method.Identifier.Text,
-                        PropertyDeclarationSyntax property => property.Identifier.Text,
-                        ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
-                        DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
-                        EventDeclarationSyntax @event => @event.Identifier.Text,
-                        OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
-                        _ => string.Empty
-                    };
-
-                    // Look up implementation in our map
-                    Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
-                    resultsBuilder.Add(
-                        memberNode,
-                        new ImplementationDetails
-                        {
-                            ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
-                        });
-                }
-
-                return resultsBuilder.ToImmutable();
+                return BuildResult(memberReferences, implementationMap);
             };
         })
         .RunAsync();
@@ -233,19 +207,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
             using System.Threading.Tasks;
 
             public class DataService : IDataService
             {
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
 
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
 
                 /* Updates the data for a given ID */
                 public void UpdateData(int id, string data)
@@ -265,7 +239,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
@@ -290,12 +264,12 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             public class DataService : IDataService
             {
                 /* {{copilotErrorMessage}} */
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
             
                 /* Updates the data for a given ID */
                 public void UpdateData(int id, string data)
@@ -315,7 +289,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
@@ -340,13 +314,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             public class DataService : IDataService
             {
                 /* {{copilotErrorMessage}} */
-                public void AddData(string data)
+                public void {|IDE3000:AddData|}(string data)
                 {
                     {|IDE3000:throw new NotImplementedException("AddData method not implemented");|}
                 }
             
                 /* {{copilotErrorMessage}} */
-                public string GetData(int id) => {|IDE3000:throw new NotImplementedException()|};
+                public string {|IDE3000:GetData|}(int id) => {|IDE3000:throw new NotImplementedException()|};
             
                 /* Updates the data for a given ID */
                 /* {{copilotErrorMessage}} */
@@ -369,7 +343,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                 /// Saves changes asynchronously
                 /// </summary>
                 /// <returns>A task representing the save operation</returns>
-                public Task SaveChangesAsync()
+                public Task {|IDE3000:SaveChangesAsync|}()
                 {
                     {|IDE3000:throw new NotImplementedException("SaveChangesAsync method not implemented");|}
                 }
@@ -415,13 +389,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -441,7 +415,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
                         throw new NotImplementedException();
                     }
                 } */
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -525,13 +499,13 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         Assumes.False(string.IsNullOrWhiteSpace(implementationDetails.Message));
         await new CustomCompositionCSharpTest
         {
-            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = """
             using System;
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -543,7 +517,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             class C
             {
                 /* {{implementationDetails.Message}} */
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -561,6 +535,39 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
             copilotService.PrepareUsingSingleFakeResult = implementationDetails;
         })
         .RunAsync();
+    }
+
+    private static ImmutableDictionary<SyntaxNode, ImplementationDetails> BuildResult(ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, Dictionary<string, string> implementationMap)
+    {
+        // Process each member reference and create implementation details
+        var resultsBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
+        foreach (var memberReference in memberReferences)
+        {
+            var memberNode = memberReference.Key;
+
+            // Get the identifier based on node type
+            var identifier = memberNode switch
+            {
+                MethodDeclarationSyntax method => method.Identifier.Text,
+                PropertyDeclarationSyntax property => property.Identifier.Text,
+                ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
+                DestructorDeclarationSyntax destructor => destructor.TildeToken.Text + destructor.Identifier.Text,
+                EventDeclarationSyntax @event => @event.Identifier.Text,
+                OperatorDeclarationSyntax @operator => "operator " + @operator.OperatorToken.Text,
+                _ => string.Empty
+            };
+
+            // Look up implementation in our map
+            Assumes.True(implementationMap.TryGetValue(identifier, out var implementation));
+            resultsBuilder.Add(
+                memberNode,
+                new ImplementationDetails
+                {
+                    ReplacementNode = SyntaxFactory.ParseMemberDeclaration(implementation),
+                });
+        }
+
+        return resultsBuilder.ToImmutable();
     }
 
     private class CustomCompositionCSharpTest : VerifyCS.Test

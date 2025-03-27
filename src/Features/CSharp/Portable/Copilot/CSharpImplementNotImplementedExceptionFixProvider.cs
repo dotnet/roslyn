@@ -55,10 +55,11 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             return;
         }
 
-        var throwNode = context.Diagnostics[0].Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var diagnosticNode = context.Diagnostics[0].Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         // Preliminary analysis before registering fix
-        var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+        var methodOrProperty = diagnosticNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
             // Pull out the computation into a lazy computation here.  That way if we compute (and thus cache) the
@@ -84,8 +85,9 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
 
         foreach (var diagnostic in diagnostics)
         {
-            var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+            var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var methodOrProperty = diagnosticNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
             Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
 
             if (!memberReferencesBuilder.ContainsKey(methodOrProperty))

@@ -3,17 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ITypeSymbolExtensions
 {
     private sealed class CollectTypeParameterSymbolsVisitor(
-         IList<ITypeParameterSymbol> typeParameters,
-        bool onlyMethodTypeParameters) : SymbolVisitor
+        ArrayBuilder<ITypeParameterSymbol> typeParameters,
+        bool onlyMethodTypeParameters) : SymbolVisitor, IDisposable
     {
-        private readonly HashSet<ISymbol> _visited = [];
+        private readonly PooledHashSet<ISymbol> _visited = PooledHashSet<ISymbol>.GetInstance();
+
+        public void Dispose()
+        {
+            _visited.Free();
+        }
 
         public override void DefaultVisit(ISymbol node)
             => throw new NotImplementedException();
