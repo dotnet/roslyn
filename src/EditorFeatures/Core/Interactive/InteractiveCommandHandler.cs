@@ -56,7 +56,7 @@ internal abstract class InteractiveCommandHandler :
     bool ICommandHandler<ExecuteInInteractiveCommandArgs>.ExecuteCommand(ExecuteInInteractiveCommandArgs args, CommandExecutionContext context)
     {
         var window = OpenInteractiveWindow(focus: false);
-        using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Executing_selection_in_Interactive_Window))
+        using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Executing_selection_in_Interactive_Window))
         {
             var submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
             if (!string.IsNullOrWhiteSpace(submission))
