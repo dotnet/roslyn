@@ -12,9 +12,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A base class for synthesized methods that want a this parameter.
+    /// A base class for synthesized methods that might want a this parameter.
     /// </summary>
-    internal abstract class SynthesizedInstanceMethodSymbol : MethodSymbol
+    internal abstract class SynthesizedMethodSymbol : MethodSymbol
     {
         private ParameterSymbol _lazyThisParameter;
 
@@ -42,9 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract override bool IsStatic { get; }
+
         internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
         {
-            Debug.Assert(!IsStatic);
+            if (IsStatic)
+            {
+                thisParameter = null;
+                return true;
+            }
 
             if ((object)_lazyThisParameter == null)
             {

@@ -655,4 +655,21 @@ public sealed class EventKeywordRecommenderTests : KeywordRecommenderTests
             record R([$$] int i) { }
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+    }
 }

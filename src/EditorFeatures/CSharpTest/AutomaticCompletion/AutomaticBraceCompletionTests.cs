@@ -4,7 +4,9 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
@@ -1852,12 +1854,56 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         CheckReturn(session.Session, 0, expectedAfterReturn);
     }
 
+    [WpfFact]
+    public void ModernExtension()
+    {
+        var code = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) $$
+                }
+            }
+            """;
+
+        var expectedBeforeReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) { }
+                }
+            }
+            """;
+
+        var expectedAfterReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s)
+                    {
+
+                    }
+                }
+            }
+            """;
+        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckText(session.Session, expectedBeforeReturn);
+        CheckReturn(session.Session, 12, expectedAfterReturn);
+    }
+
     internal static Holder CreateSession(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
-        OptionsCollection? globalOptions = null)
+        OptionsCollection? globalOptions = null,
+        ParseOptions? parseOptions = null)
     {
         return CreateSession(
-            EditorTestWorkspace.CreateCSharp(code),
+            EditorTestWorkspace.CreateCSharp(code, parseOptions),
             CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
     }
 }
