@@ -203,7 +203,7 @@ internal abstract class AbstractCodeCleanupService : ICodeCleanupService
         var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
             shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
             priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-            DiagnosticKind.All, isExplicit: false,
+            DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
 
         // We don't want code cleanup automatically cleaning suppressed diagnostics.

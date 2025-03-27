@@ -83,7 +83,6 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         Func<string, bool>? shouldIncludeDiagnostic,
         ICodeActionRequestPriorityProvider priorityProvider,
         DiagnosticKind diagnosticKinds,
-        bool isExplicit,
         CancellationToken cancellationToken)
     {
         var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
@@ -93,7 +92,7 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
         return await analyzer.GetDiagnosticsForSpanAsync(
-            document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+            document, range, shouldIncludeDiagnostic, priorityProvider, diagnosticKinds, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
