@@ -14,53 +14,52 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace IdeBenchmarks.InheritanceMargin
+namespace IdeBenchmarks.InheritanceMargin;
+
+[MemoryDiagnoser]
+public class InheritanceMarginServiceBenchmarks
 {
-    [MemoryDiagnoser]
-    public class InheritanceMarginServiceBenchmarks
+    private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
+    private Solution _solution;
+
+    public InheritanceMarginServiceBenchmarks()
     {
-        private readonly UseExportProviderAttribute _useExportProviderAttribute = new();
-        private Solution _solution;
+        _solution = null!;
+    }
 
-        public InheritanceMarginServiceBenchmarks()
-        {
-            _solution = null!;
-        }
+    [IterationSetup]
+    public void IterationSetup()
+    {
+        _useExportProviderAttribute.Before(null);
 
-        [IterationSetup]
-        public void IterationSetup()
-        {
-            _useExportProviderAttribute.Before(null);
+        var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+        var solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
 
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
+        if (!File.Exists(solutionPath))
+            throw new ArgumentException("Couldn't find solution.");
 
-            if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find solution.");
+        Console.WriteLine("Found solution.");
+        var assemblies = MSBuildMefHostServices.DefaultAssemblies
+            .AddRange(EditorTestCompositions.EditorFeatures.Assemblies)
+            .Distinct();
 
-            Console.WriteLine("Found solution.");
-            var assemblies = MSBuildMefHostServices.DefaultAssemblies
-                .AddRange(EditorTestCompositions.EditorFeatures.Assemblies)
-                .Distinct();
+        var hostService = MefHostServices.Create(assemblies);
+        var workspace = MSBuildWorkspace.Create(hostService);
+        _solution = workspace.OpenSolutionAsync(solutionPath).Result;
+    }
 
-            var hostService = MefHostServices.Create(assemblies);
-            var workspace = MSBuildWorkspace.Create(hostService);
-            _solution = workspace.OpenSolutionAsync(solutionPath).Result;
-        }
+    [IterationCleanup]
+    public void IterationCleanup()
+    {
+        _useExportProviderAttribute.After(null);
+    }
 
-        [IterationCleanup]
-        public void IterationCleanup()
-        {
-            _useExportProviderAttribute.After(null);
-        }
-
-        [Benchmark]
-        public async Task BenchmarkInheritanceMarginServiceAsync()
-        {
-            var items = await BenchmarksHelpers.GenerateInheritanceMarginItemsAsync(
-                           _solution,
-                           CancellationToken.None).ConfigureAwait(false);
-            Console.WriteLine($"Total {items.Length} items are generated.");
-        }
+    [Benchmark]
+    public async Task BenchmarkInheritanceMarginServiceAsync()
+    {
+        var items = await BenchmarksHelpers.GenerateInheritanceMarginItemsAsync(
+                       _solution,
+                       CancellationToken.None).ConfigureAwait(false);
+        Console.WriteLine($"Total {items.Length} items are generated.");
     }
 }

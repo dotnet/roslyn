@@ -7,21 +7,20 @@
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities
-{
-    /// <summary>
-    /// Helpers to test metadata.
-    /// </summary>
-    internal static class PEModuleTestHelpers
-    {
-        internal static MetadataReader GetMetadataReader(this PEModule module)
-        {
-            return module.MetadataReader;
-        }
+namespace Roslyn.Test.Utilities;
 
-        internal static MetadataReader GetMetadataReader(this PEAssembly assembly)
-        {
-            return assembly.ManifestModule.MetadataReader;
-        }
+/// <summary>
+/// Helpers to test metadata.
+/// </summary>
+internal static class PEModuleTestHelpers
+{
+    internal static MetadataReader GetMetadataReader(this PEModule module)
+    {
+        return module.MetadataReader;
+    }
+
+    internal static MetadataReader GetMetadataReader(this PEAssembly assembly)
+    {
+        return assembly.ManifestModule.MetadataReader;
     }
 }

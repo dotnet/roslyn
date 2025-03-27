@@ -8,16 +8,15 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests;
+
+public class ResultProviderTests
 {
-    public class ResultProviderTests
+    [Fact]
+    public void DkmEvaluationFlagsConflict()
     {
-        [Fact]
-        public void DkmEvaluationFlagsConflict()
-        {
-            var values = Enum.GetValues(typeof(DkmEvaluationFlags)).Cast<DkmEvaluationFlags>().ToArray();
-            Assert.False(values.Contains(ResultProvider.NoResults));
-            Assert.False(values.Contains(ResultProvider.NotRoot));
-        }
+        var values = Enum.GetValues(typeof(DkmEvaluationFlags)).Cast<DkmEvaluationFlags>().ToArray();
+        Assert.False(values.Contains(ResultProvider.NoResults));
+        Assert.False(values.Contains(ResultProvider.NotRoot));
     }
 }

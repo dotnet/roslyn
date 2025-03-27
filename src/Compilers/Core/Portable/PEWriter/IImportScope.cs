@@ -5,22 +5,21 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+/// <summary>
+/// Represents a lexical scope that declares imports.
+/// </summary>
+internal interface IImportScope
 {
     /// <summary>
-    /// Represents a lexical scope that declares imports.
+    /// Zero or more used namespaces. These correspond to using directives in C# or Imports syntax in VB.
+    /// Multiple invocations return the same array instance.
     /// </summary>
-    internal interface IImportScope
-    {
-        /// <summary>
-        /// Zero or more used namespaces. These correspond to using directives in C# or Imports syntax in VB.
-        /// Multiple invocations return the same array instance.
-        /// </summary>
-        ImmutableArray<UsedNamespaceOrType> GetUsedNamespaces(EmitContext context);
+    ImmutableArray<UsedNamespaceOrType> GetUsedNamespaces(EmitContext context);
 
-        /// <summary>
-        /// Parent import scope, or null.
-        /// </summary>
-        IImportScope Parent { get; }
-    }
+    /// <summary>
+    /// Parent import scope, or null.
+    /// </summary>
+    IImportScope Parent { get; }
 }

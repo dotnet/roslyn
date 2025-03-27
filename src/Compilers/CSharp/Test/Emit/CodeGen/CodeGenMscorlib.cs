@@ -12,21 +12,21 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public partial class CodeGenMscorlibTests : EmitMetadataTestBase
 {
-    public partial class CodeGenMscorlibTests : EmitMetadataTestBase
+    [WorkItem(544591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
+    [WorkItem(544609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
+    [WorkItem(544595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
+    [WorkItem(544596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
+    [WorkItem(544624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
+    [WorkItem(544592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
+    [WorkItem(544927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
+    [Fact]
+    public void CoreLibrary1()
     {
-        [WorkItem(544591, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544591")]
-        [WorkItem(544609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544609")]
-        [WorkItem(544595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544595")]
-        [WorkItem(544596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544596")]
-        [WorkItem(544624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544624")]
-        [WorkItem(544592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544592")]
-        [WorkItem(544927, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544927")]
-        [Fact]
-        public void CoreLibrary1()
-        {
-            var text =
+        var text =
 @"namespace System
 {
     public class Object { }
@@ -150,20 +150,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public class DefaultMemberAttribute : Attribute { }
     }
 }";
-            var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+        var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
-            c.VerifyDiagnostics(
-                // (100,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
-                //                 FCallGetNextArg (&result); // 1
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&result").WithArguments("System.TypedReference").WithLocation(100, 34)
-                );
-        }
+        c.VerifyDiagnostics(
+            // (100,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('TypedReference')
+            //                 FCallGetNextArg (&result); // 1
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&result").WithArguments("System.TypedReference").WithLocation(100, 34)
+            );
+    }
 
-        [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
-        [Fact]
-        public void CoreLibrary2()
-        {
-            var text =
+    [WorkItem(544918, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544918")]
+    [Fact]
+    public void CoreLibrary2()
+    {
+        var text =
 @"class Program
 {
     public static void Main(string[] args)
@@ -175,14 +175,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
     }
 }";
-            CreateCompilationWithMscorlib40(text).VerifyDiagnostics();
-        }
+        CreateCompilationWithMscorlib40(text).VerifyDiagnostics();
+    }
 
-        [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
-        [Fact]
-        public void CoreLibrary3()
-        {
-            var text =
+    [WorkItem(546832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546832")]
+    [Fact]
+    public void CoreLibrary3()
+    {
+        var text =
 @"namespace System
 {
     public struct Nullable<T> where T : struct
@@ -201,41 +201,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Void { }
     public struct Boolean { private Boolean m_value; Boolean Use(Boolean b) { m_value = b; return m_value; } }
 }";
-            CreateEmptyCompilation(
-                text,
-                options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
-        }
+        CreateEmptyCompilation(
+            text,
+            options: TestOptions.ReleaseDll)
+        .VerifyDiagnostics();
+    }
 
-        /// <summary>
-        /// Report CS0518 for missing System.Void
-        /// when generating synthesized .ctor.
-        /// </summary>
-        [WorkItem(530859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
-        [Fact()]
-        public void NoVoidForSynthesizedCtor()
-        {
-            var source =
+    /// <summary>
+    /// Report CS0518 for missing System.Void
+    /// when generating synthesized .ctor.
+    /// </summary>
+    [WorkItem(530859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530859")]
+    [Fact()]
+    public void NoVoidForSynthesizedCtor()
+    {
+        var source =
 @"namespace System
 {
     public class Object { }
 }";
-            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
-            compilation.VerifyEmitDiagnostics(
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
-                );
-        }
+        var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
+        compilation.VerifyEmitDiagnostics(
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
+            );
+    }
 
-        /// <summary>
-        /// Report CS0656 for missing Decimal to int conversion.
-        /// </summary>
-        [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
-        [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
-        public void NoDecimalConversion()
-        {
-            var source1 =
+    /// <summary>
+    /// Report CS0656 for missing Decimal to int conversion.
+    /// </summary>
+    [WorkItem(530860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530860")]
+    [WorkItem(39962, "https://github.com/dotnet/roslyn/issues/39962")]
+    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39962
+    public void NoDecimalConversion()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"class C
 {
     static int M(decimal d)
@@ -254,22 +254,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         return (int)d;
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
-            // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
-            // Instead, we report no errors and assert during emit.
+        var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
+        // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
+        // Instead, we report no errors and assert during emit.
 
-            // no errors for compat reasons.
-            compilation2.VerifyDiagnostics();
+        // no errors for compat reasons.
+        compilation2.VerifyDiagnostics();
 
-            // The bug has been resolved as Won't Fix for being extremely niche scenario and being a compat concern.
-            // uncomment the following code if we are fixing this
-            //var verifier = CompileAndVerify(compilation2);
-        }
+        // The bug has been resolved as Won't Fix for being extremely niche scenario and being a compat concern.
+        // uncomment the following code if we are fixing this
+        //var verifier = CompileAndVerify(compilation2);
+    }
 
-        [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]
-        public void NoTypedRef()
-        {
-            var source1 =
+    [Fact, WorkItem(3593, "https://github.com/dotnet/roslyn/issues/3593")]
+    public void NoTypedRef()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -278,9 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"    
 public class C1
 {
@@ -295,18 +295,18 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
-            compilation2.VerifyDiagnostics(
-    // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
-    //         var refresult = __makeref(result);
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(7, 25)
+        var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
+        compilation2.VerifyDiagnostics(
+// (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+//         var refresult = __makeref(result);
+Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(7, 25)
 );
-        }
+    }
 
-        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
-        public void NoTypedRefBox()
-        {
-            var source1 =
+    [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+    public void NoTypedRefBox()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -315,9 +315,9 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"    
 public class C1
 {
@@ -332,18 +332,18 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
-            compilation2.VerifyDiagnostics(
-    // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
-    //         var refresult = __makeref(result);
-    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(9, 25)
+        var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
+        compilation2.VerifyDiagnostics(
+// (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
+//         var refresult = __makeref(result);
+Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "__makeref(result)").WithArguments("System.TypedReference").WithLocation(9, 25)
 );
-        }
+    }
 
-        [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
-        public void NoTypedRefBox1()
-        {
-            var source1 =
+    [Fact, WorkItem(3746, "https://github.com/dotnet/roslyn/issues/3746")]
+    public void NoTypedRefBox1()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -353,9 +353,9 @@ public class C1
     public struct Decimal { }
     public struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"    
 public class C1
 {
@@ -371,21 +371,21 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
-            compilation2.VerifyDiagnostics(
-    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
-    //         rrr = refresult;
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
-    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
-    //         rrr = (object)__makeref(result);
-    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+        var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
+        compilation2.VerifyDiagnostics(
+// (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+//         rrr = refresult;
+Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+// (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+//         rrr = (object)__makeref(result);
+Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
 );
-        }
+    }
 
-        [Fact()]
-        public void NoTypedRefBox_RefStruct()
-        {
-            var source1 =
+    [Fact()]
+    public void NoTypedRefBox_RefStruct()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -412,9 +412,9 @@ public class C1
     // Make the type ref struct. Should work just fine.
     public ref struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"    
 public class C1
 {
@@ -430,22 +430,22 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
-            compilation2.VerifyDiagnostics(
-    // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
-    //         rrr = refresult;
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
-    // (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
-    //         rrr = (object)__makeref(result);
-    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
+        var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+        compilation2.VerifyDiagnostics(
+// (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
+//         rrr = refresult;
+Diagnostic(ErrorCode.ERR_NoImplicitConv, "refresult").WithArguments("System.TypedReference", "object").WithLocation(10, 15),
+// (11,15): error CS0030: Cannot convert type 'System.TypedReference' to 'object'
+//         rrr = (object)__makeref(result);
+Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)__makeref(result)").WithArguments("System.TypedReference", "object").WithLocation(11, 15)
 );
-        }
+    }
 
-        [WorkItem(530861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
-        [Fact]
-        public void MissingStringLengthForEach()
-        {
-            var source1 =
+    [WorkItem(530861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530861")]
+    [Fact]
+    public void MissingStringLengthForEach()
+    {
+        var source1 =
 @"namespace System
 {
     public class Object { }
@@ -474,9 +474,9 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
-            var source2 =
+        var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
+        var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+        var source2 =
 @"class C
 {
     static void M(string s)
@@ -487,29 +487,29 @@ namespace System.Collections
         }
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
-            compilation2.VerifyDiagnostics();
-            compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
-                // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
-                //         foreach (var c in s)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var c in s)
+        var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
+        compilation2.VerifyDiagnostics();
+        compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
+            // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
+            //         foreach (var c in s)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var c in s)
         {
             // comment
         }").WithArguments("System.String", "get_Length"),
-                // (5,9): error CS0656: Missing compiler required member 'System.String.get_Chars'
-                //         foreach (var c in s)
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var c in s)
+            // (5,9): error CS0656: Missing compiler required member 'System.String.get_Chars'
+            //         foreach (var c in s)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"foreach (var c in s)
         {
             // comment
         }").WithArguments("System.String", "get_Chars")
-          );
-        }
+      );
+    }
 
-        [WorkItem(631443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
-        [Fact]
-        public void CoreLibrary4()
-        {
-            var text =
+    [WorkItem(631443, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631443")]
+    [Fact]
+    public void CoreLibrary4()
+    {
+        var text =
 @"namespace System
 {
     public struct Nullable<T> where T : struct
@@ -544,16 +544,16 @@ namespace System.Collections
         }
     }
 }";
-            CreateEmptyCompilation(
-                text,
-                options: TestOptions.ReleaseDll)
-            .VerifyDiagnostics();
-        }
+        CreateEmptyCompilation(
+            text,
+            options: TestOptions.ReleaseDll)
+        .VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void CoreLibraryInt32_m_value()
-        {
-            var text =
+    [Fact]
+    public void CoreLibraryInt32_m_value()
+    {
+        var text =
 @"namespace System
 {
     public class Object 
@@ -609,15 +609,15 @@ namespace System.Collections
         }
     }
 }";
-            var comp = CreateEmptyCompilation(
-                    text,
-                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-                    options: TestOptions.ReleaseDll)
-                .VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(
+                text,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics();
 
-            //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
-            CompileAndVerify(comp, verify: Verification.Skipped).
-                VerifyIL("int.CompareTo(int)", @"
+        //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
+        CompileAndVerify(comp, verify: Verification.Skipped).
+            VerifyIL("int.CompareTo(int)", @"
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -637,8 +637,8 @@ namespace System.Collections
   IL_000f:  ret
 }
 "
-                ).
-                VerifyIL("int.Equals(object)", @"
+            ).
+            VerifyIL("int.Equals(object)", @"
 {
   // Code size       21 (0x15)
   .maxstack  2
@@ -655,8 +655,8 @@ namespace System.Collections
   IL_0014:  ret
 }
 "
-                ).
-                VerifyIL("int.GetHashCode()", @"
+            ).
+            VerifyIL("int.GetHashCode()", @"
 {
   // Code size        3 (0x3)
   .maxstack  1
@@ -665,13 +665,13 @@ namespace System.Collections
   IL_0002:  ret
 }
 "
-                );
-        }
+            );
+    }
 
-        [Fact]
-        public void Enum_GetHashCode()
-        {
-            var text =
+    [Fact]
+    public void Enum_GetHashCode()
+    {
+        var text =
 @"
 using System;
 
@@ -747,23 +747,23 @@ namespace System
         }
     }
 ";
-            var comp = CreateEmptyCompilation(
-                    text,
-                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
-                    options: TestOptions.ReleaseDll)
-                .VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(
+                text,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics();
 
-            //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
-            //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
-            //           have different implementations
+        //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
+        //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
+        //           have different implementations
 
-            // PEVerify:
-            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
-            // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
-            // Type load failed.
-            // ILVerify: Failed to load type 'System.String' from assembly ... 
-            CompileAndVerify(comp, verify: Verification.Fails).
-                VerifyIL("program.Main()",
+        // PEVerify:
+        // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively).
+        // Error: Token 0x02000009 following ELEMENT_TYPE_CLASS(_VALUETYPE) in signature is a ValueType (Class, respectively).
+        // Type load failed.
+        // ILVerify: Failed to load type 'System.String' from assembly ... 
+        CompileAndVerify(comp, verify: Verification.Fails).
+            VerifyIL("program.Main()",
 @"
 {
   // Code size       62 (0x3e)
@@ -798,13 +798,13 @@ namespace System
   IL_003d:  ret
 }
 "
-                );
-        }
+            );
+    }
 
-        [Fact]
-        public void CoreLibraryIntPtr_m_value()
-        {
-            var text =
+    [Fact]
+    public void CoreLibraryIntPtr_m_value()
+    {
+        var text =
 @"namespace System
 {
     public class Object 
@@ -877,22 +877,22 @@ namespace System
         }
     }
 }";
-            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
-            //           the field should be loaded off the reference like in 
-            //           the following snippet  (note ldargA, not ldarg) -
-            //      IL_0000:  ldarga.s   V_0
-            //      IL_0002:  ldfld      ""void* System.IntPtr.m_value""
-            //
-            //           it may seem redundant since in general we can load the filed off the value
-            //           but see the bug see VSW #396011, JIT needs references when loading
-            //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
+        //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
+        //           the field should be loaded off the reference like in 
+        //           the following snippet  (note ldargA, not ldarg) -
+        //      IL_0000:  ldarga.s   V_0
+        //      IL_0002:  ldfld      ""void* System.IntPtr.m_value""
+        //
+        //           it may seem redundant since in general we can load the filed off the value
+        //           but see the bug see VSW #396011, JIT needs references when loading
+        //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
-            // PEVerify: Type load failed.
-            // ILVerify: Failed to load type 'System.String' from assembly ... 
-            CompileAndVerify(comp, verify: Verification.Fails).
-                VerifyIL("System.IntPtr..ctor(int)", @"
+        // PEVerify: Type load failed.
+        // ILVerify: Failed to load type 'System.String' from assembly ... 
+        CompileAndVerify(comp, verify: Verification.Fails).
+            VerifyIL("System.IntPtr..ctor(int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -975,12 +975,12 @@ namespace System
   IL_0016:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void FixedHelpersOnStringAndArray()
-        {
-            var text =
+    [Fact]
+    public void FixedHelpersOnStringAndArray()
+    {
+        var text =
 @"
 namespace System
 {
@@ -1034,13 +1034,13 @@ unsafe internal class @program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+        var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
-            comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics();
 
-            var c = CompileAndVerify(comp, verify: Verification.Skipped);
+        var c = CompileAndVerify(comp, verify: Verification.Skipped);
 
-            c.VerifyIL("program.Main()", @"
+        c.VerifyIL("program.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -1058,9 +1058,9 @@ unsafe internal class @program
   IL_0012:  ret
 }
 "
-                );
+            );
 
-            c.VerifyIL("program.Main1()", @"
+        c.VerifyIL("program.Main1()", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -1092,12 +1092,12 @@ unsafe internal class @program
   IL_0022:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void FixedHelperOnObject()
-        {
-            var text =
+    [Fact]
+    public void FixedHelperOnObject()
+    {
+        var text =
 @"
 namespace System
 {
@@ -1160,12 +1160,12 @@ unsafe internal class @program
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+        var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
-            comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, verify: Verification.Skipped).
-                VerifyIL("program.Main()", @"
+        CompileAndVerify(comp, verify: Verification.Skipped).
+            VerifyIL("program.Main()", @"
 {
   // Code size       83 (0x53)
   .maxstack  2
@@ -1227,7 +1227,6 @@ unsafe internal class @program
   IL_0052:  ret
 }
 "
-                );
-        }
+            );
     }
 }

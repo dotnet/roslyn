@@ -13,27 +13,27 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class CodeGenAsyncEHTests : EmitMetadataTestBase
 {
-    public class CodeGenAsyncEHTests : EmitMetadataTestBase
+    private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+
+    public CodeGenAsyncEHTests()
     {
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+    }
 
-        public CodeGenAsyncEHTests()
-        {
-        }
+    private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+    {
+        references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
+        return base.CompileAndVerify(source, targetFramework: TargetFramework.Empty, expectedOutput: expectedOutput, references: references, options: options);
+    }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
-        {
-            references = (references != null) ? references.Concat(s_asyncRefs) : s_asyncRefs;
-            return base.CompileAndVerify(source, targetFramework: TargetFramework.Empty, expectedOutput: expectedOutput, references: references, options: options);
-        }
-
-        [Fact]
-        [WorkItem(624970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624970")]
-        public void AsyncWithEH()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(624970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624970")]
+    public void AsyncWithEH()
+    {
+        var source = @"
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -141,15 +141,15 @@ class Test
         }
     }
 }";
-            var expected = @"";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        var expected = @"";
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [WorkItem(14878, "https://github.com/dotnet/roslyn/issues/14878")]
-        [Fact]
-        public void AsyncWithEHCodeQuality()
-        {
-            var source = @"
+    [WorkItem(14878, "https://github.com/dotnet/roslyn/issues/14878")]
+    [Fact]
+    public void AsyncWithEHCodeQuality()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -203,10 +203,10 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 10
 ";
-            CompileAndVerify(source, expectedOutput: expected).
+        CompileAndVerify(source, expectedOutput: expected).
 VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      819 (0x333)
@@ -570,12 +570,12 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_0332:  ret
 }
 ");
-        }
+    }
 
-        [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
-        public void GenericCatchVariableInAsyncMethod()
-        {
-            var source = @"
+    [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
+    public void GenericCatchVariableInAsyncMethod()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -611,13 +611,13 @@ namespace ConsoleApplication1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "3");
-        }
+        CompileAndVerify(source, expectedOutput: "3");
+    }
 
-        [Fact]
-        public void AsyncWithException1()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncWithException1()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -647,16 +647,16 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 -1
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncWithException2()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncWithException2()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -685,16 +685,16 @@ class Test
         }
     }
 }";
-            var expected = @"
+        var expected = @"
 exception
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInFinally001()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInFinally001()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -727,10 +727,10 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected).
+        CompileAndVerify(source, expectedOutput: expected).
 VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      210 (0xd2)
@@ -839,12 +839,12 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_00d1:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
-        public void AsyncInFinally002()
-        {
-            var source = @"
+    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+    public void AsyncInFinally002()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -893,15 +893,15 @@ class Test
         }
     }
 }";
-            var expected = @"FOne or more errors occurred.
+        var expected = @"FOne or more errors occurred.
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void AsyncInFinally003()
-        {
-            var source = @"
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+    public void AsyncInFinally003()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -934,27 +934,27 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 2
 ";
-            var v = CompileAndVerify(source, s_asyncRefs, targetFramework: TargetFramework.Empty, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+        var v = CompileAndVerify(source, s_asyncRefs, targetFramework: TargetFramework.Empty, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<x>5__1",
-                    "<>s__2", // pending exception
-                    "<>s__3", // pending branch
-                    "<>s__4", // return value
-                    "<>s__5", // spill
-                    "<>s__6", // spill
-                    "<>s__7", // spill
-                    "<>u__1", // awaiter
-                }, module.GetFieldNames("Test.<G>d__1"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<x>5__1",
+                "<>s__2", // pending exception
+                "<>s__3", // pending branch
+                "<>s__4", // return value
+                "<>s__5", // spill
+                "<>s__6", // spill
+                "<>s__7", // spill
+                "<>u__1", // awaiter
+            }, module.GetFieldNames("Test.<G>d__1"));
+        });
 
-            v.VerifyPdb("Test.G", @"
+        v.VerifyPdb("Test.G", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -983,7 +983,7 @@ class Test
 </symbols>
 ");
 
-            v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"{
   // Code size      461 (0x1cd)
   .maxstack  3
@@ -1193,12 +1193,12 @@ class Test
   IL_01cb:  nop
   IL_01cc:  ret
 }", sequencePoints: "Test+<G>d__1.MoveNext");
-        }
+    }
 
-        [Fact]
-        public void AsyncInFinally004()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInFinally004()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1237,16 +1237,16 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInFinallyNested001()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInFinallyNested001()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1300,14 +1300,14 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"15";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        var expected = @"15";
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInFinallyNested002()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInFinallyNested002()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1369,15 +1369,15 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"hello
+        var expected = @"hello
 15";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInFinallyNested003()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInFinallyNested003()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1440,15 +1440,15 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"bye
+        var expected = @"bye
 15";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInCatch001()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatch001()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1482,10 +1482,10 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected).
+        CompileAndVerify(source, expectedOutput: expected).
 VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      170 (0xaa)
@@ -1585,12 +1585,12 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_00a9:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void AsyncInCatchRethrow()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatchRethrow()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1644,18 +1644,18 @@ class Test
         }
     }
 }";
-            var expected = @"
+        var expected = @"
 Attempted to divide by zero.
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
-        [Fact]
-        public void AsyncInCatchRethrow01()
-        {
-            var source = @"
+    [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
+    [Fact]
+    public void AsyncInCatchRethrow01()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1713,18 +1713,18 @@ class Test
         }
     }
 }";
-            var expected = @"rethrowing
+        var expected = @"rethrowing
 Attempted to divide by zero.
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
-        [Fact]
-        public void AsyncInCatchRethrow02()
-        {
-            var source = @"
+    [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
+    [Fact]
+    public void AsyncInCatchRethrow02()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1787,17 +1787,17 @@ class Test
         }
     }
 }";
-            var expected = @"rethrowing
+        var expected = @"rethrowing
 Attempted to divide by zero.
 4
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInCatchFilter()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatchFilter()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1841,17 +1841,17 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 hello
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInCatchFilterLifted()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatchFilterLifted()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1898,16 +1898,16 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"True
+        var expected = @"True
 2
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInCatchFinallyMixed()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatchFinallyMixed()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1978,17 +1978,17 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 hello
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void AsyncInCatchFinallyMixed_InAsyncLambda()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncInCatchFinallyMixed_InAsyncLambda()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -2062,17 +2062,17 @@ class Test
         Console.WriteLine(t2.Result);
     }
 }";
-            var expected = @"
+        var expected = @"
 hello
 42
 ";
-            CompileAndVerify(source, expectedOutput: expected);
-        }
+        CompileAndVerify(source, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void DoFinallyBodies()
-        {
-            var source = @"
+    [Fact]
+    public void DoFinallyBodies()
+    {
+        var source = @"
 using System.Threading.Tasks;
 using System;
 
@@ -2099,449 +2099,448 @@ class Driver
         Console.WriteLine(Driver.finally_count);
     }
 }";
-            var expected = @"
+        var expected = @"
 1
 ";
-            CompileAndVerify(source, expected);
-        }
+        CompileAndVerify(source, expected);
+    }
 
-        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
-        public void NestedCatch_DuplicateLocal()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-                using static System.Console;
+    [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+    public void NestedCatch_DuplicateLocal()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            using static System.Console;
 
-                class C
+            class C
+            {
+                static async Task Main()
                 {
-                    static async Task Main()
-                    {
-                        await new C().M1(catchFirst: false);
-                        WriteLine("--- catch first ---");
-                        await new C().M1(catchFirst: true);
-                    }
-
-                    bool F(string caller, Exception ex, bool result)
-                    {
-                        WriteLine($"F: {caller} {ex.Message}");
-                        return result;
-                    }
-
-                    async Task M1(bool catchFirst)
-                    {
-                        try
-                        {
-                            throw new Exception("M1");
-                        }
-                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst))
-                        {
-                            await M2("M1-catch1", ex);
-                        }
-                        catch (Exception ex) when (F("M1-catch2", ex, true))
-                        {
-                            try
-                            {
-                                throw new Exception("M1-catch2");
-                            }
-                            catch 
-                            {
-                                await M2("M1-catch2-catch", ex);
-                            }
-                        }
-                    }
-
-                    async Task M2(string caller, Exception ex)
-                    {
-                        WriteLine($"M2: {caller} {ex.Message}");
-                        await Task.Yield();
-                    }
-                }
-                """;
-            var expectedOutput = """
-                F: M1-catch1 M1
-                F: M1-catch2 M1
-                M2: M1-catch2-catch M1
-                --- catch first ---
-                F: M1-catch1 M1
-                M2: M1-catch1 M1
-                """;
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
-        public void NestedCatch_DuplicateLocal_Level2()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-                using static System.Console;
-
-                class C
-                {
-                    static async Task Main()
-                    {
-                        foreach (var catchFirst1 in new[] { false, true })
-                        {
-                            foreach (var catchFirst2 in new[] { false, true })
-                            {
-                                WriteLine($"--- catchFirst1={catchFirst1}, catchFirst2={catchFirst2} ---");
-                                await new C().M1(catchFirst1: catchFirst1, catchFirst2: catchFirst2);
-                            }
-                        }
-                    }
-
-                    bool F(string caller, Exception ex, bool result)
-                    {
-                        WriteLine($"F: {caller} {ex.Message}");
-                        return result;
-                    }
-
-                    async Task M1(bool catchFirst1, bool catchFirst2)
-                    {
-                        try
-                        {
-                            throw new Exception("M1-try");
-                        }
-                        catch (Exception ex) when (F("M1-catch1", ex, catchFirst1))
-                        {
-                            await M2("M1-catch1", ex);
-                        }
-                        catch (Exception ex) when (F("M1-catch2", ex, true))
-                        {
-                            try
-                            {
-                                throw new Exception("M1-catch2");
-                            }
-                            catch (Exception ex2) when (F("M1-catch2-catch1", ex2, catchFirst2))
-                            {
-                                await M2("M1-catch2-catch1-ex", ex);
-                                await M2("M1-catch2-catch1-ex2", ex2);
-                            }
-                            catch (Exception ex2) when (F("M1-catch2-catch2", ex2, true))
-                            {
-                                try
-                                {
-                                    throw new Exception("M1-catch2-catch1");
-                                }
-                                catch
-                                {
-                                    await M2("M1-catch2-catch2-catch-ex", ex);
-                                    await M2("M1-catch2-catch2-catch-ex2", ex2);
-                                }
-                            }
-                        }
-                    }
-
-                    async Task M2(string caller, Exception ex)
-                    {
-                        await Task.Yield();
-                        WriteLine($"M2: {caller} {ex.Message}");
-                    }
-                }
-                """;
-            var expectedOutput = """
-                --- catchFirst1=False, catchFirst2=False ---
-                F: M1-catch1 M1-try
-                F: M1-catch2 M1-try
-                F: M1-catch2-catch1 M1-catch2
-                F: M1-catch2-catch2 M1-catch2
-                M2: M1-catch2-catch2-catch-ex M1-try
-                M2: M1-catch2-catch2-catch-ex2 M1-catch2
-                --- catchFirst1=False, catchFirst2=True ---
-                F: M1-catch1 M1-try
-                F: M1-catch2 M1-try
-                F: M1-catch2-catch1 M1-catch2
-                M2: M1-catch2-catch1-ex M1-try
-                M2: M1-catch2-catch1-ex2 M1-catch2
-                --- catchFirst1=True, catchFirst2=False ---
-                F: M1-catch1 M1-try
-                M2: M1-catch1 M1-try
-                --- catchFirst1=True, catchFirst2=True ---
-                F: M1-catch1 M1-try
-                M2: M1-catch1 M1-try
-                """;
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
-        public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch(bool awaitInTry2)
-        {
-            var source = $$"""
-                using System;
-                using System.Threading.Tasks;
-                using static System.Console;
-                
-                class C
-                {
-                    static async Task Main()
-                    {
-                        await new C().M1(catchFirst: false);
-                        WriteLine("--- catch first ---");
-                        await new C().M1(catchFirst: true);
-                    }
-                
-                    bool F(string caller, bool result)
-                    {
-                        WriteLine($"F: {caller}");
-                        return result;
-                    }
-                
-                    async Task M1(bool catchFirst)
-                    {
-                        try
-                        {
-                            throw new Exception("M1");
-                        }
-                        catch (Exception ex) when (F("M1-catch1", catchFirst))
-                        {
-                            await M2("M1-catch1", ex);
-                        }
-                        catch (Exception ex) when (F("M1-catch2", true))
-                        {
-                            try
-                            {
-                                {{(awaitInTry2 ? "await Task.Yield();" : "")}}
-                                throw new Exception("M1-catch2");
-                            }
-                            catch 
-                            {
-                                _ = M2("M1-catch2-catch", ex);
-                            }
-                        }
-                    }
-                
-                    async Task M2(string caller, Exception ex)
-                    {
-                        WriteLine($"M2: {caller} {ex.Message}");
-                        await Task.Yield();
-                    }
-                }
-                """;
-
-            var expectedOutput = """
-                F: M1-catch1
-                F: M1-catch2
-                M2: M1-catch2-catch M1
-                --- catch first ---
-                F: M1-catch1
-                M2: M1-catch1 M1
-                """;
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
-        public void NestedRethrow(bool await1, bool await2)
-        {
-            var source = $$"""
-                using System;
-                using System.Threading.Tasks;
-
-                try
-                {
-                    await Test1();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.GetType().Name);
+                    await new C().M1(catchFirst: false);
+                    WriteLine("--- catch first ---");
+                    await new C().M1(catchFirst: true);
                 }
 
-                try
+                bool F(string caller, Exception ex, bool result)
                 {
-                    await Test2();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.GetType().Name);
+                    WriteLine($"F: {caller} {ex.Message}");
+                    return result;
                 }
 
-                static async Task Test1()
+                async Task M1(bool catchFirst)
                 {
                     try
                     {
-                        throw new Exception1();
+                        throw new Exception("M1");
                     }
-                    catch (Exception1)
+                    catch (Exception ex) when (F("M1-catch1", ex, catchFirst))
+                    {
+                        await M2("M1-catch1", ex);
+                    }
+                    catch (Exception ex) when (F("M1-catch2", ex, true))
                     {
                         try
                         {
-                            await Task.FromException(new Exception2());
+                            throw new Exception("M1-catch2");
                         }
-                        catch (Exception2)
+                        catch 
                         {
-                            {{(await1 ? "await Task.Yield();" : "")}}
+                            await M2("M1-catch2-catch", ex);
+                        }
+                    }
+                }
+
+                async Task M2(string caller, Exception ex)
+                {
+                    WriteLine($"M2: {caller} {ex.Message}");
+                    await Task.Yield();
+                }
+            }
+            """;
+        var expectedOutput = """
+            F: M1-catch1 M1
+            F: M1-catch2 M1
+            M2: M1-catch2-catch M1
+            --- catch first ---
+            F: M1-catch1 M1
+            M2: M1-catch1 M1
+            """;
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
+    public void NestedCatch_DuplicateLocal_Level2()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            using static System.Console;
+
+            class C
+            {
+                static async Task Main()
+                {
+                    foreach (var catchFirst1 in new[] { false, true })
+                    {
+                        foreach (var catchFirst2 in new[] { false, true })
+                        {
+                            WriteLine($"--- catchFirst1={catchFirst1}, catchFirst2={catchFirst2} ---");
+                            await new C().M1(catchFirst1: catchFirst1, catchFirst2: catchFirst2);
+                        }
+                    }
+                }
+
+                bool F(string caller, Exception ex, bool result)
+                {
+                    WriteLine($"F: {caller} {ex.Message}");
+                    return result;
+                }
+
+                async Task M1(bool catchFirst1, bool catchFirst2)
+                {
+                    try
+                    {
+                        throw new Exception("M1-try");
+                    }
+                    catch (Exception ex) when (F("M1-catch1", ex, catchFirst1))
+                    {
+                        await M2("M1-catch1", ex);
+                    }
+                    catch (Exception ex) when (F("M1-catch2", ex, true))
+                    {
+                        try
+                        {
+                            throw new Exception("M1-catch2");
+                        }
+                        catch (Exception ex2) when (F("M1-catch2-catch1", ex2, catchFirst2))
+                        {
+                            await M2("M1-catch2-catch1-ex", ex);
+                            await M2("M1-catch2-catch1-ex2", ex2);
+                        }
+                        catch (Exception ex2) when (F("M1-catch2-catch2", ex2, true))
+                        {
+                            try
+                            {
+                                throw new Exception("M1-catch2-catch1");
+                            }
+                            catch
+                            {
+                                await M2("M1-catch2-catch2-catch-ex", ex);
+                                await M2("M1-catch2-catch2-catch-ex2", ex2);
+                            }
+                        }
+                    }
+                }
+
+                async Task M2(string caller, Exception ex)
+                {
+                    await Task.Yield();
+                    WriteLine($"M2: {caller} {ex.Message}");
+                }
+            }
+            """;
+        var expectedOutput = """
+            --- catchFirst1=False, catchFirst2=False ---
+            F: M1-catch1 M1-try
+            F: M1-catch2 M1-try
+            F: M1-catch2-catch1 M1-catch2
+            F: M1-catch2-catch2 M1-catch2
+            M2: M1-catch2-catch2-catch-ex M1-try
+            M2: M1-catch2-catch2-catch-ex2 M1-catch2
+            --- catchFirst1=False, catchFirst2=True ---
+            F: M1-catch1 M1-try
+            F: M1-catch2 M1-try
+            F: M1-catch2-catch1 M1-catch2
+            M2: M1-catch2-catch1-ex M1-try
+            M2: M1-catch2-catch1-ex2 M1-catch2
+            --- catchFirst1=True, catchFirst2=False ---
+            F: M1-catch1 M1-try
+            M2: M1-catch1 M1-try
+            --- catchFirst1=True, catchFirst2=True ---
+            F: M1-catch1 M1-try
+            M2: M1-catch1 M1-try
+            """;
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
+    public void NestedCatch_DuplicateLocal_NoAwaitInNestedCatch(bool awaitInTry2)
+    {
+        var source = $$"""
+            using System;
+            using System.Threading.Tasks;
+            using static System.Console;
+            
+            class C
+            {
+                static async Task Main()
+                {
+                    await new C().M1(catchFirst: false);
+                    WriteLine("--- catch first ---");
+                    await new C().M1(catchFirst: true);
+                }
+            
+                bool F(string caller, bool result)
+                {
+                    WriteLine($"F: {caller}");
+                    return result;
+                }
+            
+                async Task M1(bool catchFirst)
+                {
+                    try
+                    {
+                        throw new Exception("M1");
+                    }
+                    catch (Exception ex) when (F("M1-catch1", catchFirst))
+                    {
+                        await M2("M1-catch1", ex);
+                    }
+                    catch (Exception ex) when (F("M1-catch2", true))
+                    {
+                        try
+                        {
+                            {{(awaitInTry2 ? "await Task.Yield();" : "")}}
+                            throw new Exception("M1-catch2");
+                        }
+                        catch 
+                        {
+                            _ = M2("M1-catch2-catch", ex);
+                        }
+                    }
+                }
+            
+                async Task M2(string caller, Exception ex)
+                {
+                    WriteLine($"M2: {caller} {ex.Message}");
+                    await Task.Yield();
+                }
+            }
+            """;
+
+        var expectedOutput = """
+            F: M1-catch1
+            F: M1-catch2
+            M2: M1-catch2-catch M1
+            --- catch first ---
+            F: M1-catch1
+            M2: M1-catch1 M1
+            """;
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+    public void NestedRethrow(bool await1, bool await2)
+    {
+        var source = $$"""
+            using System;
+            using System.Threading.Tasks;
+
+            try
+            {
+                await Test1();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.GetType().Name);
+            }
+
+            try
+            {
+                await Test2();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.GetType().Name);
+            }
+
+            static async Task Test1()
+            {
+                try
+                {
+                    throw new Exception1();
+                }
+                catch (Exception1)
+                {
+                    try
+                    {
+                        await Task.FromException(new Exception2());
+                    }
+                    catch (Exception2)
+                    {
+                        {{(await1 ? "await Task.Yield();" : "")}}
+                        throw;
+                    }
+                }
+            }
+
+            static async Task Test2()
+            {
+                try
+                {
+                    throw new Exception1();
+                }
+                catch (Exception1)
+                {
+                    try
+                    {
+                        await Task.FromException(new Exception2());
+                    }
+                    catch (Exception2 ex)
+                    {
+                        {{(await2 ? "await Task.Yield();" : "")}}
+                        throw ex;
+                    }
+                }
+            }
+
+            class Exception1 : Exception { }
+            class Exception2 : Exception { }
+            """;
+
+        var expectedOutput = """
+            Exception2
+            Exception2
+            """;
+
+        CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput,
+            targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
+            targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+    public void NestedRethrow_02(bool await1, bool await2, bool await3)
+    {
+        var source = $$"""
+            #pragma warning disable 1998 // async method lacks 'await' operators
+            using System;
+            using System.Threading.Tasks;
+
+            try
+            {
+                await Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.GetType().Name);
+            }
+
+            static async Task Run()
+            {
+                try
+                {
+                    throw new Exception1();
+                }
+                catch (Exception1)
+                {
+                    try
+                    {
+                        {{(await1 ? "await Task.Yield();" : "")}}
+                        throw new Exception2();
+                    }
+                    catch (Exception2)
+                    {
+                        try
+                        {
+                            {{(await2 ? "await Task.Yield();" : "")}}
+                            throw new Exception3();
+                        }
+                        catch (Exception3)
+                        {
+                            {{(await3 ? "await Task.Yield();" : "")}}
                             throw;
                         }
                     }
                 }
+            }
 
-                static async Task Test2()
-                {
-                    try
-                    {
-                        throw new Exception1();
-                    }
-                    catch (Exception1)
-                    {
-                        try
-                        {
-                            await Task.FromException(new Exception2());
-                        }
-                        catch (Exception2 ex)
-                        {
-                            {{(await2 ? "await Task.Yield();" : "")}}
-                            throw ex;
-                        }
-                    }
-                }
+            class Exception1 : Exception { }
+            class Exception2 : Exception { }
+            class Exception3 : Exception { }
+            """;
 
-                class Exception1 : Exception { }
-                class Exception2 : Exception { }
-                """;
+        var expectedOutput = "Exception3";
 
-            var expectedOutput = """
-                Exception2
-                Exception2
-                """;
+        CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
 
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput,
-                targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
-                targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
-        }
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+    [InlineData("await Task.Yield();")]
+    [InlineData("await using var c = new C();")]
+    [InlineData("await foreach (var x in new C()) { }")]
+    public void NestedRethrow_03(string statement)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections.Generic;
+            using System.Threading;
+            using System.Threading.Tasks;
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
-        public void NestedRethrow_02(bool await1, bool await2, bool await3)
-        {
-            var source = $$"""
-                #pragma warning disable 1998 // async method lacks 'await' operators
-                using System;
-                using System.Threading.Tasks;
+            try
+            {
+                await Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.GetType().Name);
+            }
 
+            static async Task Run()
+            {
                 try
                 {
-                    await Run();
+                    throw new Exception1();
                 }
-                catch (Exception ex)
+                catch (Exception1)
                 {
-                    Console.WriteLine(ex.GetType().Name);
-                }
-
-                static async Task Run()
-                {
+                    {{statement}}
                     try
                     {
-                        throw new Exception1();
+                        throw new Exception2();
                     }
-                    catch (Exception1)
+                    catch (Exception2)
                     {
                         try
                         {
-                            {{(await1 ? "await Task.Yield();" : "")}}
-                            throw new Exception2();
+                            throw new Exception3();
                         }
-                        catch (Exception2)
+                        catch (Exception3)
                         {
-                            try
-                            {
-                                {{(await2 ? "await Task.Yield();" : "")}}
-                                throw new Exception3();
-                            }
-                            catch (Exception3)
-                            {
-                                {{(await3 ? "await Task.Yield();" : "")}}
-                                throw;
-                            }
+                            throw;
                         }
                     }
                 }
+            }
 
-                class Exception1 : Exception { }
-                class Exception2 : Exception { }
-                class Exception3 : Exception { }
-                """;
+            class Exception1 : Exception { }
+            class Exception2 : Exception { }
+            class Exception3 : Exception { }
 
-            var expectedOutput = "Exception3";
-
-            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
-        [InlineData("await Task.Yield();")]
-        [InlineData("await using var c = new C();")]
-        [InlineData("await foreach (var x in new C()) { }")]
-        public void NestedRethrow_03(string statement)
-        {
-            var source = $$"""
-                using System;
-                using System.Collections.Generic;
-                using System.Threading;
-                using System.Threading.Tasks;
-
-                try
+            class C : IAsyncDisposable, IAsyncEnumerable<int>
+            {
+                public async ValueTask DisposeAsync() => await Task.Yield();
+                public async IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken ct)
                 {
-                    await Run();
+                    await Task.Yield();
+                    yield return 1;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.GetType().Name);
-                }
+            }
+            """;
 
-                static async Task Run()
-                {
-                    try
-                    {
-                        throw new Exception1();
-                    }
-                    catch (Exception1)
-                    {
-                        {{statement}}
-                        try
-                        {
-                            throw new Exception2();
-                        }
-                        catch (Exception2)
-                        {
-                            try
-                            {
-                                throw new Exception3();
-                            }
-                            catch (Exception3)
-                            {
-                                throw;
-                            }
-                        }
-                    }
-                }
+        CSharpTestSource sources = [source, AsyncStreamsTypes];
 
-                class Exception1 : Exception { }
-                class Exception2 : Exception { }
-                class Exception3 : Exception { }
+        var expectedOutput = "Exception3";
 
-                class C : IAsyncDisposable, IAsyncEnumerable<int>
-                {
-                    public async ValueTask DisposeAsync() => await Task.Yield();
-                    public async IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken ct)
-                    {
-                        await Task.Yield();
-                        yield return 1;
-                    }
-                }
-                """;
-
-            CSharpTestSource sources = [source, AsyncStreamsTypes];
-
-            var expectedOutput = "Exception3";
-
-            CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
+        CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
+        CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 }

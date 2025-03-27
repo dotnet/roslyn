@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_ILiteralOperation : SemanticModelTestBase
 {
-    public class IOperationTests_ILiteralOperation : SemanticModelTestBase
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LiteralFLow_01()
     {
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LiteralFLow_01()
-        {
-            string source = @"
+        string source = @"
 class C
 {
     void M(bool b)
@@ -25,9 +25,9 @@ class C
     }/*</bind>*/
 }
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -47,7 +47,6 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 }

@@ -7,16 +7,15 @@
 using System;
 using System.Globalization;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
-{
-    internal sealed class CustomDiagnosticFormatter : DiagnosticFormatter
-    {
-        internal static new readonly CustomDiagnosticFormatter Instance = new CustomDiagnosticFormatter();
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 
-        public override string Format(Diagnostic diagnostic, IFormatProvider formatter = null)
-        {
-            var cultureInfo = (CultureInfo)formatter;
-            return string.Format("LCID={0}, Code={1}", cultureInfo.LCID, diagnostic.Code);
-        }
+internal sealed class CustomDiagnosticFormatter : DiagnosticFormatter
+{
+    internal static new readonly CustomDiagnosticFormatter Instance = new CustomDiagnosticFormatter();
+
+    public override string Format(Diagnostic diagnostic, IFormatProvider formatter = null)
+    {
+        var cultureInfo = (CultureInfo)formatter;
+        return string.Format("LCID={0}, Code={1}", cultureInfo.LCID, diagnostic.Code);
     }
 }

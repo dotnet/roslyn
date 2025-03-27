@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class CodeGenTryFinallyTests : CSharpTestBase
 {
-    public class CodeGenTryFinallyTests : CSharpTestBase
+    [Fact]
+    public void EmptyTryFinally()
     {
-        [Fact]
-        public void EmptyTryFinally()
-        {
-            var source =
+        var source =
 @"class C
 {
     static void EmptyTryFinally()
@@ -43,33 +43,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.EmptyTryFinally",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.EmptyTryFinally",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            compilation.VerifyIL("C.EmptyTryFinallyInTry",
+        compilation.VerifyIL("C.EmptyTryFinallyInTry",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            compilation.VerifyIL("C.EmptyTryFinallyInFinally",
+        compilation.VerifyIL("C.EmptyTryFinallyInFinally",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-        }
+    }
 
-        [Theory, WorkItem(4729, "https://github.com/dotnet/roslyn/issues/4729")]
-        [InlineData("")]
-        [InlineData(";")]
-        public void NopInTryCatchFinally(string doNothingStatements)
-        {
-            var source =
+    [Theory, WorkItem(4729, "https://github.com/dotnet/roslyn/issues/4729")]
+    [InlineData("")]
+    [InlineData(";")]
+    public void NopInTryCatchFinally(string doNothingStatements)
+    {
+        var source =
 $@"class C
 {{
     static void M1()
@@ -115,20 +115,20 @@ $@"class C
         finally {{ System.Console.WriteLine(1); }}
     }}
 }}";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.M1",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.M1",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            compilation.VerifyIL("C.M2",
+        compilation.VerifyIL("C.M2",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            compilation.VerifyIL("C.M3",
+        compilation.VerifyIL("C.M3",
 @"{
   // Code size       12 (0xc)
   .maxstack  1
@@ -145,13 +145,13 @@ $@"class C
   }
   IL_000b:  ret
 }");
-            compilation.VerifyIL("C.M4",
+        compilation.VerifyIL("C.M4",
 @"{
   // Code size        1 (0x1)
   .maxstack  0
   IL_0000:  ret
 }");
-            compilation.VerifyIL("C.M5",
+        compilation.VerifyIL("C.M5",
 @"{
   // Code size       10 (0xa)
   .maxstack  1
@@ -167,12 +167,12 @@ $@"class C
   }
   IL_0009:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryFinally()
-        {
-            var source =
+    [Fact]
+    public void TryFinally()
+    {
+        var source =
 @"class C
 {
     static void Main()
@@ -198,8 +198,8 @@ $@"class C
         System.Console.Write(""4, "");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 3, 4, 1, 2, 3, ");
-            compilation.VerifyIL("C.M",
+        var compilation = CompileAndVerify(source, expectedOutput: "1, 3, 4, 1, 2, 3, ");
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       50 (0x32)
   .maxstack  2
@@ -225,12 +225,12 @@ $@"class C
   IL_002c:  call       ""void System.Console.Write(string)""
   IL_0031:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryCatch()
-        {
-            var source =
+    [Fact]
+    public void TryCatch()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -258,8 +258,8 @@ class C
             throw new Exception();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "before, catch, before, after,");
-            compilation.VerifyIL("C.M",
+        var compilation = CompileAndVerify(source, expectedOutput: "before, catch, before, after,");
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       42 (0x2a)
   .maxstack  1
@@ -282,12 +282,12 @@ class C
   }
   IL_0029:  ret       
 }");
-        }
+    }
 
-        [Fact]
-        public void TryCatch001()
-        {
-            var source =
+    [Fact]
+    public void TryCatch001()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -316,8 +316,8 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "");
-            compilation.VerifyIL("C.M",
+        var compilation = CompileAndVerify(source, expectedOutput: "");
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       24 (0x18)
   .maxstack  1
@@ -345,12 +345,12 @@ class C
   }
   IL_0017:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryCatch002()
-        {
-            var source =
+    [Fact]
+    public void TryCatch002()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -384,8 +384,8 @@ class C
         ;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "");
-            compilation.VerifyIL("C.M", @"
+        var compilation = CompileAndVerify(source, expectedOutput: "");
+        compilation.VerifyIL("C.M", @"
 {
   // Code size       24 (0x18)
   .maxstack  1
@@ -413,13 +413,13 @@ class C
   }
   IL_0017:  ret
 }");
-        }
+    }
 
-        [WorkItem(813428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813428")]
-        [Fact]
-        public void TryCatchOptimized001()
-        {
-            var source =
+    [WorkItem(813428, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813428")]
+    [Fact]
+    public void TryCatchOptimized001()
+    {
+        var source =
 @"
 
 using System;
@@ -459,8 +459,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "hellobyebye");
-            compilation.VerifyIL("Program.Main",
+        var compilation = CompileAndVerify(source, expectedOutput: "hellobyebye");
+        compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       74 (0x4a)
@@ -508,12 +508,12 @@ class Program
   IL_0049:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TryFilterOptimized001()
-        {
-            var source =
+    [Fact]
+    public void TryFilterOptimized001()
+    {
+        var source =
 @"
 using System;
 
@@ -544,8 +544,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Program.Main", @"
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("Program.Main", @"
 {
   // Code size       78 (0x4e)
   .maxstack  2
@@ -602,12 +602,12 @@ class Program
   IL_004d:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TryFilterOptimized002()
-        {
-            var source =
+    [Fact]
+    public void TryFilterOptimized002()
+    {
+        var source =
 @"
 using System;
 
@@ -631,8 +631,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Program.Main", @"
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("Program.Main", @"
 {
   // Code size       46 (0x2e)
   .maxstack  2
@@ -668,12 +668,12 @@ class Program
   IL_002d:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TryFilterOptimized003()
-        {
-            var source =
+    [Fact]
+    public void TryFilterOptimized003()
+    {
+        var source =
 @"
 using System;
 
@@ -698,8 +698,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Program.Main", @"
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("Program.Main", @"
 {
   // Code size       46 (0x2e)
   .maxstack  2
@@ -733,12 +733,12 @@ class Program
 }
   IL_002d:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryFilterOptimized004()
-        {
-            var source =
+    [Fact]
+    public void TryFilterOptimized004()
+    {
+        var source =
 @"
 using System;
 
@@ -762,8 +762,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("Program.F<T>", @"
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("Program.F<T>", @"
 {
   // Code size       56 (0x38)
   .maxstack  2
@@ -801,12 +801,12 @@ class Program
   IL_0037:  ret
 }
 ");
-        }
+    }
 
-        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
-        public void LiftedExceptionVariableInGenericIterator()
-        {
-            var source = @"
+    [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
+    public void LiftedExceptionVariableInGenericIterator()
+    {
+        var source = @"
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -831,13 +831,13 @@ class C
         foreach (var x in new C().Iter2<object>()) { }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Hi");
-        }
+        CompileAndVerify(source, expectedOutput: "Hi");
+    }
 
-        [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
-        public void GenericLiftedExceptionVariableInGenericIterator()
-        {
-            var source = @"
+    [Fact, WorkItem(854935, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854935")]
+    public void GenericLiftedExceptionVariableInGenericIterator()
+    {
+        var source = @"
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -862,14 +862,14 @@ class C
         foreach (var x in new C().Iter2<object, IOException>()) { }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Hi");
-        }
+        CompileAndVerify(source, expectedOutput: "Hi");
+    }
 
-        [WorkItem(579778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579778")]
-        [Fact]
-        public void Regression579778()
-        {
-            var source =
+    [WorkItem(579778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579778")]
+    [Fact]
+    public void Regression579778()
+    {
+        var source =
 @"
 using System;
 using System.Security;
@@ -898,8 +898,8 @@ class C
     }
     
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "");
-            compilation.VerifyIL("C.Main",
+        var compilation = CompileAndVerify(source, expectedOutput: "");
+        compilation.VerifyIL("C.Main",
 @"
 {
   // Code size       18 (0x12)
@@ -935,12 +935,12 @@ class C
   IL_0011:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedExceptionHandlers()
-        {
-            var source =
+    [Fact]
+    public void NestedExceptionHandlers()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -977,11 +977,11 @@ class C
         M(1);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+        var compilation = CompileAndVerify(source, expectedOutput:
 @"Exception: i == 0
 InvalidOperationException: i != 0
 Exception: i != 0");
-            compilation.VerifyIL("C.M",
+        compilation.VerifyIL("C.M",
 @"
 {
   // Code size       57 (0x39)
@@ -1023,12 +1023,12 @@ Exception: i != 0");
   IL_0038:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort01()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort01()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1069,11 +1069,11 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 catch2
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       41 (0x29)
@@ -1105,12 +1105,12 @@ catch2
   IL_0028:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort02()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort02()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1158,12 +1158,12 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 finally
 catch2
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       54 (0x36)
@@ -1205,12 +1205,12 @@ catch2
   IL_0035:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort03()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort03()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1265,13 +1265,13 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 finally1
 catch2
 finally2
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       72 (0x48)
@@ -1324,12 +1324,12 @@ finally2
   IL_0047:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort04()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort04()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1384,13 +1384,13 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 finally1
 catch2
 finally2
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       92 (0x5c)
@@ -1456,12 +1456,12 @@ finally2
   IL_005b:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
-        public void NestedExceptionHandlersThreadAbort05()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+    public void NestedExceptionHandlersThreadAbort05()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1521,11 +1521,11 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 try2
 catch3
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"{
   // Code size       87 (0x57)
   .maxstack  1
@@ -1589,12 +1589,12 @@ catch3
   }
   IL_0056:  ret
 }");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort06()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort06()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1654,12 +1654,12 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 try2
 catch3
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       86 (0x56)
@@ -1728,12 +1728,12 @@ catch3
   IL_0055:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
-        public void NestedExceptionHandlersThreadAbort07()
-        {
-            var source =
+    [ConditionalFact(typeof(WindowsDesktopOnly))]
+    public void NestedExceptionHandlersThreadAbort07()
+    {
+        var source =
 @"
 using System;
 using System.Threading;
@@ -1788,13 +1788,13 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+        var compilation = CompileAndVerify(source, expectedOutput: @"
 catch1
 finally1
 finally2
 catch2
 ");
-            compilation.VerifyIL("Program.Test",
+        compilation.VerifyIL("Program.Test",
 @"
 {
   // Code size       74 (0x4a)
@@ -1848,12 +1848,12 @@ catch2
   IL_0049:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ThrowInTry()
-        {
-            var source =
+    [Fact]
+    public void ThrowInTry()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -1914,22 +1914,22 @@ class D
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.ThrowInTry",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.ThrowInTry",
 @"{
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Exception..ctor()""
   IL_0005:  throw
 }");
-            compilation.VerifyIL("C.ThrowInTryInTry",
+        compilation.VerifyIL("C.ThrowInTryInTry",
 @"{
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Exception..ctor()""
   IL_0005:  throw
 }");
-            compilation.VerifyIL("C.ThrowInTryInFinally",
+        compilation.VerifyIL("C.ThrowInTryInFinally",
 @"{
   // Code size       10 (0xa)
   .maxstack  1
@@ -1944,7 +1944,7 @@ class D
   }
   IL_0008:  br.s       IL_0008
 }");
-            compilation.VerifyIL("D.ThrowInTry",
+        compilation.VerifyIL("D.ThrowInTry",
 @"{
   // Code size       10 (0xa)
   .maxstack  1
@@ -1960,7 +1960,7 @@ class D
   }
   IL_0009:  ret
 }");
-            compilation.VerifyIL("D.ThrowInTryInTry",
+        compilation.VerifyIL("D.ThrowInTryInTry",
 @"{
   // Code size       10 (0xa)
   .maxstack  1
@@ -1976,7 +1976,7 @@ class D
   }
   IL_0009:  ret
 }");
-            compilation.VerifyIL("D.ThrowInTryInFinally",
+        compilation.VerifyIL("D.ThrowInTryInFinally",
 @"{
   // Code size       22 (0x16)
   .maxstack  1
@@ -2010,13 +2010,13 @@ class D
   }
   IL_0015:  ret
 }");
-        }
+    }
 
-        [WorkItem(540716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
-        [Fact]
-        public void ThrowInFinally()
-        {
-            var source =
+    [WorkItem(540716, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540716")]
+    [Fact]
+    public void ThrowInFinally()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -2080,8 +2080,8 @@ class D
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.ThrowInFinally",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.ThrowInFinally",
 @"{
   // Code size       10 (0xa)
   .maxstack  1
@@ -2096,7 +2096,7 @@ class D
   }
   IL_0008:  br.s       IL_0008
 }");
-            compilation.VerifyIL("C.ThrowInFinallyInTry",
+        compilation.VerifyIL("C.ThrowInFinallyInTry",
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -2119,9 +2119,9 @@ class D
     IL_000f:  endfinally
   }
 }");
-            // The nop below is to work around a verifier bug.
-            // See DevDiv 563799.
-            compilation.VerifyIL("C.ThrowInFinallyInFinally",
+        // The nop below is to work around a verifier bug.
+        // See DevDiv 563799.
+        compilation.VerifyIL("C.ThrowInFinallyInFinally",
 @"{
   // Code size       15 (0xf)
   .maxstack  1
@@ -2145,7 +2145,7 @@ class D
   }
   IL_000d:  br.s       IL_000d
 }");
-            compilation.VerifyIL("D.ThrowInFinally",
+        compilation.VerifyIL("D.ThrowInFinally",
 @"{
   // Code size       18 (0x12)
   .maxstack  1
@@ -2169,7 +2169,7 @@ class D
   }
   IL_0010:  br.s       IL_0010
 }");
-            compilation.VerifyIL("D.ThrowInFinallyInTry",
+        compilation.VerifyIL("D.ThrowInFinallyInTry",
 @"{
   // Code size       30 (0x1e)
   .maxstack  1
@@ -2211,7 +2211,7 @@ class D
   }
   IL_001d:  ret
 }");
-            compilation.VerifyIL("D.ThrowInFinallyInFinally",
+        compilation.VerifyIL("D.ThrowInFinallyInFinally",
 @"{
   // Code size       31 (0x1f)
   .maxstack  1
@@ -2253,12 +2253,12 @@ class D
   }
   IL_001d:  br.s       IL_001d
 }");
-        }
+    }
 
-        [Fact]
-        public void TryFilterSimple()
-        {
-            var src = @"
+    [Fact]
+    public void TryFilterSimple()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2287,9 +2287,9 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src,
-                expectedOutput: "TryFilterCatchFinally");
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src,
+            expectedOutput: "TryFilterCatchFinally");
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  2
@@ -2332,12 +2332,12 @@ class C
   IL_0035:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TryFilterUseException()
-        {
-            var src = @"
+    [Fact]
+    public void TryFilterUseException()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2381,8 +2381,8 @@ class C
         }
     }
 }";
-            CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
-                VerifyIL("C.Test", @"
+        CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
+            VerifyIL("C.Test", @"
 {
   // Code size      132 (0x84)
   .maxstack  2
@@ -2463,12 +2463,12 @@ class C
   }
   IL_0083:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryFilterScoping()
-        {
-            var src = @"
+    [Fact]
+    public void TryFilterScoping()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2493,8 +2493,8 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src, expectedOutput: "TryCatchS1Finally");
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src, expectedOutput: "TryCatchS1Finally");
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       95 (0x5f)
   .maxstack  2
@@ -2548,13 +2548,13 @@ class C
   IL_005e:  ret
 }
 ");
-        }
+    }
 
-        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
-        [Fact]
-        public void TryCatchConstantFalseFilter1()
-        {
-            var src = @"
+    [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+    [Fact]
+    public void TryCatchConstantFalseFilter1()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2570,21 +2570,21 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src);
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src);
+        comp.VerifyIL("C.Main", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Exception..ctor()""
   IL_0005:  throw
 }");
-        }
+    }
 
-        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
-        [Fact]
-        public void TryCatchConstantFalseFilter2()
-        {
-            var src = @"
+    [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+    [Fact]
+    public void TryCatchConstantFalseFilter2()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2608,21 +2608,21 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src);
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src);
+        comp.VerifyIL("C.Main", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
   IL_0000:  newobj     ""System.Exception..ctor()""
   IL_0005:  throw
 }");
-        }
+    }
 
-        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
-        [Fact]
-        public void TryCatchConstantFalseFilter3()
-        {
-            var src = @"
+    [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+    [Fact]
+    public void TryCatchConstantFalseFilter3()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2646,8 +2646,8 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src);
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src);
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -2678,13 +2678,13 @@ class C
   }
   IL_0026:  ret
 }");
-        }
+    }
 
-        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
-        [Fact]
-        public void TryCatchConstantFalseFilterCombined()
-        {
-            var src = @"
+    [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+    [Fact]
+    public void TryCatchConstantFalseFilterCombined()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2713,8 +2713,8 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src, expectedOutput: "ExceptionFilter");
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src, expectedOutput: "ExceptionFilter");
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       68 (0x44)
   .maxstack  2
@@ -2757,13 +2757,13 @@ class C
   }
   IL_0043:  ret
 }");
-        }
+    }
 
-        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
-        [Fact]
-        public void TryCatchFinallyConstantFalseFilter()
-        {
-            var src = @"
+    [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+    [Fact]
+    public void TryCatchFinallyConstantFalseFilter()
+    {
+        var src = @"
 using System;
 class C
 {
@@ -2795,8 +2795,8 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(src, expectedOutput: "FinallyOuterCatch");
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(src, expectedOutput: "FinallyOuterCatch");
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -2823,12 +2823,12 @@ class C
   }
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TryCatchWithReturnValue()
-        {
-            var source =
+    [Fact]
+    public void TryCatchWithReturnValue()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -2868,8 +2868,8 @@ class C
         Console.WriteLine(""M(0)={0}, M(1)={1}, M(2)={2}"", M(0), M(1), M(2));
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "M(0)=-4, M(1)=11, M(2)=6");
-            compilation.VerifyIL("C.M",
+        var compilation = CompileAndVerify(source, expectedOutput: "M(0)=-4, M(1)=11, M(2)=6");
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       34 (0x22)
   .maxstack  2
@@ -2915,12 +2915,12 @@ class C
   IL_0020:  ldloc.0   
   IL_0021:  ret       
 }");
-        }
+    }
 
-        [Fact]
-        public void Rethrow()
-        {
-            var source =
+    [Fact]
+    public void Rethrow()
+    {
+        var source =
 @"using System.IO;
 class C
 {
@@ -2953,8 +2953,8 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.M",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       27 (0x1b)
   .maxstack  2
@@ -2986,13 +2986,13 @@ class C
   }
   IL_001a:  ret
 }");
-        }
+    }
 
-        [WorkItem(541494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541494")]
-        [Fact]
-        public void CatchT()
-        {
-            var source =
+    [WorkItem(541494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541494")]
+    [Fact]
+    public void CatchT()
+    {
+        var source =
 @"using System;
 class C
 {
@@ -3025,10 +3025,10 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+        var compilation = CompileAndVerify(source, expectedOutput:
 @"Handled
 Unhandled");
-            compilation.VerifyIL("C.TryCatch<T>()",
+        compilation.VerifyIL("C.TryCatch<T>()",
 @"
 {
   // Code size       25 (0x19)
@@ -3048,13 +3048,13 @@ Unhandled");
   IL_0018:  ret
 }
 ");
-        }
+    }
 
-        [WorkItem(540664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540664")]
-        [Fact]
-        public void ExceptionAlreadyCaught1()
-        {
-            var source =
+    [WorkItem(540664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540664")]
+    [Fact]
+    public void ExceptionAlreadyCaught1()
+    {
+        var source =
 @"class C
 {
     static void M()
@@ -3064,14 +3064,14 @@ Unhandled");
         catch { }
     }
 }";
-            CompileAndVerify(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(7, 9));
-        }
+        CompileAndVerify(source).VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(7, 9));
+    }
 
-        [Fact]
-        public void ExceptionAlreadyCaught2()
-        {
-            var text = @"
+    [Fact]
+    public void ExceptionAlreadyCaught2()
+    {
+        var text = @"
 class Program
 {
     static void M()
@@ -3083,16 +3083,16 @@ class Program
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (9,9): warning CS1058: A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.
-                //         catch when (a == 1) { }
-                Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(9, 9));
-        }
+        CreateCompilation(text).VerifyDiagnostics(
+            // (9,9): warning CS1058: A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.
+            //         catch when (a == 1) { }
+            Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(9, 9));
+    }
 
-        [Fact]
-        public void ExceptionAlreadyCaught3()
-        {
-            var text = @"
+    [Fact]
+    public void ExceptionAlreadyCaught3()
+    {
+        var text = @"
 class Program
 {
     static void M()
@@ -3105,14 +3105,14 @@ class Program
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]
-        [Fact]
-        public void EmptyTryFinally_Simple()
-        {
-            var source =
+    [WorkItem(540666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540666")]
+    [Fact]
+    public void EmptyTryFinally_Simple()
+    {
+        var source =
 @"class C
 {
     static void M()
@@ -3121,14 +3121,14 @@ class Program
         finally { }
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [WorkItem(542002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542002")]
-        [Fact]
-        public void ConditionInTry()
-        {
-            var source =
+    [WorkItem(542002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542002")]
+    [Fact]
+    public void ConditionInTry()
+    {
+        var source =
 @"using System;
 class Program
 {
@@ -3148,8 +3148,8 @@ class Program
     }
 }";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "");
-            compilation.VerifyIL("Program.Main",
+        var compilation = CompileAndVerify(source, expectedOutput: "");
+        compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       13 (0xd)
@@ -3173,12 +3173,12 @@ class Program
   IL_000c:  ret
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
-        public void UnreachableAfterTryFinally()
-        {
-            var source = @"
+    [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+    public void UnreachableAfterTryFinally()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -3209,8 +3209,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
-            compilation.VerifyIL("Program.T1",
+        var compilation = CompileAndVerify(source, expectedOutput: "0");
+        compilation.VerifyIL("Program.T1",
 @"
 {
   // Code size        6 (0x6)
@@ -3226,12 +3226,12 @@ class Program
   IL_0004:  br.s       IL_0004
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
-        public void ReachableAfterBlockingCatch()
-        {
-            var source =
+    [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+    public void ReachableAfterBlockingCatch()
+    {
+        var source =
 @"using System;
 
     class Program
@@ -3263,8 +3263,8 @@ class Program
     }
 ";
 
-            var compilation = CompileAndVerify(source, expectedOutput: "hello");
-            compilation.VerifyIL("Program.T1",
+        var compilation = CompileAndVerify(source, expectedOutput: "hello");
+        compilation.VerifyIL("Program.T1",
 @"{
   // Code size       16 (0x10)
   .maxstack  1
@@ -3281,12 +3281,12 @@ class Program
   IL_000a:  call       ""void Program.F()""
   IL_000f:  ret
 }");
-        }
+    }
 
-        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
-        public void UnreachableAfterTryFinallyConditional()
-        {
-            var source = @"
+    [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+    public void UnreachableAfterTryFinallyConditional()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -3318,8 +3318,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
-            compilation.VerifyIL("Program.T1",
+        var compilation = CompileAndVerify(source, expectedOutput: "0");
+        compilation.VerifyIL("Program.T1",
 @"
 {
   // Code size       12 (0xc)
@@ -3337,12 +3337,12 @@ class Program
   IL_000a:  br.s       IL_000a
 }
 ");
-        }
+    }
 
-        [Fact()]
-        public void ReachableAfterFinallyButNotFromTryConditional01()
-        {
-            var source = @"
+    [Fact()]
+    public void ReachableAfterFinallyButNotFromTryConditional01()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -3390,8 +3390,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
-            compilation.VerifyIL("Program.T1",
+        var compilation = CompileAndVerify(source, expectedOutput: "0");
+        compilation.VerifyIL("Program.T1",
 @"
 {
   // Code size       29 (0x1d)
@@ -3422,12 +3422,12 @@ class Program
   IL_001c:  ret
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
-        public void ReachableAfterFinallyButNotFromTryConditional()
-        {
-            var source = @"
+    [Fact(), WorkItem(544911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544911")]
+    public void ReachableAfterFinallyButNotFromTryConditional()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -3473,8 +3473,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
-            compilation.VerifyIL("Program.T1",
+        var compilation = CompileAndVerify(source, expectedOutput: "0");
+        compilation.VerifyIL("Program.T1",
 @"
 {
   // Code size       29 (0x1d)
@@ -3505,12 +3505,12 @@ class Program
   IL_001c:  ret
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
-        public void ConditionalUnconditionalBranches()
-        {
-            var source = @"
+    [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
+    public void ConditionalUnconditionalBranches()
+    {
+        var source = @"
 using System;
 
     class Program
@@ -3549,10 +3549,10 @@ lOut:
         }
     }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"2
+        var compilation = CompileAndVerify(source, expectedOutput: @"2
 Finally
 Out");
-            compilation.VerifyIL("Program.Main",
+        compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       62 (0x3e)
@@ -3582,12 +3582,12 @@ Out");
   IL_003d:  ret
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
-        public void ConditionalUnconditionalBranches001()
-        {
-            var source = @"
+    [Fact(), WorkItem(713418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713418")]
+    public void ConditionalUnconditionalBranches001()
+    {
+        var source = @"
 using System;
 
     class Program
@@ -3626,10 +3626,10 @@ lOut:
         }
     }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"2
+        var compilation = CompileAndVerify(source, expectedOutput: @"2
 Finally
 Out");
-            compilation.VerifyIL("Program.Main",
+        compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size       52 (0x34)
@@ -3657,12 +3657,12 @@ Out");
   IL_0033:  ret
 }
 ");
-        }
+    }
 
-        [Fact(), WorkItem(2443, "https://github.com/dotnet/roslyn/issues/2443")]
-        public void OptimizeEmptyTryBlock()
-        {
-            var source = @"
+    [Fact(), WorkItem(2443, "https://github.com/dotnet/roslyn/issues/2443")]
+    public void OptimizeEmptyTryBlock()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -3679,8 +3679,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"");
-            compilation.VerifyIL("Program.Main",
+        var compilation = CompileAndVerify(source, expectedOutput: @"");
+        compilation.VerifyIL("Program.Main",
 @"
 {
   // Code size        1 (0x1)
@@ -3688,13 +3688,13 @@ class Program
   IL_0000:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")]
-        public void Issue29481()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(29481, "https://github.com/dotnet/roslyn/issues/29481")]
+    public void Issue29481()
+    {
+        var source = @"
 using System;
 
 public class Program
@@ -3727,8 +3727,8 @@ public class Program
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
-            CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe).VerifyIL("Program.Main",
+        CompileAndVerify(source, expectedOutput: "", options: TestOptions.DebugExe);
+        CompileAndVerify(source, expectedOutput: "", options: TestOptions.ReleaseExe).VerifyIL("Program.Main",
 @"
 {
   // Code size       26 (0x1a)
@@ -3758,13 +3758,13 @@ public class Program
   IL_0019:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void WhenWithAlwaysThrowingExpression_01()
-        {
-            var source = """
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void WhenWithAlwaysThrowingExpression_01()
+    {
+        var source = """
 class C
 {
     static bool _throw;
@@ -3823,13 +3823,13 @@ class C
 }
 """;
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "M1M4M1M2Catch",
-                // False PEVerify failure:
-                verify: Verification.FailsPEVerify with
-                {
-                    PEVerifyMessage = "[ : C::M][offset 0x0000000E] Stack not empty when leaving an exception filter."
-                }).VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "M1M4M1M2Catch",
+            // False PEVerify failure:
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::M][offset 0x0000000E] Stack not empty when leaving an exception filter."
+            }).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -3855,13 +3855,13 @@ class C
 }
 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "M1M4M1M2Catch",
-                // False PEVerify failure:
-                verify: Verification.FailsPEVerify with
-                {
-                    PEVerifyMessage = "[ : C::M][offset 0x00000012] Stack not empty when leaving an exception filter."
-                }).VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "M1M4M1M2Catch",
+            // False PEVerify failure:
+            verify: Verification.FailsPEVerify with
+            {
+                PEVerifyMessage = "[ : C::M][offset 0x00000012] Stack not empty when leaving an exception filter."
+            }).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
 {
   // Code size       38 (0x26)
   .maxstack  2
@@ -3895,13 +3895,13 @@ class C
   IL_0025:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void WhenWithAlwaysThrowingExpression_02()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void WhenWithAlwaysThrowingExpression_02()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -3921,8 +3921,8 @@ class C
 }
 """;
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
 {
   // Code size       33 (0x21)
   .maxstack  2
@@ -3953,8 +3953,8 @@ class C
 }
 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
-            verifier.VerifyIL("C.M", """
+        verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
 {
   // Code size       40 (0x28)
   .maxstack  2
@@ -3992,13 +3992,13 @@ class C
   IL_0027:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void WhenWithAlwaysThrowingExpression_03()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void WhenWithAlwaysThrowingExpression_03()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -4018,19 +4018,19 @@ class C
 }
 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (9,21): error CS8115: A throw expression is not allowed in this context.
-                //         catch when (throw null)
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 21)
-                );
-        }
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+        comp.VerifyDiagnostics(
+            // (9,21): error CS8115: A throw expression is not allowed in this context.
+            //         catch when (throw null)
+            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 21)
+            );
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void WhenWithAlwaysThrowingExpression_04()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void WhenWithAlwaysThrowingExpression_04()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -4050,19 +4050,19 @@ class C
 }
 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (9,48): error CS8115: A throw expression is not allowed in this context.
-                //         catch (System.ArgumentException) when (throw null)
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 48)
-                );
-        }
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+        comp.VerifyDiagnostics(
+            // (9,48): error CS8115: A throw expression is not allowed in this context.
+            //         catch (System.ArgumentException) when (throw null)
+            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(9, 48)
+            );
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void UnreachableCatch_01()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void UnreachableCatch_01()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -4082,16 +4082,16 @@ class C
 }
 """;
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch when (false)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
 
-            verifier.VerifyIL("C.M", """
+        verifier.VerifyIL("C.M", """
 {
   // Code size        6 (0x6)
   .maxstack  0
@@ -4100,15 +4100,15 @@ class C
 }
 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
-                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
-            verifier.VerifyIL("C.M", """
+        verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+            // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch when (false)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 21),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
+        verifier.VerifyIL("C.M", """
 {
   // Code size       10 (0xa)
   .maxstack  0
@@ -4120,13 +4120,13 @@ class C
   IL_0009:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void UnreachableCatch_02()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void UnreachableCatch_02()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -4146,15 +4146,15 @@ class C
 }
 """;
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch (System.ArgumentException) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
-            verifier.VerifyIL("C.M", """
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch (System.ArgumentException) when (false)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
+        verifier.VerifyIL("C.M", """
 {
   // Code size        6 (0x6)
   .maxstack  0
@@ -4163,15 +4163,15 @@ class C
 }
 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
-                // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch (System.ArgumentException) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
-            verifier.VerifyIL("C.M", """
+        verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+            // (9,48): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch (System.ArgumentException) when (false)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(9, 48),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
+        verifier.VerifyIL("C.M", """
 {
   // Code size       10 (0xa)
   .maxstack  0
@@ -4183,13 +4183,13 @@ class C
   IL_0009:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
-        public void UnreachableCatch_03()
-        {
-            var source = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67494")]
+    public void UnreachableCatch_03()
+    {
+        var source = """
 class C
 {
     static void M()
@@ -4209,16 +4209,16 @@ class C
 }
 """;
 
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch when (true ? false : true)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch when (true ? false : true)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
 
-            verifier.VerifyIL("C.M", """
+        verifier.VerifyIL("C.M", """
 {
   // Code size        6 (0x6)
   .maxstack  0
@@ -4227,15 +4227,15 @@ class C
 }
 """);
 
-            verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
-                // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
-                //         catch when (true ? false : true)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
-                // (11,13): warning CS0162: Unreachable code detected
-                //             M2();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
-                );
-            verifier.VerifyIL("C.M", """
+        verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+            // (9,21): warning CS8360: Filter expression is a constant 'false', consider removing the try-catch block
+            //         catch when (true ? false : true)
+            Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "true ? false : true").WithLocation(9, 21),
+            // (11,13): warning CS0162: Unreachable code detected
+            //             M2();
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "M2").WithLocation(11, 13)
+            );
+        verifier.VerifyIL("C.M", """
 {
   // Code size       10 (0xa)
   .maxstack  0
@@ -4247,12 +4247,12 @@ class C
   IL_0009:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
-        public void Repro70200()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+    public void Repro70200()
+    {
+        var source = """
 using System;
 using System.Threading.Tasks;
 
@@ -4274,24 +4274,24 @@ class C
 }
 """;
 
-            var expectedDiagnostics = new[]
-            {
-                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16),
-                // (10,9): warning CS0162: Unreachable code detected
-                //         try
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "try").WithLocation(10, 9)
-            };
-
-            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
-        public void Repro70200_WithoutReturn()
+        var expectedDiagnostics = new[]
         {
-            var source = """
+            // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     async Task M()
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16),
+            // (10,9): warning CS0162: Unreachable code detected
+            //         try
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "try").WithLocation(10, 9)
+        };
+
+        CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70200")]
+    public void Repro70200_WithoutReturn()
+    {
+        var source = """
 using System;
 using System.Threading.Tasks;
 
@@ -4311,11 +4311,10 @@ class C
 }
 """;
 
-            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async Task M()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16)
-                );
-        }
+        CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     async Task M()
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(6, 16)
+            );
     }
 }

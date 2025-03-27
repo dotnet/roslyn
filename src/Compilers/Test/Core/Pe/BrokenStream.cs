@@ -7,95 +7,94 @@
 using System;
 using System.IO;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+internal class BrokenStream : Stream
 {
-    internal class BrokenStream : Stream
+    public enum BreakHowType
     {
-        public enum BreakHowType
-        {
-            ThrowOnSetPosition,
-            ThrowOnWrite,
-            ThrowOnSetLength,
-            CancelOnWrite
-        }
+        ThrowOnSetPosition,
+        ThrowOnWrite,
+        ThrowOnSetLength,
+        CancelOnWrite
+    }
 
-        public BreakHowType BreakHow;
-        public Exception ThrownException { get; private set; }
+    public BreakHowType BreakHow;
+    public Exception ThrownException { get; private set; }
 
-        public override bool CanRead
-        {
-            get { return true; }
-        }
+    public override bool CanRead
+    {
+        get { return true; }
+    }
 
-        public override bool CanSeek
-        {
-            get { return true; }
-        }
+    public override bool CanSeek
+    {
+        get { return true; }
+    }
 
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
+    public override bool CanWrite
+    {
+        get { return true; }
+    }
 
-        public override void Flush()
-        {
-        }
+    public override void Flush()
+    {
+    }
 
-        public override long Length
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
-        public override long Position
-        {
-            get
-            {
-                return 0;
-            }
-            set
-            {
-                if (BreakHow == BreakHowType.ThrowOnSetPosition)
-                {
-                    ThrownException = new NotSupportedException();
-                    throw ThrownException;
-                }
-            }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
+    public override long Length
+    {
+        get
         {
             return 0;
         }
+    }
 
-        public override long Seek(long offset, SeekOrigin origin)
+    public override long Position
+    {
+        get
         {
             return 0;
         }
-
-        public override void SetLength(long value)
+        set
         {
-            if (BreakHow == BreakHowType.ThrowOnSetLength)
+            if (BreakHow == BreakHowType.ThrowOnSetPosition)
             {
-                ThrownException = new IOException();
+                ThrownException = new NotSupportedException();
                 throw ThrownException;
             }
         }
+    }
 
-        public override void Write(byte[] buffer, int offset, int count)
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        return 0;
+    }
+
+    public override long Seek(long offset, SeekOrigin origin)
+    {
+        return 0;
+    }
+
+    public override void SetLength(long value)
+    {
+        if (BreakHow == BreakHowType.ThrowOnSetLength)
         {
-            if (BreakHow == BreakHowType.ThrowOnWrite)
-            {
-                ThrownException = new IOException();
-                throw ThrownException;
-            }
-            else if (BreakHow == BreakHowType.CancelOnWrite)
-            {
-                ThrownException = new OperationCanceledException();
-                throw ThrownException;
-            }
+            ThrownException = new IOException();
+            throw ThrownException;
+        }
+    }
+
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        if (BreakHow == BreakHowType.ThrowOnWrite)
+        {
+            ThrownException = new IOException();
+            throw ThrownException;
+        }
+        else if (BreakHow == BreakHowType.CancelOnWrite)
+        {
+            ThrownException = new OperationCanceledException();
+            throw ThrownException;
         }
     }
 }

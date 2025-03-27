@@ -5,74 +5,73 @@
 using System;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal partial class SpecializedCollections
 {
-    internal partial class SpecializedCollections
+    private partial class ReadOnly
     {
-        private partial class ReadOnly
+        internal class Set<TUnderlying, T> : Collection<TUnderlying, T>, ISet<T>, IReadOnlySet<T>
+            where TUnderlying : ISet<T>
         {
-            internal class Set<TUnderlying, T> : Collection<TUnderlying, T>, ISet<T>, IReadOnlySet<T>
-                where TUnderlying : ISet<T>
+            public Set(TUnderlying underlying)
+                : base(underlying)
             {
-                public Set(TUnderlying underlying)
-                    : base(underlying)
-                {
-                }
+            }
 
-                public new bool Add(T item)
-                {
-                    throw new NotSupportedException();
-                }
+            public new bool Add(T item)
+            {
+                throw new NotSupportedException();
+            }
 
-                public void ExceptWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+            public void ExceptWith(IEnumerable<T> other)
+            {
+                throw new NotSupportedException();
+            }
 
-                public void IntersectWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+            public void IntersectWith(IEnumerable<T> other)
+            {
+                throw new NotSupportedException();
+            }
 
-                public bool IsProperSubsetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsProperSubsetOf(other);
-                }
+            public bool IsProperSubsetOf(IEnumerable<T> other)
+            {
+                return Underlying.IsProperSubsetOf(other);
+            }
 
-                public bool IsProperSupersetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsProperSupersetOf(other);
-                }
+            public bool IsProperSupersetOf(IEnumerable<T> other)
+            {
+                return Underlying.IsProperSupersetOf(other);
+            }
 
-                public bool IsSubsetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsSubsetOf(other);
-                }
+            public bool IsSubsetOf(IEnumerable<T> other)
+            {
+                return Underlying.IsSubsetOf(other);
+            }
 
-                public bool IsSupersetOf(IEnumerable<T> other)
-                {
-                    return Underlying.IsSupersetOf(other);
-                }
+            public bool IsSupersetOf(IEnumerable<T> other)
+            {
+                return Underlying.IsSupersetOf(other);
+            }
 
-                public bool Overlaps(IEnumerable<T> other)
-                {
-                    return Underlying.Overlaps(other);
-                }
+            public bool Overlaps(IEnumerable<T> other)
+            {
+                return Underlying.Overlaps(other);
+            }
 
-                public bool SetEquals(IEnumerable<T> other)
-                {
-                    return Underlying.SetEquals(other);
-                }
+            public bool SetEquals(IEnumerable<T> other)
+            {
+                return Underlying.SetEquals(other);
+            }
 
-                public void SymmetricExceptWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+            public void SymmetricExceptWith(IEnumerable<T> other)
+            {
+                throw new NotSupportedException();
+            }
 
-                public void UnionWith(IEnumerable<T> other)
-                {
-                    throw new NotSupportedException();
-                }
+            public void UnionWith(IEnumerable<T> other)
+            {
+                throw new NotSupportedException();
             }
         }
     }

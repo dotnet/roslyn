@@ -8,55 +8,54 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting;
+
+/// <summary>
+/// Defines global members that common command line script hosts expose to the hosted scripts.
+/// </summary>
+/// <remarks>
+/// It is recommended for hosts to expose the members defined by this class and implement 
+/// the same semantics, so that they can run scripts written against standard hosts. 
+/// 
+/// Specialized hosts that target niche scenarios might choose to not provide this functionality.
+/// </remarks>
+public class CommandLineScriptGlobals
 {
+    private readonly TextWriter _outputWriter;
+    private readonly ObjectFormatter _objectFormatter;
+
     /// <summary>
-    /// Defines global members that common command line script hosts expose to the hosted scripts.
+    /// Arguments given to the script.
     /// </summary>
-    /// <remarks>
-    /// It is recommended for hosts to expose the members defined by this class and implement 
-    /// the same semantics, so that they can run scripts written against standard hosts. 
-    /// 
-    /// Specialized hosts that target niche scenarios might choose to not provide this functionality.
-    /// </remarks>
-    public class CommandLineScriptGlobals
+    public IList<string> Args { get; }
+
+    public PrintOptions PrintOptions { get; }
+
+    /// <summary>
+    /// Pretty-prints an object.
+    /// </summary>
+    public void Print(object value)
     {
-        private readonly TextWriter _outputWriter;
-        private readonly ObjectFormatter _objectFormatter;
+        _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
+    }
 
-        /// <summary>
-        /// Arguments given to the script.
-        /// </summary>
-        public IList<string> Args { get; }
-
-        public PrintOptions PrintOptions { get; }
-
-        /// <summary>
-        /// Pretty-prints an object.
-        /// </summary>
-        public void Print(object value)
+    public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
+    {
+        if (outputWriter == null)
         {
-            _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
+            throw new ArgumentNullException(nameof(outputWriter));
         }
 
-        public CommandLineScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
+        if (objectFormatter == null)
         {
-            if (outputWriter == null)
-            {
-                throw new ArgumentNullException(nameof(outputWriter));
-            }
-
-            if (objectFormatter == null)
-            {
-                throw new ArgumentNullException(nameof(objectFormatter));
-            }
-
-            PrintOptions = new PrintOptions();
-
-            _outputWriter = outputWriter;
-            _objectFormatter = objectFormatter;
-
-            Args = new List<string>();
+            throw new ArgumentNullException(nameof(objectFormatter));
         }
+
+        PrintOptions = new PrintOptions();
+
+        _outputWriter = outputWriter;
+        _objectFormatter = objectFormatter;
+
+        Args = new List<string>();
     }
 }

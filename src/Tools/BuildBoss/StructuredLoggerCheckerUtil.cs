@@ -9,54 +9,53 @@ using System.IO;
 using System.Linq;
 using Microsoft.Build.Logging.StructuredLogger;
 
-namespace BuildBoss
+namespace BuildBoss;
+
+/// <summary>
+/// This type invokes the analyzer here:
+/// 
+///   https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/master/src/StructuredLogger/Analyzers/DoubleWritesAnalyzer.cs
+///
+/// </summary>
+internal sealed class StructuredLoggerCheckerUtil : ICheckerUtil
 {
-    /// <summary>
-    /// This type invokes the analyzer here:
-    /// 
-    ///   https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/master/src/StructuredLogger/Analyzers/DoubleWritesAnalyzer.cs
-    ///
-    /// </summary>
-    internal sealed class StructuredLoggerCheckerUtil : ICheckerUtil
+    private readonly string _logFilePath;
+
+    internal StructuredLoggerCheckerUtil(string logFilePath)
     {
-        private readonly string _logFilePath;
+        _logFilePath = logFilePath;
+    }
 
-        internal StructuredLoggerCheckerUtil(string logFilePath)
+    public bool Check(TextWriter textWriter)
+    {
+        try
         {
-            _logFilePath = logFilePath;
-        }
+            var build = Serialization.Read(_logFilePath);
+            var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
 
-        public bool Check(TextWriter textWriter)
-        {
-            try
+            // Issue https://github.com/dotnet/roslyn/issues/62372
+            if (doubleWrites.Any(doubleWrite => Path.GetFileName(doubleWrite.Key) != "Microsoft.VisualStudio.Text.Internal.dll"))
             {
-                var build = Serialization.Read(_logFilePath);
-                var doubleWrites = DoubleWritesAnalyzer.GetDoubleWrites(build).ToArray();
-
-                // Issue https://github.com/dotnet/roslyn/issues/62372
-                if (doubleWrites.Any(doubleWrite => Path.GetFileName(doubleWrite.Key) != "Microsoft.VisualStudio.Text.Internal.dll"))
+                foreach (var doubleWrite in doubleWrites)
                 {
-                    foreach (var doubleWrite in doubleWrites)
+                    textWriter.WriteLine($"Multiple writes to {doubleWrite.Key}");
+                    foreach (var source in doubleWrite.Value)
                     {
-                        textWriter.WriteLine($"Multiple writes to {doubleWrite.Key}");
-                        foreach (var source in doubleWrite.Value)
-                        {
-                            textWriter.WriteLine($"\t{source}");
-                        }
-
-                        textWriter.WriteLine();
+                        textWriter.WriteLine($"\t{source}");
                     }
 
-                    return false;
+                    textWriter.WriteLine();
                 }
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                textWriter.WriteLine($"Error processing binary log file: {ex.Message}");
                 return false;
             }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            textWriter.WriteLine($"Error processing binary log file: {ex.Message}");
+            return false;
         }
     }
 }

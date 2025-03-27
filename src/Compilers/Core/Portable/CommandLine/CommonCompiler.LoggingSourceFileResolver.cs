@@ -5,39 +5,38 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal abstract partial class CommonCompiler
 {
-    internal abstract partial class CommonCompiler
+    internal sealed class LoggingSourceFileResolver : SourceFileResolver
     {
-        internal sealed class LoggingSourceFileResolver : SourceFileResolver
+        private readonly TouchedFileLogger? _logger;
+
+        public LoggingSourceFileResolver(
+            ImmutableArray<string> searchPaths,
+            string? baseDirectory,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            TouchedFileLogger? logger)
+            : base(searchPaths, baseDirectory, pathMap)
         {
-            private readonly TouchedFileLogger? _logger;
-
-            public LoggingSourceFileResolver(
-                ImmutableArray<string> searchPaths,
-                string? baseDirectory,
-                ImmutableArray<KeyValuePair<string, string>> pathMap,
-                TouchedFileLogger? logger)
-                : base(searchPaths, baseDirectory, pathMap)
-            {
-                _logger = logger;
-            }
-
-            protected override bool FileExists(string? fullPath)
-            {
-                if (fullPath != null)
-                {
-                    _logger?.AddRead(fullPath);
-                }
-
-                return base.FileExists(fullPath);
-            }
-
-            public LoggingSourceFileResolver WithBaseDirectory(string value) =>
-                (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _logger);
-
-            public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) =>
-                (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _logger);
+            _logger = logger;
         }
+
+        protected override bool FileExists(string? fullPath)
+        {
+            if (fullPath != null)
+            {
+                _logger?.AddRead(fullPath);
+            }
+
+            return base.FileExists(fullPath);
+        }
+
+        public LoggingSourceFileResolver WithBaseDirectory(string value) =>
+            (BaseDirectory == value) ? this : new LoggingSourceFileResolver(SearchPaths, value, PathMap, _logger);
+
+        public LoggingSourceFileResolver WithSearchPaths(ImmutableArray<string> value) =>
+            (SearchPaths == value) ? this : new LoggingSourceFileResolver(value, BaseDirectory, PathMap, _logger);
     }
 }

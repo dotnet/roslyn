@@ -8,51 +8,50 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class EnsureEnglishUICulture : IDisposable
 {
-    public class EnsureEnglishUICulture : IDisposable
+    public static CultureInfo PreferredOrNull
     {
-        public static CultureInfo PreferredOrNull
+        get
         {
-            get
+            var currentUICultureName = CultureInfo.CurrentUICulture.Name;
+            if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
             {
-                var currentUICultureName = CultureInfo.CurrentUICulture.Name;
-                if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
-                {
-                    return null;
-                }
-
-                return CultureInfo.InvariantCulture;
+                return null;
             }
+
+            return CultureInfo.InvariantCulture;
         }
+    }
 
-        private bool _needToRestore;
-        private readonly CultureInfo _threadUICulture;
-        private readonly int _threadId;
+    private bool _needToRestore;
+    private readonly CultureInfo _threadUICulture;
+    private readonly int _threadId;
 
-        public EnsureEnglishUICulture()
+    public EnsureEnglishUICulture()
+    {
+        _threadId = Environment.CurrentManagedThreadId;
+        var preferred = PreferredOrNull;
+
+        if (preferred != null)
         {
-            _threadId = Environment.CurrentManagedThreadId;
-            var preferred = PreferredOrNull;
+            _threadUICulture = CultureInfo.CurrentUICulture;
+            _needToRestore = true;
 
-            if (preferred != null)
-            {
-                _threadUICulture = CultureInfo.CurrentUICulture;
-                _needToRestore = true;
-
-                CultureInfo.CurrentUICulture = preferred;
-            }
+            CultureInfo.CurrentUICulture = preferred;
         }
+    }
 
-        public void Dispose()
+    public void Dispose()
+    {
+        Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
+
+        if (_needToRestore && _threadId == Environment.CurrentManagedThreadId)
         {
-            Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
-
-            if (_needToRestore && _threadId == Environment.CurrentManagedThreadId)
-            {
-                _needToRestore = false;
-                CultureInfo.CurrentUICulture = _threadUICulture;
-            }
+            _needToRestore = false;
+            CultureInfo.CurrentUICulture = _threadUICulture;
         }
     }
 }

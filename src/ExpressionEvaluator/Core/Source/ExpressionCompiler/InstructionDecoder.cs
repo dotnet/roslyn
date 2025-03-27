@@ -8,149 +8,148 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
+    where TCompilation : Compilation
+    where TMethodSymbol : class, IMethodSymbolInternal
+    where TModuleSymbol : class, IModuleSymbolInternal
+    where TTypeSymbol : class, ITypeSymbolInternal
+    where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
 {
-    internal abstract class InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>
-        where TCompilation : Compilation
-        where TMethodSymbol : class, IMethodSymbolInternal
-        where TModuleSymbol : class, IModuleSymbolInternal
-        where TTypeSymbol : class, ITypeSymbolInternal
-        where TTypeParameterSymbol : class, ITypeParameterSymbolInternal
+    internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+    internal static readonly SymbolDisplayFormat CompactNameFormat = new SymbolDisplayFormat(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+    private readonly bool _useReferencedAssembliesOnly;
+
+    internal InstructionDecoder()
     {
-        internal static readonly SymbolDisplayFormat DisplayFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+        // Should be passed by the ExpressionCompiler as an argument to this constructor.
+        _useReferencedAssembliesOnly = ExpressionCompiler.GetUseReferencedAssembliesOnlySetting();
+    }
 
-        internal static readonly SymbolDisplayFormat CompactNameFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-            genericsOptions: SymbolDisplayGenericsOptions.None,
-            memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind()
+    {
+        return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
+    }
 
-        private readonly bool _useReferencedAssembliesOnly;
+    internal abstract string GetCompactName(TMethodSymbol method);
 
-        internal InstructionDecoder()
+    internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
+
+    internal virtual void AppendParameterTypeName(StringBuilder builder, IParameterSymbol parameter)
+    {
+        builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
+    }
+
+    /// <summary>
+    /// Constructs a method and any of its generic containing types using the specified <paramref name="typeArguments"/>.
+    /// </summary>
+    internal abstract TMethodSymbol ConstructMethod(TMethodSymbol method, ImmutableArray<TTypeParameterSymbol> typeParameters, ImmutableArray<TTypeSymbol> typeArguments);
+
+    internal abstract ImmutableArray<TTypeParameterSymbol> GetAllTypeParameters(TMethodSymbol method);
+
+    internal abstract TCompilation GetCompilation(DkmClrModuleInstance moduleInstance);
+
+    internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
+
+    internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string?>? argumentValues = null)
+    {
+        var pooled = PooledStringBuilder.GetInstance();
+        var builder = pooled.Builder;
+
+        // "full name" of method...
+        AppendFullName(builder, method);
+
+        // parameter list...
+        var parameters = ((IMethodSymbol)method.GetISymbol()).Parameters;
+        var includeArgumentValues = argumentValues != null && parameters.Length == argumentValues.Count;
+        if (includeParameterTypes || includeParameterNames || includeArgumentValues)
         {
-            // Should be passed by the ExpressionCompiler as an argument to this constructor.
-            _useReferencedAssembliesOnly = ExpressionCompiler.GetUseReferencedAssembliesOnlySetting();
-        }
-
-        internal MakeAssemblyReferencesKind GetMakeAssemblyReferencesKind()
-        {
-            return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
-        }
-
-        internal abstract string GetCompactName(TMethodSymbol method);
-
-        internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
-
-        internal virtual void AppendParameterTypeName(StringBuilder builder, IParameterSymbol parameter)
-        {
-            builder.Append(parameter.Type.ToDisplayString(DisplayFormat));
-        }
-
-        /// <summary>
-        /// Constructs a method and any of its generic containing types using the specified <paramref name="typeArguments"/>.
-        /// </summary>
-        internal abstract TMethodSymbol ConstructMethod(TMethodSymbol method, ImmutableArray<TTypeParameterSymbol> typeParameters, ImmutableArray<TTypeSymbol> typeArguments);
-
-        internal abstract ImmutableArray<TTypeParameterSymbol> GetAllTypeParameters(TMethodSymbol method);
-
-        internal abstract TCompilation GetCompilation(DkmClrModuleInstance moduleInstance);
-
-        internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
-
-        internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string?>? argumentValues = null)
-        {
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
-
-            // "full name" of method...
-            AppendFullName(builder, method);
-
-            // parameter list...
-            var parameters = ((IMethodSymbol)method.GetISymbol()).Parameters;
-            var includeArgumentValues = argumentValues != null && parameters.Length == argumentValues.Count;
-            if (includeParameterTypes || includeParameterNames || includeArgumentValues)
+            builder.Append('(');
+            for (int i = 0; i < parameters.Length; i++)
             {
-                builder.Append('(');
-                for (int i = 0; i < parameters.Length; i++)
+                if (i > 0)
                 {
-                    if (i > 0)
-                    {
-                        builder.Append(", ");
-                    }
+                    builder.Append(", ");
+                }
 
-                    var parameter = parameters[i];
+                var parameter = parameters[i];
 
+                if (includeParameterTypes)
+                {
+                    AppendParameterTypeName(builder, parameter);
+                }
+
+                if (includeParameterNames)
+                {
                     if (includeParameterTypes)
                     {
-                        AppendParameterTypeName(builder, parameter);
+                        builder.Append(' ');
                     }
 
-                    if (includeParameterNames)
+                    builder.Append(parameter.Name);
+                }
+
+                if (includeArgumentValues)
+                {
+                    var argumentValue = argumentValues![i];
+                    if (argumentValue != null)
                     {
-                        if (includeParameterTypes)
+                        if (includeParameterTypes || includeParameterNames)
                         {
-                            builder.Append(' ');
+                            builder.Append(" = ");
                         }
 
-                        builder.Append(parameter.Name);
-                    }
-
-                    if (includeArgumentValues)
-                    {
-                        var argumentValue = argumentValues![i];
-                        if (argumentValue != null)
-                        {
-                            if (includeParameterTypes || includeParameterNames)
-                            {
-                                builder.Append(" = ");
-                            }
-
-                            builder.Append(argumentValue);
-                        }
+                        builder.Append(argumentValue);
                     }
                 }
-                builder.Append(')');
             }
-
-            return pooled.ToStringAndFree();
+            builder.Append(')');
         }
 
-        internal string GetReturnTypeName(TMethodSymbol method)
+        return pooled.ToStringAndFree();
+    }
+
+    internal string GetReturnTypeName(TMethodSymbol method)
+    {
+        return ((IMethodSymbol)method.GetISymbol()).ReturnType.ToDisplayString(DisplayFormat);
+    }
+
+    internal abstract TypeNameDecoder<TModuleSymbol, TTypeSymbol> GetTypeNameDecoder(TCompilation compilation, TMethodSymbol method);
+
+    internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string?[]? serializedTypeNames)
+    {
+        if (serializedTypeNames == null)
         {
-            return ((IMethodSymbol)method.GetISymbol()).ReturnType.ToDisplayString(DisplayFormat);
+            return ImmutableArray<TTypeSymbol>.Empty;
         }
 
-        internal abstract TypeNameDecoder<TModuleSymbol, TTypeSymbol> GetTypeNameDecoder(TCompilation compilation, TMethodSymbol method);
-
-        internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string?[]? serializedTypeNames)
+        var builder = ArrayBuilder<TTypeSymbol>.GetInstance();
+        foreach (var name in serializedTypeNames)
         {
-            if (serializedTypeNames == null)
+            // The list of type names will include null values if type arguments are not available.
+            // It seems unlikely that only some type arguments will be missing (and it also seems
+            // like very little incremental value to include only some of the arguments), so we'll
+            // keep things simple and omit all type arguments if any are missing.
+            if (name == null)
             {
+                builder.Free();
                 return ImmutableArray<TTypeSymbol>.Empty;
             }
 
-            var builder = ArrayBuilder<TTypeSymbol>.GetInstance();
-            foreach (var name in serializedTypeNames)
-            {
-                // The list of type names will include null values if type arguments are not available.
-                // It seems unlikely that only some type arguments will be missing (and it also seems
-                // like very little incremental value to include only some of the arguments), so we'll
-                // keep things simple and omit all type arguments if any are missing.
-                if (name == null)
-                {
-                    builder.Free();
-                    return ImmutableArray<TTypeSymbol>.Empty;
-                }
-
-                var typeNameDecoder = GetTypeNameDecoder(compilation, method);
-                builder.Add(typeNameDecoder.GetTypeSymbolForSerializedType(name));
-            }
-            return builder.ToImmutableAndFree();
+            var typeNameDecoder = GetTypeNameDecoder(compilation, method);
+            builder.Add(typeNameDecoder.GetTypeSymbolForSerializedType(name));
         }
+        return builder.ToImmutableAndFree();
     }
 }

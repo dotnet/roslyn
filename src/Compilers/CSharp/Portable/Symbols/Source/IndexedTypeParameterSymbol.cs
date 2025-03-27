@@ -14,224 +14,223 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Indexed type parameters are used in place of type parameters for method signatures.  There is
+/// a unique mapping from index to a single IndexedTypeParameterSymbol.  
+/// 
+/// They don't have a containing symbol or locations.
+/// 
+/// They do not have constraints, variance, or attributes. 
+/// </summary>
+internal sealed class IndexedTypeParameterSymbol : TypeParameterSymbol
 {
-    /// <summary>
-    /// Indexed type parameters are used in place of type parameters for method signatures.  There is
-    /// a unique mapping from index to a single IndexedTypeParameterSymbol.  
-    /// 
-    /// They don't have a containing symbol or locations.
-    /// 
-    /// They do not have constraints, variance, or attributes. 
-    /// </summary>
-    internal sealed class IndexedTypeParameterSymbol : TypeParameterSymbol
+    private static TypeParameterSymbol[] s_parameterPool = Array.Empty<TypeParameterSymbol>();
+
+    private readonly int _index;
+
+    private IndexedTypeParameterSymbol(int index)
     {
-        private static TypeParameterSymbol[] s_parameterPool = Array.Empty<TypeParameterSymbol>();
+        _index = index;
+    }
 
-        private readonly int _index;
-
-        private IndexedTypeParameterSymbol(int index)
+    public override TypeParameterKind TypeParameterKind
+    {
+        get
         {
-            _index = index;
+            return TypeParameterKind.Method;
+        }
+    }
+
+    internal static TypeParameterSymbol GetTypeParameter(int index)
+    {
+        if (index >= s_parameterPool.Length)
+        {
+            GrowPool(index + 1);
         }
 
-        public override TypeParameterKind TypeParameterKind
+        return s_parameterPool[index];
+    }
+
+    private static void GrowPool(int count)
+    {
+        var initialPool = s_parameterPool;
+        while (count > initialPool.Length)
         {
-            get
+            var newPoolSize = ((count + 0x0F) & ~0xF); // grow in increments of 16
+            var newPool = new TypeParameterSymbol[newPoolSize];
+
+            Array.Copy(initialPool, newPool, initialPool.Length);
+
+            for (int i = initialPool.Length; i < newPool.Length; i++)
             {
-                return TypeParameterKind.Method;
-            }
-        }
-
-        internal static TypeParameterSymbol GetTypeParameter(int index)
-        {
-            if (index >= s_parameterPool.Length)
-            {
-                GrowPool(index + 1);
-            }
-
-            return s_parameterPool[index];
-        }
-
-        private static void GrowPool(int count)
-        {
-            var initialPool = s_parameterPool;
-            while (count > initialPool.Length)
-            {
-                var newPoolSize = ((count + 0x0F) & ~0xF); // grow in increments of 16
-                var newPool = new TypeParameterSymbol[newPoolSize];
-
-                Array.Copy(initialPool, newPool, initialPool.Length);
-
-                for (int i = initialPool.Length; i < newPool.Length; i++)
-                {
-                    newPool[i] = new IndexedTypeParameterSymbol(i);
-                }
-
-                Interlocked.CompareExchange(ref s_parameterPool, newPool, initialPool);
-
-                // repeat if race condition occurred and someone else resized the pool before us
-                // and the new pool is still too small
-                initialPool = s_parameterPool;
-            }
-        }
-
-        /// <summary>
-        /// Create a vector of n dummy type parameters.  Always reuses the same type parameter symbol
-        /// for the same position.
-        /// </summary>
-        /// <param name="count"></param>
-        /// <returns></returns>
-        internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
-        {
-            if (count > s_parameterPool.Length)
-            {
-                GrowPool(count);
+                newPool[i] = new IndexedTypeParameterSymbol(i);
             }
 
-            ArrayBuilder<TypeParameterSymbol> builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            Interlocked.CompareExchange(ref s_parameterPool, newPool, initialPool);
 
-            for (int i = 0; i < count; i++)
-            {
-                builder.Add(GetTypeParameter(i));
-            }
-
-            return builder.ToImmutableAndFree();
+            // repeat if race condition occurred and someone else resized the pool before us
+            // and the new pool is still too small
+            initialPool = s_parameterPool;
         }
+    }
 
-        internal static ImmutableArray<TypeWithAnnotations> Take(int count)
+    /// <summary>
+    /// Create a vector of n dummy type parameters.  Always reuses the same type parameter symbol
+    /// for the same position.
+    /// </summary>
+    /// <param name="count"></param>
+    /// <returns></returns>
+    internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
+    {
+        if (count > s_parameterPool.Length)
         {
-            if (count > s_parameterPool.Length)
-            {
-                GrowPool(count);
-            }
-
-            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-
-            for (int i = 0; i < count; i++)
-            {
-                builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
-            }
-
-            return builder.ToImmutableAndFree();
+            GrowPool(count);
         }
 
-        public override int Ordinal
+        ArrayBuilder<TypeParameterSymbol> builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+
+        for (int i = 0; i < count; i++)
         {
-            get { return _index; }
+            builder.Add(GetTypeParameter(i));
         }
 
-        // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+        return builder.ToImmutableAndFree();
+    }
+
+    internal static ImmutableArray<TypeWithAnnotations> Take(int count)
+    {
+        if (count > s_parameterPool.Length)
         {
-            return ReferenceEquals(this, t2);
+            GrowPool(count);
         }
 
-        public override int GetHashCode()
+        var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+        for (int i = 0; i < count; i++)
         {
-            return _index;
+            builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
         }
 
-        public override VarianceKind Variance
-        {
-            get { return VarianceKind.None; }
-        }
+        return builder.ToImmutableAndFree();
+    }
 
-        public override bool HasValueTypeConstraint
-        {
-            get { return false; }
-        }
+    public override int Ordinal
+    {
+        get { return _index; }
+    }
 
-        public override bool AllowsRefLikeType
-        {
-            get { return false; }
-        }
+    // These object are unique (per index).
+    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+    {
+        return ReferenceEquals(this, t2);
+    }
 
-        public override bool IsValueTypeFromConstraintTypes
-        {
-            get { return false; }
-        }
+    public override int GetHashCode()
+    {
+        return _index;
+    }
 
-        public override bool HasReferenceTypeConstraint
-        {
-            get { return false; }
-        }
+    public override VarianceKind Variance
+    {
+        get { return VarianceKind.None; }
+    }
 
-        public override bool IsReferenceTypeFromConstraintTypes
-        {
-            get { return false; }
-        }
+    public override bool HasValueTypeConstraint
+    {
+        get { return false; }
+    }
 
-        internal override bool? ReferenceTypeConstraintIsNullable
-        {
-            get { return false; }
-        }
+    public override bool AllowsRefLikeType
+    {
+        get { return false; }
+    }
 
-        public override bool HasNotNullConstraint => false;
+    public override bool IsValueTypeFromConstraintTypes
+    {
+        get { return false; }
+    }
 
-        internal override bool? IsNotNullable => null;
+    public override bool HasReferenceTypeConstraint
+    {
+        get { return false; }
+    }
 
-        public override bool HasUnmanagedTypeConstraint
-        {
-            get { return false; }
-        }
+    public override bool IsReferenceTypeFromConstraintTypes
+    {
+        get { return false; }
+    }
 
-        public override bool HasConstructorConstraint
-        {
-            get { return false; }
-        }
+    internal override bool? ReferenceTypeConstraintIsNullable
+    {
+        get { return false; }
+    }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return null;
-            }
-        }
+    public override bool HasNotNullConstraint => false;
 
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray<Location>.Empty;
-            }
-        }
+    internal override bool? IsNotNullable => null;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray<SyntaxReference>.Empty;
-            }
-        }
+    public override bool HasUnmanagedTypeConstraint
+    {
+        get { return false; }
+    }
 
-        internal override void EnsureAllConstraintsAreResolved()
-        {
-        }
+    public override bool HasConstructorConstraint
+    {
+        get { return false; }
+    }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return ImmutableArray<TypeWithAnnotations>.Empty;
-        }
-
-        internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return ImmutableArray<NamedTypeSymbol>.Empty;
-        }
-
-        internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+    public override Symbol ContainingSymbol
+    {
+        get
         {
             return null;
         }
+    }
 
-        internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+    public override ImmutableArray<Location> Locations
+    {
+        get
         {
-            return null;
+            return ImmutableArray<Location>.Empty;
         }
+    }
 
-        public override bool IsImplicitlyDeclared
+    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    {
+        get
         {
-            get { return true; }
+            return ImmutableArray<SyntaxReference>.Empty;
         }
+    }
+
+    internal override void EnsureAllConstraintsAreResolved()
+    {
+    }
+
+    internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return ImmutableArray<TypeWithAnnotations>.Empty;
+    }
+
+    internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return ImmutableArray<NamedTypeSymbol>.Empty;
+    }
+
+    internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return null;
+    }
+
+    internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return null;
+    }
+
+    public override bool IsImplicitlyDeclared
+    {
+        get { return true; }
     }
 }

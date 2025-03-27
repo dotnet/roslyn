@@ -9,60 +9,59 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// A type parameter for a synthesized class or method.
+/// </summary>
+internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbol
 {
-    /// <summary>
-    /// A type parameter for a synthesized class or method.
-    /// </summary>
-    internal sealed class SynthesizedSubstitutedTypeParameterSymbol : SubstitutedTypeParameterSymbol
+    public SynthesizedSubstitutedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+        : base(owner, map, substitutedFrom, ordinal)
     {
-        public SynthesizedSubstitutedTypeParameterSymbol(Symbol owner, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
-            : base(owner, map, substitutedFrom, ordinal)
-        {
-            Debug.Assert(this.TypeParameterKind == (ContainingSymbol is MethodSymbol ? TypeParameterKind.Method :
-                                                   (ContainingSymbol is NamedTypeSymbol ? TypeParameterKind.Type :
-                                                   TypeParameterKind.Cref)),
-                         $"Container is {ContainingSymbol?.Kind}, TypeParameterKind is {this.TypeParameterKind}");
-        }
+        Debug.Assert(this.TypeParameterKind == (ContainingSymbol is MethodSymbol ? TypeParameterKind.Method :
+                                               (ContainingSymbol is NamedTypeSymbol ? TypeParameterKind.Type :
+                                               TypeParameterKind.Cref)),
+                     $"Container is {ContainingSymbol?.Kind}, TypeParameterKind is {this.TypeParameterKind}");
+    }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+    public override bool IsImplicitlyDeclared
+    {
+        get { return true; }
+    }
 
-        public override TypeParameterKind TypeParameterKind => ContainingSymbol is MethodSymbol ? TypeParameterKind.Method : TypeParameterKind.Type;
+    public override TypeParameterKind TypeParameterKind => ContainingSymbol is MethodSymbol ? TypeParameterKind.Method : TypeParameterKind.Type;
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        if (ContainingSymbol.Kind == SymbolKind.NamedType &&
+            _underlyingTypeParameter.OriginalDefinition is SourceMethodTypeParameterSymbol definition &&
+            ContainingSymbol.ContainingModule == definition.ContainingModule)
         {
-            if (ContainingSymbol.Kind == SymbolKind.NamedType &&
-                _underlyingTypeParameter.OriginalDefinition is SourceMethodTypeParameterSymbol definition &&
-                ContainingSymbol.ContainingModule == definition.ContainingModule)
+            foreach (CSharpAttributeData attr in definition.GetAttributes())
             {
-                foreach (CSharpAttributeData attr in definition.GetAttributes())
+                if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
                 {
-                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true })
-                    {
-                        AddSynthesizedAttribute(ref attributes, attr);
-                    }
+                    AddSynthesizedAttribute(ref attributes, attr);
                 }
             }
-
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.HasUnmanagedTypeConstraint)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
-            }
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+        if (this.HasUnmanagedTypeConstraint)
         {
-            if (ContainingSymbol is SynthesizedMethodBaseSymbol { InheritsBaseMethodAttributes: true })
-            {
-                return _underlyingTypeParameter.GetAttributes();
-            }
-
-            return ImmutableArray<CSharpAttributeData>.Empty;
+            AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
         }
+    }
+
+    public override ImmutableArray<CSharpAttributeData> GetAttributes()
+    {
+        if (ContainingSymbol is SynthesizedMethodBaseSymbol { InheritsBaseMethodAttributes: true })
+        {
+            return _underlyingTypeParameter.GetAttributes();
+        }
+
+        return ImmutableArray<CSharpAttributeData>.Empty;
     }
 }

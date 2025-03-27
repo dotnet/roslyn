@@ -12,46 +12,46 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+/// <summary>
+/// Test code generated for Windows Runtime events.
+/// </summary>
+public class WinMdEventTests : CSharpTestBase
 {
-    /// <summary>
-    /// Test code generated for Windows Runtime events.
-    /// </summary>
-    public class WinMdEventTests : CSharpTestBase
+    [Fact]
+    public void MissingReferences_SynthesizedAccessors()
     {
-        [Fact]
-        public void MissingReferences_SynthesizedAccessors()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     event System.Action E;
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
-            comp.VerifyDiagnostics(
-                // For the backing field and accessors:
+        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
+        comp.VerifyDiagnostics(
+            // For the backing field and accessors:
 
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
-                // Uninteresting:
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
+            // Uninteresting:
 
-                // (4,25): warning CS0067: The event 'C.E' is never used
-                //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
-        }
+            // (4,25): warning CS0067: The event 'C.E' is never used
+            //     event System.Action E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+    }
 
-        [Fact]
-        public void MissingReferences_EventAssignment()
-        {
-            var source = @"
+    [Fact]
+    public void MissingReferences_EventAssignment()
+    {
+        var source = @"
 class C
 {
     event System.Action E;
@@ -63,37 +63,37 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
-            comp.VerifyEmitDiagnostics(
-                // For the backing field and accessors:
+        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
+        comp.VerifyEmitDiagnostics(
+            // For the backing field and accessors:
 
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
 
-                // Uninteresting:
+            // Uninteresting:
 
-                // (4,25): warning CS0067: The event 'C.E' is never used
-                //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
-        }
+            // (4,25): warning CS0067: The event 'C.E' is never used
+            //     event System.Action E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+    }
 
-        [Fact]
-        public void MissingReferences_EventFieldAssignment()
-        {
-            var source = @"
+    [Fact]
+    public void MissingReferences_EventFieldAssignment()
+    {
+        var source = @"
 class C
 {
     event System.Action E;
@@ -105,37 +105,37 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
-            comp.VerifyEmitDiagnostics(
-                // For the backing field and accessors:
+        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
+        comp.VerifyEmitDiagnostics(
+            // For the backing field and accessors:
 
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
 
-                // Uninteresting:
+            // Uninteresting:
 
-                // (4,25): warning CS0414: The field 'C.E' is assigned but its value is never used
-                //     event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("C.E"));
-        }
+            // (4,25): warning CS0414: The field 'C.E' is assigned but its value is never used
+            //     event System.Action E;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("C.E"));
+    }
 
-        [Fact]
-        public void MissingReferences_EventAccess()
-        {
-            var source = @"
+    [Fact]
+    public void MissingReferences_EventAccess()
+    {
+        var source = @"
 class C
 {
     event System.Action E;
@@ -147,40 +147,40 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
-            comp.VerifyEmitDiagnostics(
-                // For the backing field and accessors:
+        var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
+        comp.VerifyEmitDiagnostics(
+            // For the backing field and accessors:
 
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
-                // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
-                // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
-                //     event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable")
-            );
-        }
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken"),
+            // (4,25): error CS0518: Predefined type 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1' is not defined or imported
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable"),
+            // (4,25): error CS0656: Missing compiler required member 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1.GetOrCreateEventRegistrationTokenTable'
+            //     event System.Action E;
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1", "GetOrCreateEventRegistrationTokenTable")
+        );
+    }
 
-        [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
-        public void InstanceFieldLikeEventAccessors()
-        {
-            var source = @"
+    [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
+    public void InstanceFieldLikeEventAccessors()
+    {
+        var source = @"
 class C
 {
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
-            verifier.VerifyIL("C.E.add", @"
+        verifier.VerifyIL("C.E.add", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -192,7 +192,7 @@ class C
   IL_0011:  ret
 }");
 
-            verifier.VerifyIL("C.E.remove", @"
+        verifier.VerifyIL("C.E.remove", @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -203,20 +203,20 @@ class C
   IL_000c:  callvirt   ""void System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.RemoveEventHandler(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)""
   IL_0011:  ret
 }");
-        }
+    }
 
-        [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
-        public void StaticFieldLikeEventAccessors()
-        {
-            var source = @"
+    [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
+    public void StaticFieldLikeEventAccessors()
+    {
+        var source = @"
 class C
 {
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
-            verifier.VerifyIL("C.E.add", @"
+        verifier.VerifyIL("C.E.add", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -227,7 +227,7 @@ class C
   IL_0010:  ret
 }");
 
-            verifier.VerifyIL("C.E.remove", @"
+        verifier.VerifyIL("C.E.remove", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -237,12 +237,12 @@ class C
   IL_000b:  callvirt   ""void System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action<int>>.RemoveEventHandler(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)""
   IL_0010:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void EventAssignment()
-        {
-            var source = @"
+    [Fact]
+    public void EventAssignment()
+    {
+        var source = @"
 class C
 {
     public event System.Action Instance;
@@ -278,9 +278,9 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
-            verifier.VerifyIL("D.InstanceAdd", @"
+        verifier.VerifyIL("D.InstanceAdd", @"
 {
   // Code size       49 (0x31)
   .maxstack  4
@@ -301,7 +301,7 @@ class D
   IL_0030:  ret
 }");
 
-            verifier.VerifyIL("D.InstanceRemove", @"
+        verifier.VerifyIL("D.InstanceRemove", @"
 {
   // Code size       35 (0x23)
   .maxstack  3
@@ -315,7 +315,7 @@ class D
   IL_001d:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
   IL_0022:  ret
 }");
-            verifier.VerifyIL("D.StaticAdd", @"
+        verifier.VerifyIL("D.StaticAdd", @"
 {
   // Code size       42 (0x2a)
   .maxstack  4
@@ -332,7 +332,7 @@ class D
   IL_0029:  ret
 }");
 
-            verifier.VerifyIL("D.StaticRemove", @"
+        verifier.VerifyIL("D.StaticRemove", @"
 {
   // Code size       30 (0x1e)
   .maxstack  3
@@ -345,12 +345,12 @@ class D
   IL_0018:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.RemoveEventHandler<System.Action>(System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
   IL_001d:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void EventFieldAssignment()
-        {
-            var source = @"
+    [Fact]
+    public void EventFieldAssignment()
+    {
+        var source = @"
 class C
 {
     public event System.Action Instance;
@@ -371,9 +371,9 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseWinMD);
 
-            verifier.VerifyIL("C.InstanceAssign", @"
+        verifier.VerifyIL("C.InstanceAssign", @"
 {
   // Code size       59 (0x3b)
   .maxstack  4
@@ -394,7 +394,7 @@ class C
   IL_003a:  ret
 }");
 
-            verifier.VerifyIL("C.StaticAssign", @"
+        verifier.VerifyIL("C.StaticAssign", @"
 {
   // Code size       59 (0x3b)
   .maxstack  4
@@ -414,12 +414,12 @@ class C
   IL_0035:  call       ""void System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler<System.Action>(System.Func<System.Action, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action<System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken>, System.Action)""
   IL_003a:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void EventAccess()
-        {
-            var source = @"
+    [Fact]
+    public void EventAccess()
+    {
+        var source = @"
 class C
 {
     public event System.Action Instance;
@@ -460,9 +460,9 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+        var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
-            verifier.VerifyIL("C.InstanceInvoke", @"
+        verifier.VerifyIL("C.InstanceInvoke", @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -474,7 +474,7 @@ class C
   IL_0015:  ret
 }");
 
-            verifier.VerifyIL("C.StaticInvoke", @"
+        verifier.VerifyIL("C.StaticInvoke", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -485,7 +485,7 @@ class C
   IL_0014:  ret
 }");
 
-            verifier.VerifyIL("C.InstanceMemberAccess", @"
+        verifier.VerifyIL("C.InstanceMemberAccess", @"
 {
   // Code size       23 (0x17)
   .maxstack  1
@@ -498,7 +498,7 @@ class C
   IL_0016:  ret
 }");
 
-            verifier.VerifyIL("C.StaticMemberAccess", @"
+        verifier.VerifyIL("C.StaticMemberAccess", @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -510,7 +510,7 @@ class C
   IL_0015:  ret
 }");
 
-            verifier.VerifyIL("C.InstanceReturn", @"
+        verifier.VerifyIL("C.InstanceReturn", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -521,7 +521,7 @@ class C
   IL_0010:  ret
 }");
 
-            verifier.VerifyIL("C.StaticReturn", @"
+        verifier.VerifyIL("C.StaticReturn", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -530,19 +530,19 @@ class C
   IL_000a:  callvirt   ""System.Action System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable<System.Action>.InvocationList.get""
   IL_000f:  ret
 }");
-        }
+    }
 
-        /// <summary>
-        /// Dev11 had bugs in this area (e.g. 281866, 298564), but Roslyn shouldn't be affected.
-        /// </summary>
-        /// <remarks>
-        /// I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
-        /// </remarks>
-        [WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
-        [Fact(Skip = "Issue #321")]
-        public void FieldLikeEventSerialization()
-        {
-            var source1 = @"
+    /// <summary>
+    /// Dev11 had bugs in this area (e.g. 281866, 298564), but Roslyn shouldn't be affected.
+    /// </summary>
+    /// <remarks>
+    /// I'm assuming this is why the final dev11 impl uses GetOrCreateEventRegistrationTokenTable.
+    /// </remarks>
+    [WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
+    [Fact(Skip = "Issue #321")]
+    public void FieldLikeEventSerialization()
+    {
+        var source1 = @"
 namespace EventDeserialization
 {
 	public delegate void Event();
@@ -553,7 +553,7 @@ namespace EventDeserialization
 	}
 }
 ";
-            var source2 = @"
+        var source2 = @"
 using System;
 using System.IO;
 using System.Runtime.Serialization;
@@ -620,22 +620,22 @@ namespace EventDeserialization
 }
 ";
 
-            var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
+        var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
-            var serializationRef = Net461.References.SystemRuntimeSerialization;
+        var serializationRef = Net461.References.SystemRuntimeSerialization;
 
-            var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
-            CompileAndVerify(comp2, expectedOutput: @"A
+        var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: @"A
 False
 null
 B");
-        }
+    }
 
-        [WorkItem(1079725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079725")]
-        [Fact]
-        public void EventAssignmentExpression()
-        {
-            var source =
+    [WorkItem(1079725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079725")]
+    [Fact]
+    public void EventAssignmentExpression()
+    {
+        var source =
 @"class C
 {
     static event System.Action E;
@@ -645,18 +645,18 @@ B");
         var f = E = null;
     }
 }";
-            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
-                //         var f = E = null;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "f = E = null").WithArguments("void").WithLocation(7, 13));
-        }
+        var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular7);
+        comp.VerifyDiagnostics(
+            // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
+            //         var f = E = null;
+            Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "f = E = null").WithArguments("void").WithLocation(7, 13));
+    }
 
-        [WorkItem(1079725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079725")]
-        [Fact]
-        public void EventAssignmentExpression_SemanticModel()
-        {
-            var source =
+    [WorkItem(1079725, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079725")]
+    [Fact]
+    public void EventAssignmentExpression_SemanticModel()
+    {
+        var source =
 @"class C
 {
     static event System.Action E;
@@ -665,12 +665,11 @@ B");
         E = null;
     }
 }";
-            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
-            var type = model.GetTypeInfo(syntax);
-            Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
-        }
+        var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+        var type = model.GetTypeInfo(syntax);
+        Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
     }
 }

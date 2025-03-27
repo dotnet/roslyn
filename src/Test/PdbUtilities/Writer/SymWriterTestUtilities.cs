@@ -7,16 +7,15 @@
 using System;
 using Microsoft.DiaSymReader;
 
-namespace Roslyn.Test.PdbUtilities
-{
-    internal static class SymWriterTestUtilities
-    {
-        public static readonly Func<ISymWriterMetadataProvider, SymUnmanagedWriter> ThrowingFactory =
-            _ => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
+namespace Roslyn.Test.PdbUtilities;
 
-        public static SymUnmanagedWriter CreateUnmanagedWriter(ISymWriterMetadataProvider metadataProvider)
-        {
-            return SymUnmanagedWriterFactory.CreateWriter(metadataProvider);
-        }
+internal static class SymWriterTestUtilities
+{
+    public static readonly Func<ISymWriterMetadataProvider, SymUnmanagedWriter> ThrowingFactory =
+        _ => throw new SymUnmanagedWriterException("xxx", new NotSupportedException(), "<lib name>");
+
+    public static SymUnmanagedWriter CreateUnmanagedWriter(ISymWriterMetadataProvider metadataProvider)
+    {
+        return SymUnmanagedWriterFactory.CreateWriter(metadataProvider);
     }
 }

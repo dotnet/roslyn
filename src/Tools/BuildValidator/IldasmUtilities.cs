@@ -8,44 +8,43 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
-namespace BuildValidator
+namespace BuildValidator;
+
+internal static class IldasmUtilities
 {
-    internal static class IldasmUtilities
+    private static string GetArchitecture()
     {
-        private static string GetArchitecture()
-        {
 #if NET8_0_OR_GREATER
-            return RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+        return RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
 #else
-            return "x64";
+        return "x64";
 #endif
-        }
-
-        private static string GetIldasmPath()
-        {
-            var ildasmExeName = PlatformInformation.IsWindows ? "ildasm.exe" : "ildasm";
-            var directory = Path.GetDirectoryName(typeof(IldasmUtilities).GetTypeInfo().Assembly.Location) ?? throw new DirectoryNotFoundException();
-            string ridName;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                ridName = "win-x64";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                ridName = "osx-x64";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                ridName = $"linux-{GetArchitecture()}";
-            }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
-
-            return Path.Combine(directory, "runtimes", ridName, "native", ildasmExeName);
-        }
-
-        internal static readonly string IldasmPath = GetIldasmPath();
     }
+
+    private static string GetIldasmPath()
+    {
+        var ildasmExeName = PlatformInformation.IsWindows ? "ildasm.exe" : "ildasm";
+        var directory = Path.GetDirectoryName(typeof(IldasmUtilities).GetTypeInfo().Assembly.Location) ?? throw new DirectoryNotFoundException();
+        string ridName;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            ridName = "win-x64";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            ridName = "osx-x64";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            ridName = $"linux-{GetArchitecture()}";
+        }
+        else
+        {
+            throw new PlatformNotSupportedException();
+        }
+
+        return Path.Combine(directory, "runtimes", ridName, "native", ildasmExeName);
+    }
+
+    internal static readonly string IldasmPath = GetIldasmPath();
 }

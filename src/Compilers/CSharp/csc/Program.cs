@@ -7,37 +7,36 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
 
-namespace Microsoft.CodeAnalysis.CSharp.CommandLine
-{
-    public class Program
-    {
-        public static int Main(string[] args)
-        {
-            try
-            {
-                return MainCore(args);
-            }
-            catch (FileNotFoundException e)
-            {
-                // Catch exception from missing compiler assembly.
-                // Report the exception message and terminate the process.
-                Console.WriteLine(e.Message);
-                return CommonCompiler.Failed;
-            }
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CommandLine;
 
-        private static int MainCore(string[] args)
+public class Program
+{
+    public static int Main(string[] args)
+    {
+        try
         {
-            using var logger = new CompilerServerLogger($"csc {Process.GetCurrentProcess().Id}");
+            return MainCore(args);
+        }
+        catch (FileNotFoundException e)
+        {
+            // Catch exception from missing compiler assembly.
+            // Report the exception message and terminate the process.
+            Console.WriteLine(e.Message);
+            return CommonCompiler.Failed;
+        }
+    }
+
+    private static int MainCore(string[] args)
+    {
+        using var logger = new CompilerServerLogger($"csc {Process.GetCurrentProcess().Id}");
 
 #if BOOTSTRAP
-            ExitingTraceListener.Install(logger);
+        ExitingTraceListener.Install(logger);
 #endif
 
-            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, BuildClient.GetCompileOnServerFunc(logger), logger);
-        }
-
-        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string? tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
-            => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);
+        return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, BuildClient.GetCompileOnServerFunc(logger), logger);
     }
+
+    public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string? tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+        => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);
 }

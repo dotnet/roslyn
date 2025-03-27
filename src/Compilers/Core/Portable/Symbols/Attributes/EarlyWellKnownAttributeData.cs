@@ -6,15 +6,14 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Base class for storing information decoded from early well-known custom attributes.
+/// </summary>
+/// <remarks>
+/// CONSIDER: Should we remove this class and let the sub-classes derived from WellKnownAttributeData?
+/// </remarks>
+internal abstract class EarlyWellKnownAttributeData : WellKnownAttributeData
 {
-    /// <summary>
-    /// Base class for storing information decoded from early well-known custom attributes.
-    /// </summary>
-    /// <remarks>
-    /// CONSIDER: Should we remove this class and let the sub-classes derived from WellKnownAttributeData?
-    /// </remarks>
-    internal abstract class EarlyWellKnownAttributeData : WellKnownAttributeData
-    {
-    }
 }

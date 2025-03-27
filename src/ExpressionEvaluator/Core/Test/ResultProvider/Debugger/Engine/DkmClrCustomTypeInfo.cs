@@ -14,25 +14,24 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+
+[DebuggerDisplay("{DebuggerDisplay, nq}")]
+public class DkmClrCustomTypeInfo
 {
-    [DebuggerDisplay("{DebuggerDisplay, nq}")]
-    public class DkmClrCustomTypeInfo
+    public readonly Guid PayloadTypeId;
+    public readonly ReadOnlyCollection<byte> Payload;
+
+    private DkmClrCustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
     {
-        public readonly Guid PayloadTypeId;
-        public readonly ReadOnlyCollection<byte> Payload;
-
-        private DkmClrCustomTypeInfo(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
-        {
-            PayloadTypeId = payloadTypeId;
-            Payload = payload;
-        }
-
-        public static DkmClrCustomTypeInfo Create(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
-        {
-            return new DkmClrCustomTypeInfo(payloadTypeId, payload);
-        }
-
-        private string DebuggerDisplay => $"[{string.Join(", ", Payload.Select(b => $"0x{b:x2}"))}] from {PayloadTypeId}";
+        PayloadTypeId = payloadTypeId;
+        Payload = payload;
     }
+
+    public static DkmClrCustomTypeInfo Create(Guid payloadTypeId, ReadOnlyCollection<byte> payload)
+    {
+        return new DkmClrCustomTypeInfo(payloadTypeId, payload);
+    }
+
+    private string DebuggerDisplay => $"[{string.Join(", ", Payload.Select(b => $"0x{b:x2}"))}] from {PayloadTypeId}";
 }

@@ -5,23 +5,22 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class LocalRewriter
 {
-    internal partial class LocalRewriter
+    public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node)
     {
-        public override BoundNode VisitPreviousSubmissionReference(BoundPreviousSubmissionReference node)
-        {
-            var targetType = (ImplicitNamedTypeSymbol)node.Type;
-            Debug.Assert(targetType.TypeKind == TypeKind.Submission);
-            Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
-            Debug.Assert(_factory.CurrentType is { });
+        var targetType = (ImplicitNamedTypeSymbol)node.Type;
+        Debug.Assert(targetType.TypeKind == TypeKind.Submission);
+        Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
+        Debug.Assert(_factory.CurrentType is { });
 
-            Debug.Assert(_previousSubmissionFields != null);
+        Debug.Assert(_previousSubmissionFields != null);
 
-            var syntax = node.Syntax;
-            var targetScriptReference = _previousSubmissionFields.GetOrMakeField(targetType);
-            var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
-            return new BoundFieldAccess(syntax, thisReference, targetScriptReference, ConstantValue.NotAvailable);
-        }
+        var syntax = node.Syntax;
+        var targetScriptReference = _previousSubmissionFields.GetOrMakeField(targetType);
+        var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
+        return new BoundFieldAccess(syntax, thisReference, targetScriptReference, ConstantValue.NotAvailable);
     }
 }

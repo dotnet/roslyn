@@ -6,22 +6,21 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Emit
+namespace Microsoft.CodeAnalysis.Emit;
+
+/// <summary>
+/// Information associated with method body of a state machine MoveNext method.
+/// </summary>
+internal abstract class StateMachineMoveNextBodyDebugInfo
 {
     /// <summary>
-    /// Information associated with method body of a state machine MoveNext method.
+    ///  Original async/iterator method transformed into MoveNext() 
     /// </summary>
-    internal abstract class StateMachineMoveNextBodyDebugInfo
-    {
-        /// <summary>
-        ///  Original async/iterator method transformed into MoveNext() 
-        /// </summary>
-        public readonly Cci.IMethodDefinition KickoffMethod;
+    public readonly Cci.IMethodDefinition KickoffMethod;
 
-        public StateMachineMoveNextBodyDebugInfo(Cci.IMethodDefinition kickoffMethod)
-        {
-            Debug.Assert(kickoffMethod != null);
-            KickoffMethod = kickoffMethod;
-        }
+    public StateMachineMoveNextBodyDebugInfo(Cci.IMethodDefinition kickoffMethod)
+    {
+        Debug.Assert(kickoffMethod != null);
+        KickoffMethod = kickoffMethod;
     }
 }

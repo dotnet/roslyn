@@ -6,68 +6,67 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Used for lightweight binding of type constraints. Instead of binding type arguments,
+/// we'll just use these placeholders instead. That's good enough binding to compute
+/// <see cref="TypeSymbol.IsValueType"/> with minimal binding.
+/// </summary>
+internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
 {
-    /// <summary>
-    /// Used for lightweight binding of type constraints. Instead of binding type arguments,
-    /// we'll just use these placeholders instead. That's good enough binding to compute
-    /// <see cref="TypeSymbol.IsValueType"/> with minimal binding.
-    /// </summary>
-    internal sealed class PlaceholderTypeArgumentSymbol : ErrorTypeSymbol
+    private static readonly TypeWithAnnotations s_instance = TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol());
+
+    public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
     {
-        private static readonly TypeWithAnnotations s_instance = TypeWithAnnotations.Create(new PlaceholderTypeArgumentSymbol());
+        return typeParameters.SelectAsArray(_ => s_instance);
+    }
 
-        public static ImmutableArray<TypeWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters)
+    private PlaceholderTypeArgumentSymbol()
+    {
+    }
+
+    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    public override string Name
+    {
+        get
         {
-            return typeParameters.SelectAsArray(_ => s_instance);
+            return string.Empty;
         }
+    }
 
-        private PlaceholderTypeArgumentSymbol()
+    internal override bool MangleName
+    {
+        get
         {
+            Debug.Assert(Arity == 0);
+            return false;
         }
+    }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    internal override bool IsFileLocal => false;
+    internal override FileIdentifier? AssociatedFileIdentifier => null;
+
+    internal override DiagnosticInfo? ErrorInfo
+    {
+        get
         {
-            throw ExceptionUtilities.Unreachable();
+            return null;
         }
+    }
 
-        public override string Name
-        {
-            get
-            {
-                return string.Empty;
-            }
-        }
+    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+    {
+        return (object)t2 == this;
+    }
 
-        internal override bool MangleName
-        {
-            get
-            {
-                Debug.Assert(Arity == 0);
-                return false;
-            }
-        }
-
-        internal override bool IsFileLocal => false;
-        internal override FileIdentifier? AssociatedFileIdentifier => null;
-
-        internal override DiagnosticInfo? ErrorInfo
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
-        {
-            return (object)t2 == this;
-        }
-
-        public override int GetHashCode()
-        {
-            return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
-        }
+    public override int GetHashCode()
+    {
+        return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
     }
 }
 

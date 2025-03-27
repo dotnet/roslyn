@@ -9,15 +9,14 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
-{
-    public class DkmLanguage
-    {
-        public readonly DkmCompilerId Id;
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
 
-        internal DkmLanguage(DkmCompilerId compilerId)
-        {
-            Id = compilerId;
-        }
+public class DkmLanguage
+{
+    public readonly DkmCompilerId Id;
+
+    internal DkmLanguage(DkmCompilerId compilerId)
+    {
+        Id = compilerId;
     }
 }

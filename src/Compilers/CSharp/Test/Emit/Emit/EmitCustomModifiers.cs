@@ -14,15 +14,15 @@ using Xunit;
 using System.Linq;
 using Basic.Reference.Assemblies;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+
+public class EmitCustomModifiers : EmitMetadataTestBase
 {
-    public class EmitCustomModifiers : EmitMetadataTestBase
+    [Fact]
+    public void Test1()
     {
-        [Fact]
-        public void Test1()
-        {
-            var mscorlibRef = Net40.References.mscorlib;
-            string source = @"
+        var mscorlibRef = Net40.References.mscorlib;
+        string source = @"
 public class A
 {
     unsafe public static void Main()
@@ -40,11 +40,11 @@ public class A
     }
 }
 ";
-            var c = CreateCompilation(source,
-                new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                options: TestOptions.UnsafeReleaseExe);
+        var c = CreateCompilation(source,
+            new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
+            options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(c, verify: Verification.Passes, expectedOutput:
+        CompileAndVerify(c, verify: Verification.Passes, expectedOutput:
 @"F1
 F2
 F3
@@ -54,15 +54,15 @@ F9
 F10
 M4
 ");
-        }
+    }
 
-        /// <summary>
-        /// Test implementing a single interface with custom modifiers.
-        /// </summary>
-        [Fact]
-        public void TestSingleInterfaceImplementationWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Test implementing a single interface with custom modifiers.
+    /// </summary>
+    [Fact]
+    public void TestSingleInterfaceImplementationWithCustomModifiers()
+    {
+        var text = @"
 class Class : CppCli.CppInterface1
 {
     //copy modifiers (even though dev10 doesn't)
@@ -90,27 +90,27 @@ class Class : CppCli.CppInterface1
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Class.Method2(2)
 Class.Method1(3)
 Class.Method2(4)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Test implementing multiple (identical) interfaces with custom modifiers.
-        /// </summary>
-        [Fact]
-        public void TestMultipleInterfaceImplementationWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Test implementing multiple (identical) interfaces with custom modifiers.
+    /// </summary>
+    [Fact]
+    public void TestMultipleInterfaceImplementationWithCustomModifiers()
+    {
+        var text = @"
 class Class : CppCli.CppInterface1, CppCli.CppInterface2
 {
     //copy modifiers (even though dev10 doesn't)
@@ -147,7 +147,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Class.Method2(2)
 Class.Method1a(3)
 Class.Method2(4)
@@ -155,24 +155,24 @@ Class.Method1b(5)
 Class.Method2(6)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Test a direct override of a metadata method with custom modifiers.
-        /// Also confirm that a source method without custom modifiers can hide
-        /// a metadata method with custom modifiers (in the sense that "new" is
-        /// required) but does not copy the custom modifiers.
-        /// </summary>
-        [Fact]
-        public void TestSingleOverrideWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Test a direct override of a metadata method with custom modifiers.
+    /// Also confirm that a source method without custom modifiers can hide
+    /// a metadata method with custom modifiers (in the sense that "new" is
+    /// required) but does not copy the custom modifiers.
+    /// </summary>
+    [Fact]
+    public void TestSingleOverrideWithCustomModifiers()
+    {
+        var text = @"
 class Class : CppCli.CppBase1
 {
     //copies custom modifiers
@@ -200,30 +200,30 @@ class Class : CppCli.CppBase1
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Class.VirtualMethod(1)
 Class.NonVirtualMethod(2)
 Class.VirtualMethod(3)
 CppBase1::NonVirtualMethod(4)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Test overriding a source method that overrides a metadata method with
-        /// custom modifiers.  The custom modifiers should propagate to the second
-        /// override as well.
-        /// </summary>
-        [Fact]
-        public void TestRepeatedOverrideWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Test overriding a source method that overrides a metadata method with
+    /// custom modifiers.  The custom modifiers should propagate to the second
+    /// override as well.
+    /// </summary>
+    [Fact]
+    public void TestRepeatedOverrideWithCustomModifiers()
+    {
+        var text = @"
 class Base : CppCli.CppBase1
 {
     //copies custom modifiers
@@ -269,7 +269,7 @@ class Derived : Base
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Derived.VirtualMethod(1)
 Derived.NonVirtualMethod(2)
 Derived.VirtualMethod(3)
@@ -278,25 +278,25 @@ Derived.VirtualMethod(5)
 CppBase1::NonVirtualMethod(6)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Test the case of a source type extending a metadata type that could implicitly
-        /// implement a metadata interface with custom modifiers.  If the source type does
-        /// not implement an interface method, the base method fills in and a bridge method
-        /// is synthesized in the source type.  If the source type does implement an interface
-        /// method, no bridge method is synthesized.
-        /// </summary>
-        [Fact]
-        public void TestImplicitImplementationInBaseWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Test the case of a source type extending a metadata type that could implicitly
+    /// implement a metadata interface with custom modifiers.  If the source type does
+    /// not implement an interface method, the base method fills in and a bridge method
+    /// is synthesized in the source type.  If the source type does implement an interface
+    /// method, no bridge method is synthesized.
+    /// </summary>
+    [Fact]
+    public void TestImplicitImplementationInBaseWithCustomModifiers()
+    {
+        var text = @"
 class Class1 : CppCli.CppBase2, CppCli.CppInterface1
 {
 }
@@ -354,7 +354,7 @@ class E
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 CppBase2::Method1(1)
 CppBase2::Method2(2)
 CppBase2::Method1(3)
@@ -371,23 +371,23 @@ Class3.Method1(11)
 CppBase2::Method2(12)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Unlike override lookup, implicit implementation lookup ignores custom
-        /// modifiers and should simply choose the most derived method that matches
-        /// the interface method signature (modulo custom modifiers).
-        /// </summary>
-        [Fact]
-        public void TestImplicitImplementationBestMatchWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Unlike override lookup, implicit implementation lookup ignores custom
+    /// modifiers and should simply choose the most derived method that matches
+    /// the interface method signature (modulo custom modifiers).
+    /// </summary>
+    [Fact]
+    public void TestImplicitImplementationBestMatchWithCustomModifiers()
+    {
+        var text = @"
     class Class1 : CppCli.CppBestMatchBase2, CppCli.CppBestMatchInterface
     {
     }
@@ -436,7 +436,7 @@ class E
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Class2.Method(1,2)
 CppBestMatchBase2::Method(3,4)
 CppBestMatchBase2::Method(5,6)
@@ -453,21 +453,21 @@ CppBestMatchBase1::Method(21,22)
 Class2.Method(23,24)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Make sure custom modifiers can be applied to type parameters.
-        /// </summary>
-        [Fact]
-        public void TestGenericsWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Make sure custom modifiers can be applied to type parameters.
+    /// </summary>
+    [Fact]
+    public void TestGenericsWithCustomModifiers()
+    {
+        var text = @"
     class Derived1<U, V> : Outer<U>.Inner<V>
     {
         public override void Method<W>(U[] x, V[] y, W[] z)
@@ -499,27 +499,27 @@ class E
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 Derived2.Method(Int64[], Int16[], String[])
 Derived2.Method(Int64[], Int16[], Object[])
 Derived2.Method(Int64[], Int16[], Single[])
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// Sanity check assignment conversions in the presence of custom modifiers.
-        /// </summary>
-        [Fact]
-        public void TestAssignmentWithCustomModifiers()
-        {
-            var text = @"
+    /// <summary>
+    /// Sanity check assignment conversions in the presence of custom modifiers.
+    /// </summary>
+    [Fact]
+    public void TestAssignmentWithCustomModifiers()
+    {
+        var text = @"
 class C : I3
 {
     void I3.M1(int[] arrayWithCustomModifiers)
@@ -542,25 +542,25 @@ class E
 }
 ";
 
-            var expectedOutput = @"
+        var expectedOutput = @"
 System.Int32[]
 System.Int32[]
 0
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+        var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            CompileAndVerify(
-                source: text,
-                references: new MetadataReference[] { ilAssemblyReference },
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            source: text,
+            references: new MetadataReference[] { ilAssemblyReference },
+            expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
-        public void ByRefBeforeCustomModifiers()
-        {
-            var il = @"
+    [Fact]
+    [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
+    public void ByRefBeforeCustomModifiers()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit C
        extends [mscorlib]System.Object
 {
@@ -586,7 +586,7 @@ System.Int32[]
 } // end of class C
 ";
 
-            var source = @"
+        var source = @"
 class Test
 {
     static void Main()
@@ -597,24 +597,24 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var method = type.GetMember<MethodSymbol>("Incr");
-            var parameter = method.Parameters.Single();
+        var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+        var method = type.GetMember<MethodSymbol>("Incr");
+        var parameter = method.Parameters.Single();
 
-            Assert.Equal(RefKind.Ref, parameter.RefKind);
-            Assert.False(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
-            Assert.True(parameter.RefCustomModifiers.IsEmpty);
+        Assert.Equal(RefKind.Ref, parameter.RefKind);
+        Assert.False(parameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+        Assert.True(parameter.RefCustomModifiers.IsEmpty);
 
-            CompileAndVerify(comp, expectedOutput: "2");
-        }
+        CompileAndVerify(comp, expectedOutput: "2");
+    }
 
-        [Fact]
-        [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
-        public void ByRefBeforeCustomModifiersOnSourceParameter()
-        {
-            var il = @"
+    [Fact]
+    [WorkItem(737971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/737971")]
+    public void ByRefBeforeCustomModifiersOnSourceParameter()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit C
        extends [mscorlib]System.Object
 {
@@ -633,7 +633,7 @@ class Test
 } // end of class D
 ";
 
-            var source = @"
+        var source = @"
 class D : C
 {
     public override void M(ref uint u)
@@ -653,32 +653,32 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
-            var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var baseMethod = baseType.GetMember<MethodSymbol>("M");
-            var baseParameter = baseMethod.Parameters.Single();
+        var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+        var baseMethod = baseType.GetMember<MethodSymbol>("M");
+        var baseParameter = baseMethod.Parameters.Single();
 
-            Assert.Equal(RefKind.Ref, baseParameter.RefKind);
-            Assert.False(baseParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
-            Assert.True(baseParameter.RefCustomModifiers.IsEmpty);
+        Assert.Equal(RefKind.Ref, baseParameter.RefKind);
+        Assert.False(baseParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+        Assert.True(baseParameter.RefCustomModifiers.IsEmpty);
 
-            var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
-            var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
-            var derivedParameter = derivedMethod.Parameters.Single();
+        var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
+        var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
+        var derivedParameter = derivedMethod.Parameters.Single();
 
-            Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
-            Assert.False(derivedParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
-            Assert.True(derivedParameter.RefCustomModifiers.IsEmpty);
+        Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
+        Assert.False(derivedParameter.TypeWithAnnotations.CustomModifiers.IsEmpty);
+        Assert.True(derivedParameter.RefCustomModifiers.IsEmpty);
 
-            CompileAndVerify(comp, expectedOutput: "2");
-        }
+        CompileAndVerify(comp, expectedOutput: "2");
+    }
 
-        [WorkItem(294553, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
-        [Fact]
-        public void VoidPointerWithCustomModifiers()
-        {
-            var ilSource =
+    [WorkItem(294553, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=294553")]
+    [Fact]
+    public void VoidPointerWithCustomModifiers()
+    {
+        var ilSource =
 @".class public A
 {
   // F1(void* p)
@@ -690,7 +690,7 @@ class Test
   // F4(const void* const p)
   .method public static void F4(void modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
 }";
-            var source =
+        var source =
 @"class B
 {
     static void Main()
@@ -704,15 +704,15 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
-        }
+        var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+        compilation.VerifyDiagnostics();
+        CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
+    }
 
-        [Fact]
-        public void IntPointerWithCustomModifiers()
-        {
-            var ilSource =
+    [Fact]
+    public void IntPointerWithCustomModifiers()
+    {
+        var ilSource =
 @".class public A
 {
   // F1(int* p)
@@ -724,7 +724,7 @@ class Test
   // F4(const int* const p)
   .method public static void F4(int32 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)* modopt([mscorlib]System.Runtime.CompilerServices.IsConst) p) { ret }
 }";
-            var source =
+        var source =
 @"class B
 {
     static void Main()
@@ -738,9 +738,8 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
-        }
+        var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+        compilation.VerifyDiagnostics();
+        CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
     }
 }

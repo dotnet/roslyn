@@ -7,46 +7,45 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+public partial class NodeInfo
 {
-    public partial class NodeInfo
+    //Package of information containing the name, type, and value of a field on a syntax node.
+    public class FieldInfo
     {
-        //Package of information containing the name, type, and value of a field on a syntax node.
-        public class FieldInfo
+        private readonly string _propertyName;
+        private readonly Type _fieldType;
+        private readonly object _value;
+        public string PropertyName
         {
-            private readonly string _propertyName;
-            private readonly Type _fieldType;
-            private readonly object _value;
-            public string PropertyName
+            get
             {
-                get
-                {
-                    return _propertyName;
-                }
+                return _propertyName;
             }
+        }
 
-            public Type FieldType
+        public Type FieldType
+        {
+            get
             {
-                get
-                {
-                    return _fieldType;
-                }
+                return _fieldType;
             }
+        }
 
-            public object Value
+        public object Value
+        {
+            get
             {
-                get
-                {
-                    return _value;
-                }
+                return _value;
             }
+        }
 
-            public FieldInfo(string propertyName, Type fieldType, object value)
-            {
-                _propertyName = propertyName;
-                _fieldType = fieldType;
-                _value = value;
-            }
+        public FieldInfo(string propertyName, Type fieldType, object value)
+        {
+            _propertyName = propertyName;
+            _fieldType = fieldType;
+            _value = value;
         }
     }
 }

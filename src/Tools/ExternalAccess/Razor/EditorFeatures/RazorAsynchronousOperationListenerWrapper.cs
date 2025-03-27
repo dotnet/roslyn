@@ -6,18 +6,17 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+
+internal readonly struct RazorAsynchronousOperationListenerWrapper
 {
-    internal readonly struct RazorAsynchronousOperationListenerWrapper
+    private readonly IAsynchronousOperationListener _implementation;
+
+    public RazorAsynchronousOperationListenerWrapper(IAsynchronousOperationListener implementation)
     {
-        private readonly IAsynchronousOperationListener _implementation;
-
-        public RazorAsynchronousOperationListenerWrapper(IAsynchronousOperationListener implementation)
-        {
-            _implementation = implementation;
-        }
-
-        public IDisposable BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
-            => _implementation.BeginAsyncOperation(name, tag, filePath, lineNumber);
+        _implementation = implementation;
     }
+
+    public IDisposable BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        => _implementation.BeginAsyncOperation(name, tag, filePath, lineNumber);
 }

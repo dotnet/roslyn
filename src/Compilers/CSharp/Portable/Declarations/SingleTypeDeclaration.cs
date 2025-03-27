@@ -12,270 +12,269 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class SingleTypeDeclaration : SingleNamespaceOrTypeDeclaration
 {
-    internal sealed class SingleTypeDeclaration : SingleNamespaceOrTypeDeclaration
+    private readonly DeclarationKind _kind;
+    private readonly TypeDeclarationFlags _flags;
+    private readonly ushort _arity;
+    private readonly DeclarationModifiers _modifiers;
+    private readonly ImmutableArray<SingleTypeDeclaration> _children;
+
+    /// <summary>
+    /// Stored as a <see cref="StrongBox{T}"/> so that we can point weak-references at this instance and attempt to
+    /// reuse it across edits if the original hasn't been GC'ed.
+    /// </summary>
+    private readonly StrongBox<ImmutableSegmentedHashSet<string>> _memberNames;
+
+    /// <summary>
+    /// Any special attributes we may be referencing directly as an attribute on this type or
+    /// through a using alias in the file. For example
+    /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
+    /// <c>[TypeForwardedToAttribute]</c>.  Can be used to avoid having to go back to source
+    /// to retrieve attributes when there is no chance they would bind to attribute of interest.
+    /// </summary>
+    public QuickAttributes QuickAttributes { get; }
+
+    [Flags]
+    internal enum TypeDeclarationFlags : ushort
     {
-        private readonly DeclarationKind _kind;
-        private readonly TypeDeclarationFlags _flags;
-        private readonly ushort _arity;
-        private readonly DeclarationModifiers _modifiers;
-        private readonly ImmutableArray<SingleTypeDeclaration> _children;
+        None = 0,
+        AnyMemberHasExtensionMethodSyntax = 1 << 1,
+        HasAnyAttributes = 1 << 2,
+        HasBaseDeclarations = 1 << 3,
+        AnyMemberHasAttributes = 1 << 4,
+        HasAnyNontypeMembers = 1 << 5,
 
         /// <summary>
-        /// Stored as a <see cref="StrongBox{T}"/> so that we can point weak-references at this instance and attempt to
-        /// reuse it across edits if the original hasn't been GC'ed.
+        /// Simple program uses await expressions. Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
         /// </summary>
-        private readonly StrongBox<ImmutableSegmentedHashSet<string>> _memberNames;
+        HasAwaitExpressions = 1 << 6,
 
         /// <summary>
-        /// Any special attributes we may be referencing directly as an attribute on this type or
-        /// through a using alias in the file. For example
-        /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
-        /// <c>[TypeForwardedToAttribute]</c>.  Can be used to avoid having to go back to source
-        /// to retrieve attributes when there is no chance they would bind to attribute of interest.
+        /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
         /// </summary>
-        public QuickAttributes QuickAttributes { get; }
+        IsIterator = 1 << 7,
 
-        [Flags]
-        internal enum TypeDeclarationFlags : ushort
+        /// <summary>
+        /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
+        /// </summary>
+        HasReturnWithExpression = 1 << 8,
+
+        IsSimpleProgram = 1 << 9,
+
+        HasRequiredMembers = 1 << 10,
+
+        HasPrimaryConstructor = 1 << 11,
+    }
+
+    internal SingleTypeDeclaration(
+        DeclarationKind kind,
+        string name,
+        int arity,
+        DeclarationModifiers modifiers,
+        TypeDeclarationFlags declFlags,
+        SyntaxReference syntaxReference,
+        SourceLocation nameLocation,
+        StrongBox<ImmutableSegmentedHashSet<string>> memberNames,
+        ImmutableArray<SingleTypeDeclaration> children,
+        ImmutableArray<Diagnostic> diagnostics,
+        QuickAttributes quickAttributes)
+        : base(name, syntaxReference, nameLocation, diagnostics)
+    {
+        Debug.Assert(kind != DeclarationKind.Namespace);
+
+        _kind = kind;
+        _arity = (ushort)arity;
+        _modifiers = modifiers;
+        _memberNames = memberNames;
+        _children = children;
+        _flags = declFlags;
+        QuickAttributes = quickAttributes;
+    }
+
+    public override DeclarationKind Kind
+    {
+        get
         {
-            None = 0,
-            AnyMemberHasExtensionMethodSyntax = 1 << 1,
-            HasAnyAttributes = 1 << 2,
-            HasBaseDeclarations = 1 << 3,
-            AnyMemberHasAttributes = 1 << 4,
-            HasAnyNontypeMembers = 1 << 5,
+            return _kind;
+        }
+    }
 
-            /// <summary>
-            /// Simple program uses await expressions. Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
-            /// </summary>
-            HasAwaitExpressions = 1 << 6,
+    public new ImmutableArray<SingleTypeDeclaration> Children
+    {
+        get
+        {
+            return _children;
+        }
+    }
 
-            /// <summary>
-            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
-            /// </summary>
-            IsIterator = 1 << 7,
+    public int Arity
+    {
+        get
+        {
+            return _arity;
+        }
+    }
 
-            /// <summary>
-            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
-            /// </summary>
-            HasReturnWithExpression = 1 << 8,
+    public DeclarationModifiers Modifiers
+    {
+        get
+        {
+            return _modifiers;
+        }
+    }
 
-            IsSimpleProgram = 1 << 9,
+    public StrongBox<ImmutableSegmentedHashSet<string>> MemberNames => _memberNames;
 
-            HasRequiredMembers = 1 << 10,
+    public bool AnyMemberHasExtensionMethodSyntax
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
+        }
+    }
 
-            HasPrimaryConstructor = 1 << 11,
+    public bool HasAnyAttributes
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.HasAnyAttributes) != 0;
+        }
+    }
+
+    public bool HasBaseDeclarations
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.HasBaseDeclarations) != 0;
+        }
+    }
+
+    public bool AnyMemberHasAttributes
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.AnyMemberHasAttributes) != 0;
+        }
+    }
+
+    public bool HasAnyNontypeMembers
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
+        }
+    }
+
+    public bool HasAwaitExpressions
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
+        }
+    }
+
+    public bool HasReturnWithExpression
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.HasReturnWithExpression) != 0;
+        }
+    }
+
+    public bool IsIterator
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.IsIterator) != 0;
+        }
+    }
+
+    public bool IsSimpleProgram
+    {
+        get
+        {
+            return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
+        }
+    }
+
+    public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
+
+    public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
+
+    protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
+    {
+        return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
+    }
+
+    internal TypeDeclarationIdentity Identity
+    {
+        get
+        {
+            return new TypeDeclarationIdentity(this);
+        }
+    }
+
+    // identity that is used when collecting all declarations 
+    // of same type across multiple containers
+    internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
+    {
+        private readonly SingleTypeDeclaration _decl;
+
+        internal TypeDeclarationIdentity(SingleTypeDeclaration decl)
+        {
+            _decl = decl;
         }
 
-        internal SingleTypeDeclaration(
-            DeclarationKind kind,
-            string name,
-            int arity,
-            DeclarationModifiers modifiers,
-            TypeDeclarationFlags declFlags,
-            SyntaxReference syntaxReference,
-            SourceLocation nameLocation,
-            StrongBox<ImmutableSegmentedHashSet<string>> memberNames,
-            ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableArray<Diagnostic> diagnostics,
-            QuickAttributes quickAttributes)
-            : base(name, syntaxReference, nameLocation, diagnostics)
+        public override bool Equals(object obj)
         {
-            Debug.Assert(kind != DeclarationKind.Namespace);
-
-            _kind = kind;
-            _arity = (ushort)arity;
-            _modifiers = modifiers;
-            _memberNames = memberNames;
-            _children = children;
-            _flags = declFlags;
-            QuickAttributes = quickAttributes;
+            return obj is TypeDeclarationIdentity && Equals((TypeDeclarationIdentity)obj);
         }
 
-        public override DeclarationKind Kind
+        public bool Equals(TypeDeclarationIdentity other)
         {
-            get
+            var thisDecl = _decl;
+            var otherDecl = other._decl;
+
+            // same as itself
+            if ((object)thisDecl == otherDecl)
             {
-                return _kind;
-            }
-        }
-
-        public new ImmutableArray<SingleTypeDeclaration> Children
-        {
-            get
-            {
-                return _children;
-            }
-        }
-
-        public int Arity
-        {
-            get
-            {
-                return _arity;
-            }
-        }
-
-        public DeclarationModifiers Modifiers
-        {
-            get
-            {
-                return _modifiers;
-            }
-        }
-
-        public StrongBox<ImmutableSegmentedHashSet<string>> MemberNames => _memberNames;
-
-        public bool AnyMemberHasExtensionMethodSyntax
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax) != 0;
-            }
-        }
-
-        public bool HasAnyAttributes
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.HasAnyAttributes) != 0;
-            }
-        }
-
-        public bool HasBaseDeclarations
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.HasBaseDeclarations) != 0;
-            }
-        }
-
-        public bool AnyMemberHasAttributes
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.AnyMemberHasAttributes) != 0;
-            }
-        }
-
-        public bool HasAnyNontypeMembers
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
-            }
-        }
-
-        public bool HasAwaitExpressions
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
-            }
-        }
-
-        public bool HasReturnWithExpression
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.HasReturnWithExpression) != 0;
-            }
-        }
-
-        public bool IsIterator
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.IsIterator) != 0;
-            }
-        }
-
-        public bool IsSimpleProgram
-        {
-            get
-            {
-                return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
-            }
-        }
-
-        public bool HasRequiredMembers => (_flags & TypeDeclarationFlags.HasRequiredMembers) != 0;
-
-        public bool HasPrimaryConstructor => (_flags & TypeDeclarationFlags.HasPrimaryConstructor) != 0;
-
-        protected override ImmutableArray<SingleNamespaceOrTypeDeclaration> GetNamespaceOrTypeDeclarationChildren()
-        {
-            return StaticCast<SingleNamespaceOrTypeDeclaration>.From(_children);
-        }
-
-        internal TypeDeclarationIdentity Identity
-        {
-            get
-            {
-                return new TypeDeclarationIdentity(this);
-            }
-        }
-
-        // identity that is used when collecting all declarations 
-        // of same type across multiple containers
-        internal readonly struct TypeDeclarationIdentity : IEquatable<TypeDeclarationIdentity>
-        {
-            private readonly SingleTypeDeclaration _decl;
-
-            internal TypeDeclarationIdentity(SingleTypeDeclaration decl)
-            {
-                _decl = decl;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is TypeDeclarationIdentity && Equals((TypeDeclarationIdentity)obj);
-            }
-
-            public bool Equals(TypeDeclarationIdentity other)
-            {
-                var thisDecl = _decl;
-                var otherDecl = other._decl;
-
-                // same as itself
-                if ((object)thisDecl == otherDecl)
-                {
-                    return true;
-                }
-
-                // arity, kind, name must match
-                if ((thisDecl._arity != otherDecl._arity) ||
-                    (thisDecl._kind != otherDecl._kind) ||
-                    (thisDecl.name != otherDecl.name))
-                {
-                    return false;
-                }
-
-                if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
-                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
-                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
-                {
-                    // declarations of 'file' types are only the same type if they are in the same file
-                    return false;
-                }
-
-                if (thisDecl._kind == DeclarationKind.Enum || thisDecl._kind == DeclarationKind.Delegate)
-                {
-                    // oh, so close, but enums and delegates cannot be partial
-                    return false;
-                }
-
                 return true;
             }
 
-            public override int GetHashCode()
+            // arity, kind, name must match
+            if ((thisDecl._arity != otherDecl._arity) ||
+                (thisDecl._kind != otherDecl._kind) ||
+                (thisDecl.name != otherDecl.name))
             {
-                var thisDecl = _decl;
-                return Hash.Combine(thisDecl.Name.GetHashCode(),
-                    Hash.Combine(thisDecl.Arity.GetHashCode(),
-                    (int)thisDecl.Kind));
+                return false;
             }
+
+            if ((object)thisDecl.SyntaxReference.SyntaxTree != otherDecl.SyntaxReference.SyntaxTree
+                && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                    || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
+            {
+                // declarations of 'file' types are only the same type if they are in the same file
+                return false;
+            }
+
+            if (thisDecl._kind == DeclarationKind.Enum || thisDecl._kind == DeclarationKind.Delegate)
+            {
+                // oh, so close, but enums and delegates cannot be partial
+                return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var thisDecl = _decl;
+            return Hash.Combine(thisDecl.Name.GetHashCode(),
+                Hash.Combine(thisDecl.Arity.GetHashCode(),
+                (int)thisDecl.Kind));
         }
     }
 }

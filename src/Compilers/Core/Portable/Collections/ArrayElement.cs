@@ -5,61 +5,60 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+[DebuggerDisplay("{Value,nq}")]
+internal struct ArrayElement<T>
 {
-    [DebuggerDisplay("{Value,nq}")]
-    internal struct ArrayElement<T>
+    internal T Value;
+
+    public static implicit operator T(ArrayElement<T> element)
     {
-        internal T Value;
+        return element.Value;
+    }
 
-        public static implicit operator T(ArrayElement<T> element)
+    //NOTE: there is no opposite conversion operator T -> ArrayElement<T>
+    //
+    // that is because it is preferred to update array elements in-place
+    // "elements[i].Value = v" results in much better code than "elements[i] = (ArrayElement<T>)v"
+    //
+    // The reason is that x86 ABI requires that structs must be returned in
+    // a return buffer even if they can fit in a register like this one.
+    // Also since struct contains a reference, the write to the buffer is done with a checked GC barrier 
+    // as JIT does not know if the write goes to a stack or a heap location.
+    // Assigning to Value directly easily avoids all this redundancy.
+
+    [return: NotNullIfNotNull(parameterName: nameof(items))]
+    public static ArrayElement<T>[]? MakeElementArray(T[]? items)
+    {
+        if (items == null)
         {
-            return element.Value;
+            return null;
         }
 
-        //NOTE: there is no opposite conversion operator T -> ArrayElement<T>
-        //
-        // that is because it is preferred to update array elements in-place
-        // "elements[i].Value = v" results in much better code than "elements[i] = (ArrayElement<T>)v"
-        //
-        // The reason is that x86 ABI requires that structs must be returned in
-        // a return buffer even if they can fit in a register like this one.
-        // Also since struct contains a reference, the write to the buffer is done with a checked GC barrier 
-        // as JIT does not know if the write goes to a stack or a heap location.
-        // Assigning to Value directly easily avoids all this redundancy.
-
-        [return: NotNullIfNotNull(parameterName: nameof(items))]
-        public static ArrayElement<T>[]? MakeElementArray(T[]? items)
+        var array = new ArrayElement<T>[items.Length];
+        for (int i = 0; i < items.Length; i++)
         {
-            if (items == null)
-            {
-                return null;
-            }
-
-            var array = new ArrayElement<T>[items.Length];
-            for (int i = 0; i < items.Length; i++)
-            {
-                array[i].Value = items[i];
-            }
-
-            return array;
+            array[i].Value = items[i];
         }
 
-        [return: NotNullIfNotNull(parameterName: nameof(items))]
-        public static T[]? MakeArray(ArrayElement<T>[]? items)
+        return array;
+    }
+
+    [return: NotNullIfNotNull(parameterName: nameof(items))]
+    public static T[]? MakeArray(ArrayElement<T>[]? items)
+    {
+        if (items == null)
         {
-            if (items == null)
-            {
-                return null;
-            }
-
-            var array = new T[items.Length];
-            for (int i = 0; i < items.Length; i++)
-            {
-                array[i] = items[i].Value;
-            }
-
-            return array;
+            return null;
         }
+
+        var array = new T[items.Length];
+        for (int i = 0; i < items.Length; i++)
+        {
+            array[i] = items[i].Value;
+        }
+
+        return array;
     }
 }

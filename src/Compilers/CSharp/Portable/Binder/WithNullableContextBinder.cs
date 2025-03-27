@@ -6,25 +6,24 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class WithNullableContextBinder : Binder
 {
-    internal sealed class WithNullableContextBinder : Binder
+    private readonly SyntaxTree _syntaxTree;
+    private readonly int _position;
+
+    internal WithNullableContextBinder(SyntaxTree syntaxTree, int position, Binder next)
+        : base(next)
     {
-        private readonly SyntaxTree _syntaxTree;
-        private readonly int _position;
+        Debug.Assert(syntaxTree != null);
+        Debug.Assert(position >= 0);
+        _syntaxTree = syntaxTree;
+        _position = position;
+    }
 
-        internal WithNullableContextBinder(SyntaxTree syntaxTree, int position, Binder next)
-            : base(next)
-        {
-            Debug.Assert(syntaxTree != null);
-            Debug.Assert(position >= 0);
-            _syntaxTree = syntaxTree;
-            _position = position;
-        }
-
-        internal override bool AreNullableAnnotationsGloballyEnabled()
-        {
-            return Next.AreNullableAnnotationsEnabled(_syntaxTree, _position);
-        }
+    internal override bool AreNullableAnnotationsGloballyEnabled()
+    {
+        return Next.AreNullableAnnotationsEnabled(_syntaxTree, _position);
     }
 }

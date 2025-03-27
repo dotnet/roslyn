@@ -4,39 +4,38 @@
 
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal partial class InteractiveHost
 {
-    internal partial class InteractiveHost
+    /// <summary>
+    /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
+    /// Logically this reference represents that file, the fact that we load the image from a copy is an implementation detail.
+    /// </summary>
+    private sealed class ShadowCopyReference : PortableExecutableReference
     {
-        /// <summary>
-        /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
-        /// Logically this reference represents that file, the fact that we load the image from a copy is an implementation detail.
-        /// </summary>
-        private sealed class ShadowCopyReference : PortableExecutableReference
+        private readonly MetadataShadowCopyProvider _provider;
+
+        public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
+            : base(properties, originalPath)
         {
-            private readonly MetadataShadowCopyProvider _provider;
+            _provider = provider;
+        }
 
-            public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
-                : base(properties, originalPath)
-            {
-                _provider = provider;
-            }
+        protected override DocumentationProvider CreateDocumentationProvider()
+        {
+            // TODO (tomat): use file next to the dll (or shadow copy)
+            return DocumentationProvider.Default;
+        }
 
-            protected override DocumentationProvider CreateDocumentationProvider()
-            {
-                // TODO (tomat): use file next to the dll (or shadow copy)
-                return DocumentationProvider.Default;
-            }
+        protected override Metadata GetMetadataImpl()
+        {
+            return _provider.GetMetadata(FilePath, Properties.Kind);
+        }
 
-            protected override Metadata GetMetadataImpl()
-            {
-                return _provider.GetMetadata(FilePath, Properties.Kind);
-            }
-
-            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            {
-                return new ShadowCopyReference(_provider, FilePath!, properties);
-            }
+        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+        {
+            return new ShadowCopyReference(_provider, FilePath!, properties);
         }
     }
 }

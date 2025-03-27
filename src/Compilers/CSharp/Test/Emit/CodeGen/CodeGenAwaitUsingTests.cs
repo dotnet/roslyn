@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+[CompilerTrait(CompilerFeature.AsyncStreams)]
+public class CodeGenAwaitUsingTests : CSharpTestBase
 {
-    [CompilerTrait(CompilerFeature.AsyncStreams)]
-    public class CodeGenAwaitUsingTests : CSharpTestBase
+    [Fact]
+    public void TestWithCSharp7_3_01()
     {
-        [Fact]
-        public void TestWithCSharp7_3_01()
-        {
-            string source = @"
+        string source = @"
 class C : System.IAsyncDisposable
 {
     async System.Threading.Tasks.Task M()
@@ -33,18 +33,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9)
+            );
+    }
 
-        [Fact]
-        public void TestWithCSharp7_3_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithCSharp7_3_02()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     async System.Threading.Tasks.Task M()
@@ -59,21 +59,21 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
-                // 0.cs(6,22): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, parseOptions: TestOptions.Regular7_3);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS8652: The feature 'asynchronous using' is not available in C# 7.3. Please use language version 8.0 or greater.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
+            // 0.cs(6,22): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        public void TestInNonAsyncVoidMethod()
-        {
-            string source = @"
+    [Fact]
+    public void TestInNonAsyncVoidMethod()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     void M()
@@ -89,18 +89,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 9)
+            );
+    }
 
-        [Fact]
-        public void TestInNonAsyncMethodReturningInt()
-        {
-            string source = @"
+    [Fact]
+    public void TestInNonAsyncMethodReturningInt()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     int M()
@@ -116,18 +116,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("int").WithLocation(6, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("int").WithLocation(6, 9)
+            );
+    }
 
-        [Fact]
-        public void TestInNonAsyncAnonymousMethod()
-        {
-            string source = @"
+    [Fact]
+    public void TestInNonAsyncAnonymousMethod()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     void M()
@@ -146,18 +146,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (8,13): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
-                //             await using (var y = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "await").WithArguments("lambda expression").WithLocation(8, 13)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (8,13): error CS4034: The 'await' operator can only be used within an async lambda expression. Consider marking this lambda expression with the 'async' modifier.
+            //             await using (var y = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, "await").WithArguments("lambda expression").WithLocation(8, 13)
+            );
+    }
 
-        [Fact]
-        public void TestWithTaskReturningDisposeAsync()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithTaskReturningDisposeAsync()
+    {
+        string source = @"
 using System.Threading.Tasks;
 class C : System.IAsyncDisposable
 {
@@ -168,21 +168,21 @@ class C : System.IAsyncDisposable
     public async Task DisposeAsync() { }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
-                // class C : System.IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "System.IAsyncDisposable").WithArguments("C", "System.IAsyncDisposable.DisposeAsync()", "C.DisposeAsync()", "System.Threading.Tasks.ValueTask").WithLocation(3, 11),
-                // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public async Task DisposeAsync() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "DisposeAsync").WithLocation(9, 23)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (3,11): error CS0738: 'C' does not implement interface member 'IAsyncDisposable.DisposeAsync()'. 'C.DisposeAsync()' cannot implement 'IAsyncDisposable.DisposeAsync()' because it does not have the matching return type of 'ValueTask'.
+            // class C : System.IAsyncDisposable
+            Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "System.IAsyncDisposable").WithArguments("C", "System.IAsyncDisposable.DisposeAsync()", "C.DisposeAsync()", "System.Threading.Tasks.ValueTask").WithLocation(3, 11),
+            // (9,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     public async Task DisposeAsync() { }
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "DisposeAsync").WithLocation(9, 23)
+            );
+    }
 
-        [Fact]
-        public void TestInAsyncAnonymousMethod()
-        {
-            string source = @"
+    [Fact]
+    public void TestInAsyncAnonymousMethod()
+    {
+        string source = @"
 using System.Threading.Tasks;
 class C : System.IAsyncDisposable
 {
@@ -210,15 +210,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "C body DisposeAsync1 DisposeAsync2 end");
+    }
 
-        [Fact]
-        public void TestInUnsafeRegion()
-        {
-            string source = @"
+    [Fact]
+    public void TestInUnsafeRegion()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     async System.Threading.Tasks.Task<int> M<T>()
@@ -237,18 +237,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS4004: Cannot await in an unsafe context
-                //             await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(8, 13)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (8,13): error CS4004: Cannot await in an unsafe context
+            //             await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(8, 13)
+            );
+    }
 
-        [Fact]
-        public void TestInLock()
-        {
-            string source = @"
+    [Fact]
+    public void TestInLock()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     async System.Threading.Tasks.Task<int> M<T>()
@@ -267,18 +267,18 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (8,13): error CS1996: Cannot await in the body of a lock statement
-                //             await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await").WithLocation(8, 13)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (8,13): error CS1996: Cannot await in the body of a lock statement
+            //             await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitInLock, "await").WithLocation(8, 13)
+            );
+    }
 
-        [Fact]
-        public void TestWithObsoleteDisposeAsync_01()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithObsoleteDisposeAsync_01()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -294,15 +294,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            // https://github.com/dotnet/roslyn/issues/30257 Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        // https://github.com/dotnet/roslyn/issues/30257 Confirm whether this behavior is ok (currently matching behavior of obsolete Dispose in non-async using)
+    }
 
-        [Fact]
-        public void TestWithObsoleteDisposeAsync_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithObsoleteDisposeAsync_02()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -318,38 +318,38 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
-                );
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
+            );
 
-            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular7);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8107: Feature 'asynchronous using' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
-                // (6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
-                // (6,22): error CS8107: Feature 'pattern-based disposal' is not available in C# 7.0. Please use language version 8.0 or greater.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
-                );
+        comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular7);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS8107: Feature 'asynchronous using' is not available in C# 7.0. Please use language version 8.0 or greater.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
+            // (6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
+            // (6,22): error CS8107: Feature 'pattern-based disposal' is not available in C# 7.0. Please use language version 8.0 or greater.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
+            );
 
-            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
-                );
-        }
+        comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        public void TestWithObsoleteDispose()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithObsoleteDispose()
+    {
+        string source = @"
 class C : System.IDisposable
 {
     public static void Main()
@@ -364,14 +364,14 @@ class C : System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics();
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void TestInCatchBlock()
-        {
-            string source = @"
+    [Fact]
+    public void TestInCatchBlock()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -398,15 +398,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "try using dispose_start dispose_end end");
+    }
 
-        [Fact]
-        public void MissingAwaitInAsyncMethod()
-        {
-            string source = @"
+    [Fact]
+    public void MissingAwaitInAsyncMethod()
+    {
+        string source = @"
 class C
 {
     public static async System.Threading.Tasks.Task Main()
@@ -429,18 +429,18 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     public static async System.Threading.Tasks.Task Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(4, 53)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (4,53): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     public static async System.Threading.Tasks.Task Main()
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(4, 53)
+            );
+    }
 
-        [Fact]
-        public void MissingAwaitInAsyncMethod2()
-        {
-            string source = @"
+    [Fact]
+    public void MissingAwaitInAsyncMethod2()
+    {
+        string source = @"
 class C
 {
     public static void Main()
@@ -472,21 +472,21 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         async System.Threading.Tasks.Task local()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(17, 43),
-                // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         System.Action lambda1 = async () =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (17,43): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //         async System.Threading.Tasks.Task local()
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "local").WithLocation(17, 43),
+            // (6,42): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //         System.Action lambda1 = async () =>
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 42)
+            );
+    }
 
-        [Fact]
-        public void TestInFinallyBlock()
-        {
-            string source = @"
+    [Fact]
+    public void TestInFinallyBlock()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     static async System.Threading.Tasks.Task<int> Main()
@@ -513,15 +513,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        public void TestThrowingDisposeAsync()
-        {
-            string source = @"
+    [Fact]
+    public void TestThrowingDisposeAsync()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     static async System.Threading.Tasks.Task Main()
@@ -549,15 +549,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using caught message");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using caught message");
+    }
 
-        [Fact]
-        public void TestRegularAwaitInFinallyBlock()
-        {
-            string source = @"
+    [Fact]
+    public void TestRegularAwaitInFinallyBlock()
+    {
+        string source = @"
 using System.Threading.Tasks;
 class C
 {
@@ -576,15 +576,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "before after");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "before after");
+    }
 
-        [Fact]
-        public void TestMissingIAsyncDisposable()
-        {
-            string source = @"
+    [Fact]
+    public void TestMissingIAsyncDisposable()
+    {
+        string source = @"
 class C
 {
     async System.Threading.Tasks.Task<int> M()
@@ -599,21 +599,21 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
+            // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
+            );
+    }
 
-        [Fact]
-        public void TestMissingIAsyncDisposableAndMissingValueTaskAndMissingAsync()
-        {
-            string source = @"
+    [Fact]
+    public void TestMissingIAsyncDisposableAndMissingValueTaskAndMissingAsync()
+    {
+        string source = @"
 class C
 {
     System.Threading.Tasks.Task<int> M()
@@ -628,31 +628,31 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
-            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 9),
-                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 9),
-                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
-                // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
-                //             return 1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 20)
-                );
-        }
+        var comp = CreateCompilationWithMscorlib46(source);
+        comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+            //         await using (new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 9),
+            // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
+            // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 9),
+            // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
+            // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
+            //             return 1;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Threading.Tasks.Task<int>").WithLocation(11, 20)
+            );
+    }
 
-        [Fact]
-        public void TestMissingIDisposable()
-        {
-            string source = @"
+    [Fact]
+    public void TestMissingIDisposable()
+    {
+        string source = @"
 class C
 {
     int M()
@@ -667,22 +667,22 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source);
-            comp.MakeTypeMissing(SpecialType.System_IDisposable);
-            comp.VerifyEmitDiagnostics(
-                // (6,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
-                //         using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
-                // (9,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
-                //         using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
-                );
-        }
+        var comp = CreateCompilationWithMscorlib46(source);
+        comp.MakeTypeMissing(SpecialType.System_IDisposable);
+        comp.VerifyEmitDiagnostics(
+            // (6,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
+            //         using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
+            // (9,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
+            //         using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
+            );
+    }
 
-        [Fact]
-        public void TestMissingDisposeAsync()
-        {
-            string source = @"
+    [Fact]
+    public void TestMissingDisposeAsync()
+    {
+        string source = @"
 namespace System
 {
     public interface IAsyncDisposable
@@ -699,22 +699,22 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
-                //         await using (new C()) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
-                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
-                //         await using (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+            //         await using (new C()) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
+            // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+            //         await using (var x = new C()) { return 1; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+            );
+    }
 
-        [Fact]
-        public void TestMissingDispose()
-        {
-            string source = @"
+    [Fact]
+    public void TestMissingDispose()
+    {
+        string source = @"
 class C : System.IDisposable
 {
     int M()
@@ -728,22 +728,22 @@ class C : System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
-            comp.VerifyEmitDiagnostics(
-                // (6,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
-                //         using (new C()) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (new C()) { }").WithArguments("System.IDisposable", "Dispose").WithLocation(6, 9),
-                // (7,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
-                //         using (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (var x = new C()) { return 1; }").WithArguments("System.IDisposable", "Dispose").WithLocation(7, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
+        comp.VerifyEmitDiagnostics(
+            // (6,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+            //         using (new C()) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (new C()) { }").WithArguments("System.IDisposable", "Dispose").WithLocation(6, 9),
+            // (7,9): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+            //         using (var x = new C()) { return 1; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "using (var x = new C()) { return 1; }").WithArguments("System.IDisposable", "Dispose").WithLocation(7, 9)
+            );
+    }
 
-        [Fact]
-        public void TestBadDisposeAsync_01()
-        {
-            string source = @"
+    [Fact]
+    public void TestBadDisposeAsync_01()
+    {
+        string source = @"
 namespace System
 {
     public interface IAsyncDisposable
@@ -764,22 +764,22 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
-                //         await using (new C()) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
-                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
-                //         await using (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (13,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+            //         await using (new C()) { }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(13, 9),
+            // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+            //         await using (var x = new C()) { return 1; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9)
+            );
+    }
 
-        [Fact]
-        public void TestBadDisposeAsync_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestBadDisposeAsync_02()
+    {
+        string source = @"
 namespace System
 {
     public interface IAsyncDisposable
@@ -800,21 +800,21 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            comp.VerifyDiagnostics(
-                // (13,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         await using (new C()) { }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("int", "GetAwaiter").WithLocation(13, 22),
-                // (14,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         await using (var x = new C()) { return 1; }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var x = new C()").WithArguments("int", "GetAwaiter").WithLocation(14, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        comp.VerifyDiagnostics(
+            // (13,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         await using (new C()) { }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("int", "GetAwaiter").WithLocation(13, 22),
+            // (14,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         await using (var x = new C()) { return 1; }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var x = new C()").WithArguments("int", "GetAwaiter").WithLocation(14, 22)
+            );
+    }
 
-        [Fact]
-        public void TestMissingTaskType_01()
-        {
-            string lib_cs = @"
+    [Fact]
+    public void TestMissingTaskType_01()
+    {
+        string lib_cs = @"
 public class Base : System.IAsyncDisposable
 {
     System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()
@@ -825,7 +825,7 @@ public class Base : System.IAsyncDisposable
 }
 ";
 
-            string comp_cs = @"
+        string comp_cs = @"
 public class C : Base
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -838,20 +838,20 @@ public class C : Base
     }
 }
 ";
-            var libComp = CreateCompilationWithTasksExtensions(lib_cs + IAsyncDisposableDefinition);
-            var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
-            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
-            comp.VerifyDiagnostics(
-                // (6,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
-                );
-        }
+        var libComp = CreateCompilationWithTasksExtensions(lib_cs + IAsyncDisposableDefinition);
+        var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+        comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+        comp.VerifyDiagnostics(
+            // (6,9): error CS0518: Predefined type 'System.Threading.Tasks.ValueTask' is not defined or imported
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.Threading.Tasks.ValueTask").WithLocation(6, 9)
+            );
+    }
 
-        [Fact]
-        public void TestMissingTaskType_02()
-        {
-            string lib_cs = @"
+    [Fact]
+    public void TestMissingTaskType_02()
+    {
+        string lib_cs = @"
 public class Base : System.IAsyncDisposable
 {
     public System.Threading.Tasks.ValueTask DisposeAsync()
@@ -862,7 +862,7 @@ public class Base : System.IAsyncDisposable
 }
 ";
 
-            string comp_cs = @"
+        string comp_cs = @"
 public class C : Base
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -875,16 +875,16 @@ public class C : Base
     }
 }
 ";
-            var libComp = CreateCompilationWithTasksExtensions(lib_cs + IAsyncDisposableDefinition);
-            var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
-            comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
-            comp.VerifyEmitDiagnostics();
-        }
+        var libComp = CreateCompilationWithTasksExtensions(lib_cs + IAsyncDisposableDefinition);
+        var comp = CreateCompilationWithTasksExtensions(comp_cs, references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+        comp.MakeTypeMissing(WellKnownType.System_Threading_Tasks_ValueTask);
+        comp.VerifyEmitDiagnostics();
+    }
 
-        [Fact]
-        public void TestWithDeclaration()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithDeclaration()
+    {
+        string source = @"
 class C : System.IAsyncDisposable, System.IDisposable
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -906,15 +906,15 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+    }
 
-        [Fact]
-        public void TestIAsyncDisposableInRegularUsing()
-        {
-            string source = @"
+    [Fact]
+    public void TestIAsyncDisposableInRegularUsing()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static int Main()
@@ -928,18 +928,18 @@ class C : System.IAsyncDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
-                //         using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
+            //         using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
+            );
+    }
 
-        [Fact]
-        public void TestIAsyncDisposableInRegularUsing_Expression()
-        {
-            string source = @"
+    [Fact]
+    public void TestIAsyncDisposableInRegularUsing_Expression()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static int Main()
@@ -953,18 +953,18 @@ class C : System.IAsyncDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using'?
-                //         using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 16)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using'?
+            //         using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 16)
+            );
+    }
 
-        [Fact]
-        public void TestIAsyncDisposableInRegularUsing_WithDispose()
-        {
-            string source = @"
+    [Fact]
+    public void TestIAsyncDisposableInRegularUsing_WithDispose()
+    {
+        string source = @"
 class C : System.IAsyncDisposable, System.IDisposable
 {
     public static int Main()
@@ -986,15 +986,15 @@ class C : System.IAsyncDisposable, System.IDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body Dispose");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body Dispose");
+    }
 
-        [Fact]
-        public void TestIDisposableInAwaitUsing()
-        {
-            string source = @"
+    [Fact]
+    public void TestIDisposableInAwaitUsing()
+    {
+        string source = @"
 class C : System.IDisposable
 {
     async System.Threading.Tasks.Task<int> M()
@@ -1008,18 +1008,18 @@ class C : System.IDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        public void TestIDisposableInAwaitUsing_Expression()
-        {
-            string source = @"
+    [Fact]
+    public void TestIDisposableInAwaitUsing_Expression()
+    {
+        string source = @"
 class C : System.IDisposable
 {
     async System.Threading.Tasks.Task<int> M()
@@ -1033,18 +1033,18 @@ class C : System.IDisposable
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8417: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'. Did you mean 'using' rather than 'await using'?
+            //         await using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        public void TestWithDynamicDeclaration_ExplicitInterfaceImplementation()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithDynamicDeclaration_ExplicitInterfaceImplementation()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -1063,15 +1063,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
+    }
 
-        [Fact]
-        public void TestWithDynamicDeclaration()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithDynamicDeclaration()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -1090,15 +1090,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
+    }
 
-        [Fact]
-        public void TestWithExpression_01()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithExpression_01()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1116,10 +1116,10 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      306 (0x132)
   .maxstack  3
@@ -1267,12 +1267,12 @@ class C : System.IAsyncDisposable
   IL_0130:  nop
   IL_0131:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestWithExpression_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithExpression_02()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1290,10 +1290,10 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      306 (0x132)
   .maxstack  3
@@ -1442,12 +1442,12 @@ class C : System.IAsyncDisposable
   IL_0131:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestWithExpression_03()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithExpression_03()
+    {
+        string source = @"
 class C
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1465,10 +1465,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      306 (0x132)
   .maxstack  3
@@ -1617,12 +1617,12 @@ class C
   IL_0131:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestWithNullExpression()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithNullExpression()
+    {
+        string source = @"
 class C
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1635,15 +1635,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body");
+    }
 
-        [Fact]
-        public void TestWithMethodName()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithMethodName()
+    {
+        string source = @"
 class C
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1654,18 +1654,18 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8410: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
-                //         await using (Main)
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "Main").WithArguments("method group").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8410: 'method group': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable'
+            //         await using (Main)
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "Main").WithArguments("method group").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        public void TestWithDynamicExpression()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithDynamicExpression()
+    {
+        string source = @"
 class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1684,15 +1684,15 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe, references: new[] { CSharpRef });
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+    }
 
-        [Fact]
-        public void TestWithStructExpression_01()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithStructExpression_01()
+    {
+        string source = @"
 struct S : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1710,10 +1710,10 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-            verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      298 (0x12a)
   .maxstack  3
@@ -1856,12 +1856,12 @@ struct S : System.IAsyncDisposable
   IL_0128:  nop
   IL_0129:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestWithStructExpression_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithStructExpression_02()
+    {
+        string source = @"
 struct S : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -1879,10 +1879,10 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-            verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+        verifier.VerifyIL("S.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      292 (0x124)
   .maxstack  3
@@ -2024,12 +2024,12 @@ struct S : System.IAsyncDisposable
   IL_0122:  nop
   IL_0123:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void Struct_ExplicitImplementation()
-        {
-            string source =
+    [Fact]
+    public void Struct_ExplicitImplementation()
+    {
+        string source =
 @"using System;
 using System.Threading.Tasks;
 class C
@@ -2057,15 +2057,15 @@ struct S : IAsyncDisposable
         return new ValueTask(Task.CompletedTask);
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "True");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "True");
+    }
 
-        [Fact]
-        public void TestWithNullableExpression()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithNullableExpression()
+    {
+        string source = @"
 struct S : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -2084,15 +2084,15 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
+    }
 
-        [Fact]
-        public void TestWithNullNullableExpression()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithNullNullableExpression()
+    {
+        string source = @"
 struct S : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task Main()
@@ -2111,16 +2111,16 @@ struct S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "body");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "body");
+    }
 
-        [Fact]
-        [WorkItem(24267, "https://github.com/dotnet/roslyn/issues/24267")]
-        public void AssignsInAsyncWithAwaitUsing()
-        {
-            var comp = CreateCompilationWithTasksExtensions(@"
+    [Fact]
+    [WorkItem(24267, "https://github.com/dotnet/roslyn/issues/24267")]
+    public void AssignsInAsyncWithAwaitUsing()
+    {
+        var comp = CreateCompilationWithTasksExtensions(@"
 class C
 {
     public static void M2()
@@ -2142,23 +2142,23 @@ class C
         }
     }
 }" + IAsyncDisposableDefinition);
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0165: Use of unassigned local variable 'x'
-                //         x++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 9),
-                // (10,9): error CS0165: Use of unassigned local variable 'y'
-                //         y++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 9),
-                // (11,9): error CS0165: Use of unassigned local variable 'z'
-                //         z++;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(11, 9)
-                );
-        }
+        comp.VerifyDiagnostics(
+            // (9,9): error CS0165: Use of unassigned local variable 'x'
+            //         x++;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 9),
+            // (10,9): error CS0165: Use of unassigned local variable 'y'
+            //         y++;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 9),
+            // (11,9): error CS0165: Use of unassigned local variable 'z'
+            //         z++;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "z").WithArguments("z").WithLocation(11, 9)
+            );
+    }
 
-        [Fact]
-        public void TestWithMultipleResources()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithMultipleResources()
+    {
+        string source = @"
 class S : System.IAsyncDisposable
 {
     private int _i;
@@ -2183,15 +2183,15 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
+    }
 
-        [Fact]
-        public void TestWithMultipleResourcesAndException()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithMultipleResourcesAndException()
+    {
+        string source = @"
 class S : System.IAsyncDisposable
 {
     private int _i;
@@ -2222,15 +2222,15 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
+    }
 
-        [Fact]
-        public void TestWithMultipleResourcesAndExceptionInSecondResource()
-        {
-            string source = @"
+    [Fact]
+    public void TestWithMultipleResourcesAndExceptionInSecondResource()
+    {
+        string source = @"
 class S : System.IAsyncDisposable
 {
     private int _i;
@@ -2267,15 +2267,15 @@ class S : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 dispose1 caught");
+    }
 
-        [Fact]
-        public void TestAwaitExpressionInfo_IEquatable()
-        {
-            string source = @"
+    [Fact]
+    public void TestAwaitExpressionInfo_IEquatable()
+    {
+        string source = @"
 public class C
 {
     void GetAwaiter() { }
@@ -2289,65 +2289,65 @@ public class D
     bool IsCompleted => true;
 }
 ";
-            var comp = CreateCompilation(source);
-            var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
-            var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
-            var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
-            var first = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+        var comp = CreateCompilation(source);
+        var getAwaiter1 = (MethodSymbol)comp.GetMember("C.GetAwaiter");
+        var isCompleted1 = (PropertySymbol)comp.GetMember("C.IsCompleted");
+        var getResult1 = (MethodSymbol)comp.GetMember("C.GetResult");
+        var first = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
 
-            var nulls1 = new AwaitExpressionInfo(null, isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var nulls2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), null, getResult1.GetPublicSymbol(), false);
-            var nulls3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, false);
-            var nulls4 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, true);
+        var nulls1 = new AwaitExpressionInfo(null, isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+        var nulls2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), null, getResult1.GetPublicSymbol(), false);
+        var nulls3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, false);
+        var nulls4 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), null, true);
 
-            Assert.False(first.Equals(nulls1));
-            Assert.False(first.Equals(nulls2));
-            Assert.False(first.Equals(nulls3));
-            Assert.False(first.Equals(nulls4));
+        Assert.False(first.Equals(nulls1));
+        Assert.False(first.Equals(nulls2));
+        Assert.False(first.Equals(nulls3));
+        Assert.False(first.Equals(nulls4));
 
-            Assert.False(nulls1.Equals(first));
-            Assert.False(nulls2.Equals(first));
-            Assert.False(nulls3.Equals(first));
-            Assert.False(nulls4.Equals(first));
+        Assert.False(nulls1.Equals(first));
+        Assert.False(nulls2.Equals(first));
+        Assert.False(nulls3.Equals(first));
+        Assert.False(nulls4.Equals(first));
 
-            _ = nulls1.GetHashCode();
-            _ = nulls2.GetHashCode();
-            _ = nulls3.GetHashCode();
-            _ = nulls4.GetHashCode();
+        _ = nulls1.GetHashCode();
+        _ = nulls2.GetHashCode();
+        _ = nulls3.GetHashCode();
+        _ = nulls4.GetHashCode();
 
-            object nullObj = null;
-            Assert.False(first.Equals(nullObj));
+        object nullObj = null;
+        Assert.False(first.Equals(nullObj));
 
-            var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
-            var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
-            var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
-            var second1 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var second2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            var second3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
-            var second4 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
+        var getAwaiter2 = (MethodSymbol)comp.GetMember("D.GetAwaiter");
+        var isCompleted2 = (PropertySymbol)comp.GetMember("D.IsCompleted");
+        var getResult2 = (MethodSymbol)comp.GetMember("D.GetResult");
+        var second1 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+        var second2 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+        var second3 = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
+        var second4 = new AwaitExpressionInfo(getAwaiter2.GetPublicSymbol(), isCompleted2.GetPublicSymbol(), getResult2.GetPublicSymbol(), false);
 
-            Assert.False(first.Equals(second1));
-            Assert.False(first.Equals(second2));
-            Assert.False(first.Equals(second3));
-            Assert.False(first.Equals(second4));
+        Assert.False(first.Equals(second1));
+        Assert.False(first.Equals(second2));
+        Assert.False(first.Equals(second3));
+        Assert.False(first.Equals(second4));
 
-            Assert.False(second1.Equals(first));
-            Assert.False(second2.Equals(first));
-            Assert.False(second3.Equals(first));
-            Assert.False(second4.Equals(first));
+        Assert.False(second1.Equals(first));
+        Assert.False(second2.Equals(first));
+        Assert.False(second3.Equals(first));
+        Assert.False(second4.Equals(first));
 
-            Assert.True(first.Equals(first));
-            Assert.True(first.Equals((object)first));
+        Assert.True(first.Equals(first));
+        Assert.True(first.Equals((object)first));
 
-            var another = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
-            Assert.True(first.GetHashCode() == another.GetHashCode());
-        }
+        var another = new AwaitExpressionInfo(getAwaiter1.GetPublicSymbol(), isCompleted1.GetPublicSymbol(), getResult1.GetPublicSymbol(), false);
+        Assert.True(first.GetHashCode() == another.GetHashCode());
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_ExtensionMethod()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_ExtensionMethod()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2365,20 +2365,20 @@ public static class Extensions
         => throw null;
 }
 ";
-            // extension methods do not contribute to pattern-based disposal
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
-                );
-        }
+        // extension methods do not contribute to pattern-based disposal
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_TwoOverloads()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_TwoOverloads()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2397,16 +2397,16 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "dispose");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "dispose");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_Expression_ExtensionMethod()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_Expression_ExtensionMethod()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2424,20 +2424,20 @@ public static class Extensions
         => throw null;
 }
 ";
-            // extension methods do not contribute to pattern-based disposal
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22)
-                );
-        }
+        // extension methods do not contribute to pattern-based disposal
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics(
+            // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_Expression_InstanceMethod()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_Expression_InstanceMethod()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2458,16 +2458,16 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2488,17 +2488,17 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/72573")]
-        public void TestPatternBasedDisposal_InterfaceNotPreferredOverInstanceMethod()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/72573")]
+    public void TestPatternBasedDisposal_InterfaceNotPreferredOverInstanceMethod()
+    {
+        string source = @"
 public class C : System.IAsyncDisposable
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2521,16 +2521,16 @@ public class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_OptionalParameter()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_OptionalParameter()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2551,16 +2551,16 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_ParamsParameter()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_ParamsParameter()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2581,16 +2581,16 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_ReturningVoid()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_ReturningVoid()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2606,19 +2606,19 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,22): error CS4008: Cannot await 'void'
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "var x = new C()").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,22): error CS4008: Cannot await 'void'
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_BadAwaitArgVoidCall, "var x = new C()").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_ReturningInt()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_ReturningInt()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2633,19 +2633,19 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var x = new C()").WithArguments("int", "GetAwaiter").WithLocation(6, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,22): error CS1061: 'int' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "var x = new C()").WithArguments("int", "GetAwaiter").WithLocation(6, 22)
+            );
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_Inaccessible()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_Inaccessible()
+    {
+        string source = @"
 public class D
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2663,18 +2663,18 @@ public class C
         => throw null;
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22));
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var x = new C())
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22));
+    }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
-        {
-            string source = @"
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
+    {
+        string source = @"
 public class C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2694,12 +2694,12 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
 
-            // Sequence point highlights `await using ...`
-            verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        // Sequence point highlights `await using ...`
+        verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      303 (0x12f)
   .maxstack  3
@@ -2866,13 +2866,13 @@ public class C
   IL_012e:  ret
 }
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
-        }
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_Awaitable()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_Awaitable()
+    {
+        string source = @"
 public struct C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2903,16 +2903,16 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
     public void OnCompleted(System.Action continuation) { }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_ReturnsTask()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_ReturnsTask()
+    {
+        string source = @"
 public struct C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2932,16 +2932,16 @@ public struct C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void TestPatternBasedDisposal_ReturnsTaskOfInt()
-        {
-            string source = @"
+    [Fact]
+    [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
+    public void TestPatternBasedDisposal_ReturnsTaskOfInt()
+    {
+        string source = @"
 public struct C
 {
     public static async System.Threading.Tasks.Task<int> Main()
@@ -2962,16 +2962,16 @@ public struct C
     }
 }
 ";
-            // it's okay to await `Task<int>` even if we don't care about the result
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
-        }
+        // it's okay to await `Task<int>` even if we don't care about the result
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.DebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
+    }
 
-        [Fact]
-        public void TestInRegularMethod()
-        {
-            string source = @"
+    [Fact]
+    public void TestInRegularMethod()
+    {
+        string source = @"
 class C
 {
     void M()
@@ -2980,28 +2980,28 @@ class C
         await using (var y = new object()) { }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
-            comp.VerifyDiagnostics(
-                // (6,9): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using var x = new object();
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new object();").WithArguments("object").WithLocation(6, 9),
-                // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-                //         await using var x = new object();
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 9),
-                // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
-                //         await using (var y = new object()) { }
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9),
-                // (7,22): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var y = new object()) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var y = new object()").WithArguments("object").WithLocation(7, 22)
-                );
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
+        comp.VerifyDiagnostics(
+            // (6,9): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using var x = new object();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new object();").WithArguments("object").WithLocation(6, 9),
+            // (6,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+            //         await using var x = new object();
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 9),
+            // (7,9): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
+            //         await using (var y = new object()) { }
+            Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(7, 9),
+            // (7,22): error CS8410: 'object': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            //         await using (var y = new object()) { }
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var y = new object()").WithArguments("object").WithLocation(7, 22)
+            );
+    }
 
-        [Fact]
-        [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
-        public void GetAwaiterBoxingConversion()
-        {
-            var source =
+    [Fact]
+    [WorkItem(30956, "https://github.com/dotnet/roslyn/issues/30956")]
+    public void GetAwaiterBoxingConversion()
+    {
+        var source =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -3032,14 +3032,14 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "StructAwaitable");
-        }
+        var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "StructAwaitable");
+    }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void MissingIAsyncDisposableInterfaceInPatternDisposal()
-        {
-            var source = @"
+    [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+    public void MissingIAsyncDisposableInterfaceInPatternDisposal()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 await using (new C()) { }
@@ -3053,16 +3053,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(source);
-            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_IAsyncDisposable).TypeKind);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "DISPOSED");
-        }
+        var comp = CreateCompilationWithTasksExtensions(source);
+        Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_IAsyncDisposable).TypeKind);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "DISPOSED");
+    }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void MissingIDisposableInterfaceOnClass()
-        {
-            var source = @"
+    [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+    public void MissingIDisposableInterfaceOnClass()
+    {
+        var source = @"
 using (new C()) { }
 
 class C
@@ -3072,19 +3072,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.MakeTypeMissing(SpecialType.System_IDisposable);
-            comp.VerifyDiagnostics(
-                // source(2,8): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
-                // using (new C()) { }
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(2, 8)
-                );
-        }
+        var comp = CreateCompilation(source);
+        comp.MakeTypeMissing(SpecialType.System_IDisposable);
+        comp.VerifyDiagnostics(
+            // source(2,8): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
+            // using (new C()) { }
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(2, 8)
+            );
+    }
 
-        [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void MissingIDisposableInterfaceOnRefStruct()
-        {
-            var source = @"
+    [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
+    public void MissingIDisposableInterfaceOnRefStruct()
+    {
+        var source = @"
 using (new C()) { }
 
 ref struct C
@@ -3095,451 +3095,451 @@ ref struct C
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.MakeTypeMissing(SpecialType.System_IDisposable);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "DISPOSED");
-        }
+        var comp = CreateCompilation(source);
+        comp.MakeTypeMissing(SpecialType.System_IDisposable);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "DISPOSED");
+    }
 
-        [Fact]
-        public void RefStruct_AwaitInside()
-        {
-            var source = """
-                using System.Threading.Tasks;
-                class C
-                {
-                    async Task M()
-                    {
-                        using (new R())
-                        {
-                            await Task.Yield();
-                        }
-                    }
-                }
-                ref struct R
-                {
-                    public void Dispose() { }
-                }
-                """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 16));
-
-            var expectedDiagnostics = new[]
+    [Fact]
+    public void RefStruct_AwaitInside()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
             {
-                // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
-                //         using (new R())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
-            };
-
-            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void RefStruct_YieldReturnInside()
-        {
-            var source = """
-                using System.Collections.Generic;
-                class C
+                async Task M()
                 {
-                    IEnumerable<int> M()
+                    using (new R())
                     {
-                        using (new R())
-                        {
-                            yield return 1;
-                        }
-                    }
-                }
-                ref struct R
-                {
-                    public void Dispose() { }
-                }
-                """;
-
-            var expectedDiagnostics = new[]
-            {
-                // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
-                //         using (new R())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
-            };
-
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void RefStruct_YieldBreakInside()
-        {
-            var source = """
-                using System;
-                using System.Collections.Generic;
-                class C
-                {
-                    static void Main()
-                    {
-                        foreach (var x in M(true)) { Console.Write(x); }
-                        Console.Write(" ");
-                        foreach (var x in M(false)) { Console.Write(x); }
-                    }
-                    static IEnumerable<int> M(bool b)
-                    {
-                        yield return 123;
-                        using (new R())
-                        {
-                            if (b) { yield break; }
-                        }
-                        yield return 456;
-                    }
-                }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public void Dispose() => Console.Write("D");
-                }
-                """;
-
-            var expectedOutput = "123CD 123CD456";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void RefStruct_AwaitResource()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-                class C
-                {
-                    static async Task Main()
-                    {
-                        Console.Write("1");
-                        using ((await GetC()).GetR())
-                        {
-                            Console.Write("2");
-                        }
-                        Console.Write("3");
-                    }
-                    static async Task<C> GetC()
-                    {
-                        Console.Write("Ga");
                         await Task.Yield();
-                        Console.Write("Gb");
-                        return new C();
-                    }
-                    R GetR() => new R();
-                }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public void Dispose() => Console.Write("D");
-                }
-                """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         using ((await GetC()).GetR())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 16));
-
-            var expectedOutput = "1GaGbC2D3";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void RefStruct_AwaitOutside()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-                class C
-                {
-                    static async Task Main()
-                    {
-                        Console.Write("1");
-                        await Task.Yield();
-                        Console.Write("2");
-                        using (new R())
-                        {
-                            Console.Write("3");
-                        }
-                        Console.Write("4");
-                        await Task.Yield();
-                        Console.Write("5");
                     }
                 }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public void Dispose() => Console.Write("D");
-                }
-                """;
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (10,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 16));
-
-            var expectedOutput = "12C3D45";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void RefStruct_YieldReturnOutside()
-        {
-            var source = """
-                using System;
-                using System.Collections.Generic;
-                class C
-                {
-                    static void Main()
-                    {
-                        foreach (var x in M())
-                        {
-                            Console.Write(x);
-                        }
-                    }
-                    static IEnumerable<string> M()
-                    {
-                        Console.Write("1");
-                        yield return "a";
-                        Console.Write("2");
-                        using (new R())
-                        {
-                            Console.Write("3");
-                        }
-                        Console.Write("4");
-                        yield return "b";
-                        Console.Write("5");
-                    }
-                }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public void Dispose() => Console.Write("D");
-                }
-                """;
-
-            var expectedOutput = "1a2C3D4b5";
-
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void RefStruct_AwaitUsing()
-        {
-            var source = """
-                using System;
-                using System.Threading.Tasks;
-                class C
-                {
-                    static async Task Main()
-                    {
-                        Console.Write("1");
-                        await using (new R())
-                        {
-                            Console.Write("2");
-                        }
-                        Console.Write("3");
-                    }
-                }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public ValueTask DisposeAsync()
-                    {
-                        Console.Write("D");
-                        return default;
-                    }
-                }
-                """;
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 22));
-
-            var expectedOutput = "1C2D3";
-
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void RefStruct_AwaitUsing_AwaitInside()
-        {
-            var source = """
-                using System.Threading.Tasks;
-                class C
-                {
-                    async Task M()
-                    {
-                        await using (new R())
-                        {
-                            await Task.Yield();
-                        }
-                    }
-                }
-                ref struct R
-                {
-                    public ValueTask DisposeAsync() => default;
-                }
-                """;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22));
-
-            var expectedDiagnostics = new[]
+            }
+            ref struct R
             {
-                // (6,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 22)
-            };
+                public void Dispose() { }
+            }
+            """;
+        // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (6,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 16));
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void RefStruct_AwaitUsing_YieldReturnInside()
+        var expectedDiagnostics = new[]
         {
-            var source = """
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-                class C
-                {
-                    async IAsyncEnumerable<int> M()
-                    {
-                        await using (new R())
-                        {
-                            yield return 123;
-                        }
-                    }
-                }
-                ref struct R
-                {
-                    public ValueTask DisposeAsync() => default;
-                }
-                """ + AsyncStreamsTypes;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22));
+            // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+            //         using (new R())
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
+        };
 
-            var expectedDiagnostics = new[]
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefStruct_YieldReturnInside()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class C
             {
-                // (7,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(7, 22)
-            };
-
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void RefStruct_AwaitUsing_YieldReturnInside_Var()
-        {
-            var source = """
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-                class C
+                IEnumerable<int> M()
                 {
-                    async IAsyncEnumerable<int> M()
-                    {
-                        await using var _ = new R();
-                        yield return 123;
-                    }
-                }
-                ref struct R
-                {
-                    public ValueTask DisposeAsync() => default;
-                }
-                """ + AsyncStreamsTypes;
-            // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         await using var _ = new R();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 21));
-
-            var expectedDiagnostics = new[]
-            {
-                // (7,25): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
-                //         await using var _ = new R();
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "_ = new R()").WithArguments("R").WithLocation(7, 25)
-            };
-
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void RefStruct_AwaitUsing_YieldBreakInside()
-        {
-            var source = """
-                using System;
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-                class C
-                {
-                    static async Task Main()
-                    {
-                        await foreach (var x in M(true)) { Console.Write(x); }
-                        Console.Write(" ");
-                        await foreach (var x in M(false)) { Console.Write(x); }
-                    }
-                    static async IAsyncEnumerable<int> M(bool b)
+                    using (new R())
                     {
                         yield return 1;
-                        await using (new R())
-                        {
-                            if (b) { yield break; }
-                        }
-                        yield return 2;
                     }
                 }
-                ref struct R
-                {
-                    public R() => Console.Write("C");
-                    public ValueTask DisposeAsync()
-                    {
-                        Console.Write("D");
-                        return default;
-                    }
-                }
-                """ + AsyncStreamsTypes;
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (15,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
-                //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 22));
+            }
+            ref struct R
+            {
+                public void Dispose() { }
+            }
+            """;
 
-            var expectedOutput = "1CD 1CD2";
-
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
-        public void PatternBasedFails_WithInterfaceImplementation()
+        var expectedDiagnostics = new[]
         {
-            var source = """
+            // (6,16): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+            //         using (new R())
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefStruct_YieldBreakInside()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                static void Main()
+                {
+                    foreach (var x in M(true)) { Console.Write(x); }
+                    Console.Write(" ");
+                    foreach (var x in M(false)) { Console.Write(x); }
+                }
+                static IEnumerable<int> M(bool b)
+                {
+                    yield return 123;
+                    using (new R())
+                    {
+                        if (b) { yield break; }
+                    }
+                    yield return 456;
+                }
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public void Dispose() => Console.Write("D");
+            }
+            """;
+
+        var expectedOutput = "123CD 123CD456";
+
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefStruct_AwaitResource()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    Console.Write("1");
+                    using ((await GetC()).GetR())
+                    {
+                        Console.Write("2");
+                    }
+                    Console.Write("3");
+                }
+                static async Task<C> GetC()
+                {
+                    Console.Write("Ga");
+                    await Task.Yield();
+                    Console.Write("Gb");
+                    return new C();
+                }
+                R GetR() => new R();
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public void Dispose() => Console.Write("D");
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (8,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         using ((await GetC()).GetR())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 16));
+
+        var expectedOutput = "1GaGbC2D3";
+
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefStruct_AwaitOutside()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    Console.Write("1");
+                    await Task.Yield();
+                    Console.Write("2");
+                    using (new R())
+                    {
+                        Console.Write("3");
+                    }
+                    Console.Write("4");
+                    await Task.Yield();
+                    Console.Write("5");
+                }
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public void Dispose() => Console.Write("D");
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (10,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 16));
+
+        var expectedOutput = "12C3D45";
+
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefStruct_YieldReturnOutside()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            class C
+            {
+                static void Main()
+                {
+                    foreach (var x in M())
+                    {
+                        Console.Write(x);
+                    }
+                }
+                static IEnumerable<string> M()
+                {
+                    Console.Write("1");
+                    yield return "a";
+                    Console.Write("2");
+                    using (new R())
+                    {
+                        Console.Write("3");
+                    }
+                    Console.Write("4");
+                    yield return "b";
+                    Console.Write("5");
+                }
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public void Dispose() => Console.Write("D");
+            }
+            """;
+
+        var expectedOutput = "1a2C3D4b5";
+
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefStruct_AwaitUsing()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    Console.Write("1");
+                    await using (new R())
+                    {
+                        Console.Write("2");
+                    }
+                    Console.Write("3");
+                }
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public ValueTask DisposeAsync()
+                {
+                    Console.Write("D");
+                    return default;
+                }
+            }
+            """;
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (8,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 22));
+
+        var expectedOutput = "1C2D3";
+
+        var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefStruct_AwaitUsing_AwaitInside()
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M()
+                {
+                    await using (new R())
+                    {
+                        await Task.Yield();
+                    }
+                }
+            }
+            ref struct R
+            {
+                public ValueTask DisposeAsync() => default;
+            }
+            """;
+        // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 22)
+        };
+
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefStruct_AwaitUsing_YieldReturnInside()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async IAsyncEnumerable<int> M()
+                {
+                    await using (new R())
+                    {
+                        yield return 123;
+                    }
+                }
+            }
+            ref struct R
+            {
+                public ValueTask DisposeAsync() => default;
+            }
+            """ + AsyncStreamsTypes;
+        // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22));
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,22): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(7, 22)
+        };
+
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefStruct_AwaitUsing_YieldReturnInside_Var()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async IAsyncEnumerable<int> M()
+                {
+                    await using var _ = new R();
+                    yield return 123;
+                }
+            }
+            ref struct R
+            {
+                public ValueTask DisposeAsync() => default;
+            }
+            """ + AsyncStreamsTypes;
+        // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (7,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         await using var _ = new R();
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 21));
+
+        var expectedDiagnostics = new[]
+        {
+            // (7,25): error CS4007: Instance of type 'R' cannot be preserved across 'await' or 'yield' boundary.
+            //         await using var _ = new R();
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "_ = new R()").WithArguments("R").WithLocation(7, 25)
+        };
+
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void RefStruct_AwaitUsing_YieldBreakInside()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    await foreach (var x in M(true)) { Console.Write(x); }
+                    Console.Write(" ");
+                    await foreach (var x in M(false)) { Console.Write(x); }
+                }
+                static async IAsyncEnumerable<int> M(bool b)
+                {
+                    yield return 1;
+                    await using (new R())
+                    {
+                        if (b) { yield break; }
+                    }
+                    yield return 2;
+                }
+            }
+            ref struct R
+            {
+                public R() => Console.Write("C");
+                public ValueTask DisposeAsync()
+                {
+                    Console.Write("D");
+                    return default;
+                }
+            }
+            """ + AsyncStreamsTypes;
+        CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+            // (15,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //         await using (new R())
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 22));
+
+        var expectedOutput = "1CD 1CD2";
+
+        var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+    public void PatternBasedFails_WithInterfaceImplementation()
+    {
+        var source = """
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -3563,14 +3563,14 @@ internal static class EnumerableExtensions
     }
 }
 """;
-            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
-            CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
-        }
+        var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+        CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
-        public void PatternBasedFails_NoInterfaceImplementation()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+    public void PatternBasedFails_NoInterfaceImplementation()
+    {
+        var source = """
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -3587,20 +3587,20 @@ internal static class EnumerableExtensions
     }
 }
 """;
-            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
-            comp.VerifyEmitDiagnostics(
-                // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                // await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1));
-        }
+        var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+            // await using var x = new Class1();
+            Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
-        public void PatternBasedFails_WithInterfaceImplementation_UseSite()
-        {
-            // We attempt to bind pattern-based disposal (and collect diagnostics)
-            // then we bind to the IAsyncDisposable interface, which reports a use-site error
-            // and so we add the collected diagnostics
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+    public void PatternBasedFails_WithInterfaceImplementation_UseSite()
+    {
+        // We attempt to bind pattern-based disposal (and collect diagnostics)
+        // then we bind to the IAsyncDisposable interface, which reports a use-site error
+        // and so we add the collected diagnostics
+        var source = """
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -3641,7 +3641,7 @@ namespace System.Threading.Tasks
 }
 """;
 
-            var ilSrc = """
+        var ilSrc = """
 .class interface public auto ansi abstract beforefieldinit System.IAsyncDisposable
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = ( 01 00 02 68 69 00 00 )
@@ -3650,32 +3650,32 @@ namespace System.Threading.Tasks
     }
 }
 """;
-            var comp = CreateCompilationWithIL(source, ilSrc);
-            comp.VerifyEmitDiagnostics(
-                // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                // internal class Class1 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Class1").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 16),
-                // (5,25): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                // internal class Class1 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 25),
-                // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                //     ValueTask IAsyncDisposable.DisposeAsync()
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
-                // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
-                //     ValueTask IAsyncDisposable.DisposeAsync()
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
-                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                //         await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
-                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
-                //         await using var x = new Class1();
-                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
-        }
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+            // internal class Class1 : IAsyncDisposable
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Class1").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 16),
+            // (5,25): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+            // internal class Class1 : IAsyncDisposable
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 25),
+            // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+            //     ValueTask IAsyncDisposable.DisposeAsync()
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
+            // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
+            //     ValueTask IAsyncDisposable.DisposeAsync()
+            Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
+            // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+            //         await using var x = new Class1();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
+            // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+            //         await using var x = new Class1();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
-        public void PatternBasedFails_AwaitUsing_08()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+    public void PatternBasedFails_AwaitUsing_08()
+    {
+        var src = """
 using System;
 using System.Threading.Tasks;
 
@@ -3717,16 +3717,16 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
-        }
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp,
+            expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2066463")]
-        public void PatternBasedFails_AwaitUsing_Private()
-        {
-            var src = """
+    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2066463")]
+    public void PatternBasedFails_AwaitUsing_Private()
+    {
+        var src = """
 using System;
 using System.Threading.Tasks;
 
@@ -3746,10 +3746,9 @@ public sealed class Service1 : IAsyncDisposable
     }
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            CompileAndVerify(comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "ran" : null,
-                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
-        }
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        CompileAndVerify(comp,
+            expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "ran" : null,
+            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
     }
 }

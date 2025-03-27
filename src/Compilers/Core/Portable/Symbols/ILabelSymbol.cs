@@ -4,20 +4,19 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents a label in method body
+/// </summary>
+/// <remarks>
+/// This interface is reserved for implementation by its associated APIs. We reserve the right to
+/// change it in the future.
+/// </remarks>
+public interface ILabelSymbol : ISymbol
 {
     /// <summary>
-    /// Represents a label in method body
+    /// Gets the immediately containing <see cref="IMethodSymbol"/> of this <see cref="ILocalSymbol"/>.
     /// </summary>
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    public interface ILabelSymbol : ISymbol
-    {
-        /// <summary>
-        /// Gets the immediately containing <see cref="IMethodSymbol"/> of this <see cref="ILocalSymbol"/>.
-        /// </summary>
-        IMethodSymbol ContainingMethod { get; }
-    }
+    IMethodSymbol ContainingMethod { get; }
 }

@@ -15,14 +15,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class CodeGenImplicitImplementationTests : CSharpTestBase
 {
-    public class CodeGenImplicitImplementationTests : CSharpTestBase
+    [Fact]
+    public void TestImplicitImplementation()
     {
-        [Fact]
-        public void TestImplicitImplementation()
-        {
-            var source = @"
+        var source = @"
 interface Interface
 {
     void Method(int i);
@@ -60,18 +60,18 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 Class.Property.set(3)
 Class.Property.set(4)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationGenericType()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationGenericType()
+    {
+        var source = @"
 interface Interface<T>
 {
     void Method(T i);
@@ -109,18 +109,18 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 Class.Property.set(3)
 Class.Property.set(4)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationGenericMethod()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationGenericMethod()
+    {
+        var source = @"
 interface Interface
 {
     void Method<U>(U u);
@@ -146,16 +146,16 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Class.Method(1)
 Class.Method(2)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationGenericMethodAndType()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationGenericMethodAndType()
+    {
+        var source = @"
 interface Interface<T>
 {
     void Method<U>(T i, U u);
@@ -188,18 +188,18 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Class.Method(1, 2)
 Class.Method(3)
 Class.Method(4, 5)
 Class.Method(6)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBase()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationInBase()
+    {
+        var source = @"
 interface Interface
 {
     void Method(int i);
@@ -244,7 +244,7 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -252,12 +252,12 @@ Base.Property.set(4)
 Base.Property.set(5)
 Base.Property.set(6)
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
-        public void TestImplicitImplementationInBaseGenericType()
-        {
-            var source = @"
+    [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+    public void TestImplicitImplementationInBaseGenericType()
+    {
+        var source = @"
 interface Interface<T>
 {
     void Method(T i);
@@ -302,7 +302,7 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -310,12 +310,12 @@ Base.Property.set(4)
 Base.Property.set(5)
 Base.Property.set(6)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseGenericMethod()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseGenericMethod()
+    {
+        var source = @"
 interface Interface
 {
     void Method<U>(U u);
@@ -347,17 +347,17 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseGenericMethodAndType()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseGenericMethodAndType()
+    {
+        var source = @"
 interface Interface<T>
 {
     void Method<U>(T i, U u);
@@ -397,7 +397,7 @@ class E
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Base.Method(1, 2)
 Base.Method(3)
 Base.Method(4, 5)
@@ -405,12 +405,12 @@ Base.Method(6)
 Base.Method(7, 8)
 Base.Method(9)
 ");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseOutsideAssembly()
-        {
-            var libSource = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseOutsideAssembly()
+    {
+        var libSource = @"
 public interface Interface
 {
     void Method(int i);
@@ -433,7 +433,7 @@ public class Base
     }
 }
 ";
-            var exeSource = @"
+        var exeSource = @"
 public class Derived : Base, Interface
 {
 }
@@ -457,7 +457,7 @@ class E
 }
 ";
 
-            string expectedOutput = @"
+        string expectedOutput = @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -466,15 +466,15 @@ Base.Property.set(5)
 Base.Property.set(6)
 ".TrimStart();
 
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            CreateCompilationWithMscorlibAndReference(libSource, exeSource),
+            expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseOutsideAssemblyGenericType()
-        {
-            var libSource = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseOutsideAssemblyGenericType()
+    {
+        var libSource = @"
 public interface Interface<T>
 {
     void Method(T i);
@@ -497,7 +497,7 @@ public class Base<S>
     }
 }";
 
-            var exeSource = @"
+        var exeSource = @"
 class Derived : Base<uint>, Interface<uint>
 {
 }
@@ -520,7 +520,7 @@ class E
     }
 }
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
@@ -529,15 +529,15 @@ Base.Property.set(5)
 Base.Property.set(6)
 ".TrimStart();
 
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            CreateCompilationWithMscorlibAndReference(libSource, exeSource),
+            expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseOutsideAssemblyGenericMethod()
-        {
-            var libSource = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseOutsideAssemblyGenericMethod()
+    {
+        var libSource = @"
 public interface Interface
 {
     void Method<U>(U u);
@@ -551,7 +551,7 @@ public class Base : Interface
     }
 }";
 
-            var exeSource = @"
+        var exeSource = @"
 class Derived : Base, Interface
 {
 }
@@ -570,21 +570,21 @@ class E
     }
 }
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 Base.Method(1)
 Base.Method(2)
 Base.Method(3)
 ".TrimStart();
 
-            CompileAndVerify(
-                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                 expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+             CreateCompilationWithMscorlibAndReference(libSource, exeSource),
+             expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestImplicitImplementationInBaseOutsideAssemblyGenericMethodAndType()
-        {
-            var libSource = @"
+    [Fact]
+    public void TestImplicitImplementationInBaseOutsideAssemblyGenericMethodAndType()
+    {
+        var libSource = @"
 public interface Interface<T>
 {
     void Method<U>(T i, U u);
@@ -603,7 +603,7 @@ public class Base<T> : Interface<T>
     }
 }";
 
-            var exeSource = @"
+        var exeSource = @"
 class Derived : Base<int>, Interface<int>
 {
 }
@@ -625,7 +625,7 @@ class E
     }
 }
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 Base.Method(1, 2)
 Base.Method(3)
 Base.Method(4, 5)
@@ -634,19 +634,19 @@ Base.Method(7, 8)
 Base.Method(9)
 ".TrimStart();
 
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(
+            CreateCompilationWithMscorlibAndReference(libSource, exeSource),
+            expectedOutput: expectedOutput);
+    }
 
-        /// <summary>
-        /// In IL, list all declared interfaces *and their base interfaces*.  If they don't, the
-        /// runtime doesn't find implicit implementation of base interface methods.
-        /// </summary>
-        [Fact]
-        public void TestBaseInterfaceMetadata()
-        {
-            var source = @"
+    /// <summary>
+    /// In IL, list all declared interfaces *and their base interfaces*.  If they don't, the
+    /// runtime doesn't find implicit implementation of base interface methods.
+    /// </summary>
+    [Fact]
+    public void TestBaseInterfaceMetadata()
+    {
+        var source = @"
 interface I1
 {
     void goo();
@@ -686,16 +686,16 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Y.goo");
-        }
+        CompileAndVerify(source, expectedOutput: "Y.goo");
+    }
 
-        /// <summary>
-        /// Override different accessors of a virtual property in different subtypes.
-        /// </summary>
-        [Fact]
-        public void TestPartialPropertyOverriding()
-        {
-            var source = @"
+    /// <summary>
+    /// Override different accessors of a virtual property in different subtypes.
+    /// </summary>
+    [Fact]
+    public void TestPartialPropertyOverriding()
+    {
+        var source = @"
 interface I
 {
     int P { get; set; }
@@ -741,18 +741,18 @@ class Program
 }
 ";
 
-            string expectedOutput = @"
+        string expectedOutput = @"
 Derived1.P.get
 Derived2.P.set";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
-        [Fact]
-        public void ImplementMultipleInterfaceWithCommonBase()
-        {
-            var source = @"
+    [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
+    [Fact]
+    public void ImplementMultipleInterfaceWithCommonBase()
+    {
+        var source = @"
 interface IBase
 {
     void PBase();
@@ -772,24 +772,24 @@ class C1 : IBase1, IBase2
     public void PBase2() { }
 }
 ";
-            Action<ModuleSymbol> validator = module =>
-            {
-                var typeSymbol = module.GlobalNamespace.GetTypeMembers("C1").Single();
-                Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
-            };
-
-            CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
-            {
-                Signature("C1", "IBase1.PBase1", ".method private hidebysig newslot virtual final instance System.Void IBase1.PBase1() cil managed"),
-                Signature("C1", "IBase.PBase", ".method private hidebysig newslot virtual final instance System.Void IBase.PBase() cil managed"),
-                Signature("C1", "PBase2", ".method public hidebysig newslot virtual final instance System.Void PBase2() cil managed")
-            });
-        }
-
-        [Fact]
-        public void ImplementInterfaceWithMultipleBasesWithSameMethod()
+        Action<ModuleSymbol> validator = module =>
         {
-            var source = @"
+            var typeSymbol = module.GlobalNamespace.GetTypeMembers("C1").Single();
+            Assert.True(typeSymbol.Interfaces().All(iface => iface.Name == "IBase" || iface.Name == "IBase1" || iface.Name == "IBase2"));
+        };
+
+        CompileAndVerify(source, sourceSymbolValidator: validator, symbolValidator: validator, expectedSignatures: new[]
+        {
+            Signature("C1", "IBase1.PBase1", ".method private hidebysig newslot virtual final instance System.Void IBase1.PBase1() cil managed"),
+            Signature("C1", "IBase.PBase", ".method private hidebysig newslot virtual final instance System.Void IBase.PBase() cil managed"),
+            Signature("C1", "PBase2", ".method public hidebysig newslot virtual final instance System.Void PBase2() cil managed")
+        });
+    }
+
+    [Fact]
+    public void ImplementInterfaceWithMultipleBasesWithSameMethod()
+    {
+        var source = @"
 interface IBase1
 {
     void BaseGoo();
@@ -818,18 +818,18 @@ class C1 : IInterface
     }
 }
 ";
-            CreateCompilation(source)
-                .VerifyDiagnostics(
-                    // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseGoo()' and 'IBase2.BaseGoo()'
-                    //         ((IInterface)c).BaseGoo();
-                    Diagnostic(ErrorCode.ERR_AmbigCall, "BaseGoo").WithArguments("IBase1.BaseGoo()", "IBase2.BaseGoo()"));
-        }
+        CreateCompilation(source)
+            .VerifyDiagnostics(
+                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'IBase1.BaseGoo()' and 'IBase2.BaseGoo()'
+                //         ((IInterface)c).BaseGoo();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "BaseGoo").WithArguments("IBase1.BaseGoo()", "IBase2.BaseGoo()"));
+    }
 
-        [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
-        [Fact]
-        public void InterfaceDiamondInheritanceWithNewMember()
-        {
-            var source = @"
+    [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
+    [Fact]
+    public void InterfaceDiamondInheritanceWithNewMember()
+    {
+        var source = @"
 interface IBase
 {
     void Goo();
@@ -867,8 +867,8 @@ public static class MainClass
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "ILeft IBase ILeft IBase")
-                .VerifyIL("MainClass.Test", @"
+        CompileAndVerify(source, expectedOutput: "ILeft IBase ILeft IBase")
+            .VerifyIL("MainClass.Test", @"
 {
   // Code size       25 (0x19)
   .maxstack  1
@@ -882,16 +882,16 @@ public static class MainClass
   IL_0013:  callvirt   ""void IBase.Goo()""
   IL_0018:  ret       
 }");
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplSignatureMismatches_ParamsAndOptionals()
-        {
-            // Tests:
-            // Replace params with non-params in signature of implemented member (and vice-versa)
-            // Replace optional parameter with non-optional parameter
+    [Fact]
+    public void TestImplicitImplSignatureMismatches_ParamsAndOptionals()
+    {
+        // Tests:
+        // Replace params with non-params in signature of implemented member (and vice-versa)
+        // Replace optional parameter with non-optional parameter
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 interface I1<T>
@@ -956,25 +956,25 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
-                expectedOutput: @"
+        var comp = CompileAndVerify(source,
+            expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(2, 3, c)
 Class2.Method(1, 2, b)
 Class2.Method<U>(0, a)",
-                expectedSignatures: new[]
-                {
-                    Signature("Base", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
-                    Signature("Class", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, System.Int64 b, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
-                    Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method([opt] System.Int32 a = 4, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [opt] System.Collections.Generic.List`1[System.String][] d) cil managed"),
-                    Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<U>([out] System.Int32& a, U[]& b, [System.ParamArrayAttribute()] System.Collections.Generic.List`1[U][] c) cil managed")
-                });
-        }
+            expectedSignatures: new[]
+            {
+                Signature("Base", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
+                Signature("Class", "Method", ".method public hidebysig newslot virtual final instance System.Void Method(System.Int32 a, System.Int64 b, [opt] System.String c = \"\", [System.ParamArrayAttribute()] System.Collections.Generic.List`1[System.String][] d) cil managed"),
+                Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method([opt] System.Int32 a = 4, [opt] System.Int64 b = 3, [opt] System.String c = \"\", [opt] System.Collections.Generic.List`1[System.String][] d) cil managed"),
+                Signature("Class2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<U>([out] System.Int32& a, U[]& b, [System.ParamArrayAttribute()] System.Collections.Generic.List`1[U][] c) cil managed")
+            });
+    }
 
-        [Fact]
-        public void ReImplementInterfaceInGrandChild()
-        {
-            var source = @"
+    [Fact]
+    public void ReImplementInterfaceInGrandChild()
+    {
+        var source = @"
 interface I1
 {
     void bar();
@@ -1002,13 +1002,13 @@ static class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "C3C3C3C3");
-        }
+        CompileAndVerify(source, expectedOutput: "C3C3C3C3");
+    }
 
-        [Fact]
-        public void OverrideBaseClassImplementation()
-        {
-            var source = @"
+    [Fact]
+    public void OverrideBaseClassImplementation()
+    {
+        var source = @"
 interface I1
 {
     void Bar();
@@ -1034,17 +1034,17 @@ static class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "C3");
-        }
+        CompileAndVerify(source, expectedOutput: "C3");
+    }
 
-        [Fact]
-        public void TestImplementingWithVirtualMembers()
-        {
-            // Tests:
-            // Implement interface member with virtual / abstract / override member
-            // Test that appropriate (derived) member is called when invoking through interface
+    [Fact]
+    public void TestImplementingWithVirtualMembers()
+    {
+        // Tests:
+        // Implement interface member with virtual / abstract / override member
+        // Test that appropriate (derived) member is called when invoking through interface
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 interface I1
@@ -1211,7 +1211,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived2.Method(1)
 Derived4.Method<U>(1, 0)
@@ -1232,16 +1232,16 @@ Class2.Method(1)
 Class1.Method<U>(1, 3)
 Class2.Property.get()
 Class2.Property.set(1)");
-        }
+    }
 
-        [Fact]
-        public void TestImplementingWithSpecialVirtualMembers()
-        {
-            // Tests:
-            // Implement interface member with abstract override / sealed / new member
-            // Test that appropriate (derived) member is called when invoking through interface
+    [Fact]
+    public void TestImplementingWithSpecialVirtualMembers()
+    {
+        // Tests:
+        // Implement interface member with abstract override / sealed / new member
+        // Test that appropriate (derived) member is called when invoking through interface
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 interface I1
@@ -1355,7 +1355,7 @@ class Test
         i.Property = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Derived2.Method()
 Derived2.Method(1)
 Base2.Method<U>(1, 0)
@@ -1364,16 +1364,16 @@ Class2.Method()
 Class1.Method(1)
 Base1.Method<U>(1, 3)
 Class1.Property.set(0)");
-        }
+    }
 
-        [Fact]
-        public void TestImplementingGenericNestedInterfaces_Implicit()
-        {
-            // Tests:
-            // Sanity check – use open (T) and closed (C<String>) generic types in the signature of implemented methods
-            // Implement members of generic interface nested inside other generic classes
+    [Fact]
+    public void TestImplementingGenericNestedInterfaces_Implicit()
+    {
+        // Tests:
+        // Sanity check – use open (T) and closed (C<String>) generic types in the signature of implemented methods
+        // Implement members of generic interface nested inside other generic classes
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 class Outer<T>
@@ -1428,32 +1428,32 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
-                expectedOutput: @"
+        var comp = CompileAndVerify(source,
+            expectedOutput: @"
 Derived1.set_Property
 Derived1.Method
 Derived2.set_Property
 Derived2.Method",
-                expectedSignatures: new[]
-                {
-                    Signature("Outer`1+Inner`1+Base`2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(X value) cil managed"),
-                    Signature("Outer`1+Inner`1+Base`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(X A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,V] d) cil managed"),
-                    Signature("Derived1`2+Derived2", "get_Property", ".method public hidebysig specialname instance System.String get_Property() cil managed"),
-                    Signature("Derived1`2+Derived2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(System.String value) cil managed"),
-                    Signature("Derived1`2+Derived2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<Z>(System.String A, System.Int32[] B, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[System.String,Z] D) cil managed"),
-                });
+            expectedSignatures: new[]
+            {
+                Signature("Outer`1+Inner`1+Base`2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(X value) cil managed"),
+                Signature("Outer`1+Inner`1+Base`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<V>(X A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,V] d) cil managed"),
+                Signature("Derived1`2+Derived2", "get_Property", ".method public hidebysig specialname instance System.String get_Property() cil managed"),
+                Signature("Derived1`2+Derived2", "set_Property", ".method public hidebysig newslot specialname virtual final instance System.Void set_Property(System.String value) cil managed"),
+                Signature("Derived1`2+Derived2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<Z>(System.String A, System.Int32[] B, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[System.String,Z] D) cil managed"),
+            });
 
-            comp.VerifyDiagnostics();
-        }
+        comp.VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void TestImplementingGenericNestedInterfaces_Implicit_HideTypeParameter()
-        {
-            // Tests:
-            // Implicitly implement generic methods on generic interfaces – test case where type parameter 
-            // on method hides the type parameter on class (both in interface and in implementing type)
+    [Fact]
+    public void TestImplementingGenericNestedInterfaces_Implicit_HideTypeParameter()
+    {
+        // Tests:
+        // Implicitly implement generic methods on generic interfaces – test case where type parameter 
+        // on method hides the type parameter on class (both in interface and in implementing type)
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 class Outer<T>
@@ -1488,39 +1488,39 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source,
-                expectedOutput: @"
+        var comp = CompileAndVerify(source,
+            expectedOutput: @"
 Derived1.Method`1
 Derived1.Method`2",
-                expectedSignatures: new[]
-                {
-                    Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
-                    Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed")
-                });
+            expectedSignatures: new[]
+            {
+                Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[System.Int64] C, System.Collections.Generic.Dictionary`2[Y,X] d) cil managed"),
+                Signature("Outer`1+Inner`1+Derived1`2", "Method", ".method public hidebysig newslot virtual final instance System.Void Method<X, Y>(System.Int64 A, System.Int32[] b, System.Collections.Generic.List`1[X] C, System.Collections.Generic.Dictionary`2[Y,Y] d) cil managed")
+            });
 
-            comp.VerifyDiagnostics(
-                // (11,25): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Outer<T>.Inner<U>.Interface<V, W>"),
-                // (11,28): warning CS0693: Type parameter 'W' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "W").WithArguments("W", "Outer<T>.Inner<U>.Interface<V, W>"),
-                // (15,32): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
-                // (19,32): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
-                // (19,35): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
-                Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
-        }
+        comp.VerifyDiagnostics(
+            // (11,25): warning CS0693: Type parameter 'V' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "V").WithArguments("V", "Outer<T>.Inner<U>.Interface<V, W>"),
+            // (11,28): warning CS0693: Type parameter 'W' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Interface<V, W>'
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "W").WithArguments("W", "Outer<T>.Inner<U>.Interface<V, W>"),
+            // (15,32): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
+            // (19,32): warning CS0693: Type parameter 'X' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "X").WithArguments("X", "Outer<T>.Inner<U>.Derived1<X, Y>"),
+            // (19,35): warning CS0693: Type parameter 'Y' has the same name as the type parameter from outer type 'Outer<T>.Inner<U>.Derived1<X, Y>'
+            Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "Y").WithArguments("Y", "Outer<T>.Inner<U>.Derived1<X, Y>"));
+    }
 
-        [Fact]
-        public void TestImplementationInBaseGenericType()
-        {
-            // Tests:
-            // Implicitly implement interface member in base generic type – the method that implements interface member
-            // should depend on type parameter of base type to satisfy signature (return type / parameter type) equality
-            // Also test variation of above case where implementing member in base generic type does not depend 
-            // on any type parameters
+    [Fact]
+    public void TestImplementationInBaseGenericType()
+    {
+        // Tests:
+        // Implicitly implement interface member in base generic type – the method that implements interface member
+        // should depend on type parameter of base type to satisfy signature (return type / parameter type) equality
+        // Also test variation of above case where implementing member in base generic type does not depend 
+        // on any type parameters
 
-            var source = @"
+        var source = @"
 using System;
 interface Interface
 {
@@ -1548,23 +1548,23 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Base.Method(T)
 Base.Method()");
 
-            comp.VerifyDiagnostics(); // No errors
-        }
+        comp.VerifyDiagnostics(); // No errors
+    }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
-        public void TestImplicitImplementationInBaseGenericType2()
-        {
-            // Tests:
-            // Implement I<string> implicitly in base class and I<int> implicitly in derived class –
-            // assuming I<string> and I<int> have members with same signature (i.e. members 
-            // that don't depend on generic-ness of the interface) test which (base / derived class) 
-            // members are invoked when calling through each interface
+    [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+    public void TestImplicitImplementationInBaseGenericType2()
+    {
+        // Tests:
+        // Implement I<string> implicitly in base class and I<int> implicitly in derived class –
+        // assuming I<string> and I<int> have members with same signature (i.e. members 
+        // that don't depend on generic-ness of the interface) test which (base / derived class) 
+        // members are invoked when calling through each interface
 
-            var source = @"
+        var source = @"
 using System;
 interface Interface<T>
 {
@@ -1610,7 +1610,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1620,16 +1620,16 @@ Derived.Method()
 Derived`2.Method(U)
 Derived`2.Method()");
 
-            comp.VerifyDiagnostics(); // No errors
-        }
+        comp.VerifyDiagnostics(); // No errors
+    }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
-        public void TestImplicitImplementationInBaseGenericType3()
-        {
-            // Tests:
-            // Variation of TestImplicitImplementationInBaseGenericType2 with overriding
+    [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+    public void TestImplicitImplementationInBaseGenericType3()
+    {
+        // Tests:
+        // Variation of TestImplicitImplementationInBaseGenericType2 with overriding
 
-            var source = @"
+        var source = @"
 using System;
 interface Interface<T>
 {
@@ -1675,7 +1675,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Derived`2.Method(int)
@@ -1685,16 +1685,16 @@ Derived.Method()
 Derived`2.Method(U)
 Derived.Method()");
 
-            comp.VerifyDiagnostics(); // No errors
-        }
+        comp.VerifyDiagnostics(); // No errors
+    }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
-        public void TestImplicitImplementationInBaseGenericType4()
-        {
-            // Tests:
-            // Variation of TestImplicitImplementationInBaseGenericType2 with re-implementation
+    [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+    public void TestImplicitImplementationInBaseGenericType4()
+    {
+        // Tests:
+        // Variation of TestImplicitImplementationInBaseGenericType2 with re-implementation
 
-            var source = @"
+        var source = @"
 using System;
 interface Interface<T>
 {
@@ -1740,7 +1740,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1750,19 +1750,19 @@ Derived.Method()
 Derived`2.Method(U)
 Derived.Method()");
 
-            comp.VerifyDiagnostics(
-                // (20,58): warning CS1956: Member 'Derived<int, string>.Method(int)' implements interface member 'Interface<int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
-                // class Derived : Derived<int, string>, Interface<string>, Interface<int>
-                Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
-        }
+        comp.VerifyDiagnostics(
+            // (20,58): warning CS1956: Member 'Derived<int, string>.Method(int)' implements interface member 'Interface<int>.Method(int)' in type 'Derived'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.
+            // class Derived : Derived<int, string>, Interface<string>, Interface<int>
+            Diagnostic(ErrorCode.WRN_MultipleRuntimeImplementationMatches, "Interface<int>").WithArguments("Derived<int, string>.Method(int)", "Interface<int>.Method(int)", "Derived").WithLocation(20, 58)); // No errors
+    }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
-        public void TestImplicitImplementationInBaseGenericType5()
-        {
-            // Tests:
-            // Variation of TestImplicitImplementationInBaseGenericType3 with re-implementation
+    [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10837")]
+    public void TestImplicitImplementationInBaseGenericType5()
+    {
+        // Tests:
+        // Variation of TestImplicitImplementationInBaseGenericType3 with re-implementation
 
-            var source = @"
+        var source = @"
 using System;
 interface Interface<T>
 {
@@ -1808,7 +1808,7 @@ class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 Derived`2.Method(U)
 Derived`2.Method()
 Base.Method(T)
@@ -1818,17 +1818,17 @@ Derived.Method()
 Derived.Method(int)
 Derived.Method()");
 
-            comp.VerifyDiagnostics(); // No errors
-        }
+        comp.VerifyDiagnostics(); // No errors
+    }
 
-        [Fact]
-        public void ImplementInterfaceUsingSynthesizedSealedProperty()
-        {
-            // Tests: 
-            // Implicitly implement a property / indexer with a sealed property / indexer in base class – 
-            // test case where only one accessor is implemented by this sealed property / indexer in base class
+    [Fact]
+    public void ImplementInterfaceUsingSynthesizedSealedProperty()
+    {
+        // Tests: 
+        // Implicitly implement a property / indexer with a sealed property / indexer in base class – 
+        // test case where only one accessor is implemented by this sealed property / indexer in base class
 
-            var text = @"
+        var text = @"
 using System;
 interface I1
 {
@@ -1853,20 +1853,20 @@ class Test
     }
 }
 ";
-            // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
-            var comp = CompileAndVerify(text,
-                expectedOutput: "23123",
-                expectedSignatures: new[]
-                {
-                    Signature("C2", "get_Bar", ".method public hidebysig specialname virtual final instance System.Int32 get_Bar() cil managed"),
-                    Signature("C2", "set_Bar", ".method public hidebysig specialname virtual final instance System.Void set_Bar(System.Int32 value) cil managed")
-                });
-        }
+        // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
+        var comp = CompileAndVerify(text,
+            expectedOutput: "23123",
+            expectedSignatures: new[]
+            {
+                Signature("C2", "get_Bar", ".method public hidebysig specialname virtual final instance System.Int32 get_Bar() cil managed"),
+                Signature("C2", "set_Bar", ".method public hidebysig specialname virtual final instance System.Void set_Bar(System.Int32 value) cil managed")
+            });
+    }
 
-        [Fact]
-        public void TestImplementAmbiguousSignaturesImplicitly()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplementAmbiguousSignaturesImplicitly()
+    {
+        var source = @"
 using System;
 interface I1
 {
@@ -1938,7 +1938,7 @@ class Test : I3
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -1968,12 +1968,12 @@ I3.M8+I1.M8
 I3.M8+I1.M8
 I3.M9+I1.M9
 I1.P").VerifyDiagnostics(); // No errors
-        }
+    }
 
-        [Fact]
-        public void TestImplementAmbiguousSignaturesImplicitlyInBase()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplementAmbiguousSignaturesImplicitlyInBase()
+    {
+        var source = @"
 using System;
 interface I1
 {
@@ -2051,7 +2051,7 @@ class Test : Base, I3
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 I3.M1
 I1.M2
 I3.M2
@@ -2082,17 +2082,17 @@ Derived:I3.M8+I1.M8
 Derived:I3.M9+I1.M9
 I1.P");
 
-            comp.VerifyDiagnostics(
-                // (55,17): warning CS0108: 'Test.M8(params long[])' hides inherited member 'Base.M8(long[])'. Use the new keyword if hiding was intended.
-                Diagnostic(ErrorCode.WRN_NewRequired, "M8").WithArguments("Test.M8(params long[])", "Base.M8(long[])"),
-                // (56,17): warning CS0108: 'Test.M9(long[])' hides inherited member 'Base.M9(params long[])'. Use the new keyword if hiding was intended.
-                Diagnostic(ErrorCode.WRN_NewRequired, "M9").WithArguments("Test.M9(long[])", "Base.M9(params long[])"));
-        }
+        comp.VerifyDiagnostics(
+            // (55,17): warning CS0108: 'Test.M8(params long[])' hides inherited member 'Base.M8(long[])'. Use the new keyword if hiding was intended.
+            Diagnostic(ErrorCode.WRN_NewRequired, "M8").WithArguments("Test.M8(params long[])", "Base.M8(long[])"),
+            // (56,17): warning CS0108: 'Test.M9(long[])' hides inherited member 'Base.M9(params long[])'. Use the new keyword if hiding was intended.
+            Diagnostic(ErrorCode.WRN_NewRequired, "M9").WithArguments("Test.M9(long[])", "Base.M9(params long[])"));
+    }
 
-        [Fact]
-        public void TestImplementingWithObjectMembers()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplementingWithObjectMembers()
+    {
+        var source = @"
 using System;
 interface I
 {
@@ -2111,13 +2111,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "Base.ToString").VerifyDiagnostics(); // No errors
-        }
+        CompileAndVerify(source, expectedOutput: "Base.ToString").VerifyDiagnostics(); // No errors
+    }
 
-        [Fact]
-        public void TestImplementHiddenMemberImplicitly()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplementHiddenMemberImplicitly()
+    {
+        var source = @"
 using System;
 interface I1
 {
@@ -2148,17 +2148,17 @@ class Test
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 C.Method
 B.set_Property
 C.Method
 B.set_Property").VerifyDiagnostics(); // No errors
-        }
+    }
 
-        [Fact]
-        public void TestImplementHiddenMemberImplicitly2()
-        {
-            var source = @"
+    [Fact]
+    public void TestImplementHiddenMemberImplicitly2()
+    {
+        var source = @"
 using System;
 interface I1
 {
@@ -2191,17 +2191,17 @@ class Test
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 B.Method
 B.set_Property
 C.Method
 C.set_Property").VerifyDiagnostics(); // No errors
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationWithHidingAcrossBaseTypes()
-        {
-            var source = @"using System;
+    [Fact]
+    public void TestImplicitImplementationWithHidingAcrossBaseTypes()
+    {
+        var source = @"using System;
 interface I
 {
     void Method(int i);
@@ -2235,15 +2235,15 @@ class Test
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 B3.Method
 D.set_Property").VerifyDiagnostics(); // No errors
-        }
+    }
 
-        [Fact]
-        public void TestImplicitImplementationAcrossBaseTypes()
-        {
-            var source = @"using System;
+    [Fact]
+    public void TestImplicitImplementationAcrossBaseTypes()
+    {
+        var source = @"using System;
 interface I
 {
     void Method(int i);
@@ -2278,25 +2278,24 @@ class Test
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 B1.Method
 B1.set_Property
 D.M").VerifyDiagnostics(); // No errors
-        }
+    }
 
-        /// <summary>
-        /// Compile libSource into a dll and then compile exeSource with that DLL as a reference.
-        /// Assert that neither compilation has errors.  Return the exe compilation.
-        /// </summary>
-        private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
-        {
-            var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
-            libComp.VerifyDiagnostics();
+    /// <summary>
+    /// Compile libSource into a dll and then compile exeSource with that DLL as a reference.
+    /// Assert that neither compilation has errors.  Return the exe compilation.
+    /// </summary>
+    private static CSharpCompilation CreateCompilationWithMscorlibAndReference(string libSource, string exeSource)
+    {
+        var libComp = CreateCompilation(libSource, options: TestOptions.ReleaseDll, assemblyName: "OtherAssembly");
+        libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
-            exeComp.VerifyDiagnostics();
+        var exeComp = CreateCompilation(exeSource, options: TestOptions.ReleaseExe, references: new[] { new CSharpCompilationReference(libComp) });
+        exeComp.VerifyDiagnostics();
 
-            return exeComp;
-        }
+        return exeComp;
     }
 }

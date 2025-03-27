@@ -8,83 +8,82 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.DiaSymReader
+namespace Microsoft.DiaSymReader;
+
+internal static class EmptyArray<T>
 {
-    internal static class EmptyArray<T>
+    public static readonly T[] Instance = new T[0];
+}
+
+internal class InteropUtilities
+{
+    private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
+
+    internal static T[] NullToEmpty<T>(T[] items) => (items == null) ? EmptyArray<T>.Instance : items;
+
+    internal static void ThrowExceptionForHR(int hr)
     {
-        public static readonly T[] Instance = new T[0];
+        // E_FAIL indicates "no info".
+        // E_NOTIMPL indicates a lack of ISymUnmanagedReader support (in a particular implementation).
+        if (hr < 0 && hr != HResult.E_FAIL && hr != HResult.E_NOTIMPL)
+        {
+            Marshal.ThrowExceptionForHR(hr, s_ignoreIErrorInfo);
+        }
     }
 
-    internal class InteropUtilities
+    internal static unsafe void CopyQualifiedTypeName(char* qualifiedName, int qualifiedNameBufferLength, int* qualifiedNameLength, string namespaceStr, string nameStr)
     {
-        private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
+        Debug.Assert(nameStr != null);
 
-        internal static T[] NullToEmpty<T>(T[] items) => (items == null) ? EmptyArray<T>.Instance : items;
-
-        internal static void ThrowExceptionForHR(int hr)
+        if (namespaceStr == null)
         {
-            // E_FAIL indicates "no info".
-            // E_NOTIMPL indicates a lack of ISymUnmanagedReader support (in a particular implementation).
-            if (hr < 0 && hr != HResult.E_FAIL && hr != HResult.E_NOTIMPL)
+            namespaceStr = string.Empty;
+        }
+
+        if (qualifiedNameLength != null)
+        {
+            int fullLength = (namespaceStr.Length > 0 ? namespaceStr.Length + 1 : 0) + nameStr.Length;
+            if (qualifiedName != null)
             {
-                Marshal.ThrowExceptionForHR(hr, s_ignoreIErrorInfo);
+                // If the buffer is given return the length of the possibly truncated name not including NUL.
+                // If we returned length greater than the buffer length the SymWriter would replace the name with CRC32 hash.
+                *qualifiedNameLength = Math.Min(fullLength, Math.Max(0, qualifiedNameBufferLength - 1));
+            }
+            else
+            {
+                // If the buffer is not given then return the full length.
+                *qualifiedNameLength = fullLength;
             }
         }
 
-        internal static unsafe void CopyQualifiedTypeName(char* qualifiedName, int qualifiedNameBufferLength, int* qualifiedNameLength, string namespaceStr, string nameStr)
+        if (qualifiedName != null && qualifiedNameBufferLength > 0)
         {
-            Debug.Assert(nameStr != null);
+            char* dst = qualifiedName;
+            char* dstEndPtr = dst + qualifiedNameBufferLength - 1;
 
-            if (namespaceStr == null)
+            if (namespaceStr.Length > 0)
             {
-                namespaceStr = string.Empty;
-            }
-
-            if (qualifiedNameLength != null)
-            {
-                int fullLength = (namespaceStr.Length > 0 ? namespaceStr.Length + 1 : 0) + nameStr.Length;
-                if (qualifiedName != null)
+                for (int i = 0; i < namespaceStr.Length && dst < dstEndPtr; i++)
                 {
-                    // If the buffer is given return the length of the possibly truncated name not including NUL.
-                    // If we returned length greater than the buffer length the SymWriter would replace the name with CRC32 hash.
-                    *qualifiedNameLength = Math.Min(fullLength, Math.Max(0, qualifiedNameBufferLength - 1));
-                }
-                else
-                {
-                    // If the buffer is not given then return the full length.
-                    *qualifiedNameLength = fullLength;
-                }
-            }
-
-            if (qualifiedName != null && qualifiedNameBufferLength > 0)
-            {
-                char* dst = qualifiedName;
-                char* dstEndPtr = dst + qualifiedNameBufferLength - 1;
-
-                if (namespaceStr.Length > 0)
-                {
-                    for (int i = 0; i < namespaceStr.Length && dst < dstEndPtr; i++)
-                    {
-                        *dst = namespaceStr[i];
-                        dst++;
-                    }
-
-                    if (dst < dstEndPtr)
-                    {
-                        *dst = '.';
-                        dst++;
-                    }
-                }
-
-                for (int i = 0; i < nameStr.Length && dst < dstEndPtr; i++)
-                {
-                    *dst = nameStr[i];
+                    *dst = namespaceStr[i];
                     dst++;
                 }
 
-                Debug.Assert(dst <= dstEndPtr);
-                *dst = '\0';
+                if (dst < dstEndPtr)
+                {
+                    *dst = '.';
+                    dst++;
+                }
             }
+
+            for (int i = 0; i < nameStr.Length && dst < dstEndPtr; i++)
+            {
+                *dst = nameStr[i];
+                dst++;
+            }
+
+            Debug.Assert(dst <= dstEndPtr);
+            *dst = '\0';
         }
     }
 }

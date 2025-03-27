@@ -8,21 +8,20 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using MemberFilter = Microsoft.CodeAnalysis.Scripting.Hosting.MemberFilter;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
+
+internal class CSharpObjectFormatterImpl : CommonObjectFormatter
 {
-    internal class CSharpObjectFormatterImpl : CommonObjectFormatter
+    protected override CommonTypeNameFormatter TypeNameFormatter { get; }
+    protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
+    protected override MemberFilter Filter { get; }
+
+    internal CSharpObjectFormatterImpl()
     {
-        protected override CommonTypeNameFormatter TypeNameFormatter { get; }
-        protected override CommonPrimitiveFormatter PrimitiveFormatter { get; }
-        protected override MemberFilter Filter { get; }
-
-        internal CSharpObjectFormatterImpl()
-        {
-            PrimitiveFormatter = new CSharpPrimitiveFormatter();
-            TypeNameFormatter = new CSharpTypeNameFormatter(PrimitiveFormatter);
-            Filter = new CSharpMemberFilter();
-        }
-
-        protected override string FormatRefKind(ParameterInfo parameter) => parameter.IsOut ? "out" : "ref";
+        PrimitiveFormatter = new CSharpPrimitiveFormatter();
+        TypeNameFormatter = new CSharpTypeNameFormatter(PrimitiveFormatter);
+        Filter = new CSharpMemberFilter();
     }
+
+    protected override string FormatRefKind(ParameterInfo parameter) => parameter.IsOut ? "out" : "ref";
 }

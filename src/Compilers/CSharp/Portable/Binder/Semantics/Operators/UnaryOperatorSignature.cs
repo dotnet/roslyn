@@ -8,59 +8,58 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal struct UnaryOperatorSignature
 {
-    internal struct UnaryOperatorSignature
+    public static UnaryOperatorSignature Error = default(UnaryOperatorSignature);
+
+    public readonly MethodSymbol Method;
+    public readonly TypeSymbol ConstrainedToTypeOpt;
+    public readonly TypeSymbol OperandType;
+    public readonly TypeSymbol ReturnType;
+    public readonly UnaryOperatorKind Kind;
+
+    public UnaryOperatorSignature(UnaryOperatorKind kind, TypeSymbol operandType, TypeSymbol returnType)
     {
-        public static UnaryOperatorSignature Error = default(UnaryOperatorSignature);
+        this.Kind = kind;
+        this.OperandType = operandType;
+        this.ReturnType = returnType;
+        this.Method = null;
+        this.ConstrainedToTypeOpt = null;
+    }
 
-        public readonly MethodSymbol Method;
-        public readonly TypeSymbol ConstrainedToTypeOpt;
-        public readonly TypeSymbol OperandType;
-        public readonly TypeSymbol ReturnType;
-        public readonly UnaryOperatorKind Kind;
+    public UnaryOperatorSignature(UnaryOperatorKind kind, TypeSymbol operandType, TypeSymbol returnType, MethodSymbol method, TypeSymbol constrainedToTypeOpt)
+    {
+        this.Kind = kind;
+        this.OperandType = operandType;
+        this.ReturnType = returnType;
+        this.Method = method;
+        this.ConstrainedToTypeOpt = constrainedToTypeOpt;
+    }
 
-        public UnaryOperatorSignature(UnaryOperatorKind kind, TypeSymbol operandType, TypeSymbol returnType)
+    public override string ToString()
+    {
+        return $"kind: {this.Kind} operandType: {this.OperandType} operandRefKind: {this.RefKind} return: {this.ReturnType}";
+    }
+
+    public RefKind RefKind
+    {
+        get
         {
-            this.Kind = kind;
-            this.OperandType = operandType;
-            this.ReturnType = returnType;
-            this.Method = null;
-            this.ConstrainedToTypeOpt = null;
-        }
-
-        public UnaryOperatorSignature(UnaryOperatorKind kind, TypeSymbol operandType, TypeSymbol returnType, MethodSymbol method, TypeSymbol constrainedToTypeOpt)
-        {
-            this.Kind = kind;
-            this.OperandType = operandType;
-            this.ReturnType = returnType;
-            this.Method = method;
-            this.ConstrainedToTypeOpt = constrainedToTypeOpt;
-        }
-
-        public override string ToString()
-        {
-            return $"kind: {this.Kind} operandType: {this.OperandType} operandRefKind: {this.RefKind} return: {this.ReturnType}";
-        }
-
-        public RefKind RefKind
-        {
-            get
+            if ((object)Method != null)
             {
-                if ((object)Method != null)
+                Debug.Assert(Method.ParameterCount == 1);
+
+                if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
                 {
-                    Debug.Assert(Method.ParameterCount == 1);
+                    Debug.Assert(Method.ParameterRefKinds.Length == 1);
 
-                    if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
-                    {
-                        Debug.Assert(Method.ParameterRefKinds.Length == 1);
-
-                        return Method.ParameterRefKinds.Single();
-                    }
+                    return Method.ParameterRefKinds.Single();
                 }
-
-                return RefKind.None;
             }
+
+            return RefKind.None;
         }
     }
 }

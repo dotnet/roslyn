@@ -11,42 +11,41 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class CommonSqmUtilitiesTests
 {
-    public class CommonSqmUtilitiesTests
+    [Fact]
+    public void TryGetCompilerDiagnosticCode_Valid()
     {
-        [Fact]
-        public void TryGetCompilerDiagnosticCode_Valid()
-        {
-            string diagnosticId = "CS1011";
+        string diagnosticId = "CS1011";
 
-            uint code;
-            var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
+        uint code;
+        var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
 
-            Assert.True(result);
-            Assert.Equal(expected: 1011U, actual: code);
-        }
+        Assert.True(result);
+        Assert.Equal(expected: 1011U, actual: code);
+    }
 
-        [Fact]
-        public void TryGetCompilerDiagnosticCode_Invalid()
-        {
-            string diagnosticId = "MyAwesomeDiagnostic";
+    [Fact]
+    public void TryGetCompilerDiagnosticCode_Invalid()
+    {
+        string diagnosticId = "MyAwesomeDiagnostic";
 
-            uint code;
-            var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
+        uint code;
+        var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
 
-            Assert.False(result);
-        }
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void TryGetCompilerDiagnosticCode_WrongPrefix()
-        {
-            string diagnosticId = "AB1011";
+    [Fact]
+    public void TryGetCompilerDiagnosticCode_WrongPrefix()
+    {
+        string diagnosticId = "AB1011";
 
-            uint code;
-            var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
+        uint code;
+        var result = CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "CS", out code);
 
-            Assert.False(result);
-        }
+        Assert.False(result);
     }
 }

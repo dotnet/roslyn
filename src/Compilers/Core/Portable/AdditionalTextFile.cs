@@ -8,54 +8,53 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents a non source code file.
+/// </summary>
+internal sealed class AdditionalTextFile : AdditionalText
 {
-    /// <summary>
-    /// Represents a non source code file.
-    /// </summary>
-    internal sealed class AdditionalTextFile : AdditionalText
+    private readonly CommandLineSourceFile _sourceFile;
+    private readonly CommonCompiler _compiler;
+    private readonly Lazy<SourceText?> _text;
+    private IList<DiagnosticInfo> _diagnostics;
+
+    public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
     {
-        private readonly CommandLineSourceFile _sourceFile;
-        private readonly CommonCompiler _compiler;
-        private readonly Lazy<SourceText?> _text;
-        private IList<DiagnosticInfo> _diagnostics;
-
-        public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
+        if (compiler == null)
         {
-            if (compiler == null)
-            {
-                throw new ArgumentNullException(nameof(compiler));
-            }
-
-            _sourceFile = sourceFile;
-            _compiler = compiler;
-            _diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
-            _text = new Lazy<SourceText?>(ReadText);
+            throw new ArgumentNullException(nameof(compiler));
         }
 
-        private SourceText? ReadText()
-        {
-            var diagnostics = new List<DiagnosticInfo>();
-            var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
-            _diagnostics = diagnostics;
-            return text;
-        }
-
-        /// <summary>
-        /// Path to the file.
-        /// </summary>
-        public override string Path => _sourceFile.Path;
-
-        /// <summary>
-        /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
-        /// there were errors reading the file.
-        /// </summary>
-        public override SourceText? GetText(CancellationToken cancellationToken = default) => _text.Value;
-
-        /// <summary>
-        /// Errors encountered when trying to read the additional file. Always empty if
-        /// <see cref="GetText(CancellationToken)"/> has not been called.
-        /// </summary>
-        internal IList<DiagnosticInfo> Diagnostics => _diagnostics;
+        _sourceFile = sourceFile;
+        _compiler = compiler;
+        _diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
+        _text = new Lazy<SourceText?>(ReadText);
     }
+
+    private SourceText? ReadText()
+    {
+        var diagnostics = new List<DiagnosticInfo>();
+        var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);
+        _diagnostics = diagnostics;
+        return text;
+    }
+
+    /// <summary>
+    /// Path to the file.
+    /// </summary>
+    public override string Path => _sourceFile.Path;
+
+    /// <summary>
+    /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
+    /// there were errors reading the file.
+    /// </summary>
+    public override SourceText? GetText(CancellationToken cancellationToken = default) => _text.Value;
+
+    /// <summary>
+    /// Errors encountered when trying to read the additional file. Always empty if
+    /// <see cref="GetText(CancellationToken)"/> has not been called.
+    /// </summary>
+    internal IList<DiagnosticInfo> Diagnostics => _diagnostics;
 }

@@ -5,16 +5,15 @@
 #nullable disable
 #pragma warning disable RS0041 // uses oblivious reference types
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
-{
-    public partial class LambdaExpressionSyntax
-    {
-        public new LambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
-            => body is BlockSyntax block
-                ? WithBlock(block).WithExpressionBody(null)
-                : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
+namespace Microsoft.CodeAnalysis.CSharp.Syntax;
 
-        public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
-            => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
-    }
+public partial class LambdaExpressionSyntax
+{
+    public new LambdaExpressionSyntax WithBody(CSharpSyntaxNode body)
+        => body is BlockSyntax block
+            ? WithBlock(block).WithExpressionBody(null)
+            : WithExpressionBody((ExpressionSyntax)body).WithBlock(null);
+
+    public new LambdaExpressionSyntax WithAsyncKeyword(SyntaxToken asyncKeyword)
+        => (LambdaExpressionSyntax)WithAsyncKeywordCore(asyncKeyword);
 }

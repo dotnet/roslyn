@@ -6,35 +6,34 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Used to devirtualize ConcurrentDictionary for EqualityComparer{T}.Default and ReferenceEquals
+/// 
+/// This type is to enable fast-path devirtualization in the Jit. Dictionary{K, V}, HashTable{T}
+/// and ConcurrentDictionary{K, V} will devirtualize (and potentially inline) the IEquatable{T}.Equals
+/// method for a struct when the Comparer is unspecified in .NET Core, .NET 5; whereas specifying
+/// a Comparer will make .Equals and GetHashcode slower interface calls.
+/// </summary>
+internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
 {
-    /// <summary>
-    /// Used to devirtualize ConcurrentDictionary for EqualityComparer{T}.Default and ReferenceEquals
-    /// 
-    /// This type is to enable fast-path devirtualization in the Jit. Dictionary{K, V}, HashTable{T}
-    /// and ConcurrentDictionary{K, V} will devirtualize (and potentially inline) the IEquatable{T}.Equals
-    /// method for a struct when the Comparer is unspecified in .NET Core, .NET 5; whereas specifying
-    /// a Comparer will make .Equals and GetHashcode slower interface calls.
-    /// </summary>
-    internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
-    {
-        private readonly object _item;
+    private readonly object _item;
 
-        public IReferenceOrISignature(IReference item) => _item = item;
+    public IReferenceOrISignature(IReference item) => _item = item;
 
-        public IReferenceOrISignature(ISignature item) => _item = item;
+    public IReferenceOrISignature(ISignature item) => _item = item;
 
-        // Needed to resolve ambiguity for types that implement both IReference and ISignature
-        public IReferenceOrISignature(IMethodReference item) => _item = item;
+    // Needed to resolve ambiguity for types that implement both IReference and ISignature
+    public IReferenceOrISignature(IMethodReference item) => _item = item;
 
-        public bool Equals(IReferenceOrISignature other) => ReferenceEquals(_item, other._item);
+    public bool Equals(IReferenceOrISignature other) => ReferenceEquals(_item, other._item);
 
-        public override bool Equals(object? obj) => false;
+    public override bool Equals(object? obj) => false;
 
-        public override int GetHashCode() => RuntimeHelpers.GetHashCode(_item);
+    public override int GetHashCode() => RuntimeHelpers.GetHashCode(_item);
 
-        public override string ToString() => _item.ToString() ?? "null";
+    public override string ToString() => _item.ToString() ?? "null";
 
-        internal object AsObject() => _item;
-    }
+    internal object AsObject() => _item;
 }

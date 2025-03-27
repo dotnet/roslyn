@@ -12,26 +12,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Collections.Internal
+namespace Microsoft.CodeAnalysis.Collections.Internal;
+
+internal sealed class ICollectionDebugView<T>
 {
-    internal sealed class ICollectionDebugView<T>
+    private readonly ICollection<T> _collection;
+
+    public ICollectionDebugView(ICollection<T> collection)
     {
-        private readonly ICollection<T> _collection;
+        _collection = collection ?? throw new ArgumentNullException(nameof(collection));
+    }
 
-        public ICollectionDebugView(ICollection<T> collection)
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public T[] Items
+    {
+        get
         {
-            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Items
-        {
-            get
-            {
-                var items = new T[_collection.Count];
-                _collection.CopyTo(items, 0);
-                return items;
-            }
+            var items = new T[_collection.Count];
+            _collection.CopyTo(items, 0);
+            return items;
         }
     }
 }

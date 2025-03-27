@@ -7,28 +7,27 @@
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class CommonParseOptionsTests
 {
-    public class CommonParseOptionsTests
+    /// <summary>
+    /// If this test fails, please update the <see cref="ParseOptions.GetHashCodeHelper"/>
+    /// and <see cref="ParseOptions.EqualsHelper"/> methods to
+    /// make sure they are doing the right thing with your new field and then update the baseline
+    /// here.
+    /// </summary>
+    [Fact]
+    public void TestFieldsForEqualsAndGetHashCode()
     {
-        /// <summary>
-        /// If this test fails, please update the <see cref="ParseOptions.GetHashCodeHelper"/>
-        /// and <see cref="ParseOptions.EqualsHelper"/> methods to
-        /// make sure they are doing the right thing with your new field and then update the baseline
-        /// here.
-        /// </summary>
-        [Fact]
-        public void TestFieldsForEqualsAndGetHashCode()
-        {
-            ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                typeof(ParseOptions),
-                "DocumentationMode",
-                "Errors",
-                "Features",
-                "Kind",
-                "Language",
-                "PreprocessorSymbolNames",
-                "SpecifiedKind");
-        }
+        ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
+            typeof(ParseOptions),
+            "DocumentationMode",
+            "Errors",
+            "Features",
+            "Kind",
+            "Language",
+            "PreprocessorSymbolNames",
+            "SpecifiedKind");
     }
 }

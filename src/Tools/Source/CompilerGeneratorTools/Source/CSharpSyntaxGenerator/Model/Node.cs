@@ -7,19 +7,18 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace CSharpSyntaxGenerator
+namespace CSharpSyntaxGenerator;
+
+public class Node : TreeType
 {
-    public class Node : TreeType
-    {
-        [XmlAttribute]
-        public string Root;
+    [XmlAttribute]
+    public string Root;
 
-        [XmlAttribute]
-        public string Errors;
+    [XmlAttribute]
+    public string Errors;
 
-        [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
-        public List<Kind> Kinds = new List<Kind>();
+    [XmlElement(ElementName = "Kind", Type = typeof(Kind))]
+    public List<Kind> Kinds = new List<Kind>();
 
-        public readonly List<Field> Fields = new List<Field>();
-    }
+    public readonly List<Field> Fields = new List<Field>();
 }

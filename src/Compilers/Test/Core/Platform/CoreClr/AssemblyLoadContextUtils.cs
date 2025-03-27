@@ -9,34 +9,33 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Roslyn.Test.Utilities.CoreClr
+namespace Roslyn.Test.Utilities.CoreClr;
+
+public static class AssemblyLoadContextUtils
 {
-    public static class AssemblyLoadContextUtils
+    public static SimpleAssemblyLoadContext Create(string name, string? probingPath = null) =>
+        new SimpleAssemblyLoadContext(name, probingPath);
+}
+
+public sealed class SimpleAssemblyLoadContext : AssemblyLoadContext
+{
+    private readonly string _probingPath;
+
+    public SimpleAssemblyLoadContext(string name, string? probingPath = null)
+        : base(name, isCollectible: false)
     {
-        public static SimpleAssemblyLoadContext Create(string name, string? probingPath = null) =>
-            new SimpleAssemblyLoadContext(name, probingPath);
+        _probingPath = probingPath ?? Path.GetDirectoryName(typeof(SimpleAssemblyLoadContext).Assembly.Location)!;
     }
 
-    public sealed class SimpleAssemblyLoadContext : AssemblyLoadContext
+    protected override Assembly? Load(AssemblyName assemblyName)
     {
-        private readonly string _probingPath;
-
-        public SimpleAssemblyLoadContext(string name, string? probingPath = null)
-            : base(name, isCollectible: false)
+        var assemblyPath = Path.Combine(_probingPath, $"{assemblyName.Name}.dll");
+        if (File.Exists(assemblyPath))
         {
-            _probingPath = probingPath ?? Path.GetDirectoryName(typeof(SimpleAssemblyLoadContext).Assembly.Location)!;
+            return LoadFromAssemblyPath(assemblyPath);
         }
 
-        protected override Assembly? Load(AssemblyName assemblyName)
-        {
-            var assemblyPath = Path.Combine(_probingPath, $"{assemblyName.Name}.dll");
-            if (File.Exists(assemblyPath))
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
-
-            return null;
-        }
+        return null;
     }
 }
 

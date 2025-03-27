@@ -6,18 +6,17 @@
 
 using Microsoft.VisualStudio.Debugger;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
-{
-    /// <summary>
-    /// Data item to associate a computed raw string with a DkmClrValue.
-    /// </summary>
-    internal sealed class RawStringDataItem : DkmDataItem
-    {
-        public readonly string RawString;
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-        public RawStringDataItem(string rawString)
-        {
-            RawString = rawString;
-        }
+/// <summary>
+/// Data item to associate a computed raw string with a DkmClrValue.
+/// </summary>
+internal sealed class RawStringDataItem : DkmDataItem
+{
+    public readonly string RawString;
+
+    public RawStringDataItem(string rawString)
+    {
+        RawString = rawString;
     }
 }

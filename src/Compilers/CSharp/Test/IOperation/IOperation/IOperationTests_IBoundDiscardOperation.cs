@@ -8,15 +8,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+[CompilerTrait(CompilerFeature.IOperation)]
+public class IOperationTests_IBoundDiscardOperation : SemanticModelTestBase
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    public class IOperationTests_IBoundDiscardOperation : SemanticModelTestBase
+    [Fact]
+    public void DiscardExpression_AsAssignment()
     {
-        [Fact]
-        public void DiscardExpression_AsAssignment()
-        {
-            string source = @"
+        string source = @"
 class C
 {
     int P { get; }
@@ -27,18 +27,18 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void DiscardExpression_AsAssignment_EntireStatement()
-        {
-            string source = @"
+    [Fact]
+    public void DiscardExpression_AsAssignment_EntireStatement()
+    {
+        string source = @"
 class C
 {
     int P { get; }
@@ -49,7 +49,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = P;')
   Expression: 
     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = P')
@@ -60,9 +60,8 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
           Instance Receiver: 
             IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ExpressionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
     }
 }

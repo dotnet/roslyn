@@ -9,69 +9,68 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents a simple value or a read-only array of <see cref="TypedConstant"/>.
+/// </summary>
+internal readonly struct TypedConstantValue : IEquatable<TypedConstantValue>
 {
-    /// <summary>
-    /// Represents a simple value or a read-only array of <see cref="TypedConstant"/>.
-    /// </summary>
-    internal readonly struct TypedConstantValue : IEquatable<TypedConstantValue>
+    // Simple value or ImmutableArray<TypedConstant>.
+    // Null array is represented by a null reference.
+    private readonly object? _value;
+
+    internal TypedConstantValue(object? value)
     {
-        // Simple value or ImmutableArray<TypedConstant>.
-        // Null array is represented by a null reference.
-        private readonly object? _value;
+        Debug.Assert(value == null || value is string || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is System.IntPtr) && !(value is System.UIntPtr)) || value is ITypeSymbol);
+        _value = value;
+    }
 
-        internal TypedConstantValue(object? value)
-        {
-            Debug.Assert(value == null || value is string || value.GetType().GetTypeInfo().IsEnum || (value.GetType().GetTypeInfo().IsPrimitive && !(value is System.IntPtr) && !(value is System.UIntPtr)) || value is ITypeSymbol);
-            _value = value;
-        }
+    internal TypedConstantValue(ImmutableArray<TypedConstant> array)
+    {
+        _value = array.IsDefault ? null : (object)array;
+    }
 
-        internal TypedConstantValue(ImmutableArray<TypedConstant> array)
+    /// <summary>
+    /// True if the constant represents a null literal.
+    /// </summary>
+    public bool IsNull
+    {
+        get
         {
-            _value = array.IsDefault ? null : (object)array;
+            return _value == null;
         }
+    }
 
-        /// <summary>
-        /// True if the constant represents a null literal.
-        /// </summary>
-        public bool IsNull
+    public ImmutableArray<TypedConstant> Array
+    {
+        get
         {
-            get
-            {
-                return _value == null;
-            }
+            return _value == null ? default(ImmutableArray<TypedConstant>) : (ImmutableArray<TypedConstant>)_value;
         }
+    }
 
-        public ImmutableArray<TypedConstant> Array
+    public object? Object
+    {
+        get
         {
-            get
-            {
-                return _value == null ? default(ImmutableArray<TypedConstant>) : (ImmutableArray<TypedConstant>)_value;
-            }
+            Debug.Assert(!(_value is ImmutableArray<TypedConstant>));
+            return _value;
         }
+    }
 
-        public object? Object
-        {
-            get
-            {
-                Debug.Assert(!(_value is ImmutableArray<TypedConstant>));
-                return _value;
-            }
-        }
+    public override int GetHashCode()
+    {
+        return _value?.GetHashCode() ?? 0;
+    }
 
-        public override int GetHashCode()
-        {
-            return _value?.GetHashCode() ?? 0;
-        }
+    public override bool Equals(object? obj)
+    {
+        return obj is TypedConstantValue && Equals((TypedConstantValue)obj);
+    }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is TypedConstantValue && Equals((TypedConstantValue)obj);
-        }
-
-        public bool Equals(TypedConstantValue other)
-        {
-            return object.Equals(_value, other._value);
-        }
+    public bool Equals(TypedConstantValue other)
+    {
+        return object.Equals(_value, other._value);
     }
 }

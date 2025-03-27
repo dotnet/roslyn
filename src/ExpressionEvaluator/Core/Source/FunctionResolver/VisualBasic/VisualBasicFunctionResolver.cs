@@ -9,22 +9,21 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.FunctionResolution;
 
-namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator;
+
+[DkmReportNonFatalWatsonException(ExcludeExceptionType = typeof(NotImplementedException)), DkmContinueCorruptingException]
+internal sealed class VisualBasicFunctionResolver : FunctionResolver
 {
-    [DkmReportNonFatalWatsonException(ExcludeExceptionType = typeof(NotImplementedException)), DkmContinueCorruptingException]
-    internal sealed class VisualBasicFunctionResolver : FunctionResolver
+    public VisualBasicFunctionResolver()
     {
-        public VisualBasicFunctionResolver()
-        {
-        }
-
-        internal override RequestSignature GetParsedSignature(DkmRuntimeFunctionResolutionRequest request)
-        {
-            return MemberSignatureParser.Parse(request.FunctionName);
-        }
-
-        internal override bool IgnoreCase => true;
-
-        internal override Guid LanguageId => DkmLanguageId.VB;
     }
+
+    internal override RequestSignature GetParsedSignature(DkmRuntimeFunctionResolutionRequest request)
+    {
+        return MemberSignatureParser.Parse(request.FunctionName);
+    }
+
+    internal override bool IgnoreCase => true;
+
+    internal override Guid LanguageId => DkmLanguageId.VB;
 }

@@ -5,59 +5,58 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class StateTableStore
 {
-    internal sealed class StateTableStore
+    private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
+
+    public static readonly StateTableStore Empty = new StateTableStore(ImmutableSegmentedDictionary<object, IStateTable>.Empty);
+
+    private StateTableStore(ImmutableSegmentedDictionary<object, IStateTable> tables)
     {
-        private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
+        _tables = tables;
+    }
 
-        public static readonly StateTableStore Empty = new StateTableStore(ImmutableSegmentedDictionary<object, IStateTable>.Empty);
+    public bool TryGetValue(object key, [NotNullWhen(true)] out IStateTable? table) => _tables.TryGetValue(key, out table);
 
-        private StateTableStore(ImmutableSegmentedDictionary<object, IStateTable> tables)
+    public NodeStateTable<T> GetStateTableOrEmpty<T>(object input)
+    {
+        return GetStateTable<T>(input) ?? NodeStateTable<T>.Empty;
+    }
+
+    public NodeStateTable<T>? GetStateTable<T>(object input)
+    {
+        if (TryGetValue(input, out var output))
         {
-            _tables = tables;
+            return (NodeStateTable<T>)output;
         }
+        return null;
+    }
 
-        public bool TryGetValue(object key, [NotNullWhen(true)] out IStateTable? table) => _tables.TryGetValue(key, out table);
+    public sealed class Builder
+    {
+        private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
 
-        public NodeStateTable<T> GetStateTableOrEmpty<T>(object input)
+        public bool Contains(object key) => _tableBuilder.ContainsKey(key);
+
+        public bool TryGetTable(object key, [NotNullWhen(true)] out IStateTable? table) => _tableBuilder.TryGetValue(key, out table);
+
+        public void SetTable(object key, IStateTable table) => _tableBuilder[key] = table;
+
+        public StateTableStore ToImmutable()
         {
-            return GetStateTable<T>(input) ?? NodeStateTable<T>.Empty;
-        }
-
-        public NodeStateTable<T>? GetStateTable<T>(object input)
-        {
-            if (TryGetValue(input, out var output))
+            // we can cache the tables at this point, as we'll no longer be using them to determine current state
+            foreach (var kvp in _tableBuilder)
             {
-                return (NodeStateTable<T>)output;
-            }
-            return null;
-        }
-
-        public sealed class Builder
-        {
-            private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
-
-            public bool Contains(object key) => _tableBuilder.ContainsKey(key);
-
-            public bool TryGetTable(object key, [NotNullWhen(true)] out IStateTable? table) => _tableBuilder.TryGetValue(key, out table);
-
-            public void SetTable(object key, IStateTable table) => _tableBuilder[key] = table;
-
-            public StateTableStore ToImmutable()
-            {
-                // we can cache the tables at this point, as we'll no longer be using them to determine current state
-                foreach (var kvp in _tableBuilder)
+                var cachedValue = kvp.Value.AsCached();
+                if (cachedValue != kvp.Value)
                 {
-                    var cachedValue = kvp.Value.AsCached();
-                    if (cachedValue != kvp.Value)
-                    {
-                        SegmentedCollectionsMarshal.GetValueRefOrNullRef(_tableBuilder, kvp.Key) = cachedValue;
-                    }
+                    SegmentedCollectionsMarshal.GetValueRefOrNullRef(_tableBuilder, kvp.Key) = cachedValue;
                 }
-
-                return new StateTableStore(_tableBuilder.ToImmutable());
             }
+
+            return new StateTableStore(_tableBuilder.ToImmutable());
         }
     }
 }

@@ -15,61 +15,60 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed partial class AnonymousTypeManager
 {
-    internal sealed partial class AnonymousTypeManager
+    /// <summary>
+    /// Represents an anonymous type 'GetHashCode' method.
+    /// </summary>
+    private sealed partial class AnonymousTypeGetHashCodeMethodSymbol : SynthesizedMethodBase
     {
-        /// <summary>
-        /// Represents an anonymous type 'GetHashCode' method.
-        /// </summary>
-        private sealed partial class AnonymousTypeGetHashCodeMethodSymbol : SynthesizedMethodBase
+        internal AnonymousTypeGetHashCodeMethodSymbol(NamedTypeSymbol container)
+            : base(container, WellKnownMemberNames.ObjectGetHashCode)
         {
-            internal AnonymousTypeGetHashCodeMethodSymbol(NamedTypeSymbol container)
-                : base(container, WellKnownMemberNames.ObjectGetHashCode)
-            {
-            }
+        }
 
-            public override MethodKind MethodKind
-            {
-                get { return MethodKind.Ordinary; }
-            }
+        public override MethodKind MethodKind
+        {
+            get { return MethodKind.Ordinary; }
+        }
 
-            public override bool ReturnsVoid
-            {
-                get { return false; }
-            }
+        public override bool ReturnsVoid
+        {
+            get { return false; }
+        }
 
-            public override RefKind RefKind
-            {
-                get { return RefKind.None; }
-            }
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations
-            {
-                get { return TypeWithAnnotations.Create(this.Manager.System_Int32); }
-            }
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
+        {
+            get { return TypeWithAnnotations.Create(this.Manager.System_Int32); }
+        }
 
-            public override ImmutableArray<ParameterSymbol> Parameters
-            {
-                get { return ImmutableArray<ParameterSymbol>.Empty; }
-            }
+        public override ImmutableArray<ParameterSymbol> Parameters
+        {
+            get { return ImmutableArray<ParameterSymbol>.Empty; }
+        }
 
-            public override bool IsOverride
-            {
-                get { return true; }
-            }
+        public override bool IsOverride
+        {
+            get { return true; }
+        }
 
-            internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
-            {
-                return true;
-            }
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        {
+            return true;
+        }
 
-            internal override bool IsMetadataFinal
+        internal override bool IsMetadataFinal
+        {
+            get
             {
-                get
-                {
-                    return false;
-                }
+                return false;
             }
         }
     }

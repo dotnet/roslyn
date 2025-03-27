@@ -13,143 +13,142 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class LookupSymbolsInfoTests : CSharpTestBase
 {
-    public class LookupSymbolsInfoTests : CSharpTestBase
+    private class TemplateArgEnumerator : IEnumerator<string>
     {
-        private class TemplateArgEnumerator : IEnumerator<string>
+        private short _current;
+
+        public TemplateArgEnumerator()
         {
-            private short _current;
-
-            public TemplateArgEnumerator()
-            {
-                _current = 0;
-            }
-
-            public string Current
-            {
-                get { return string.Format("T{0}", _current.ToString()); }
-            }
-
-            public void Dispose()
-            {
-            }
-
-            object System.Collections.IEnumerator.Current
-            {
-                get { return this.Current; }
-            }
-
-            public bool MoveNext()
-            {
-                if (_current == short.MaxValue)
-                {
-                    return false;
-                }
-
-                _current++;
-                return true;
-            }
-
-            public void Reset()
-            {
-                _current = 0;
-            }
+            _current = 0;
         }
 
-        private class TemplateArgEnumerable : IEnumerable<string>
+        public string Current
         {
-            public static readonly IEnumerable<string> Instance = new TemplateArgEnumerable();
+            get { return string.Format("T{0}", _current.ToString()); }
+        }
 
-            public IEnumerator<string> GetEnumerator()
+        public void Dispose()
+        {
+        }
+
+        object System.Collections.IEnumerator.Current
+        {
+            get { return this.Current; }
+        }
+
+        public bool MoveNext()
+        {
+            if (_current == short.MaxValue)
             {
-                return new TemplateArgEnumerator();
+                return false;
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
+            _current++;
+            return true;
         }
 
-        private static string GenerateTemplateArgs(int arity)
+        public void Reset()
         {
-            if (arity == 0) return string.Empty;
-            return string.Format("<{0}>", string.Join(",", TemplateArgEnumerable.Instance.Take(arity)));
+            _current = 0;
+        }
+    }
+
+    private class TemplateArgEnumerable : IEnumerable<string>
+    {
+        public static readonly IEnumerable<string> Instance = new TemplateArgEnumerable();
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return new TemplateArgEnumerator();
         }
 
-        private static void AppendEmptyClass(StringBuilder sb, string root, int arity)
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            sb.Append("class ");
-            sb.Append(root);
-            sb.Append(GenerateTemplateArgs(arity));
-            sb.AppendLine(" {}");
+            return GetEnumerator();
         }
+    }
 
-        private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
+    private static string GenerateTemplateArgs(int arity)
+    {
+        if (arity == 0) return string.Empty;
+        return string.Format("<{0}>", string.Join(",", TemplateArgEnumerable.Instance.Take(arity)));
+    }
+
+    private static void AppendEmptyClass(StringBuilder sb, string root, int arity)
+    {
+        sb.Append("class ");
+        sb.Append(root);
+        sb.Append(GenerateTemplateArgs(arity));
+        sb.AppendLine(" {}");
+    }
+
+    private static void CompileAndCheckSymbolCount(string source, string symbolName, int expectedSymbolCount)
+    {
+        var compilation = CreateCompilation(source);
+
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+
+        var symbols = model.LookupSymbols(0, null, symbolName);
+
+        Assert.Equal(expectedSymbolCount, symbols.Length);
+    }
+
+    [Fact]
+    public void UniqueSymbolOrAritiesTestBigArity()
+    {
+        // The LookupSymbols implementation is optimized for small arities (less than 32).
+        // Since larger arity values are so rare, they are tested explicitly here.
+
+        StringBuilder sb = new StringBuilder();
+
+        AppendEmptyClass(sb, "Goo", 50);
+
+        // Unique symbol test
+        CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
+
+        AppendEmptyClass(sb, "Goo", 100);
+        AppendEmptyClass(sb, "Goo", 150);
+        AppendEmptyClass(sb, "Goo", 200);
+        AppendEmptyClass(sb, "Goo", 250);
+
+        // Multiple symbols test
+        CompileAndCheckSymbolCount(sb.ToString(), "Goo", 5);
+    }
+
+    [Fact]
+    public void UniqueSymbolOrAritiesTestSmallArity()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        AppendEmptyClass(sb, "Goo", 1);
+
+        // Unique symbol test
+        CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
+
+        AppendEmptyClass(sb, "Goo", 2);
+        AppendEmptyClass(sb, "Goo", 3);
+
+        // Multiple symbols test
+        CompileAndCheckSymbolCount(sb.ToString(), "Goo", 3);
+    }
+
+    [Fact]
+    public void UniqueSymbolOrAritiesTest()
+    {
+        for (int i = 0; i < 50; i++)
         {
-            var compilation = CreateCompilation(source);
-
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var symbols = model.LookupSymbols(0, null, symbolName);
-
-            Assert.Equal(expectedSymbolCount, symbols.Length);
-        }
-
-        [Fact]
-        public void UniqueSymbolOrAritiesTestBigArity()
-        {
-            // The LookupSymbols implementation is optimized for small arities (less than 32).
-            // Since larger arity values are so rare, they are tested explicitly here.
-
             StringBuilder sb = new StringBuilder();
-
-            AppendEmptyClass(sb, "Goo", 50);
-
-            // Unique symbol test
-            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
-
-            AppendEmptyClass(sb, "Goo", 100);
-            AppendEmptyClass(sb, "Goo", 150);
-            AppendEmptyClass(sb, "Goo", 200);
-            AppendEmptyClass(sb, "Goo", 250);
-
-            // Multiple symbols test
-            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 5);
-        }
-
-        [Fact]
-        public void UniqueSymbolOrAritiesTestSmallArity()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            AppendEmptyClass(sb, "Goo", 1);
-
-            // Unique symbol test
-            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 1);
-
-            AppendEmptyClass(sb, "Goo", 2);
-            AppendEmptyClass(sb, "Goo", 3);
-
-            // Multiple symbols test
-            CompileAndCheckSymbolCount(sb.ToString(), "Goo", 3);
-        }
-
-        [Fact]
-        public void UniqueSymbolOrAritiesTest()
-        {
-            for (int i = 0; i < 50; i++)
+            for (int j = 0; j < i; j++)
             {
-                StringBuilder sb = new StringBuilder();
-                for (int j = 0; j < i; j++)
-                {
-                    AppendEmptyClass(sb, "Goo", j);
-                }
-
-                CompileAndCheckSymbolCount(sb.ToString(), "Goo", i);
+                AppendEmptyClass(sb, "Goo", j);
             }
+
+            CompileAndCheckSymbolCount(sb.ToString(), "Goo", i);
         }
     }
 }

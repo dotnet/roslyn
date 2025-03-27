@@ -4,23 +4,22 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.FlowAnalysis
+namespace Microsoft.CodeAnalysis.FlowAnalysis;
+
+internal sealed partial class ControlFlowGraphBuilder
 {
-    internal sealed partial class ControlFlowGraphBuilder
+    internal class CaptureIdDispenser
     {
-        internal class CaptureIdDispenser
+        private int _captureId = -1;
+
+        public int GetNextId()
         {
-            private int _captureId = -1;
+            return Interlocked.Increment(ref _captureId);
+        }
 
-            public int GetNextId()
-            {
-                return Interlocked.Increment(ref _captureId);
-            }
-
-            public int GetCurrentId()
-            {
-                return _captureId;
-            }
+        public int GetCurrentId()
+        {
+            return _captureId;
         }
     }
 }

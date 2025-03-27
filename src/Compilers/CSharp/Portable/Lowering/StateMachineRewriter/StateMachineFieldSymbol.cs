@@ -13,106 +13,105 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Represents a synthesized state machine field.
+/// </summary>
+internal class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
 {
-    /// <summary>
-    /// Represents a synthesized state machine field.
-    /// </summary>
-    internal class StateMachineFieldSymbol : SynthesizedFieldSymbolBase, ISynthesizedMethodBodyImplementationSymbol
+    private readonly TypeWithAnnotations _type;
+    private readonly bool _isThis;
+
+    // -1 if the field doesn't represent a long-lived local or an awaiter.
+    internal readonly int SlotIndex;
+
+    internal readonly LocalSlotDebugInfo SlotDebugInfo;
+
+    // Some fields need to be public since they are initialized directly by the kickoff method.
+    public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, bool isPublic, bool isThis)
+        : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
     {
-        private readonly TypeWithAnnotations _type;
-        private readonly bool _isThis;
-
-        // -1 if the field doesn't represent a long-lived local or an awaiter.
-        internal readonly int SlotIndex;
-
-        internal readonly LocalSlotDebugInfo SlotDebugInfo;
-
-        // Some fields need to be public since they are initialized directly by the kickoff method.
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, bool isPublic, bool isThis)
-            : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
-        {
-            _isThis = isThis;
-        }
-
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, bool isPublic)
-            : this(stateMachineType, type, name, new LocalSlotDebugInfo(synthesizedKind, LocalDebugId.None), slotIndex, isPublic: isPublic)
-        {
-        }
-
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic) :
-            this(stateMachineType, TypeWithAnnotations.Create(type), name, slotDebugInfo, slotIndex, isPublic)
-        {
-        }
-
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
-            : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
-        {
-            Debug.Assert((object)type != null);
-            Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
-
-            _type = type;
-            this.SlotIndex = slotIndex;
-            this.SlotDebugInfo = slotDebugInfo;
-        }
-
-        internal override bool SuppressDynamicAttribute
-        {
-            get { return true; }
-        }
-
-        public override RefKind RefKind => RefKind.None;
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
-
-        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-        {
-            return _type;
-        }
-
-        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
-        {
-            get { return true; }
-        }
-
-        IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
-        {
-            get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
-        }
-
-        internal override bool IsCapturedFrame
-        {
-            get { return _isThis; }
-        }
+        _isThis = isThis;
     }
 
-    internal sealed class StateMachineFieldSymbolForRegularParameter : StateMachineFieldSymbol
+    public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex, bool isPublic)
+        : this(stateMachineType, type, name, new LocalSlotDebugInfo(synthesizedKind, LocalDebugId.None), slotIndex, isPublic: isPublic)
     {
-        private readonly ParameterSymbol _parameter;
+    }
 
-        public StateMachineFieldSymbolForRegularParameter(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, ParameterSymbol parameter, bool isPublic)
-            : base(stateMachineType, type, name, isPublic, isThis: false)
-        {
-            Debug.Assert(parameter is { IsThis: false });
-            _parameter = parameter;
-        }
+    public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic) :
+        this(stateMachineType, TypeWithAnnotations.Create(type), name, slotDebugInfo, slotIndex, isPublic)
+    {
+    }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
+        : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
+    {
+        Debug.Assert((object)type != null);
+        Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
+
+        _type = type;
+        this.SlotIndex = slotIndex;
+        this.SlotDebugInfo = slotDebugInfo;
+    }
+
+    internal override bool SuppressDynamicAttribute
+    {
+        get { return true; }
+    }
+
+    public override RefKind RefKind => RefKind.None;
+
+    public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
+    internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+    {
+        return _type;
+    }
+
+    bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+    {
+        get { return true; }
+    }
+
+    IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method
+    {
+        get { return ((ISynthesizedMethodBodyImplementationSymbol)ContainingSymbol).Method; }
+    }
+
+    internal override bool IsCapturedFrame
+    {
+        get { return _isThis; }
+    }
+}
+
+internal sealed class StateMachineFieldSymbolForRegularParameter : StateMachineFieldSymbol
+{
+    private readonly ParameterSymbol _parameter;
+
+    public StateMachineFieldSymbolForRegularParameter(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, ParameterSymbol parameter, bool isPublic)
+        : base(stateMachineType, type, name, isPublic, isThis: false)
+    {
+        Debug.Assert(parameter is { IsThis: false });
+        _parameter = parameter;
+    }
+
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        if (_parameter.OriginalDefinition is SourceParameterSymbolBase definition &&
+            ContainingModule == definition.ContainingModule)
         {
-            if (_parameter.OriginalDefinition is SourceParameterSymbolBase definition &&
-                ContainingModule == definition.ContainingModule)
+            foreach (CSharpAttributeData attr in definition.GetAttributes())
             {
-                foreach (CSharpAttributeData attr in definition.GetAttributes())
+                if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true } attributeType &&
+                    (attributeType.GetAttributeUsageInfo().ValidTargets & System.AttributeTargets.Field) != 0)
                 {
-                    if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true } attributeType &&
-                        (attributeType.GetAttributeUsageInfo().ValidTargets & System.AttributeTargets.Field) != 0)
-                    {
-                        AddSynthesizedAttribute(ref attributes, attr);
-                    }
+                    AddSynthesizedAttribute(ref attributes, attr);
                 }
             }
-
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
         }
+
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
     }
 }

@@ -10,121 +10,120 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit
+namespace Microsoft.CodeAnalysis.CSharp.Emit;
+
+internal abstract class MethodReference : TypeMemberReference, Cci.IMethodReference
 {
-    internal abstract class MethodReference : TypeMemberReference, Cci.IMethodReference
+    protected readonly MethodSymbol UnderlyingMethod;
+
+    public MethodReference(MethodSymbol underlyingMethod)
     {
-        protected readonly MethodSymbol UnderlyingMethod;
+        Debug.Assert((object)underlyingMethod != null);
 
-        public MethodReference(MethodSymbol underlyingMethod)
+        this.UnderlyingMethod = underlyingMethod;
+    }
+
+    protected override Symbol UnderlyingSymbol
+    {
+        get
         {
-            Debug.Assert((object)underlyingMethod != null);
-
-            this.UnderlyingMethod = underlyingMethod;
+            return UnderlyingMethod;
         }
+    }
 
-        protected override Symbol UnderlyingSymbol
+    bool Cci.IMethodReference.AcceptsExtraArguments
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod;
-            }
+            return UnderlyingMethod.IsVararg;
         }
+    }
 
-        bool Cci.IMethodReference.AcceptsExtraArguments
+    ushort Cci.IMethodReference.GenericParameterCount
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.IsVararg;
-            }
+            return (ushort)UnderlyingMethod.Arity;
         }
+    }
 
-        ushort Cci.IMethodReference.GenericParameterCount
+    ushort Cci.ISignature.ParameterCount
+    {
+        get
         {
-            get
-            {
-                return (ushort)UnderlyingMethod.Arity;
-            }
+            return (ushort)UnderlyingMethod.ParameterCount;
         }
+    }
 
-        ushort Cci.ISignature.ParameterCount
+    Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
+    {
+        return null;
+    }
+
+    ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+    {
+        get
         {
-            get
-            {
-                return (ushort)UnderlyingMethod.ParameterCount;
-            }
+            return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
         }
+    }
 
-        Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
+    Cci.CallingConvention Cci.ISignature.CallingConvention
+    {
+        get
+        {
+            return UnderlyingMethod.CallingConvention;
+        }
+    }
+
+    ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
+    {
+        PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+        return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
+    }
+
+    ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
+    {
+        get
+        {
+            return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers);
+        }
+    }
+
+    ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
+    {
+        get
+        {
+            return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.RefCustomModifiers);
+        }
+    }
+
+    bool Cci.ISignature.ReturnValueIsByRef
+    {
+        get
+        {
+            return UnderlyingMethod.RefKind.IsManagedReference();
+        }
+    }
+
+    Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
+    {
+        return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+    }
+
+    public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
+    {
+        get
         {
             return null;
         }
+    }
 
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.IMethodReference.ExtraParameters
+    public virtual Cci.ISpecializedMethodReference AsSpecializedMethodReference
+    {
+        get
         {
-            get
-            {
-                return ImmutableArray<Cci.IParameterTypeInformation>.Empty;
-            }
-        }
-
-        Cci.CallingConvention Cci.ISignature.CallingConvention
-        {
-            get
-            {
-                return UnderlyingMethod.CallingConvention;
-            }
-        }
-
-        ImmutableArray<Cci.IParameterTypeInformation> Cci.ISignature.GetParameters(EmitContext context)
-        {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(UnderlyingMethod.Parameters);
-        }
-
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.ReturnValueCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.ReturnTypeWithAnnotations.CustomModifiers);
-            }
-        }
-
-        ImmutableArray<Cci.ICustomModifier> Cci.ISignature.RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(UnderlyingMethod.RefCustomModifiers);
-            }
-        }
-
-        bool Cci.ISignature.ReturnValueIsByRef
-        {
-            get
-            {
-                return UnderlyingMethod.RefKind.IsManagedReference();
-            }
-        }
-
-        Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
-        {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
-        }
-
-        public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public virtual Cci.ISpecializedMethodReference AsSpecializedMethodReference
-        {
-            get
-            {
-                return null;
-            }
+            return null;
         }
     }
 }

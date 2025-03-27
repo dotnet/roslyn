@@ -13,14 +13,14 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
+
+public class SymbolExtensionTests : CSharpTestBase
 {
-    public class SymbolExtensionTests : CSharpTestBase
+    [Fact]
+    public void HasNameQualifier()
     {
-        [Fact]
-        public void HasNameQualifier()
-        {
-            var source =
+        var source =
 @"class C { }
 namespace N
 {
@@ -50,120 +50,120 @@ namespace NB
 {
     class C { }
 }";
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            var namespaceNames = new[]
-            {
-                "",
-                ".",
-                "N",
-                "NA",
-                "NB",
-                "n",
-                "AN",
-                "NAB",
-                "N.",
-                ".NA",
-                ".NB",
-                "N.N",
-                "N.NA",
-                "N.NB",
-                "N..NB",
-                "N.NA.NA",
-                "N.NA.NB",
-                "NA.N",
-                "NA.NA",
-                "NA.NB",
-                "NA.NA.NB",
-                "NA.NB.NB",
-            };
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("C"), "");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.C"), "N");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.C"), "N.NA");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.NB.C"), "N.NA.NB");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.C"), "NA");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NA.C"), "NA.NA");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NB.C"), "NA.NB");
-            HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NB.C"), "NB");
-        }
-
-        [Fact]
-        public void VisitType_AnonymousDelegate()
+        var compilation = CreateCompilation(source);
+        compilation.VerifyDiagnostics();
+        var namespaceNames = new[]
         {
-            var source = @"
+            "",
+            ".",
+            "N",
+            "NA",
+            "NB",
+            "n",
+            "AN",
+            "NAB",
+            "N.",
+            ".NA",
+            ".NB",
+            "N.N",
+            "N.NA",
+            "N.NB",
+            "N..NB",
+            "N.NA.NA",
+            "N.NA.NB",
+            "NA.N",
+            "NA.NA",
+            "NA.NB",
+            "NA.NA.NB",
+            "NA.NB.NB",
+        };
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("C"), "");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.C"), "N");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.C"), "N.NA");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("N.NA.NB.C"), "N.NA.NB");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.C"), "NA");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NA.C"), "NA.NA");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NA.NB.C"), "NA.NB");
+        HasNameQualifierCore(namespaceNames, compilation.GetMember<NamedTypeSymbol>("NB.C"), "NB");
+    }
+
+    [Fact]
+    public void VisitType_AnonymousDelegate()
+    {
+        var source = @"
 void F<T>(T t)
 {
     var f = (ref T x) => 0;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var tree = compilation.SyntaxTrees.Single();
-            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
-            var model = compilation.GetSemanticModel(tree);
-            var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+        var tree = compilation.SyntaxTrees.Single();
+        var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
+        var model = compilation.GetSemanticModel(tree);
+        var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
 
-            Assert.True(anonymousType.ContainsTypeParameter());
-        }
+        Assert.True(anonymousType.ContainsTypeParameter());
+    }
 
-        [Fact]
-        public void VisitType_AnonymousDelegateWithAnonymousClass()
-        {
-            var source = @"
+    [Fact]
+    public void VisitType_AnonymousDelegateWithAnonymousClass()
+    {
+        var source = @"
 void F<T>(T t)
 {
     var f = (ref int x) => new { t };
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var tree = compilation.SyntaxTrees.Single();
-            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
-            var model = compilation.GetSemanticModel(tree);
-            var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+        var tree = compilation.SyntaxTrees.Single();
+        var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
+        var model = compilation.GetSemanticModel(tree);
+        var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
 
-            Assert.True(anonymousType.ContainsTypeParameter());
-        }
+        Assert.True(anonymousType.ContainsTypeParameter());
+    }
 
-        [Fact]
-        public void VisitType_AnonymousClass()
-        {
-            var source = @"
+    [Fact]
+    public void VisitType_AnonymousClass()
+    {
+        var source = @"
 void F<T>(T t)
 {
     var f = new { t };
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var tree = compilation.SyntaxTrees.Single();
-            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
-            var model = compilation.GetSemanticModel(tree);
-            var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+        var tree = compilation.SyntaxTrees.Single();
+        var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First(id => id.Identifier.Text == "var");
+        var model = compilation.GetSemanticModel(tree);
+        var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
 
-            Assert.True(anonymousType.ContainsTypeParameter());
-        }
+        Assert.True(anonymousType.ContainsTypeParameter());
+    }
 
-        [Fact]
-        public void VisitType_AnonymousClassWithAnonymousDelegate()
-        {
-            var source = @"
+    [Fact]
+    public void VisitType_AnonymousClassWithAnonymousDelegate()
+    {
+        var source = @"
 void F<T>(T t)
 {
     var f = (ref int x) => t;
     var g = new { f };
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var tree = compilation.SyntaxTrees.Single();
-            var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last(id => id.Identifier.Text == "var");
-            var model = compilation.GetSemanticModel(tree);
-            var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+        var tree = compilation.SyntaxTrees.Single();
+        var identifier = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last(id => id.Identifier.Text == "var");
+        var model = compilation.GetSemanticModel(tree);
+        var anonymousType = model.GetSymbolInfo(identifier).Symbol.GetSymbol<TypeSymbol>();
 
-            Assert.True(anonymousType.ContainsTypeParameter());
-        }
+        Assert.True(anonymousType.ContainsTypeParameter());
+    }
 
-        [Fact]
-        public void VisitType_CustomModifiers()
-        {
-            var ilSource = @"
+    [Fact]
+    public void VisitType_CustomModifiers()
+    {
+        var ilSource = @"
 .class public auto ansi beforefieldinit C1`1<T>
     extends System.Object
 {
@@ -230,7 +230,7 @@ void F<T>(T t)
 } // end of class C3`1
 ";
 
-            var source = @"
+        var source = @"
 class Test
 {
     static void Main()
@@ -245,45 +245,44 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithIL(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var method = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Method").Single()).Symbol.GetSymbol<MethodSymbol>();
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var method = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Method").Single()).Symbol.GetSymbol<MethodSymbol>();
 
-            AssertEx.Equal("System.String C1<System.Int32 modopt(C2<G>)>.Method()", method.ToTestDisplayString());
+        AssertEx.Equal("System.String C1<System.Int32 modopt(C2<G>)>.Method()", method.ToTestDisplayString());
 
-            var typeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            try
-            {
-                method.ContainingType.VisitType(static (typeSymbol, typeParameters, _) =>
-                {
-                    if (typeSymbol is TypeParameterSymbol typeParameter)
-                    {
-                        typeParameters.Add(typeParameter);
-                    }
-
-                    return false;
-                },
-                typeParameters, visitCustomModifiers: true);
-
-                var typeParameter = typeParameters.Single();
-                Assert.Equal("G", typeParameter.Name);
-                Assert.Equal("M", typeParameter.ContainingSymbol.Name);
-            }
-            finally
-            {
-                typeParameters.Free();
-            }
-        }
-
-        private void HasNameQualifierCore(string[] namespaceNames, NamedTypeSymbol type, string expectedName)
+        var typeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+        try
         {
-            Assert.True(Array.IndexOf(namespaceNames, expectedName) >= 0);
-            foreach (var namespaceName in namespaceNames)
+            method.ContainingType.VisitType(static (typeSymbol, typeParameters, _) =>
             {
-                Assert.Equal(namespaceName == expectedName, type.HasNameQualifier(namespaceName));
-            }
+                if (typeSymbol is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
+            },
+            typeParameters, visitCustomModifiers: true);
+
+            var typeParameter = typeParameters.Single();
+            Assert.Equal("G", typeParameter.Name);
+            Assert.Equal("M", typeParameter.ContainingSymbol.Name);
+        }
+        finally
+        {
+            typeParameters.Free();
+        }
+    }
+
+    private void HasNameQualifierCore(string[] namespaceNames, NamedTypeSymbol type, string expectedName)
+    {
+        Assert.True(Array.IndexOf(namespaceNames, expectedName) >= 0);
+        foreach (var namespaceName in namespaceNames)
+        {
+            Assert.Equal(namespaceName == expectedName, type.HasNameQualifier(namespaceName));
         }
     }
 }

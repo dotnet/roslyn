@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_IConditionalOperation : SemanticModelTestBase
 {
-    public class IOperationTests_IConditionalOperation : SemanticModelTestBase
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void ConditionalExpression_01()
     {
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConditionalExpression_01()
-        {
-            string source = @"
+        string source = @"
 class P
 {
     private void M()
@@ -29,7 +29,7 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: 'true ? i : j')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -38,16 +38,16 @@ IConditionalOperation (OperationKind.Conditional, Type: System.Int32) (Syntax: '
   WhenFalse: 
     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void ConditionalExpression_02()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void ConditionalExpression_02()
+    {
+        string source = @"
 class P
 {
     private void M()
@@ -58,7 +58,7 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (Syntax: 'true ? ref i : ref j')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -67,20 +67,20 @@ IConditionalOperation (IsRef) (OperationKind.Conditional, Type: System.Int32) (S
   WhenFalse: 
     ILocalReferenceOperation: j (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'j')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ConditionalExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void TargetTypedConditionalExpression_ImplicitCast()
-        {
-            var source = @"
+    [Fact]
+    public void TargetTypedConditionalExpression_ImplicitCast()
+    {
+        var source = @"
 using System;
 bool b = true;
 /*<bind>*/Action<string> a = b ? arg => {} : arg => {};/*</bind>*/";
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Action<stri ...  arg => {};')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'Action<stri ... : arg => {}')
     Declarators:
@@ -113,20 +113,20 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void TargetTypedConditionalExpression_ExplicitCast()
-        {
-            var source = @"
+    [Fact]
+    public void TargetTypedConditionalExpression_ExplicitCast()
+    {
+        var source = @"
 using System;
 bool b = true;
 /*<bind>*/var a = (Action<string>)(b ? arg => {} : arg => {});/*</bind>*/";
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'var a = (Ac ... arg => {});')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'var a = (Ac ...  arg => {})')
     Declarators:
@@ -159,16 +159,16 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ConditionalExpressionFlow_01()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ConditionalExpressionFlow_01()
+    {
+        string source = @"
 class P
 {
     void M(bool a, bool b)
@@ -179,7 +179,7 @@ class P
     static int[] GetArray() => null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -248,16 +248,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ConditionalExpressionFlow_02()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ConditionalExpressionFlow_02()
+    {
+        string source = @"
 class P
 {
     void M(bool a, bool b, bool c)
@@ -268,7 +268,7 @@ class P
     static int[] GetArray() => null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -360,16 +360,16 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ConditionalExpressionFlow_03()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ConditionalExpressionFlow_03()
+    {
+        string source = @"
 class P
 {
     void M(bool a, bool b, bool c, bool d, bool e)
@@ -380,7 +380,7 @@ class P
     static bool[] GetArray() => null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -472,9 +472,8 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
     }
 }

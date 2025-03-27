@@ -11,56 +11,55 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed class SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
 {
-    internal sealed class SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
+    private readonly ImmutableArray<FieldSymbol> _fields;
+    private readonly ImmutableArray<MethodSymbol> _constructors;
+
+    public SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
+        string name,
+        NamespaceSymbol containingNamespace,
+        ModuleSymbol containingModule,
+        NamedTypeSymbol systemAttributeType,
+        TypeSymbol systemBooleanType)
+        : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
     {
-        private readonly ImmutableArray<FieldSymbol> _fields;
-        private readonly ImmutableArray<MethodSymbol> _constructors;
+        _fields = ImmutableArray.Create<FieldSymbol>(
+            new SynthesizedFieldSymbol(
+                this,
+                systemBooleanType,
+                "IncludesInternals",
+                isPublic: true,
+                isReadOnly: true,
+                isStatic: false));
 
-        public SynthesizedEmbeddedNullablePublicOnlyAttributeSymbol(
-            string name,
-            NamespaceSymbol containingNamespace,
-            ModuleSymbol containingModule,
-            NamedTypeSymbol systemAttributeType,
-            TypeSymbol systemBooleanType)
-            : base(name, containingNamespace, containingModule, baseType: systemAttributeType)
-        {
-            _fields = ImmutableArray.Create<FieldSymbol>(
-                new SynthesizedFieldSymbol(
-                    this,
-                    systemBooleanType,
-                    "IncludesInternals",
-                    isPublic: true,
-                    isReadOnly: true,
-                    isStatic: false));
+        _constructors = ImmutableArray.Create<MethodSymbol>(
+            new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
+                this,
+                m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(systemBooleanType), 0, RefKind.None)),
+                GenerateConstructorBody));
 
-            _constructors = ImmutableArray.Create<MethodSymbol>(
-                new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
-                    this,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, TypeWithAnnotations.Create(systemBooleanType), 0, RefKind.None)),
-                    GenerateConstructorBody));
+        // Ensure we never get out of sync with the description
+        Debug.Assert(_constructors.Length == AttributeDescription.NullablePublicOnlyAttribute.Signatures.Length);
+    }
 
-            // Ensure we never get out of sync with the description
-            Debug.Assert(_constructors.Length == AttributeDescription.NullablePublicOnlyAttribute.Signatures.Length);
-        }
+    internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
-        internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
+    public override ImmutableArray<MethodSymbol> Constructors => _constructors;
 
-        public override ImmutableArray<MethodSymbol> Constructors => _constructors;
+    internal override AttributeUsageInfo GetAttributeUsageInfo()
+    {
+        return new AttributeUsageInfo(AttributeTargets.Module, allowMultiple: false, inherited: false);
+    }
 
-        internal override AttributeUsageInfo GetAttributeUsageInfo()
-        {
-            return new AttributeUsageInfo(AttributeTargets.Module, allowMultiple: false, inherited: false);
-        }
-
-        private void GenerateConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
-        {
-            statements.Add(
-                factory.ExpressionStatement(
-                    factory.AssignmentExpression(
-                        factory.Field(factory.This(), _fields.Single()),
-                        factory.Parameter(parameters.Single()))));
-        }
+    private void GenerateConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
+    {
+        statements.Add(
+            factory.ExpressionStatement(
+                factory.AssignmentExpression(
+                    factory.Field(factory.This(), _fields.Single()),
+                    factory.Parameter(parameters.Single()))));
     }
 }

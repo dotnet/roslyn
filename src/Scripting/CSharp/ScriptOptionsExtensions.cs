@@ -7,17 +7,16 @@
 using System;
 using Microsoft.CodeAnalysis.Scripting;
 
-namespace Microsoft.CodeAnalysis.CSharp.Scripting
-{
-    public static class ScriptOptionsExtensions
-    {
-        public static ScriptOptions WithLanguageVersion(this ScriptOptions options, LanguageVersion languageVersion)
-        {
-            var parseOptions = (options.ParseOptions is null)
-                ? CSharpScriptCompiler.DefaultParseOptions
-                : (options.ParseOptions is CSharpParseOptions existing) ? existing : throw new InvalidOperationException(string.Format(ScriptingResources.CannotSetLanguageSpecificOption, LanguageNames.CSharp, nameof(LanguageVersion)));
+namespace Microsoft.CodeAnalysis.CSharp.Scripting;
 
-            return options.WithParseOptions(parseOptions.WithLanguageVersion(languageVersion));
-        }
+public static class ScriptOptionsExtensions
+{
+    public static ScriptOptions WithLanguageVersion(this ScriptOptions options, LanguageVersion languageVersion)
+    {
+        var parseOptions = (options.ParseOptions is null)
+            ? CSharpScriptCompiler.DefaultParseOptions
+            : (options.ParseOptions is CSharpParseOptions existing) ? existing : throw new InvalidOperationException(string.Format(ScriptingResources.CannotSetLanguageSpecificOption, LanguageNames.CSharp, nameof(LanguageVersion)));
+
+        return options.WithParseOptions(parseOptions.WithLanguageVersion(languageVersion));
     }
 }

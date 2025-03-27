@@ -8,52 +8,51 @@ using System.Diagnostics;
 using System.IO;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// This is an abstraction over the file system which allows for us to do more thorough unit testing.
+/// </summary>
+internal class StrongNameFileSystem
 {
-    /// <summary>
-    /// This is an abstraction over the file system which allows for us to do more thorough unit testing.
-    /// </summary>
-    internal class StrongNameFileSystem
+    internal static readonly StrongNameFileSystem Instance = new StrongNameFileSystem();
+    internal readonly string? _signingTempPath;
+
+    internal StrongNameFileSystem(string? signingTempPath = null)
     {
-        internal static readonly StrongNameFileSystem Instance = new StrongNameFileSystem();
-        internal readonly string? _signingTempPath;
+        _signingTempPath = signingTempPath;
+    }
 
-        internal StrongNameFileSystem(string? signingTempPath = null)
-        {
-            _signingTempPath = signingTempPath;
-        }
+    internal virtual FileStream CreateFileStream(string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+    {
+        return new FileStream(filePath, fileMode, fileAccess, fileShare);
+    }
 
-        internal virtual FileStream CreateFileStream(string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
-        {
-            return new FileStream(filePath, fileMode, fileAccess, fileShare);
-        }
+    internal virtual byte[] ReadAllBytes(string fullPath)
+    {
+        Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+        return File.ReadAllBytes(fullPath);
+    }
 
-        internal virtual byte[] ReadAllBytes(string fullPath)
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return File.ReadAllBytes(fullPath);
-        }
+    internal virtual bool FileExists(string? fullPath)
+    {
+        Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
+        return File.Exists(fullPath);
+    }
 
-        internal virtual bool FileExists(string? fullPath)
-        {
-            Debug.Assert(fullPath == null || PathUtilities.IsAbsolute(fullPath));
-            return File.Exists(fullPath);
-        }
+    internal string? GetSigningTempPath() => _signingTempPath;
 
-        internal string? GetSigningTempPath() => _signingTempPath;
+    public override int GetHashCode()
+        => _signingTempPath != null ? StringComparer.Ordinal.GetHashCode(_signingTempPath) : 0;
 
-        public override int GetHashCode()
-            => _signingTempPath != null ? StringComparer.Ordinal.GetHashCode(_signingTempPath) : 0;
+    public override bool Equals(object? obj)
+        => Equals(obj as StrongNameFileSystem);
 
-        public override bool Equals(object? obj)
-            => Equals(obj as StrongNameFileSystem);
+    private bool Equals(StrongNameFileSystem? other)
+    {
+        if (this == other)
+            return true;
 
-        private bool Equals(StrongNameFileSystem? other)
-        {
-            if (this == other)
-                return true;
-
-            return this.GetType() == other?.GetType() && StringComparer.Ordinal.Equals(_signingTempPath, other?._signingTempPath);
-        }
+        return this.GetType() == other?.GetType() && StringComparer.Ordinal.Equals(_signingTempPath, other?._signingTempPath);
     }
 }

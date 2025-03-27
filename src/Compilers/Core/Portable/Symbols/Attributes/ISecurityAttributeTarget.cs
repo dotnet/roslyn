@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal interface ISecurityAttributeTarget
 {
-    internal interface ISecurityAttributeTarget
-    {
-        SecurityWellKnownAttributeData GetOrCreateData();
-    }
+    SecurityWellKnownAttributeData GetOrCreateData();
 }

@@ -6,45 +6,44 @@
 
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+
+internal static class CSharpSyntaxNodeCache
 {
-    internal static class CSharpSyntaxNodeCache
+    internal static GreenNode TryGetNode(int kind, GreenNode child1, SyntaxFactoryContext context, out int hash)
     {
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, SyntaxFactoryContext context, out int hash)
+        return SyntaxNodeCache.TryGetNode(kind, child1, GetNodeFlags(context), out hash);
+    }
+
+    internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, SyntaxFactoryContext context, out int hash)
+    {
+        return SyntaxNodeCache.TryGetNode(kind, child1, child2, GetNodeFlags(context), out hash);
+    }
+
+    internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, SyntaxFactoryContext context, out int hash)
+    {
+        return SyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), out hash);
+    }
+
+    private static GreenNode.NodeFlags GetNodeFlags(SyntaxFactoryContext context)
+    {
+        var flags = SyntaxNodeCache.GetDefaultNodeFlags();
+
+        if (context.IsInAsync)
         {
-            return SyntaxNodeCache.TryGetNode(kind, child1, GetNodeFlags(context), out hash);
+            flags |= GreenNode.NodeFlags.FactoryContextIsInAsync;
         }
 
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, SyntaxFactoryContext context, out int hash)
+        if (context.IsInQuery)
         {
-            return SyntaxNodeCache.TryGetNode(kind, child1, child2, GetNodeFlags(context), out hash);
+            flags |= GreenNode.NodeFlags.FactoryContextIsInQuery;
         }
 
-        internal static GreenNode TryGetNode(int kind, GreenNode child1, GreenNode child2, GreenNode child3, SyntaxFactoryContext context, out int hash)
+        if (context.IsInFieldKeywordContext)
         {
-            return SyntaxNodeCache.TryGetNode(kind, child1, child2, child3, GetNodeFlags(context), out hash);
+            flags |= GreenNode.NodeFlags.FactoryContextIsInFieldKeywordContext;
         }
 
-        private static GreenNode.NodeFlags GetNodeFlags(SyntaxFactoryContext context)
-        {
-            var flags = SyntaxNodeCache.GetDefaultNodeFlags();
-
-            if (context.IsInAsync)
-            {
-                flags |= GreenNode.NodeFlags.FactoryContextIsInAsync;
-            }
-
-            if (context.IsInQuery)
-            {
-                flags |= GreenNode.NodeFlags.FactoryContextIsInQuery;
-            }
-
-            if (context.IsInFieldKeywordContext)
-            {
-                flags |= GreenNode.NodeFlags.FactoryContextIsInFieldKeywordContext;
-            }
-
-            return flags;
-        }
+        return flags;
     }
 }

@@ -5,20 +5,19 @@
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class SpecialTypeTests
 {
-    public class SpecialTypeTests
+    [Fact]
+    public void ExtendedSpecialType_ToString()
     {
-        [Fact]
-        public void ExtendedSpecialType_ToString()
-        {
-            AssertEx.Equal("0", ((ExtendedSpecialType)SpecialType.None).ToString());
-            AssertEx.Equal("System_Object", ((ExtendedSpecialType)1).ToString());
-            AssertEx.Equal("System_Runtime_CompilerServices_InlineArrayAttribute", ((ExtendedSpecialType)SpecialType.Count).ToString());
-            AssertEx.Equal("System_ReadOnlySpan_T", ((ExtendedSpecialType)InternalSpecialType.First).ToString());
-            AssertEx.Equal("System_ReadOnlySpan_T", ((ExtendedSpecialType)InternalSpecialType.System_ReadOnlySpan_T).ToString());
-            AssertEx.Equal("System_Reflection_MethodInfo", ((ExtendedSpecialType)(InternalSpecialType.NextAvailable - 1)).ToString());
-            AssertEx.Equal("52", ((ExtendedSpecialType)InternalSpecialType.NextAvailable).ToString());
-        }
+        AssertEx.Equal("0", ((ExtendedSpecialType)SpecialType.None).ToString());
+        AssertEx.Equal("System_Object", ((ExtendedSpecialType)1).ToString());
+        AssertEx.Equal("System_Runtime_CompilerServices_InlineArrayAttribute", ((ExtendedSpecialType)SpecialType.Count).ToString());
+        AssertEx.Equal("System_ReadOnlySpan_T", ((ExtendedSpecialType)InternalSpecialType.First).ToString());
+        AssertEx.Equal("System_ReadOnlySpan_T", ((ExtendedSpecialType)InternalSpecialType.System_ReadOnlySpan_T).ToString());
+        AssertEx.Equal("System_Reflection_MethodInfo", ((ExtendedSpecialType)(InternalSpecialType.NextAvailable - 1)).ToString());
+        AssertEx.Equal("52", ((ExtendedSpecialType)InternalSpecialType.NextAvailable).ToString());
     }
 }

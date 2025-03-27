@@ -6,14 +6,13 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Framework;
 
-namespace Microsoft.CodeAnalysis.BuildTasks
+namespace Microsoft.CodeAnalysis.BuildTasks;
+
+[ComImport]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("31891ED8-BEB5-43BF-A90D-9E7E1CE9BA84")]
+public interface IAnalyzerConfigFilesHostObject
 {
-    [ComImport]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("31891ED8-BEB5-43BF-A90D-9E7E1CE9BA84")]
-    public interface IAnalyzerConfigFilesHostObject
-    {
-        bool SetAnalyzerConfigFiles(ITaskItem[]? analyzerConfigFiles);
-        bool SetPotentialAnalyzerConfigFiles(ITaskItem[]? potentialAnalyzerConfigfiles);
-    }
+    bool SetAnalyzerConfigFiles(ITaskItem[]? analyzerConfigFiles);
+    bool SetPotentialAnalyzerConfigFiles(ITaskItem[]? potentialAnalyzerConfigfiles);
 }

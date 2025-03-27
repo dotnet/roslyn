@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class ForLoopsTests : EmitMetadataTestBase
 {
-    public class ForLoopsTests : EmitMetadataTestBase
+    [Fact]
+    public void ForLoop()
     {
-        [Fact]
-        public void ForLoop()
-        {
-            string source =
+        string source =
 @"class C
 {
     static void Main()
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", x);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "81");
+        var compilation = CompileAndVerify(source, expectedOutput: "81");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       35 (0x23)
   .maxstack  2
@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_0022:  ret       
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ForLoopExecuteOnce()
-        {
-            string source =
+    [Fact]
+    public void ForLoopExecuteOnce()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 1");
+        var compilation = CompileAndVerify(source, expectedOutput: "1, 1");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       44 (0x2c)
   .maxstack  3
@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_002b:  ret       
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ForLoopTrue()
-        {
-            string source =
+    [Fact]
+    public void ForLoopTrue()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -141,9 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 0");
+        var compilation = CompileAndVerify(source, expectedOutput: "1, 0");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
@@ -166,12 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_001e:  ret       
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ForLoopFalse()
-        {
-            string source =
+    [Fact]
+    public void ForLoopFalse()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -185,9 +185,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0, 0");
+        var compilation = CompileAndVerify(source, expectedOutput: "0, 0");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       27 (0x1b)
   .maxstack  3
@@ -206,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_001a:  ret       
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ForLoopBreakContinue()
-        {
-            string source =
+    [Fact]
+    public void ForLoopBreakContinue()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -232,9 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}, {1}"", i, j);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "5, 3, 4, 4");
+        var compilation = CompileAndVerify(source, expectedOutput: "5, 3, 4, 4");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       89 (0x59)
   .maxstack  3
@@ -293,15 +293,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_0058:  ret       
 }
 ");
-        }
+    }
 
-        /// <summary>
-        /// No statements in for loop parts.
-        /// </summary>
-        [Fact]
-        public void ForLoopNoStatements()
-        {
-            string source =
+    /// <summary>
+    /// No statements in for loop parts.
+    /// </summary>
+    [Fact]
+    public void ForLoopNoStatements()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+        var compilation = CompileAndVerify(source, expectedOutput: "6");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       29 (0x1d)
   .maxstack  2
@@ -339,15 +339,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_001c:  ret       
 }
 ");
-        }
+    }
 
-        /// <summary>
-        /// Statement expression list in initializer.
-        /// </summary>
-        [Fact]
-        public void ForLoopStatementExpressionListInitializer()
-        {
-            string source =
+    /// <summary>
+    /// Statement expression list in initializer.
+    /// </summary>
+    [Fact]
+    public void ForLoopStatementExpressionListInitializer()
+    {
+        string source =
 @"class C
 {
     static void Main()
@@ -360,9 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         System.Console.Write(""{0}"", i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "6");
+        var compilation = CompileAndVerify(source, expectedOutput: "6");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       43 (0x2b)
   .maxstack  2
@@ -399,13 +399,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_002a:  ret       
 }
 ");
-        }
+    }
 
-        // The initializer list is a comma separated list of expressions
-        [Fact]
-        public void InitializerList()
-        {
-            var text =
+    // The initializer list is a comma separated list of expressions
+    [Fact]
+    public void InitializerList()
+    {
+        var text =
 @"
 class C
 {
@@ -418,7 +418,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       14 (0xe)
   .maxstack  2
   .locals init (int V_0) //i
@@ -435,15 +435,15 @@ class C
   IL_000d:  ret       
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL);
+    }
 
-        // The value of  Iterator expression could be decreasing
-        [Fact]
-        public void DecreasingForIterator()
-        {
-            var text =
+    // The value of  Iterator expression could be decreasing
+    [Fact]
+    public void DecreasingForIterator()
+    {
+        var text =
 @"
 class C
 {
@@ -455,7 +455,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       18 (0x12)
   .maxstack  2
   .locals init (int V_0) //k
@@ -472,15 +472,15 @@ class C
   IL_0011:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Method calls work fine in all for loop areas
-        [Fact]
-        public void MethodCall()
-        {
-            var text =
+    // Method calls work fine in all for loop areas
+    [Fact]
+    public void MethodCall()
+    {
+        var text =
 @"
 class C
 {
@@ -496,7 +496,7 @@ class C
     public static int Iterator() { return 1; }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       22 (0x16)
   .maxstack  1
   IL_0000:  call       ""int C.Initializer()""
@@ -509,14 +509,14 @@ class C
   IL_0015:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        [Fact]
-        public void EmptyForBody()
-        {
-            var text =
+    [Fact]
+    public void EmptyForBody()
+    {
+        var text =
 @"
 class C
 {
@@ -526,7 +526,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text).VerifyIL("C.Main", @"{
+        CompileAndVerify(text).VerifyIL("C.Main", @"{
   // Code size       15 (0xf)
   .maxstack  2
   .locals init (int V_0) //i
@@ -543,13 +543,13 @@ class C
   IL_000e:  ret       
 }
 ");
-        }
+    }
 
-        // Nested for Loops 
-        [Fact]
-        public void NestedForLoop()
-        {
-            var text =
+    // Nested for Loops 
+    [Fact]
+    public void NestedForLoop()
+    {
+        var text =
 @"
 class C
 {
@@ -564,7 +564,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (int V_0, //i
@@ -592,15 +592,15 @@ class C
   IL_001a:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Change outer variable in inner for Loops
-        [Fact]
-        public void ChangeOuterInInnerForLoop()
-        {
-            var text =
+    // Change outer variable in inner for Loops
+    [Fact]
+    public void ChangeOuterInInnerForLoop()
+    {
+        var text =
 @"
 class C
 {
@@ -616,7 +616,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int V_0, //i
@@ -646,15 +646,15 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Inner for loop referencing the outer for loop iteration variable
-        [Fact]
-        public void InnerRefOuterIteration()
-        {
-            var text =
+    // Inner for loop referencing the outer for loop iteration variable
+    [Fact]
+    public void InnerRefOuterIteration()
+    {
+        var text =
 @"
 class C
 {
@@ -669,7 +669,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (int V_0, //i
@@ -699,15 +699,15 @@ class C
   IL_001a:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Breaking from nested Loops
-        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
-        public void BreakFromNestedLoop()
-        {
-            var source = @"
+    // Breaking from nested Loops
+    [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+    public void BreakFromNestedLoop()
+    {
+        var source = @"
 class C
 {
     static void Main(string[] args)
@@ -723,9 +723,9 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
-            c.VerifyIL("C.Main", @"
+        c.VerifyIL("C.Main", @"
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -757,14 +757,14 @@ class C
   IL_001d:  ret
 }
 ");
-        }
+    }
 
-        [WorkItem(539555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539555")]
-        // Continuing for nested Loops
-        [Fact]
-        public void ContinueForNestedLoop()
-        {
-            var text =
+    [WorkItem(539555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539555")]
+    // Continuing for nested Loops
+    [Fact]
+    public void ContinueForNestedLoop()
+    {
+        var text =
 @"
     class C
     {
@@ -783,7 +783,7 @@ class C
         }
     }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0, //i
@@ -821,15 +821,15 @@ class C
   IL_0028:  ret       
 }
 ";
-            CompileAndVerify(text, expectedOutput: "1234").
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text, expectedOutput: "1234").
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Goto in for Loops
-        [Fact]
-        public void GotoForNestedLoop_1()
-        {
-            var text =
+    // Goto in for Loops
+    [Fact]
+    public void GotoForNestedLoop_1()
+    {
+        var text =
 @"
 class C
 {
@@ -847,7 +847,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       30 (0x1e)
   .maxstack  2
   .locals init (int V_0, //i
@@ -879,15 +879,15 @@ class C
   IL_001d:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Goto in for Loops
-        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
-        public void GotoForNestedLoop_2()
-        {
-            var source = @"
+    // Goto in for Loops
+    [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+    public void GotoForNestedLoop_2()
+    {
+        var source = @"
 class C
 {
     static void Main(string[] args)
@@ -904,8 +904,8 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
-            c.VerifyIL("C.Main", @"
+        var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        c.VerifyIL("C.Main", @"
 {
   // Code size       24 (0x18)
   .maxstack  2
@@ -934,13 +934,13 @@ class C
   IL_0017:  ret
 }
 ");
-        }
+    }
 
-        // Goto in for Loops
-        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
-        public void GotoForNestedLoop_3()
-        {
-            var source =
+    // Goto in for Loops
+    [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+    public void GotoForNestedLoop_3()
+    {
+        var source =
 @"
 class C
 {
@@ -958,9 +958,9 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
-            c.VerifyIL("C.Main", @"
+        c.VerifyIL("C.Main", @"
 {
   // Code size       25 (0x19)
   .maxstack  2
@@ -989,13 +989,13 @@ class C
   IL_0018:  ret
 }
 ");
-        }
+    }
 
-        // Throw exception in for
-        [Fact]
-        public void ThrowException()
-        {
-            var text =
+    // Throw exception in for
+    [Fact]
+    public void ThrowException()
+    {
+        var text =
 @"
 class C
 {
@@ -1011,7 +1011,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int V_0, //i
@@ -1037,15 +1037,15 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Return in for
-        [Fact]
-        public void ReturnInFor()
-        {
-            var text =
+    // Return in for
+    [Fact]
+    public void ReturnInFor()
+    {
+        var text =
 @"
 class C
 {
@@ -1061,7 +1061,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       19 (0x13)
   .maxstack  2
   .locals init (int V_0, //i
@@ -1082,15 +1082,15 @@ class C
   IL_0012:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // The value of initializer expressions
-        [Fact]
-        public void ValueOfInit()
-        {
-            var text =
+    // The value of initializer expressions
+    [Fact]
+    public void ValueOfInit()
+    {
+        var text =
 @"
 class C
 {
@@ -1103,7 +1103,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (int V_0) //i
@@ -1120,15 +1120,15 @@ class C
   IL_000c:  ret
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // The value of  condition expression 
-        [Fact]
-        public void ValueOfCondition()
-        {
-            var text =
+    // The value of  condition expression 
+    [Fact]
+    public void ValueOfCondition()
+    {
+        var text =
 @"
 class C
 {
@@ -1143,7 +1143,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       28 (0x1c)
   .maxstack  3
   .locals init (int V_0, //c
@@ -1176,15 +1176,15 @@ class C
   IL_001b:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // The evaluation of condition expression take place before execution of loop
-        [Fact]
-        public void ValueOfConditionBeforeLoop()
-        {
-            var text =
+    // The evaluation of condition expression take place before execution of loop
+    [Fact]
+    public void ValueOfConditionBeforeLoop()
+    {
+        var text =
 @"
 class C
 {
@@ -1197,7 +1197,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       17 (0x11)
   .maxstack  2
   .locals init (int V_0) //i
@@ -1218,15 +1218,15 @@ class C
   IL_0010:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Unreachable code
-        [Fact]
-        public void CS0162WRN_UnreachableCode_1()
-        {
-            var text = @"
+    // Unreachable code
+    [Fact]
+    public void CS0162WRN_UnreachableCode_1()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -1238,21 +1238,21 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size        1 (0x1)
   .maxstack  1
   IL_0000:  ret       
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
-        }
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL).
+            VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
+    }
 
-        [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
-        public void CS0162WRN_UnreachableCode_2()
-        {
-            var source = @"
+    [Fact, WorkItem(527952, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527952")]
+    public void CS0162WRN_UnreachableCode_2()
+    {
+        var source = @"
 class C
 {
     static void Main(string[] args)
@@ -1262,22 +1262,22 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        var c = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
-            c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
-            c.VerifyIL("C.Main", @"
+        c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "System"));
+        c.VerifyIL("C.Main", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  br.s       IL_0000
 }
 ");
-        }
+    }
 
-        [Fact, WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
-        public void CS0162WRN_UnreachableCode_3()
-        {
-            var text = @"
+    [Fact, WorkItem(528275, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528275")]
+    public void CS0162WRN_UnreachableCode_3()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -1292,7 +1292,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size        8 (0x8)
   .maxstack  2
   .locals init (uint V_0) //i
@@ -1305,16 +1305,16 @@ class C
   IL_0006:  br.s       IL_0002
 }
 ";
-            // Roslyn no unreachable warning CS0429 (for expr)
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
-        }
+        // Roslyn no unreachable warning CS0429 (for expr)
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL);
+    }
 
-        // Unreachable code
-        [Fact]
-        public void CS0162WRN_UnreachableCode_4()
-        {
-            var text =
+    // Unreachable code
+    [Fact]
+    public void CS0162WRN_UnreachableCode_4()
+    {
+        var text =
 @"
 class C
 {
@@ -1335,7 +1335,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+        string expectedIL = @"
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -1357,19 +1357,19 @@ class C
   IL_0011:  ret
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(
-                    Diagnostic(ErrorCode.WRN_UnreachableCode, "goto"),
-                    Diagnostic(ErrorCode.WRN_UnreachableCode, "i")
-                );
-        }
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL).
+            VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto"),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "i")
+            );
+    }
 
-        // Unreachable code
-        [Fact]
-        public void CS0162WRN_UnreachableCode_5()
-        {
-            var text =
+    // Unreachable code
+    [Fact]
+    public void CS0162WRN_UnreachableCode_5()
+    {
+        var text =
 @"
 class C
 {
@@ -1385,7 +1385,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int V_0, //i
@@ -1411,16 +1411,16 @@ class C
   IL_001c:  ret       
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "j"));
-        }
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL).
+            VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "j"));
+    }
 
-        // Unreachable code
-        [Fact]
-        public void CS0162WRN_UnreachableCode_6()
-        {
-            var text =
+    // Unreachable code
+    [Fact]
+    public void CS0162WRN_UnreachableCode_6()
+    {
+        var text =
 @"
 class C
 {
@@ -1433,7 +1433,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+        string expectedIL = @"
 {
   // Code size        8 (0x8)
   .maxstack  2
@@ -1447,16 +1447,16 @@ class C
   IL_0007:  ret
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
-        }
+        CompileAndVerify(text).
+            VerifyIL("C.Main", expectedIL).
+            VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
+    }
 
-        // Object initializer as iteration variable of for loop
-        [Fact]
-        public void ObjectInitAsInitializer()
-        {
-            var text = @"
+    // Object initializer as iteration variable of for loop
+    [Fact]
+    public void ObjectInitAsInitializer()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -1472,7 +1472,7 @@ public class Goo
     public string s;
 }
 ";
-            string expectedIL = @"
+        string expectedIL = @"
 {
   // Code size       50 (0x32)
   .maxstack  3
@@ -1499,15 +1499,15 @@ public class Goo
   IL_0031:  ret
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Dynamic works in for loop
-        [Fact]
-        public void DynamicInFor()
-        {
-            var text = @"class C
+    // Dynamic works in for loop
+    [Fact]
+    public void DynamicInFor()
+    {
+        var text = @"class C
 {
     static void Main(string[] args)
     {
@@ -1543,7 +1543,7 @@ public class myFor
     }
 }
 ";
-            CompileAndVerify(text, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
+        CompileAndVerify(text, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"Initialize
 Done
 Next
 Done
@@ -1555,13 +1555,13 @@ Next
 Done
 Next
 Done");
-        }
+    }
 
-        // Var works in for loop
-        [Fact]
-        public void VarInFor()
-        {
-            var text =
+    // Var works in for loop
+    [Fact]
+    public void VarInFor()
+    {
+        var text =
 @"
 class C
 {
@@ -1571,7 +1571,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (int V_0) //i
@@ -1588,15 +1588,15 @@ class C
   IL_000c:  ret       
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // Query expression in initializer list
-        [Fact]
-        public void QueryInInit()
-        {
-            var text =
+    // Query expression in initializer list
+    [Fact]
+    public void QueryInInit()
+    {
+        var text =
 @"
 using System.Linq;
 using System.Collections.Generic;
@@ -1618,16 +1618,16 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+        var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
-        }
+    }
 
-        // Query expression in for body
-        [Fact]
-        public void QueryInBody()
-        {
-            var text =
+    // Query expression in for body
+    [Fact]
+    public void QueryInBody()
+    {
+        var text =
 @"
 using System.Linq;
 using System.Collections.Generic;
@@ -1654,16 +1654,16 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+        var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
-        }
+    }
 
-        // Expression tree in for initializer of for statement
-        [Fact]
-        public void ExpressiontreeInInit()
-        {
-            var text = @"
+    // Expression tree in for initializer of for statement
+    [Fact]
+    public void ExpressiontreeInInit()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -1678,17 +1678,17 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, expectedOutput: @"1
+        CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");
-        }
+    }
 
-        // Expression tree in for iterator of for statement
-        [Fact]
-        public void ExpressiontreeInIterator()
-        {
-            var text = @"
+    // Expression tree in for iterator of for statement
+    [Fact]
+    public void ExpressiontreeInIterator()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -1703,17 +1703,17 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+        var comp = CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");
-        }
+    }
 
-        // Custom type in for loop
-        [Fact]
-        public void CustomerTypeInFor()
-        {
-            var text =
+    // Custom type in for loop
+    [Fact]
+    public void CustomerTypeInFor()
+    {
+        var text =
 @"
 class C
 {
@@ -1731,7 +1731,7 @@ public class C1
 }
 ";
 
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (C1 V_0) //i
@@ -1746,15 +1746,15 @@ public class C1
   IL_0012:  ret
 }
 ";
-            CompileAndVerify(text).
-                 VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+             VerifyIL("C.Main", expectedIL);
+    }
 
-        // PostFix Increment In For
-        [Fact, WorkItem(539759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539759")]
-        public void PostFixIncrementInFor()
-        {
-            var text =
+    // PostFix Increment In For
+    [Fact, WorkItem(539759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539759")]
+    public void PostFixIncrementInFor()
+    {
+        var text =
 @"
 class Program
 {
@@ -1769,7 +1769,7 @@ class Program
 }
 ";
 
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       19 (0x13)
   .maxstack  2
   .locals init (int V_0) //j
@@ -1788,15 +1788,15 @@ class Program
   IL_0012:  ret
 }
 ";
-            CompileAndVerify(text).
-                VerifyIL("Program.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+            VerifyIL("Program.Main", expectedIL);
+    }
 
-        // PreFix Increment In For
-        [Fact]
-        public void PreFixIncrementInFor()
-        {
-            var text =
+    // PreFix Increment In For
+    [Fact]
+    public void PreFixIncrementInFor()
+    {
+        var text =
 @"
 class Program
 {
@@ -1810,17 +1810,17 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+        var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
-        }
+    }
 
-        // PreFix Increment In Condition
-        [Fact]
-        public void PreFixIncrementInCondition()
-        {
-            var text =
+    // PreFix Increment In Condition
+    [Fact]
+    public void PreFixIncrementInCondition()
+    {
+        var text =
 @"
 class Program
 {
@@ -1833,17 +1833,17 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+        var comp = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
-        }
+    }
 
-        // PostFix Increment In Condition
-        [Fact]
-        public void PostFixDecrementInCondition()
-        {
-            var text =
+    // PostFix Increment In Condition
+    [Fact]
+    public void PostFixDecrementInCondition()
+    {
+        var text =
 @"
 class Program
 {
@@ -1860,17 +1860,17 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"-1
+        var comp = CompileAndVerify(text, expectedOutput: @"-1
 -2
 -3
 -4
 -5");
-        }
+    }
 
-        [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
-        public void InfiniteLoopVerify()
-        {
-            var text =
+    [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
+    public void InfiniteLoopVerify()
+    {
+        var text =
 @"
 class Program
 {
@@ -1884,7 +1884,7 @@ class Program
 }
 ";
 
-            string expectedIL = @"
+        string expectedIL = @"
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -1892,14 +1892,14 @@ class Program
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  br.s       IL_0000
 }";
-            CompileAndVerify(text).
-                VerifyIL("Program.Main", expectedIL);
-        }
+        CompileAndVerify(text).
+            VerifyIL("Program.Main", expectedIL);
+    }
 
-        [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
-        public void InfiniteLoopVerify01()
-        {
-            var text =
+    [Fact, WorkItem(992882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992882")]
+    public void InfiniteLoopVerify01()
+    {
+        var text =
 @"
 class Program
 {
@@ -1913,9 +1913,9 @@ class Program
 }
 ";
 
-            var c = CompileAndVerify(text, options: TestOptions.DebugExe);
+        var c = CompileAndVerify(text, options: TestOptions.DebugExe);
 
-            c.VerifyIL("Program.Main", @"
+        c.VerifyIL("Program.Main", @"
 {
   // Code size       20 (0x14)
   .maxstack  1
@@ -1931,6 +1931,5 @@ class Program
   IL_0011:  stloc.0
   IL_0012:  br.s       IL_0003
 }");
-        }
     }
 }

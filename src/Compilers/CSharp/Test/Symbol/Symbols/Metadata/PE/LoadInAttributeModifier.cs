@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE;
+
+public class LoadInAttributeModifier : CSharpTestBase
 {
-    public class LoadInAttributeModifier : CSharpTestBase
+    [Fact]
+    public void MissingInAttributeModreq_Delegates_Parameters()
     {
-        [Fact]
-        public void MissingInAttributeModreq_Delegates_Parameters()
-        {
-            var reference = CompileIL(@"
+        var reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     void M(D d) => d(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
-                //     void M(D d) => d(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
-        }
+            // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
+            //     void M(D d) => d(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Delegates_Parameters_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Delegates_Parameters_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -85,20 +85,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     void M(D d) => d(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
-                //     void M(D d) => d(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
-        }
+            // (4,20): error CS0570: 'D.Invoke(in int)' is not supported by the language
+            //     void M(D d) => d(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "d(0)").WithArguments("D.Invoke(in int)").WithLocation(4, 20));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Delegates_ReturnTypes()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Delegates_ReturnTypes()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -119,20 +119,20 @@ class Test
     }
 }");
 
-            var c = CreateCompilation(@"
+        var c = CreateCompilation(@"
 class Test
 {
     ref readonly int M(D d) => ref d();
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
-                //     ref readonly int M(D d) => ref d();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
-        }
+            // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
+            //     ref readonly int M(D d) => ref d();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Delegates_ReturnTypes_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Delegates_ReturnTypes_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -153,20 +153,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     ref readonly int M(D d) => ref d();
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
-                //     ref readonly int M(D d) => ref d();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
-        }
+            // (4,36): error CS0570: 'D.Invoke()' is not supported by the language
+            //     ref readonly int M(D d) => ref d();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(4, 36));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Properties()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Properties()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig specialname instance int32& get_X () cil managed 
@@ -195,20 +195,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public ref readonly int M(RefTest obj) => ref obj.X;
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,55): error CS0570: 'RefTest.X' is not supported by the language
-                //     public ref readonly int M(RefTest obj) => ref obj.X;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
-        }
+            // (4,55): error CS0570: 'RefTest.X' is not supported by the language
+            //     public ref readonly int M(RefTest obj) => ref obj.X;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Properties_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Properties_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig specialname instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) get_X () cil managed 
@@ -237,20 +237,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public ref readonly int M(RefTest obj) => ref obj.X;
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,55): error CS0570: 'RefTest.X' is not supported by the language
-                //     public ref readonly int M(RefTest obj) => ref obj.X;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
-        }
+            // (4,55): error CS0570: 'RefTest.X' is not supported by the language
+            //     public ref readonly int M(RefTest obj) => ref obj.X;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "X").WithArguments("RefTest.X").WithLocation(4, 55));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Virtual()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Virtual()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance void M ([in] int32& x) cil managed 
@@ -272,20 +272,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
-                //     public int M(RefTest obj) => obj.M(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
-        }
+            // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+            //     public int M(RefTest obj) => obj.M(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Virtual_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Virtual_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -307,20 +307,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
-                //     public int M(RefTest obj) => obj.M(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
-        }
+            // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+            //     public int M(RefTest obj) => obj.M(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Override()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Override()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -367,7 +367,7 @@ class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -378,26 +378,26 @@ class Test
     }
 }";
 
-            // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child method is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
-                symbolValidator: module =>
-                {
-                    var method = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetMethod("M");
+            symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetMethod("M");
 
-                    Assert.True(method.IsOverride);
-                    Assert.True(method.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(method.IsOverride);
+                Assert.True(method.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Override_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Override_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& x) cil managed 
@@ -444,7 +444,7 @@ Parent",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 using System;
 class Test
 {
@@ -453,11 +453,11 @@ class Test
         Console.WriteLine(new Parent().M(0));
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,40): error CS0570: 'Parent.M(in int)' is not supported by the language
-                //         Console.WriteLine(new Parent().M(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Parent.M(in int)").WithLocation(7, 40));
+            // (7,40): error CS0570: 'Parent.M(in int)' is not supported by the language
+            //         Console.WriteLine(new Parent().M(0));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Parent.M(in int)").WithLocation(7, 40));
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -467,13 +467,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -520,7 +520,7 @@ class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -531,26 +531,26 @@ class Test
     }
 }";
 
-            // Child method is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child method is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent
 Parent",
-                symbolValidator: module =>
-                {
-                    var method = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetMethod("M");
+            symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetMethod("M");
 
-                    Assert.True(method.IsOverride);
-                    Assert.True(method.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(method.IsOverride);
+                Assert.True(method.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, method.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -597,7 +597,7 @@ Parent",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 using System;
 class Test
 {
@@ -606,11 +606,11 @@ class Test
         Console.WriteLine(new Parent().M(0));
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,40): error CS0570: 'Parent.M(in int)' is not supported by the language
-                //         Console.WriteLine(new Parent().M(0));
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Parent.M(in int)").WithLocation(7, 40));
+            // (7,40): error CS0570: 'Parent.M(in int)' is not supported by the language
+            //         Console.WriteLine(new Parent().M(0));
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("Parent.M(in int)").WithLocation(7, 40));
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -620,13 +620,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Abstract()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Abstract()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot abstract virtual instance void M ([in] int32& x) cil managed 
@@ -645,20 +645,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
-                //     public int M(RefTest obj) => obj.M(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
-        }
+            // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+            //     public int M(RefTest obj) => obj.M(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Method_Parameters_Abstract_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Method_Parameters_Abstract_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot abstract virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -677,20 +677,20 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public int M(RefTest obj) => obj.M(0);
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
-                //     public int M(RefTest obj) => obj.M(0);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
-        }
+            // (4,38): error CS0570: 'RefTest.M(in int)' is not supported by the language
+            //     public int M(RefTest obj) => obj.M(0);
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M(in int)").WithLocation(4, 38));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -723,7 +723,7 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -731,18 +731,18 @@ public class Test
         obj[0] = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
-                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+            // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -768,7 +768,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -776,15 +776,15 @@ public class Test
         int x = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         int x = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
-        }
+            // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         int x = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -810,7 +810,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -818,15 +818,15 @@ public class Test
         obj[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -859,7 +859,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -867,18 +867,18 @@ public class Test
         obj[0] = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
-                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+            // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -904,7 +904,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -912,15 +912,15 @@ public class Test
         int x = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         int x = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
-        }
+            // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         int x = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -946,7 +946,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -954,15 +954,15 @@ public class Test
         obj[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1003,7 +1003,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1011,18 +1011,18 @@ public class Test
         obj[0] = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
-                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+            // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1052,7 +1052,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1060,15 +1060,15 @@ public class Test
         int x = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         int x = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
-        }
+            // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         int x = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1098,7 +1098,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1106,15 +1106,15 @@ public class Test
         obj[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1155,7 +1155,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1163,18 +1163,18 @@ public class Test
         obj[0] = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
-                // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9),
+            // (6,18): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 18));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1204,7 +1204,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1212,15 +1212,15 @@ public class Test
         int x = obj[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         int x = obj[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
-        }
+            // (6,17): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         int x = obj[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[1]").WithArguments("RefTest.this[in int]").WithLocation(6, 17));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1250,7 +1250,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -1258,15 +1258,15 @@ public class Test
         obj[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
-                //         obj[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
-        }
+            // (6,9): error CS0570: 'RefTest.this[in int]' is not supported by the language
+            //         obj[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[in int]").WithLocation(6, 9));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1375,7 +1375,7 @@ public class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -1389,28 +1389,28 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Set
 Parent Get
 Parent Set",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1519,7 +1519,7 @@ Parent Set",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1528,14 +1528,14 @@ class Test
         parent[0] = parent[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9),
-                // (7,21): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 21));
+            // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9),
+            // (7,21): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 21));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -1545,15 +1545,15 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Child Get
 Child Set");
-        }
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1633,7 +1633,7 @@ Child Set");
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -1647,26 +1647,26 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Get",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_Get_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_Get_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1746,7 +1746,7 @@ Parent Get",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1755,11 +1755,11 @@ class Test
         int x = parent[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,17): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         int x = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 17));
+            // (7,17): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         int x = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 17));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -1769,13 +1769,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1845,7 +1845,7 @@ class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -1859,26 +1859,26 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Set
 Parent Set",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_Set_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_Set_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1948,7 +1948,7 @@ Parent Set",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -1957,11 +1957,11 @@ class Test
         parent[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9));
+            // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -1971,13 +1971,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2086,7 +2086,7 @@ class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -2100,28 +2100,28 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Set
 Parent Get
 Parent Set",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2230,7 +2230,7 @@ Parent Set",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2239,14 +2239,14 @@ class Test
         parent[0] = parent[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9),
-                // (7,21): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 21));
+            // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9),
+            // (7,21): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 21));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -2256,15 +2256,15 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Child Get
 Child Set");
-        }
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2344,7 +2344,7 @@ Child Set");
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -2358,26 +2358,26 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Get
 Parent Get",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2457,7 +2457,7 @@ Parent Get",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2466,11 +2466,11 @@ class Test
         int x = parent[1];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,17): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         int x = parent[1];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 17));
+            // (7,17): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         int x = parent[1];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[1]").WithArguments("Parent.this[in int]").WithLocation(7, 17));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -2480,13 +2480,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Get");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2556,7 +2556,7 @@ class Test
     }
 }");
 
-            var code = @"
+        var code = @"
 using System;
 class Test
 {
@@ -2570,26 +2570,26 @@ class Test
     }
 }";
 
-            // Child property is bad, so it binds to the parent
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
+        // Child property is bad, so it binds to the parent
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: @"
 Parent Set
 Parent Set",
-                symbolValidator: module =>
-                {
-                    var indexer = module.ContainingAssembly.BoundReferences()
-                        .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
-                        .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
+            symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.BoundReferences()
+                    .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
+                    .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
-                    Assert.True(indexer.IsOverride);
-                    Assert.True(indexer.HasUseSiteError);
-                    Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
-                });
-        }
+                Assert.True(indexer.IsOverride);
+                Assert.True(indexer.HasUseSiteError);
+                Assert.Equal((int)ErrorCode.ERR_BindToBogus, indexer.GetUseSiteDiagnostic().Code);
+            });
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set_Inverse()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set_Inverse()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2659,7 +2659,7 @@ Parent Set",
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 class Test
 {
     public static void Main()
@@ -2668,11 +2668,11 @@ class Test
         parent[0] = 0;
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
-                //         parent[0] = 0;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9));
+            // (7,9): error CS0570: 'Parent.this[in int]' is not supported by the language
+            //         parent[0] = 0;
+            Diagnostic(ErrorCode.ERR_BindToBogus, "parent[0]").WithArguments("Parent.this[in int]").WithLocation(7, 9));
 
-            var code = @"
+        var code = @"
 class Test
 {
     public static void Main()
@@ -2682,13 +2682,13 @@ class Test
     }
 }";
 
-            CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
-        }
+        CompileAndVerify(code, references: new[] { reference }, expectedOutput: "Child Set");
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_ReturnType()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_ReturnType()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2719,7 +2719,7 @@ class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2727,15 +2727,15 @@ public class Test
         ref readonly int x = ref obj[0];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
-                //         ref readonly int x = ref obj[0];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
-        }
+            // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
+            //         ref readonly int x = ref obj[0];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Indexers_ReturnType_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Indexers_ReturnType_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2766,7 +2766,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2774,15 +2774,15 @@ public class Test
         ref readonly int x = ref obj[0];
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
-                //         ref readonly int x = ref obj[0];
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
-        }
+            // (6,34): error CS0570: 'RefTest.this[int]' is not supported by the language
+            //         ref readonly int x = ref obj[0];
+            Diagnostic(ErrorCode.ERR_BindToBogus, "obj[0]").WithArguments("RefTest.this[int]").WithLocation(6, 34));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Methods_ReturnType()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Methods_ReturnType()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig instance int32& M () cil managed 
@@ -2805,7 +2805,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2813,15 +2813,15 @@ public class Test
         ref readonly int x = ref obj.M();
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
-                //         ref readonly int x = ref obj.M();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
-        }
+            // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
+            //         ref readonly int x = ref obj.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
+    }
 
-        [Fact]
-        public void MissingInAttributeModreq_Methods_ReturnType_ModOpt()
-        {
-            var reference = CompileIL(@"
+    [Fact]
+    public void MissingInAttributeModreq_Methods_ReturnType_ModOpt()
+    {
+        var reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) M () cil managed 
@@ -2844,7 +2844,7 @@ public class Test
     }
 }");
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 public class Test
 {
     public void M(RefTest obj)
@@ -2852,9 +2852,8 @@ public class Test
         ref readonly int x = ref obj.M();
     }
 }", references: new[] { reference }).VerifyDiagnostics(
-                // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
-                //         ref readonly int x = ref obj.M();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
-        }
+            // (6,38): error CS0570: 'RefTest.M()' is not supported by the language
+            //         ref readonly int x = ref obj.M();
+            Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("RefTest.M()").WithLocation(6, 38));
     }
 }

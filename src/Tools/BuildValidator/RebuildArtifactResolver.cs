@@ -11,30 +11,29 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator
+namespace BuildValidator;
+
+internal sealed class RebuildArtifactResolver : IRebuildArtifactResolver
 {
-    internal sealed class RebuildArtifactResolver : IRebuildArtifactResolver
+    internal LocalSourceResolver SourceResolver { get; }
+    internal LocalReferenceResolver ReferenceResolver { get; }
+
+    internal RebuildArtifactResolver(LocalSourceResolver sourceResolver, LocalReferenceResolver referenceResolver)
     {
-        internal LocalSourceResolver SourceResolver { get; }
-        internal LocalReferenceResolver ReferenceResolver { get; }
+        SourceResolver = sourceResolver;
+        ReferenceResolver = referenceResolver;
+    }
 
-        internal RebuildArtifactResolver(LocalSourceResolver sourceResolver, LocalReferenceResolver referenceResolver)
+    public SourceText ResolveSourceText(SourceTextInfo sourceTextInfo)
+        => SourceResolver.ResolveSource(sourceTextInfo);
+
+    public MetadataReference ResolveMetadataReference(MetadataReferenceInfo metadataReferenceInfo)
+    {
+        if (!ReferenceResolver.TryResolveReferences(metadataReferenceInfo, out var metadataReference))
         {
-            SourceResolver = sourceResolver;
-            ReferenceResolver = referenceResolver;
+            throw new InvalidOperationException($"Could not resolve reference: {metadataReferenceInfo.FileName}");
         }
 
-        public SourceText ResolveSourceText(SourceTextInfo sourceTextInfo)
-            => SourceResolver.ResolveSource(sourceTextInfo);
-
-        public MetadataReference ResolveMetadataReference(MetadataReferenceInfo metadataReferenceInfo)
-        {
-            if (!ReferenceResolver.TryResolveReferences(metadataReferenceInfo, out var metadataReference))
-            {
-                throw new InvalidOperationException($"Could not resolve reference: {metadataReferenceInfo.FileName}");
-            }
-
-            return metadataReference;
-        }
+        return metadataReference;
     }
 }

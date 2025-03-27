@@ -8,96 +8,95 @@ using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+
+internal sealed class Resolver : FunctionResolverBase<Process, Module, Request>
 {
-    internal sealed class Resolver : FunctionResolverBase<Process, Module, Request>
+    internal static readonly Resolver CSharpResolver = CreateFrom(new Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFunctionResolver());
+    internal static readonly Resolver VisualBasicResolver = CreateFrom(new Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver());
+
+    private readonly bool _ignoreCase;
+    private readonly Guid _languageId;
+    private readonly Dictionary<Process, List<Request>> _requests;
+
+    private static Resolver CreateFrom(FunctionResolver resolver)
     {
-        internal static readonly Resolver CSharpResolver = CreateFrom(new Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFunctionResolver());
-        internal static readonly Resolver VisualBasicResolver = CreateFrom(new Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.VisualBasicFunctionResolver());
+        return new Resolver(resolver.IgnoreCase, resolver.LanguageId);
+    }
 
-        private readonly bool _ignoreCase;
-        private readonly Guid _languageId;
-        private readonly Dictionary<Process, List<Request>> _requests;
+    private Resolver(bool ignoreCase, Guid languageId)
+    {
+        _ignoreCase = ignoreCase;
+        _languageId = languageId;
+        _requests = new Dictionary<Process, List<Request>>();
+    }
 
-        private static Resolver CreateFrom(FunctionResolver resolver)
+    internal void EnableResolution(Process process, Request request)
+    {
+        List<Request> requests;
+        if (!_requests.TryGetValue(process, out requests))
         {
-            return new Resolver(resolver.IgnoreCase, resolver.LanguageId);
+            requests = new List<Request>();
+            _requests.Add(process, requests);
         }
+        requests.Add(request);
+        base.EnableResolution(process, request, OnFunctionResolved);
+    }
 
-        private Resolver(bool ignoreCase, Guid languageId)
+    internal void OnModuleLoad(Process process, Module module)
+    {
+        base.OnModuleLoad(process, module, OnFunctionResolved);
+    }
+
+    internal override bool ShouldEnableFunctionResolver(Process process)
+    {
+        return process.ShouldEnableFunctionResolver();
+    }
+
+    internal override IEnumerable<Module> GetAllModules(Process process)
+    {
+        return process.GetModules();
+    }
+
+    internal override string GetModuleName(Module module)
+    {
+        return module.Name;
+    }
+
+    internal override unsafe bool TryGetMetadata(Module module, out byte* pointer, out int length)
+        => module.TryGetMetadata(out pointer, out length);
+
+    internal override Request[] GetRequests(Process process)
+    {
+        List<Request> requests;
+        if (!_requests.TryGetValue(process, out requests))
         {
-            _ignoreCase = ignoreCase;
-            _languageId = languageId;
-            _requests = new Dictionary<Process, List<Request>>();
+            return new Request[0];
         }
+        return requests.ToArray();
+    }
 
-        internal void EnableResolution(Process process, Request request)
-        {
-            List<Request> requests;
-            if (!_requests.TryGetValue(process, out requests))
-            {
-                requests = new List<Request>();
-                _requests.Add(process, requests);
-            }
-            requests.Add(request);
-            base.EnableResolution(process, request, OnFunctionResolved);
-        }
+    internal override string GetRequestModuleName(Request request)
+    {
+        return request.ModuleName;
+    }
 
-        internal void OnModuleLoad(Process process, Module module)
-        {
-            base.OnModuleLoad(process, module, OnFunctionResolved);
-        }
+    internal override RequestSignature GetParsedSignature(Request request)
+    {
+        return request.Signature;
+    }
 
-        internal override bool ShouldEnableFunctionResolver(Process process)
-        {
-            return process.ShouldEnableFunctionResolver();
-        }
+    internal override bool IgnoreCase => _ignoreCase;
 
-        internal override IEnumerable<Module> GetAllModules(Process process)
-        {
-            return process.GetModules();
-        }
+    internal override Guid GetLanguageId(Request request)
+    {
+        return request.LanguageId;
+    }
 
-        internal override string GetModuleName(Module module)
-        {
-            return module.Name;
-        }
+    internal override Guid LanguageId => _languageId;
 
-        internal override unsafe bool TryGetMetadata(Module module, out byte* pointer, out int length)
-            => module.TryGetMetadata(out pointer, out length);
-
-        internal override Request[] GetRequests(Process process)
-        {
-            List<Request> requests;
-            if (!_requests.TryGetValue(process, out requests))
-            {
-                return new Request[0];
-            }
-            return requests.ToArray();
-        }
-
-        internal override string GetRequestModuleName(Request request)
-        {
-            return request.ModuleName;
-        }
-
-        internal override RequestSignature GetParsedSignature(Request request)
-        {
-            return request.Signature;
-        }
-
-        internal override bool IgnoreCase => _ignoreCase;
-
-        internal override Guid GetLanguageId(Request request)
-        {
-            return request.LanguageId;
-        }
-
-        internal override Guid LanguageId => _languageId;
-
-        private static void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
-        {
-            request.OnFunctionResolved(module, token, version, ilOffset);
-        }
+    private static void OnFunctionResolved(Module module, Request request, int token, int version, int ilOffset)
+    {
+        request.OnFunctionResolved(module, token, version, ilOffset);
     }
 }

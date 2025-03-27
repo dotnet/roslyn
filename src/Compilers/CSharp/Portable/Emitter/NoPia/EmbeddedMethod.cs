@@ -15,193 +15,192 @@ using Cci = Microsoft.Cci;
 using MethodSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
+namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia;
+
+internal sealed class EmbeddedMethod : EmbeddedTypesManager.CommonEmbeddedMethod
 {
-    internal sealed class EmbeddedMethod : EmbeddedTypesManager.CommonEmbeddedMethod
+    public EmbeddedMethod(EmbeddedType containingType, MethodSymbolAdapter underlyingMethod) :
+        base(containingType, underlyingMethod)
     {
-        public EmbeddedMethod(EmbeddedType containingType, MethodSymbolAdapter underlyingMethod) :
-            base(containingType, underlyingMethod)
+    }
+
+    internal override EmbeddedTypesManager TypeManager
+    {
+        get
         {
+            return ContainingType.TypeManager;
         }
+    }
 
-        internal override EmbeddedTypesManager TypeManager
+    protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    {
+        return UnderlyingMethod.AdaptedSymbol.GetCustomAttributesToEmit(moduleBuilder);
+    }
+
+    protected override ImmutableArray<EmbeddedParameter> GetParameters()
+    {
+        return EmbeddedTypesManager.EmbedParameters(this, UnderlyingMethod.AdaptedMethodSymbol.Parameters);
+    }
+
+    protected override ImmutableArray<EmbeddedTypeParameter> GetTypeParameters()
+    {
+        return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray((t, m) => new EmbeddedTypeParameter(m, t.GetCciAdapter()), this);
+    }
+
+    protected override bool IsAbstract
+    {
+        get
         {
-            get
-            {
-                return ContainingType.TypeManager;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsAbstract;
         }
+    }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    protected override bool IsAccessCheckedOnOverride
+    {
+        get
         {
-            return UnderlyingMethod.AdaptedSymbol.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingMethod.AdaptedMethodSymbol.IsAccessCheckedOnOverride;
         }
+    }
 
-        protected override ImmutableArray<EmbeddedParameter> GetParameters()
+    protected override bool IsConstructor
+    {
+        get
         {
-            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingMethod.AdaptedMethodSymbol.Parameters);
+            return UnderlyingMethod.AdaptedMethodSymbol.MethodKind == MethodKind.Constructor;
         }
+    }
 
-        protected override ImmutableArray<EmbeddedTypeParameter> GetTypeParameters()
+    protected override bool IsExternal
+    {
+        get
         {
-            return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray((t, m) => new EmbeddedTypeParameter(m, t.GetCciAdapter()), this);
+            return UnderlyingMethod.AdaptedMethodSymbol.IsExternal;
         }
+    }
 
-        protected override bool IsAbstract
+    protected override bool IsHiddenBySignature
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsAbstract;
-            }
+            return !UnderlyingMethod.AdaptedMethodSymbol.HidesBaseMethodsByName;
         }
+    }
 
-        protected override bool IsAccessCheckedOnOverride
+    protected override bool IsNewSlot
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsAccessCheckedOnOverride;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot();
         }
+    }
 
-        protected override bool IsConstructor
+    protected override Cci.IPlatformInvokeInformation PlatformInvokeData
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.MethodKind == MethodKind.Constructor;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.GetDllImportData();
         }
+    }
 
-        protected override bool IsExternal
+    protected override bool IsRuntimeSpecial
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsExternal;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.HasRuntimeSpecialName;
         }
+    }
 
-        protected override bool IsHiddenBySignature
+    protected override bool IsSpecialName
+    {
+        get
         {
-            get
-            {
-                return !UnderlyingMethod.AdaptedMethodSymbol.HidesBaseMethodsByName;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.HasSpecialName;
         }
+    }
 
-        protected override bool IsNewSlot
+    protected override bool IsSealed
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot();
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal;
         }
+    }
 
-        protected override Cci.IPlatformInvokeInformation PlatformInvokeData
+    protected override bool IsStatic
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.GetDllImportData();
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsStatic;
         }
+    }
 
-        protected override bool IsRuntimeSpecial
+    protected override bool IsVirtual
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.HasRuntimeSpecialName;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual();
         }
+    }
 
-        protected override bool IsSpecialName
+    protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context)
+    {
+        return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes;
+    }
+
+    protected override bool ReturnValueIsMarshalledExplicitly
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.HasSpecialName;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly;
         }
+    }
 
-        protected override bool IsSealed
+    protected override Cci.IMarshallingInformation ReturnValueMarshallingInformation
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingInformation;
         }
+    }
 
-        protected override bool IsStatic
+    protected override ImmutableArray<byte> ReturnValueMarshallingDescriptor
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsStatic;
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingDescriptor;
         }
+    }
 
-        protected override bool IsVirtual
+    protected override Cci.TypeMemberVisibility Visibility
+        => UnderlyingMethod.AdaptedMethodSymbol.MetadataVisibility;
+
+    protected override string Name
+    {
+        get { return UnderlyingMethod.AdaptedMethodSymbol.MetadataName; }
+    }
+
+    protected override bool AcceptsExtraArguments
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual();
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.IsVararg;
         }
+    }
 
-        protected override System.Reflection.MethodImplAttributes GetImplementationAttributes(EmitContext context)
+    protected override Cci.ISignature UnderlyingMethodSignature
+    {
+        get
         {
-            return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes;
+            return (Cci.ISignature)UnderlyingMethod;
         }
+    }
 
-        protected override bool ReturnValueIsMarshalledExplicitly
+    protected override Cci.INamespace ContainingNamespace
+    {
+        get
         {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly;
-            }
-        }
-
-        protected override Cci.IMarshallingInformation ReturnValueMarshallingInformation
-        {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingInformation;
-            }
-        }
-
-        protected override ImmutableArray<byte> ReturnValueMarshallingDescriptor
-        {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingDescriptor;
-            }
-        }
-
-        protected override Cci.TypeMemberVisibility Visibility
-            => UnderlyingMethod.AdaptedMethodSymbol.MetadataVisibility;
-
-        protected override string Name
-        {
-            get { return UnderlyingMethod.AdaptedMethodSymbol.MetadataName; }
-        }
-
-        protected override bool AcceptsExtraArguments
-        {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.IsVararg;
-            }
-        }
-
-        protected override Cci.ISignature UnderlyingMethodSignature
-        {
-            get
-            {
-                return (Cci.ISignature)UnderlyingMethod;
-            }
-        }
-
-        protected override Cci.INamespace ContainingNamespace
-        {
-            get
-            {
-                return UnderlyingMethod.AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter();
-            }
+            return UnderlyingMethod.AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter();
         }
     }
 }

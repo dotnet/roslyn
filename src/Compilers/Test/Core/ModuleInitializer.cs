@@ -8,17 +8,16 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+internal static class ModuleInitializer
 {
-    internal static class ModuleInitializer
-    {
 #pragma warning disable CA2255
-        [ModuleInitializer]
+    [ModuleInitializer]
 #pragma warning restore CA2255
-        internal static void Initialize()
-        {
-            Trace.Listeners.Clear();
-            Trace.Listeners.Add(new ThrowingTraceListener());
-        }
+    internal static void Initialize()
+    {
+        Trace.Listeners.Clear();
+        Trace.Listeners.Add(new ThrowingTraceListener());
     }
 }

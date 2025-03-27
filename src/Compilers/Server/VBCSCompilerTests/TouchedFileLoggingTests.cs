@@ -19,13 +19,13 @@ using Microsoft.CodeAnalysis.CompilerServer;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
+
+public class TouchedFileLoggingTests : TestBase
 {
-    public class TouchedFileLoggingTests : TestBase
-    {
-        private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
-        private readonly string _baseDirectory = TempRoot.Root;
-        private const string HelloWorldCS = @"using System;
+    private static readonly string s_libDirectory = Environment.GetEnvironmentVariable("LIB");
+    private readonly string _baseDirectory = TempRoot.Root;
+    private const string HelloWorldCS = @"using System;
 
 class C
 {
@@ -35,7 +35,7 @@ class C
     }
 }";
 
-        private const string HelloWorldVB = @"Imports System
+    private const string HelloWorldVB = @"Imports System
 Class C
     Shared Sub Main(args As String())
         Console.WriteLine(""Hello, world"")
@@ -43,153 +43,152 @@ Class C
 End Class
 ";
 
-        [ConditionalFact(typeof(DesktopOnly))]
-        public void CSharpTrivialMetadataCaching()
+    [ConditionalFact(typeof(DesktopOnly))]
+    public void CSharpTrivialMetadataCaching()
+    {
+        var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
+        var filelist = new List<string>();
+
+        // Do the following compilation twice.
+        // The compiler server API should hold on to the mscorlib bits
+        // in memory, but the file tracker should still map that it was
+        // touched.
+        for (int i = 0; i < 2; i++)
         {
-            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
-            var filelist = new List<string>();
+            var source1 = Temp.CreateFile().WriteAllText(HelloWorldCS).Path;
+            var touchedDir = Temp.CreateDirectory();
+            var touchedBase = Path.Combine(touchedDir.Path, "touched");
+            var clientDirectory = AppContext.BaseDirectory;
 
-            // Do the following compilation twice.
-            // The compiler server API should hold on to the mscorlib bits
-            // in memory, but the file tracker should still map that it was
-            // touched.
-            for (int i = 0; i < 2; i++)
-            {
-                var source1 = Temp.CreateFile().WriteAllText(HelloWorldCS).Path;
-                var touchedDir = Temp.CreateDirectory();
-                var touchedBase = Path.Combine(touchedDir.Path, "touched");
-                var clientDirectory = AppContext.BaseDirectory;
+            filelist.Add(source1);
+            var outWriter = new StringWriter();
+            var cmd = new CSharpCompilerServer(
+                CompilerServerHost.SharedAssemblyReferenceProvider,
+                responseFile: null,
+                new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
+                s_libDirectory,
+                loader,
+                driverCache: null);
 
-                filelist.Add(source1);
-                var outWriter = new StringWriter();
-                var cmd = new CSharpCompilerServer(
-                    CompilerServerHost.SharedAssemblyReferenceProvider,
-                    responseFile: null,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    loader,
-                    driverCache: null);
+            List<string> expectedReads;
+            List<string> expectedWrites;
+            BuildTouchedFiles(cmd,
+                              Path.ChangeExtension(source1, "exe"),
+                              out expectedReads,
+                              out expectedWrites);
 
-                List<string> expectedReads;
-                List<string> expectedWrites;
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  out expectedReads,
-                                  out expectedWrites);
+            var exitCode = cmd.Run(outWriter);
 
-                var exitCode = cmd.Run(outWriter);
+            Assert.Equal(string.Empty, outWriter.ToString().Trim());
+            Assert.Equal(0, exitCode);
 
-                Assert.Equal(string.Empty, outWriter.ToString().Trim());
-                Assert.Equal(0, exitCode);
-
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase);
-            }
-
-            foreach (String f in filelist)
-            {
-                CleanupAllGeneratedFiles(f);
-            }
+            AssertTouchedFilesEqual(expectedReads,
+                                    expectedWrites,
+                                    touchedBase);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
-        public void VisualBasicTrivialMetadataCaching()
+        foreach (String f in filelist)
         {
-            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
-            var filelist = new List<string>();
+            CleanupAllGeneratedFiles(f);
+        }
+    }
 
-            // Do the following compilation twice.
-            // The compiler server API should hold on to the mscorlib bits
-            // in memory, but the file tracker should still map that it was
-            // touched.
-            for (int i = 0; i < 2; i++)
-            {
-                var source1 = Temp.CreateFile().WriteAllText(HelloWorldVB).Path;
-                var touchedDir = Temp.CreateDirectory();
-                var touchedBase = Path.Combine(touchedDir.Path, "touched");
-                var clientDirectory = AppContext.BaseDirectory;
+    [ConditionalFact(typeof(DesktopOnly))]
+    public void VisualBasicTrivialMetadataCaching()
+    {
+        var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
+        var filelist = new List<string>();
 
-                filelist.Add(source1);
-                var outWriter = new StringWriter();
-                var cmd = new VisualBasicCompilerServer(
-                    CompilerServerHost.SharedAssemblyReferenceProvider,
-                    responseFile: null,
-                    new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    loader,
-                    driverCache: null);
+        // Do the following compilation twice.
+        // The compiler server API should hold on to the mscorlib bits
+        // in memory, but the file tracker should still map that it was
+        // touched.
+        for (int i = 0; i < 2; i++)
+        {
+            var source1 = Temp.CreateFile().WriteAllText(HelloWorldVB).Path;
+            var touchedDir = Temp.CreateDirectory();
+            var touchedBase = Path.Combine(touchedDir.Path, "touched");
+            var clientDirectory = AppContext.BaseDirectory;
 
-                List<string> expectedReads;
-                List<string> expectedWrites;
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  out expectedReads,
-                                  out expectedWrites);
+            filelist.Add(source1);
+            var outWriter = new StringWriter();
+            var cmd = new VisualBasicCompilerServer(
+                CompilerServerHost.SharedAssemblyReferenceProvider,
+                responseFile: null,
+                new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
+                new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
+                s_libDirectory,
+                loader,
+                driverCache: null);
 
-                var exitCode = cmd.Run(outWriter);
+            List<string> expectedReads;
+            List<string> expectedWrites;
+            BuildTouchedFiles(cmd,
+                              Path.ChangeExtension(source1, "exe"),
+                              out expectedReads,
+                              out expectedWrites);
 
-                Assert.Equal(string.Empty, outWriter.ToString().Trim());
-                Assert.Equal(0, exitCode);
+            var exitCode = cmd.Run(outWriter);
 
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase);
-            }
+            Assert.Equal(string.Empty, outWriter.ToString().Trim());
+            Assert.Equal(0, exitCode);
 
-            foreach (string f in filelist)
-            {
-                CleanupAllGeneratedFiles(f);
-            }
+            AssertTouchedFilesEqual(expectedReads,
+                                    expectedWrites,
+                                    touchedBase);
         }
 
-        /// <summary>
-        /// Builds the expected base of touched files.
-        /// Adds a hook for temporary file creation as well,
-        /// so this method must be called before the execution of
-        /// Csc.Run.
-        /// </summary>
-        private static void BuildTouchedFiles(CommonCompiler cmd,
-                                              string outputPath,
-                                              out List<string> expectedReads,
-                                              out List<string> expectedWrites)
+        foreach (string f in filelist)
         {
-            expectedReads = new List<string>();
-            expectedReads.AddRange(cmd.Arguments.MetadataReferences.Select(r => r.Reference));
+            CleanupAllGeneratedFiles(f);
+        }
+    }
 
-            if (cmd.Arguments is VisualBasicCommandLineArguments { DefaultCoreLibraryReference: { } reference })
-            {
-                expectedReads.Add(reference.Reference);
-            }
+    /// <summary>
+    /// Builds the expected base of touched files.
+    /// Adds a hook for temporary file creation as well,
+    /// so this method must be called before the execution of
+    /// Csc.Run.
+    /// </summary>
+    private static void BuildTouchedFiles(CommonCompiler cmd,
+                                          string outputPath,
+                                          out List<string> expectedReads,
+                                          out List<string> expectedWrites)
+    {
+        expectedReads = new List<string>();
+        expectedReads.AddRange(cmd.Arguments.MetadataReferences.Select(r => r.Reference));
 
-            foreach (var file in cmd.Arguments.SourceFiles)
-            {
-                expectedReads.Add(file.Path);
-            }
-
-            var writes = new List<string>();
-            writes.Add(outputPath);
-
-            expectedWrites = writes;
+        if (cmd.Arguments is VisualBasicCommandLineArguments { DefaultCoreLibraryReference: { } reference })
+        {
+            expectedReads.Add(reference.Reference);
         }
 
-        private static void AssertTouchedFilesEqual(
-            List<string> expectedReads,
-            List<string> expectedWrites,
-            string touchedFilesBase)
+        foreach (var file in cmd.Arguments.SourceFiles)
         {
-            var touchedReadPath = touchedFilesBase + ".read";
-            var touchedWritesPath = touchedFilesBase + ".write";
-
-            var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
-            Assert.Equal(string.Join("\r\n", expected),
-                         File.ReadAllText(touchedReadPath).Trim());
-
-            expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
-            Assert.Equal(string.Join("\r\n", expected),
-                         File.ReadAllText(touchedWritesPath).Trim());
+            expectedReads.Add(file.Path);
         }
+
+        var writes = new List<string>();
+        writes.Add(outputPath);
+
+        expectedWrites = writes;
+    }
+
+    private static void AssertTouchedFilesEqual(
+        List<string> expectedReads,
+        List<string> expectedWrites,
+        string touchedFilesBase)
+    {
+        var touchedReadPath = touchedFilesBase + ".read";
+        var touchedWritesPath = touchedFilesBase + ".write";
+
+        var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+        Assert.Equal(string.Join("\r\n", expected),
+                     File.ReadAllText(touchedReadPath).Trim());
+
+        expected = expectedWrites.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+        Assert.Equal(string.Join("\r\n", expected),
+                     File.ReadAllText(touchedWritesPath).Trim());
     }
 }

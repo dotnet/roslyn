@@ -14,18 +14,18 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
+
+public class PDBAsyncTests : CSharpTestBase
 {
-    public class PDBAsyncTests : CSharpTestBase
+    [Fact]
+    [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
+    [WorkItem(631350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631350")]
+    [WorkItem(643501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/643501")]
+    [WorkItem(689616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689616")]
+    public void TestAsyncDebug()
     {
-        [Fact]
-        [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
-        [WorkItem(631350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631350")]
-        [WorkItem(643501, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/643501")]
-        [WorkItem(689616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689616")]
-        public void TestAsyncDebug()
-        {
-            var text = WithWindowsLineBreaks(@"
+        var text = WithWindowsLineBreaks(@"
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,15 +62,15 @@ class Driver
         return Driver.Result;
     }
 }");
-            verify(text);
-            verify(text.Replace("public static int Count = 0;", "public static int Count;"));
+        verify(text);
+        verify(text.Replace("public static int Count = 0;", "public static int Count;"));
 
-            void verify(string text)
-            {
-                var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-                var v = CompileAndVerify(compilation);
+        void verify(string text)
+        {
+            var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+            var v = CompileAndVerify(compilation);
 
-                v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+            v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
     {
     // Code size      303 (0x12f)
     .maxstack  3
@@ -198,9 +198,9 @@ class Driver
     IL_012d:  nop
     IL_012e:  ret
     }",
-    sequencePoints: "TestCase+<Run>d__1.MoveNext");
+sequencePoints: "TestCase+<Run>d__1.MoveNext");
 
-                v.VerifyPdb(@"
+            v.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -342,14 +342,14 @@ class Driver
     </method>
   </methods>
 </symbols>");
-            }
         }
+    }
 
-        [Fact]
-        [WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")]
-        public void TestAsyncDebug2()
-        {
-            var text = WithWindowsLineBreaks(@"
+    [Fact]
+    [WorkItem(734596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734596")]
+    public void TestAsyncDebug2()
+    {
+        var text = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -383,8 +383,8 @@ namespace ConsoleApplication1
         }
     }
 }");
-            var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-            compilation.VerifyPdb(@"
+        var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+        compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -525,14 +525,14 @@ namespace ConsoleApplication1
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
-        [WorkItem(690180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690180")]
-        public void TestAsyncDebug3()
-        {
-            var text = WithWindowsLineBreaks(@"
+    [Fact]
+    [WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
+    [WorkItem(690180, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/690180")]
+    public void TestAsyncDebug3()
+    {
+        var text = WithWindowsLineBreaks(@"
 class TestCase
 {
     static async void Await(dynamic d)
@@ -540,13 +540,13 @@ class TestCase
         int rez = await d;
     }
 }");
-            var compilation = CreateCompilationWithMscorlib461(
-                    text,
-                    options: TestOptions.DebugDll,
-                    references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
-                .VerifyDiagnostics();
+        var compilation = CreateCompilationWithMscorlib461(
+                text,
+                options: TestOptions.DebugDll,
+                references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
+            .VerifyDiagnostics();
 
-            compilation.VerifyPdb(@"
+        compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -601,12 +601,12 @@ class TestCase
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void TestAsyncDebug4()
-        {
-            var text = @"
+    [Fact]
+    public void TestAsyncDebug4()
+    {
+        var text = @"
 using System;
 using System.Threading.Tasks;
 
@@ -618,9 +618,9 @@ class C
         return 1;
     }
 }";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll));
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll));
 
-            v.VerifyIL("C.F", @"
+        v.VerifyIL("C.F", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -644,7 +644,7 @@ class C
 }",
 sequencePoints: "C.F");
 
-            v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+        v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
   // Code size      160 (0xa0)
   .maxstack  3
@@ -728,14 +728,14 @@ sequencePoints: "C.F");
   IL_009e:  nop
   IL_009f:  ret
 }", sequencePoints: "C+<F>d__0.MoveNext");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
-        public void DisplayClass_InBetweenSuspensionPoints_Release()
-        {
-            string source = @"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [Fact]
+    public void DisplayClass_InBetweenSuspensionPoints_Release()
+    {
+        string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -753,20 +753,20 @@ class C
     }
 }
 ";
-            // TODO: Currently we don't have means necessary to pass information about the display 
-            // class being pushed on evaluation stack, so that EE could find the locals.
-            // Thus the locals are not available in EE.
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        // TODO: Currently we don't have means necessary to pass information about the display 
+        // class being pushed on evaluation stack, so that EE could find the locals.
+        // Thus the locals are not available in EE.
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -803,7 +803,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -816,14 +816,14 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
-        public void DisplayClass_InBetweenSuspensionPoints_Debug()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [Fact]
+    public void DisplayClass_InBetweenSuspensionPoints_Debug()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -844,19 +844,19 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "b",
-                    "<>8__1",  // display class
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "b",
+                "<>8__1",  // display class
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -898,7 +898,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -922,14 +922,14 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
-        public void DisplayClass_AcrossSuspensionPoints_Release()
-        {
-            string source = @"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [Fact]
+    public void DisplayClass_AcrossSuspensionPoints_Release()
+    {
+        string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -949,18 +949,18 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<>8__1",  // display class
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<>8__1",  // display class
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -996,7 +996,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1009,14 +1009,14 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
-        public void DisplayClass_AcrossSuspensionPoints_Debug()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [Fact]
+    public void DisplayClass_AcrossSuspensionPoints_Debug()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -1036,19 +1036,19 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "b",
-                    "<>8__1",  // display class
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "b",
+                "<>8__1",  // display class
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1091,7 +1091,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1115,12 +1115,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void LocalReuse_Release()
-        {
-            string source = @"
+    [Fact]
+    public void LocalReuse_Release()
+    {
+        string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1152,21 +1152,21 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "b",
-                    "<x>5__2",
-                    "<>u__1",  // awaiter
-                    "<y1>5__3",
-                    "<z>5__4",
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "b",
+                "<x>5__2",
+                "<>u__1",  // awaiter
+                "<y1>5__3",
+                "<z>5__4",
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1219,12 +1219,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void LocalReuse_Debug()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void LocalReuse_Debug()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -1256,23 +1256,23 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "b",
-                    "<x>5__1",
-                    "<y>5__2",
-                    "<x>5__3",
-                    "<y1>5__4",
-                    "<z>5__5",
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "b",
+                "<x>5__1",
+                "<y>5__2",
+                "<x>5__3",
+                "<y1>5__4",
+                "<z>5__5",
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1343,14 +1343,14 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [Fact]
-        public void DynamicLocal_AcrossSuspensionPoints_Debug()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [Fact]
+    public void DynamicLocal_AcrossSuspensionPoints_Debug()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -1363,20 +1363,20 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<d>5__1",
-                    "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<d>5__1",
+                "<>u__1",  // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
-            // any locals when consumed by the EE (i.e. it has no effect).  See FUNCBRECEE::IsLocalDynamic.
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
+        // any locals when consumed by the EE (i.e. it has no effect).  See FUNCBRECEE::IsLocalDynamic.
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1420,7 +1420,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1440,15 +1440,15 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
-        [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
-        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
-        public void DynamicLocal_InBetweenSuspensionPoints_Release()
-        {
-            string source = @"
+    [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
+    [WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337")]
+    [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
+    [Fact]
+    public void DynamicLocal_InBetweenSuspensionPoints_Release()
+    {
+        string source = @"
 using System.Threading.Tasks;
 
 class C
@@ -1461,17 +1461,17 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<>u__1", // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1511,7 +1511,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1525,13 +1525,13 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
-        [Fact]
-        public void DynamicLocal_InBetweenSuspensionPoints_Debug()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(1070519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070519")]
+    [Fact]
+    public void DynamicLocal_InBetweenSuspensionPoints_Debug()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System.Threading.Tasks;
 
 class C
@@ -1547,18 +1547,18 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<d>5__1",
-                    "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<d>5__1",
+                "<>u__1", // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1602,7 +1602,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyPdb("C.M", @"
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1622,12 +1622,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void VariableScopeNotContainingSuspensionPoint()
-        {
-            string source = @"
+    [Fact]
+    public void VariableScopeNotContainingSuspensionPoint()
+    {
+        string source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1645,32 +1645,32 @@ class C
     }
 }
 ";
-            // We need to hoist x even though its scope doesn't contain await.
-            // The scopes may be merged by an EnC edit:
-            // 
-            // {
-            //     int x = 1;
-            //     Console.WriteLine(x);
-            //     await Task.Delay(0);
-            //     Console.WriteLine(x);
-            // }
+        // We need to hoist x even though its scope doesn't contain await.
+        // The scopes may be merged by an EnC edit:
+        // 
+        // {
+        //     int x = 1;
+        //     Console.WriteLine(x);
+        //     await Task.Delay(0);
+        //     Console.WriteLine(x);
+        // }
 
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
-            {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<x>5__1",
-                    "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
-        }
-
-        [Fact]
-        public void AwaitInFinally()
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
         {
-            string source = WithWindowsLineBreaks(@"
+            Assert.Equal(new[]
+            {
+                "<>1__state",
+                "<>t__builder",
+                "<x>5__1",
+                "<>u__1", // awaiter
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
+    }
+
+    [Fact]
+    public void AwaitInFinally()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -1691,21 +1691,21 @@ class C
         return x;
     }
 }");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<x>5__1",
-                    "<>s__2",
-                    "<>s__3",
-                    "<>s__4",
-                    "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<G>d__0"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<x>5__1",
+                "<>s__2",
+                "<>s__3",
+                "<>s__4",
+                "<>u__1", // awaiter
+            }, module.GetFieldNames("C.<G>d__0"));
+        });
 
-            v.VerifyPdb("C.G", @"
+        v.VerifyPdb("C.G", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1728,7 +1728,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyIL("C.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+        v.VerifyIL("C.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      274 (0x112)
   .maxstack  3
@@ -1866,7 +1866,7 @@ class C
   IL_0111:  ret
 }", sequencePoints: "C+<G>d__0.MoveNext");
 
-            v.VerifyPdb("C+<G>d__0.MoveNext", @"
+        v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1921,12 +1921,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void HoistedSpilledVariables()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void HoistedSpilledVariables()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -1945,31 +1945,31 @@ class C
     static int H(ref int a, int b, ref int c, int d) => 1;
     static int F(int a) => a;
 }");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>t__builder",
-                    "<z0>5__1",
-                    "<z1>5__2",
-                    "<>s__3",
-                    "<>s__4",
-                    "<>s__5",
-                    "<>s__6",
-                    "<>s__7",
-                    "<>s__8",
-                    "<>s__9",
-                    "<>s__10",
-                    "<>u__1",  // awaiter
-                    "<>s__11", // ref-spills
-                    "<>s__12",
-                    "<>s__13",
-                    "<>s__14",
-                }, module.GetFieldNames("C.<G>d__1"));
-            });
+                "<>1__state",
+                "<>t__builder",
+                "<z0>5__1",
+                "<z1>5__2",
+                "<>s__3",
+                "<>s__4",
+                "<>s__5",
+                "<>s__6",
+                "<>s__7",
+                "<>s__8",
+                "<>s__9",
+                "<>s__10",
+                "<>u__1",  // awaiter
+                "<>s__11", // ref-spills
+                "<>s__12",
+                "<>s__13",
+                "<>s__14",
+            }, module.GetFieldNames("C.<G>d__1"));
+        });
 
-            v.VerifyPdb("C.G", @"
+        v.VerifyPdb("C.G", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2002,21 +2002,21 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
-        public void PartialKickoffMethod()
-        {
-            string src = @"
+    [Fact]
+    [WorkItem(17934, "https://github.com/dotnet/roslyn/issues/17934")]
+    public void PartialKickoffMethod()
+    {
+        string src = @"
 public partial class C
 {
     partial void M();
     async partial void M() {}
 }";
-            var compilation = CreateCompilationWithMscorlib461(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var v = CompileAndVerify(compilation);
-            v.VerifyPdb("C.M", @"
+        var compilation = CreateCompilationWithMscorlib461(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
+        var v = CompileAndVerify(compilation);
+        v.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2030,25 +2030,25 @@ public partial class C
   </methods>
 </symbols>
 ");
-            var peStream = new MemoryStream();
-            var pdbStream = new MemoryStream();
+        var peStream = new MemoryStream();
+        var pdbStream = new MemoryStream();
 
-            var result = compilation.Emit(
-               peStream,
-               pdbStream,
-               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+        var result = compilation.Emit(
+           peStream,
+           pdbStream,
+           options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
 
-            Assert.True(result.Success);
+        Assert.True(result.Success);
 
-            pdbStream.Position = 0;
+        pdbStream.Position = 0;
 
-            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-            var mdReader = provider.GetMetadataReader();
-            var writer = new StringWriter();
-            var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
-            visualizer.WriteMethodDebugInformation();
+        using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+        var mdReader = provider.GetMetadataReader();
+        var writer = new StringWriter();
+        var visualizer = new MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences);
+        visualizer.WriteMethodDebugInformation();
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 20): 
 ================================================
    IL   
@@ -2068,13 +2068,13 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002A: <hidden>
 }
 5: nil",
-                writer.ToString());
-        }
+            writer.ToString());
+    }
 
-        [Fact]
-        public void CatchInAsyncStateMachine()
-        {
-            string src = WithWindowsLineBreaks(@"
+    [Fact]
+    public void CatchInAsyncStateMachine()
+    {
+        string src = WithWindowsLineBreaks(@"
 using System;
 using System.Threading.Tasks;
 
@@ -2097,9 +2097,9 @@ class C
         }
     }
 }");
-            var v = CreateEmptyCompilation(src, LatestVbReferences, options: TestOptions.DebugDll);
+        var v = CreateEmptyCompilation(src, LatestVbReferences, options: TestOptions.DebugDll);
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name=""test"" language=""C#"" />
@@ -2144,6 +2144,5 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
     }
 }

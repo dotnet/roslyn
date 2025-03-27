@@ -8,60 +8,59 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class GeneratorDriverCache(int maxCacheSize = 100)
 {
-    internal sealed class GeneratorDriverCache(int maxCacheSize = 100)
+    private readonly int MaxCacheSize = maxCacheSize;
+
+    private readonly (string cacheKey, GeneratorDriver driver)[] _cachedDrivers = new (string, GeneratorDriver)[maxCacheSize];
+
+    private readonly object _cacheLock = new object();
+
+    private int _cacheSize = 0;
+
+    public GeneratorDriver? TryGetDriver(string cacheKey) => AddOrUpdateMostRecentlyUsed(cacheKey, driver: null);
+
+    public void CacheGenerator(string cacheKey, GeneratorDriver driver) => AddOrUpdateMostRecentlyUsed(cacheKey, driver);
+
+    public int CacheSize => _cacheSize;
+
+    /// <summary>
+    /// Attempts to find a driver based on <paramref name="cacheKey"/>. If a matching driver is found in the 
+    /// cache, or explicitly passed via <paramref name="driver"/>, the cache is updated so that it is at the
+    /// head of the list.
+    /// </summary>
+    /// <param name="cacheKey">The key to lookup the driver by in the cache</param>
+    /// <param name="driver">An optional driver that should be cached, if not already found in the cache</param>
+    /// <returns></returns>
+    private GeneratorDriver? AddOrUpdateMostRecentlyUsed(string cacheKey, GeneratorDriver? driver)
     {
-        private readonly int MaxCacheSize = maxCacheSize;
-
-        private readonly (string cacheKey, GeneratorDriver driver)[] _cachedDrivers = new (string, GeneratorDriver)[maxCacheSize];
-
-        private readonly object _cacheLock = new object();
-
-        private int _cacheSize = 0;
-
-        public GeneratorDriver? TryGetDriver(string cacheKey) => AddOrUpdateMostRecentlyUsed(cacheKey, driver: null);
-
-        public void CacheGenerator(string cacheKey, GeneratorDriver driver) => AddOrUpdateMostRecentlyUsed(cacheKey, driver);
-
-        public int CacheSize => _cacheSize;
-
-        /// <summary>
-        /// Attempts to find a driver based on <paramref name="cacheKey"/>. If a matching driver is found in the 
-        /// cache, or explicitly passed via <paramref name="driver"/>, the cache is updated so that it is at the
-        /// head of the list.
-        /// </summary>
-        /// <param name="cacheKey">The key to lookup the driver by in the cache</param>
-        /// <param name="driver">An optional driver that should be cached, if not already found in the cache</param>
-        /// <returns></returns>
-        private GeneratorDriver? AddOrUpdateMostRecentlyUsed(string cacheKey, GeneratorDriver? driver)
+        lock (_cacheLock)
         {
-            lock (_cacheLock)
+            // try and find the driver if it's present
+            int i = 0;
+            for (; i < _cacheSize; i++)
             {
-                // try and find the driver if it's present
-                int i = 0;
-                for (; i < _cacheSize; i++)
+                if (_cachedDrivers[i].cacheKey == cacheKey)
                 {
-                    if (_cachedDrivers[i].cacheKey == cacheKey)
-                    {
-                        driver ??= _cachedDrivers[i].driver;
-                        break;
-                    }
+                    driver ??= _cachedDrivers[i].driver;
+                    break;
                 }
-
-                // if we found it (or were passed a new one), update the cache so its at the head of the list
-                if (driver is not null)
-                {
-                    for (i = Math.Min(i, MaxCacheSize - 1); i > 0; i--)
-                    {
-                        _cachedDrivers[i] = _cachedDrivers[i - 1];
-                    }
-                    _cachedDrivers[0] = (cacheKey, driver);
-                    _cacheSize = Math.Min(MaxCacheSize, _cacheSize + 1);
-                }
-
-                return driver;
             }
+
+            // if we found it (or were passed a new one), update the cache so its at the head of the list
+            if (driver is not null)
+            {
+                for (i = Math.Min(i, MaxCacheSize - 1); i > 0; i--)
+                {
+                    _cachedDrivers[i] = _cachedDrivers[i - 1];
+                }
+                _cachedDrivers[0] = (cacheKey, driver);
+                _cacheSize = Math.Min(MaxCacheSize, _cacheSize + 1);
+            }
+
+            return driver;
         }
     }
 }

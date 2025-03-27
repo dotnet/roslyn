@@ -7,96 +7,95 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public readonly partial struct SyntaxList<TNode>
 {
-    public readonly partial struct SyntaxList<TNode>
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
+    public struct Enumerator
     {
-        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-        public struct Enumerator
+        private readonly SyntaxList<TNode> _list;
+        private int _index;
+
+        internal Enumerator(SyntaxList<TNode> list)
         {
-            private readonly SyntaxList<TNode> _list;
-            private int _index;
+            _list = list;
+            _index = -1;
+        }
 
-            internal Enumerator(SyntaxList<TNode> list)
+        public bool MoveNext()
+        {
+            int newIndex = _index + 1;
+            if (newIndex < _list.Count)
             {
-                _list = list;
-                _index = -1;
+                _index = newIndex;
+                return true;
             }
 
-            public bool MoveNext()
-            {
-                int newIndex = _index + 1;
-                if (newIndex < _list.Count)
-                {
-                    _index = newIndex;
-                    return true;
-                }
+            return false;
+        }
 
-                return false;
-            }
-
-            public TNode Current
+        public TNode Current
+        {
+            get
             {
-                get
-                {
-                    return (TNode)_list.ItemInternal(_index)!;
-                }
-            }
-
-            public void Reset()
-            {
-                _index = -1;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override int GetHashCode()
-            {
-                throw new NotSupportedException();
+                return (TNode)_list.ItemInternal(_index)!;
             }
         }
 
-        private class EnumeratorImpl : IEnumerator<TNode>
+        public void Reset()
         {
-            private Enumerator _e;
+            _index = -1;
+        }
 
-            internal EnumeratorImpl(in SyntaxList<TNode> list)
-            {
-                _e = new Enumerator(list);
-            }
+        public override bool Equals(object? obj)
+        {
+            throw new NotSupportedException();
+        }
 
-            public bool MoveNext()
-            {
-                return _e.MoveNext();
-            }
+        public override int GetHashCode()
+        {
+            throw new NotSupportedException();
+        }
+    }
 
-            public TNode Current
-            {
-                get
-                {
-                    return _e.Current;
-                }
-            }
+    private class EnumeratorImpl : IEnumerator<TNode>
+    {
+        private Enumerator _e;
 
-            void IDisposable.Dispose()
-            {
-            }
+        internal EnumeratorImpl(in SyntaxList<TNode> list)
+        {
+            _e = new Enumerator(list);
+        }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return _e.Current;
-                }
-            }
+        public bool MoveNext()
+        {
+            return _e.MoveNext();
+        }
 
-            void IEnumerator.Reset()
+        public TNode Current
+        {
+            get
             {
-                _e.Reset();
+                return _e.Current;
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return _e.Current;
+            }
+        }
+
+        void IEnumerator.Reset()
+        {
+            _e.Reset();
         }
     }
 }

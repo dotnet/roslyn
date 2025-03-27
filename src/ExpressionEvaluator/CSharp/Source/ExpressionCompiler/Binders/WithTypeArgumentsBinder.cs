@@ -11,48 +11,47 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+
+internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
 {
-    internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
+    private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
+    private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
+
+    internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
+        : base(next)
     {
-        private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
-        private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
+        Debug.Assert(!typeArguments.IsDefaultOrEmpty);
+        Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
+        _typeArguments = typeArguments;
+    }
 
-        internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
-            : base(next)
+    protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
+    {
+        get
         {
-            Debug.Assert(!typeArguments.IsDefaultOrEmpty);
-            Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
-            _typeArguments = typeArguments;
-        }
-
-        protected override MultiDictionary<string, TypeParameterSymbol> TypeParameterMap
-        {
-            get
+            if (_lazyTypeParameterMap == null)
             {
-                if (_lazyTypeParameterMap == null)
+                var result = new MultiDictionary<string, TypeParameterSymbol>();
+                foreach (var tps in _typeArguments)
                 {
-                    var result = new MultiDictionary<string, TypeParameterSymbol>();
-                    foreach (var tps in _typeArguments)
-                    {
-                        result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
-                    }
-                    Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
+                    result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
                 }
-                return _lazyTypeParameterMap;
+                Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
             }
+            return _lazyTypeParameterMap;
         }
+    }
 
-        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+    internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+    {
+        if (CanConsiderTypeParameters(options))
         {
-            if (CanConsiderTypeParameters(options))
+            foreach (var parameter in _typeArguments)
             {
-                foreach (var parameter in _typeArguments)
+                if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
-                    {
-                        result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
-                    }
+                    result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
                 }
             }
         }

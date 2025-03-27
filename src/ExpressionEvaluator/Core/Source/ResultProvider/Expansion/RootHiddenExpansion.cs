@@ -7,67 +7,66 @@
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+internal sealed class RootHiddenExpansion : Expansion
 {
-    internal sealed class RootHiddenExpansion : Expansion
+    internal static Expansion CreateExpansion(
+        MemberAndDeclarationInfo members,
+        CustomTypeInfoTypeArgumentMap customTypeInfoMap)
     {
-        internal static Expansion CreateExpansion(
-            MemberAndDeclarationInfo members,
-            CustomTypeInfoTypeArgumentMap customTypeInfoMap)
-        {
-            return new RootHiddenExpansion(members, customTypeInfoMap);
-        }
+        return new RootHiddenExpansion(members, customTypeInfoMap);
+    }
 
-        private readonly MemberAndDeclarationInfo _member;
-        private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
+    private readonly MemberAndDeclarationInfo _member;
+    private readonly CustomTypeInfoTypeArgumentMap _customTypeInfoMap;
 
-        internal RootHiddenExpansion(MemberAndDeclarationInfo member, CustomTypeInfoTypeArgumentMap customTypeInfoMap)
-        {
-            _member = member;
-            _customTypeInfoMap = customTypeInfoMap;
-        }
+    internal RootHiddenExpansion(MemberAndDeclarationInfo member, CustomTypeInfoTypeArgumentMap customTypeInfoMap)
+    {
+        _member = member;
+        _customTypeInfoMap = customTypeInfoMap;
+    }
 
-        internal override void GetRows(
-            ResultProvider resultProvider,
-            ArrayBuilder<EvalResult> rows,
-            DkmInspectionContext inspectionContext,
-            EvalResultDataItem parent,
-            DkmClrValue value,
-            int startIndex,
-            int count,
-            bool visitAll,
-            ref int index)
+    internal override void GetRows(
+        ResultProvider resultProvider,
+        ArrayBuilder<EvalResult> rows,
+        DkmInspectionContext inspectionContext,
+        EvalResultDataItem parent,
+        DkmClrValue value,
+        int startIndex,
+        int count,
+        bool visitAll,
+        ref int index)
+    {
+        var memberValue = value.GetMemberValue(_member, inspectionContext);
+        var isDynamicDebugViewEmptyException = memberValue.Type.GetLmrType().IsDynamicDebugViewEmptyException();
+        if (isDynamicDebugViewEmptyException || memberValue.IsError())
         {
-            var memberValue = value.GetMemberValue(_member, inspectionContext);
-            var isDynamicDebugViewEmptyException = memberValue.Type.GetLmrType().IsDynamicDebugViewEmptyException();
-            if (isDynamicDebugViewEmptyException || memberValue.IsError())
+            if (InRange(startIndex, count, index))
             {
-                if (InRange(startIndex, count, index))
+                if (isDynamicDebugViewEmptyException)
                 {
-                    if (isDynamicDebugViewEmptyException)
-                    {
-                        var emptyMember = memberValue.Type.GetMemberByName("Empty");
-                        memberValue = memberValue.GetMemberValue(emptyMember, inspectionContext);
-                    }
-                    var row = new EvalResult(Resources.ErrorName, (string)memberValue.HostObjectValue, inspectionContext);
-                    rows.Add(row);
+                    var emptyMember = memberValue.Type.GetMemberByName("Empty");
+                    memberValue = memberValue.GetMemberValue(emptyMember, inspectionContext);
                 }
-                index++;
+                var row = new EvalResult(Resources.ErrorName, (string)memberValue.HostObjectValue, inspectionContext);
+                rows.Add(row);
             }
-            else
-            {
-                var other = MemberExpansion.CreateMemberDataItem(
-                    resultProvider,
-                    inspectionContext,
-                    _member,
-                    memberValue,
-                    parent,
-                    _customTypeInfoMap,
-                    ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
-                    supportsFavorites: false);
-                var expansion = other.Expansion;
-                expansion?.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
-            }
+            index++;
+        }
+        else
+        {
+            var other = MemberExpansion.CreateMemberDataItem(
+                resultProvider,
+                inspectionContext,
+                _member,
+                memberValue,
+                parent,
+                _customTypeInfoMap,
+                ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
+                supportsFavorites: false);
+            var expansion = other.Expansion;
+            expansion?.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
         }
     }
 }

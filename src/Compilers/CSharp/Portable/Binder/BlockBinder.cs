@@ -12,83 +12,82 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class BlockBinder : LocalScopeBinder
 {
-    internal sealed class BlockBinder : LocalScopeBinder
+    private readonly BlockSyntax _block;
+
+    public BlockBinder(Binder enclosing, BlockSyntax block)
+        : this(enclosing, block, enclosing.Flags)
     {
-        private readonly BlockSyntax _block;
+    }
 
-        public BlockBinder(Binder enclosing, BlockSyntax block)
-            : this(enclosing, block, enclosing.Flags)
+    public BlockBinder(Binder enclosing, BlockSyntax block, BinderFlags additionalFlags)
+        : base(enclosing, enclosing.Flags | additionalFlags)
+    {
+        Debug.Assert(block != null);
+        _block = block;
+    }
+
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        return BuildLocals(_block.Statements, this);
+    }
+
+    protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+    {
+        return BuildLocalFunctions(_block.Statements);
+    }
+
+    internal override bool IsLocalFunctionsScopeBinder
+    {
+        get
         {
+            return true;
+        }
+    }
+
+    protected override ImmutableArray<LabelSymbol> BuildLabels()
+    {
+        ArrayBuilder<LabelSymbol> labels = null;
+        base.BuildLabels(_block.Statements, ref labels);
+        return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
+    }
+
+    internal override bool IsLabelsScopeBinder
+    {
+        get
+        {
+            return true;
+        }
+    }
+
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.Locals;
         }
 
-        public BlockBinder(Binder enclosing, BlockSyntax block, BinderFlags additionalFlags)
-            : base(enclosing, enclosing.Flags | additionalFlags)
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    internal override SyntaxNode ScopeDesignator
+    {
+        get
         {
-            Debug.Assert(block != null);
-            _block = block;
+            return _block;
+        }
+    }
+
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.LocalFunctions;
         }
 
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            return BuildLocals(_block.Statements, this);
-        }
-
-        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
-        {
-            return BuildLocalFunctions(_block.Statements);
-        }
-
-        internal override bool IsLocalFunctionsScopeBinder
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        protected override ImmutableArray<LabelSymbol> BuildLabels()
-        {
-            ArrayBuilder<LabelSymbol> labels = null;
-            base.BuildLabels(_block.Statements, ref labels);
-            return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
-        }
-
-        internal override bool IsLabelsScopeBinder
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.Locals;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        internal override SyntaxNode ScopeDesignator
-        {
-            get
-            {
-                return _block;
-            }
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.LocalFunctions;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
+        throw ExceptionUtilities.Unreachable();
     }
 }

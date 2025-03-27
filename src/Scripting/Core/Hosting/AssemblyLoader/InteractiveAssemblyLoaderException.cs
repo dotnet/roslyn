@@ -6,13 +6,12 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting;
+
+internal sealed class InteractiveAssemblyLoaderException : NotSupportedException
 {
-    internal sealed class InteractiveAssemblyLoaderException : NotSupportedException
+    internal InteractiveAssemblyLoaderException(string message)
+        : base(message)
     {
-        internal InteractiveAssemblyLoaderException(string message)
-            : base(message)
-        {
-        }
     }
 }

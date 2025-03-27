@@ -9,17 +9,16 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-{
-    public class DkmClrDebuggerDisplayAttribute : DkmClrEvalAttribute
-    {
-        public string Name { get; internal set; }
-        public string TypeName { get; internal set; }
-        public string Value { get; internal set; }
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-        public DkmClrDebuggerDisplayAttribute(string targetMember)
-            : base(targetMember)
-        {
-        }
+public class DkmClrDebuggerDisplayAttribute : DkmClrEvalAttribute
+{
+    public string Name { get; internal set; }
+    public string TypeName { get; internal set; }
+    public string Value { get; internal set; }
+
+    public DkmClrDebuggerDisplayAttribute(string targetMember)
+        : base(targetMember)
+    {
     }
 }

@@ -11,47 +11,46 @@ using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class FormattedSymbolList : IFormattable
 {
-    internal sealed class FormattedSymbolList : IFormattable
+    private readonly IEnumerable<ISymbol> _symbols;
+    private readonly SymbolDisplayFormat _symbolDisplayFormat;
+
+    internal FormattedSymbolList(IEnumerable<ISymbol> symbols, SymbolDisplayFormat symbolDisplayFormat = null)
     {
-        private readonly IEnumerable<ISymbol> _symbols;
-        private readonly SymbolDisplayFormat _symbolDisplayFormat;
+        Debug.Assert(symbols != null);
 
-        internal FormattedSymbolList(IEnumerable<ISymbol> symbols, SymbolDisplayFormat symbolDisplayFormat = null)
+        _symbols = symbols;
+        _symbolDisplayFormat = symbolDisplayFormat;
+    }
+
+    public override string ToString()
+    {
+        PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
+        StringBuilder builder = pooled.Builder;
+
+        bool first = true;
+        foreach (var symbol in _symbols)
         {
-            Debug.Assert(symbols != null);
-
-            _symbols = symbols;
-            _symbolDisplayFormat = symbolDisplayFormat;
-        }
-
-        public override string ToString()
-        {
-            PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
-            StringBuilder builder = pooled.Builder;
-
-            bool first = true;
-            foreach (var symbol in _symbols)
+            if (first)
             {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    builder.Append(", ");
-                }
-
-                builder.Append(symbol.ToDisplayString(_symbolDisplayFormat));
+                first = false;
+            }
+            else
+            {
+                builder.Append(", ");
             }
 
-            return pooled.ToStringAndFree();
+            builder.Append(symbol.ToDisplayString(_symbolDisplayFormat));
         }
 
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
-        {
-            return ToString();
-        }
+        return pooled.ToStringAndFree();
+    }
+
+    string IFormattable.ToString(string format, IFormatProvider formatProvider)
+    {
+        return ToString();
     }
 }

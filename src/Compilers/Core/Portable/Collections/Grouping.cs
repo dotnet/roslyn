@@ -7,36 +7,35 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// A simple class to implement IGrouping.
+/// </summary>
+internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+    where TKey : notnull
 {
-    /// <summary>
-    /// A simple class to implement IGrouping.
-    /// </summary>
-    internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
-        where TKey : notnull
+    public TKey Key { get; }
+    private readonly IEnumerable<TElement> _elements;
+
+    public Grouping(TKey key, IEnumerable<TElement> elements)
     {
-        public TKey Key { get; }
-        private readonly IEnumerable<TElement> _elements;
+        this.Key = key;
+        _elements = elements;
+    }
 
-        public Grouping(TKey key, IEnumerable<TElement> elements)
-        {
-            this.Key = key;
-            _elements = elements;
-        }
+    public Grouping(KeyValuePair<TKey, IEnumerable<TElement>> pair)
+        : this(pair.Key, pair.Value)
+    {
+    }
 
-        public Grouping(KeyValuePair<TKey, IEnumerable<TElement>> pair)
-            : this(pair.Key, pair.Value)
-        {
-        }
+    public IEnumerator<TElement> GetEnumerator()
+    {
+        return _elements.GetEnumerator();
+    }
 
-        public IEnumerator<TElement> GetEnumerator()
-        {
-            return _elements.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

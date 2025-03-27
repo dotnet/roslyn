@@ -14,153 +14,152 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public abstract class SemanticModelTestBase : CSharpTestBase
 {
-    public abstract class SemanticModelTestBase : CSharpTestBase
+    protected int GetPositionForBinding(SyntaxTree tree)
     {
-        protected int GetPositionForBinding(SyntaxTree tree)
+        return GetSyntaxNodeForBinding(GetSyntaxNodeList(tree)).SpanStart;
+    }
+
+    protected int GetPositionForBinding(string code)
+    {
+        const string tag = "/*pos*/";
+
+        return code.IndexOf(tag, StringComparison.Ordinal) + tag.Length;
+    }
+
+    protected List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
+    {
+        return GetExprSyntaxList(syntaxTree.GetRoot(), null);
+    }
+
+    private List<ExpressionSyntax> GetExprSyntaxList(SyntaxNode node, List<ExpressionSyntax> exprSynList)
+    {
+        if (exprSynList == null)
+            exprSynList = new List<ExpressionSyntax>();
+
+        if (node is ExpressionSyntax)
         {
-            return GetSyntaxNodeForBinding(GetSyntaxNodeList(tree)).SpanStart;
+            exprSynList.Add(node as ExpressionSyntax);
         }
 
-        protected int GetPositionForBinding(string code)
+        foreach (var child in node.ChildNodesAndTokens())
         {
-            const string tag = "/*pos*/";
-
-            return code.IndexOf(tag, StringComparison.Ordinal) + tag.Length;
+            if (child.IsNode)
+                exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
         }
 
-        protected List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)
-        {
-            return GetExprSyntaxList(syntaxTree.GetRoot(), null);
-        }
+        return exprSynList;
+    }
 
-        private List<ExpressionSyntax> GetExprSyntaxList(SyntaxNode node, List<ExpressionSyntax> exprSynList)
-        {
-            if (exprSynList == null)
-                exprSynList = new List<ExpressionSyntax>();
+    protected ExpressionSyntax GetExprSyntaxForBinding(List<ExpressionSyntax> exprSynList, int index = 0)
+    {
+        var tagName = string.Format("bind{0}", index == 0 ? String.Empty : index.ToString());
+        var startComment = string.Format("/*<{0}>*/", tagName);
+        var endComment = string.Format("/*</{0}>*/", tagName);
 
-            if (node is ExpressionSyntax)
+        foreach (var exprSyntax in exprSynList)
+        {
+            string exprFullText = exprSyntax.ToFullString();
+            exprFullText = exprFullText.Trim();
+
+            if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
             {
-                exprSynList.Add(node as ExpressionSyntax);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
-            }
-
-            return exprSynList;
-        }
-
-        protected ExpressionSyntax GetExprSyntaxForBinding(List<ExpressionSyntax> exprSynList, int index = 0)
-        {
-            var tagName = string.Format("bind{0}", index == 0 ? String.Empty : index.ToString());
-            var startComment = string.Format("/*<{0}>*/", tagName);
-            var endComment = string.Format("/*</{0}>*/", tagName);
-
-            foreach (var exprSyntax in exprSynList)
-            {
-                string exprFullText = exprSyntax.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(endComment))
-                        if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
-                            return exprSyntax;
-                        else
-                            continue;
-                    else
+                if (exprFullText.Contains(endComment))
+                    if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
                         return exprSyntax;
-                }
-
-                if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(startComment))
-                        if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
-                            return exprSyntax;
-                        else
-                            continue;
                     else
-                        return exprSyntax;
-                }
+                        continue;
+                else
+                    return exprSyntax;
             }
 
-            return null;
+            if (exprFullText.EndsWith(endComment, StringComparison.Ordinal))
+            {
+                if (exprFullText.Contains(startComment))
+                    if (exprFullText.StartsWith(startComment, StringComparison.Ordinal))
+                        return exprSyntax;
+                    else
+                        continue;
+                else
+                    return exprSyntax;
+            }
         }
 
-        internal static SymbolInfo BindFirstConstructorInitializer(string source)
-        {
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
+        return null;
+    }
 
-            Assert.NotNull(constructorInitializer);
+    internal static SymbolInfo BindFirstConstructorInitializer(string source)
+    {
+        var compilation = CreateCompilation(source);
+        var tree = compilation.SyntaxTrees[0];
+        var model = compilation.GetSemanticModel(tree);
+        var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
 
-            return model.GetSpeculativeSymbolInfo(constructorInitializer.SpanStart, constructorInitializer);
-        }
+        Assert.NotNull(constructorInitializer);
 
-        private static ConstructorInitializerSyntax GetFirstConstructorInitializer(SyntaxNode node)
-        {
-            Func<SyntaxNode, bool> isConstructorInitializer = n =>
-                n.IsKind(SyntaxKind.BaseConstructorInitializer) || n.IsKind(SyntaxKind.ThisConstructorInitializer);
-            var constructorInitializers = node.DescendantNodesAndSelf(n => !(n is ExpressionSyntax)).Where(isConstructorInitializer);
-            return (ConstructorInitializerSyntax)constructorInitializers.FirstOrDefault();
-        }
+        return model.GetSpeculativeSymbolInfo(constructorInitializer.SpanStart, constructorInitializer);
+    }
 
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
-        {
-            var compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
-            return GetSemanticInfoForTest<TNode>(compilation);
-        }
+    private static ConstructorInitializerSyntax GetFirstConstructorInitializer(SyntaxNode node)
+    {
+        Func<SyntaxNode, bool> isConstructorInitializer = n =>
+            n.IsKind(SyntaxKind.BaseConstructorInitializer) || n.IsKind(SyntaxKind.ThisConstructorInitializer);
+        var constructorInitializers = node.DescendantNodesAndSelf(n => !(n is ExpressionSyntax)).Where(isConstructorInitializer);
+        return (ConstructorInitializerSyntax)constructorInitializers.FirstOrDefault();
+    }
 
-        internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
-        {
-            var compilation = CreateExperimentalCompilationWithMscorlib461(testSrc, feature, parseOptions: parseOptions);
-            return GetSemanticInfoForTest<TNode>(compilation);
-        }
+    protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
+    {
+        var compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
+        return GetSemanticInfoForTest<TNode>(compilation);
+    }
 
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(CSharpCompilation compilation) where TNode : SyntaxNode
-        {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var syntaxToBind = GetSyntaxNodeOfTypeForBinding<TNode>(GetSyntaxNodeList(tree));
+    internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
+    {
+        var compilation = CreateExperimentalCompilationWithMscorlib461(testSrc, feature, parseOptions: parseOptions);
+        return GetSemanticInfoForTest<TNode>(compilation);
+    }
 
-            return model.GetSemanticInfoSummary(syntaxToBind);
-        }
+    protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(CSharpCompilation compilation) where TNode : SyntaxNode
+    {
+        var tree = compilation.SyntaxTrees[0];
+        var model = compilation.GetSemanticModel(tree);
+        var syntaxToBind = GetSyntaxNodeOfTypeForBinding<TNode>(GetSyntaxNodeList(tree));
 
-        internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
-        {
-            var compilation = CreateCompilation(testSrc);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
-            var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
+        return model.GetSemanticInfoSummary(syntaxToBind);
+    }
 
-            return model.GetPreprocessingSymbolInfo(nameSyntaxToBind);
-        }
+    internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
+    {
+        var compilation = CreateCompilation(testSrc);
+        var tree = compilation.SyntaxTrees[0];
+        var model = compilation.GetSemanticModel(tree);
+        var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
+        var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
 
-        internal AliasSymbol GetAliasInfoForTest(string testSrc)
-        {
-            var compilation = CreateCompilation(testSrc);
-            return GetAliasInfoForTest(compilation);
-        }
+        return model.GetPreprocessingSymbolInfo(nameSyntaxToBind);
+    }
 
-        internal AliasSymbol GetAliasInfoForTest(CSharpCompilation compilation)
-        {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            IdentifierNameSyntax syntaxToBind = GetSyntaxNodeOfTypeForBinding<IdentifierNameSyntax>(GetSyntaxNodeList(tree));
+    internal AliasSymbol GetAliasInfoForTest(string testSrc)
+    {
+        var compilation = CreateCompilation(testSrc);
+        return GetAliasInfoForTest(compilation);
+    }
 
-            return model.GetAliasInfo(syntaxToBind).GetSymbol();
-        }
+    internal AliasSymbol GetAliasInfoForTest(CSharpCompilation compilation)
+    {
+        var tree = compilation.SyntaxTrees[0];
+        var model = compilation.GetSemanticModel(tree);
+        IdentifierNameSyntax syntaxToBind = GetSyntaxNodeOfTypeForBinding<IdentifierNameSyntax>(GetSyntaxNodeList(tree));
 
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(string testSrc)
-        {
-            return GetSemanticInfoForTest<ExpressionSyntax>(testSrc);
-        }
+        return model.GetAliasInfo(syntaxToBind).GetSymbol();
+    }
+
+    protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest(string testSrc)
+    {
+        return GetSemanticInfoForTest<ExpressionSyntax>(testSrc);
     }
 }

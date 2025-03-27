@@ -11,252 +11,251 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Represents a named type that is based on another named type.
+/// When inheriting from this class, one shouldn't assume that 
+/// the default behavior it has is appropriate for every case.
+/// That behavior should be carefully reviewed and derived type
+/// should override behavior as appropriate.
+/// </summary>
+internal abstract class WrappedNamedTypeSymbol : NamedTypeSymbol
 {
     /// <summary>
-    /// Represents a named type that is based on another named type.
-    /// When inheriting from this class, one shouldn't assume that 
-    /// the default behavior it has is appropriate for every case.
-    /// That behavior should be carefully reviewed and derived type
-    /// should override behavior as appropriate.
+    /// The underlying NamedTypeSymbol.
     /// </summary>
-    internal abstract class WrappedNamedTypeSymbol : NamedTypeSymbol
+    protected readonly NamedTypeSymbol _underlyingType;
+
+    public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType, TupleExtraData tupleData)
+        : base(tupleData)
     {
-        /// <summary>
-        /// The underlying NamedTypeSymbol.
-        /// </summary>
-        protected readonly NamedTypeSymbol _underlyingType;
+        Debug.Assert((object)underlyingType != null);
+        _underlyingType = underlyingType;
+    }
 
-        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType, TupleExtraData tupleData)
-            : base(tupleData)
+    public NamedTypeSymbol UnderlyingNamedType
+    {
+        get
         {
-            Debug.Assert((object)underlyingType != null);
-            _underlyingType = underlyingType;
+            return _underlyingType;
         }
+    }
 
-        public NamedTypeSymbol UnderlyingNamedType
+    public override bool IsImplicitlyDeclared
+    {
+        get { return _underlyingType.IsImplicitlyDeclared; }
+    }
+
+    public override int Arity
+    {
+        get
         {
-            get
+            return _underlyingType.Arity;
+        }
+    }
+
+    public override bool MightContainExtensionMethods
+    {
+        get
+        {
+            return _underlyingType.MightContainExtensionMethods;
+        }
+    }
+
+    public override string Name
+    {
+        get
+        {
+            return _underlyingType.Name;
+        }
+    }
+
+    public override string MetadataName
+    {
+        get
+        {
+            return _underlyingType.MetadataName;
+        }
+    }
+
+    internal override bool HasSpecialName
+    {
+        get
+        {
+            return _underlyingType.HasSpecialName;
+        }
+    }
+
+    internal override bool MangleName
+    {
+        get
+        {
+            return _underlyingType.MangleName;
+        }
+    }
+
+    public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+    }
+
+    public override Accessibility DeclaredAccessibility
+    {
+        get
+        {
+            return _underlyingType.DeclaredAccessibility;
+        }
+    }
+
+    public override TypeKind TypeKind
+    {
+        get
+        {
+            return _underlyingType.TypeKind;
+        }
+    }
+
+    internal override bool IsInterface
+    {
+        get
+        {
+            return _underlyingType.IsInterface;
+        }
+    }
+
+    public override ImmutableArray<Location> Locations
+    {
+        get
+        {
+            if (IsTupleType)
             {
-                return _underlyingType;
+                return TupleData.Locations;
             }
-        }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return _underlyingType.IsImplicitlyDeclared; }
+            return _underlyingType.Locations;
         }
+    }
 
-        public override int Arity
+    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    {
+        get
         {
-            get
+            if (IsTupleType)
             {
-                return _underlyingType.Arity;
+                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(TupleData.Locations);
             }
-        }
 
-        public override bool MightContainExtensionMethods
+            return _underlyingType.DeclaringSyntaxReferences;
+        }
+    }
+
+    public override bool IsStatic
+    {
+        get
         {
-            get
-            {
-                return _underlyingType.MightContainExtensionMethods;
-            }
+            return _underlyingType.IsStatic;
         }
+    }
 
-        public override string Name
+    public override bool IsAbstract
+    {
+        get
         {
-            get
-            {
-                return _underlyingType.Name;
-            }
+            return _underlyingType.IsAbstract;
         }
+    }
 
-        public override string MetadataName
+    internal override bool IsMetadataAbstract
+    {
+        get
         {
-            get
-            {
-                return _underlyingType.MetadataName;
-            }
+            return _underlyingType.IsMetadataAbstract;
         }
+    }
 
-        internal override bool HasSpecialName
+    public override bool IsSealed
+    {
+        get
         {
-            get
-            {
-                return _underlyingType.HasSpecialName;
-            }
+            return _underlyingType.IsSealed;
         }
+    }
 
-        internal override bool MangleName
+    internal override bool IsMetadataSealed
+    {
+        get
         {
-            get
-            {
-                return _underlyingType.MangleName;
-            }
+            return _underlyingType.IsMetadataSealed;
         }
+    }
 
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return _underlyingType.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
+    internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return _underlyingType.DeclaredAccessibility;
-            }
-        }
+    internal override bool IsInterpolatedStringHandlerType => _underlyingType.IsInterpolatedStringHandlerType;
 
-        public override TypeKind TypeKind
-        {
-            get
-            {
-                return _underlyingType.TypeKind;
-            }
-        }
+    internal override ObsoleteAttributeData ObsoleteAttributeData
+    {
+        get { return _underlyingType.ObsoleteAttributeData; }
+    }
 
-        internal override bool IsInterface
-        {
-            get
-            {
-                return _underlyingType.IsInterface;
-            }
-        }
+    internal override bool ShouldAddWinRTMembers
+    {
+        get { return _underlyingType.ShouldAddWinRTMembers; }
+    }
 
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                if (IsTupleType)
-                {
-                    return TupleData.Locations;
-                }
+    internal override bool IsWindowsRuntimeImport
+    {
+        get { return _underlyingType.IsWindowsRuntimeImport; }
+    }
 
-                return _underlyingType.Locations;
-            }
-        }
+    internal override TypeLayout Layout
+    {
+        get { return _underlyingType.Layout; }
+    }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                if (IsTupleType)
-                {
-                    return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(TupleData.Locations);
-                }
+    internal override CharSet MarshallingCharSet
+    {
+        get { return _underlyingType.MarshallingCharSet; }
+    }
 
-                return _underlyingType.DeclaringSyntaxReferences;
-            }
-        }
+    public override bool IsSerializable
+    {
+        get { return _underlyingType.IsSerializable; }
+    }
 
-        public override bool IsStatic
-        {
-            get
-            {
-                return _underlyingType.IsStatic;
-            }
-        }
+    public override bool IsRefLikeType
+    {
+        get { return _underlyingType.IsRefLikeType; }
+    }
 
-        public override bool IsAbstract
-        {
-            get
-            {
-                return _underlyingType.IsAbstract;
-            }
-        }
+    public override bool IsReadOnly
+    {
+        get { return _underlyingType.IsReadOnly; }
+    }
 
-        internal override bool IsMetadataAbstract
-        {
-            get
-            {
-                return _underlyingType.IsMetadataAbstract;
-            }
-        }
+    internal override bool HasDeclarativeSecurity
+    {
+        get { return _underlyingType.HasDeclarativeSecurity; }
+    }
 
-        public override bool IsSealed
-        {
-            get
-            {
-                return _underlyingType.IsSealed;
-            }
-        }
+    internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+    {
+        return _underlyingType.GetSecurityInformation();
+    }
 
-        internal override bool IsMetadataSealed
-        {
-            get
-            {
-                return _underlyingType.IsMetadataSealed;
-            }
-        }
+    internal override ImmutableArray<string> GetAppliedConditionalSymbols()
+    {
+        return _underlyingType.GetAppliedConditionalSymbols();
+    }
 
-        internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
+    internal override AttributeUsageInfo GetAttributeUsageInfo()
+    {
+        return _underlyingType.GetAttributeUsageInfo();
+    }
 
-        internal override bool IsInterpolatedStringHandlerType => _underlyingType.IsInterpolatedStringHandlerType;
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return _underlyingType.ObsoleteAttributeData; }
-        }
-
-        internal override bool ShouldAddWinRTMembers
-        {
-            get { return _underlyingType.ShouldAddWinRTMembers; }
-        }
-
-        internal override bool IsWindowsRuntimeImport
-        {
-            get { return _underlyingType.IsWindowsRuntimeImport; }
-        }
-
-        internal override TypeLayout Layout
-        {
-            get { return _underlyingType.Layout; }
-        }
-
-        internal override CharSet MarshallingCharSet
-        {
-            get { return _underlyingType.MarshallingCharSet; }
-        }
-
-        public override bool IsSerializable
-        {
-            get { return _underlyingType.IsSerializable; }
-        }
-
-        public override bool IsRefLikeType
-        {
-            get { return _underlyingType.IsRefLikeType; }
-        }
-
-        public override bool IsReadOnly
-        {
-            get { return _underlyingType.IsReadOnly; }
-        }
-
-        internal override bool HasDeclarativeSecurity
-        {
-            get { return _underlyingType.HasDeclarativeSecurity; }
-        }
-
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-        {
-            return _underlyingType.GetSecurityInformation();
-        }
-
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-        {
-            return _underlyingType.GetAppliedConditionalSymbols();
-        }
-
-        internal override AttributeUsageInfo GetAttributeUsageInfo()
-        {
-            return _underlyingType.GetAttributeUsageInfo();
-        }
-
-        internal override bool GetGuidString(out string guidString)
-        {
-            return _underlyingType.GetGuidString(out guidString);
-        }
+    internal override bool GetGuidString(out string guidString)
+    {
+        return _underlyingType.GetGuidString(out guidString);
     }
 }

@@ -10,116 +10,115 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+
+internal sealed partial class CSharpFormatter : Formatter
 {
-    internal sealed partial class CSharpFormatter : Formatter
+    public CSharpFormatter()
+        : base(defaultFormat: "{{{0}}}", nullString: "null", thisString: "this")
     {
-        public CSharpFormatter()
-            : base(defaultFormat: "{{{0}}}", nullString: "null", thisString: "this")
+    }
+
+    internal override bool IsValidIdentifier(string name)
+    {
+        return SyntaxFacts.IsValidIdentifier(name);
+    }
+
+    internal override bool IsIdentifierPartCharacter(char c)
+    {
+        return SyntaxFacts.IsIdentifierPartCharacter(c);
+    }
+
+    internal override bool IsPredefinedType(Type type)
+    {
+        return type.IsPredefinedType();
+    }
+
+    internal override bool IsWhitespace(char c)
+    {
+        return SyntaxFacts.IsWhitespace(c);
+    }
+
+    // TODO: https://github.com/dotnet/roslyn/issues/37536 
+    // This parsing is imprecise and may result in bad expressions.
+    internal override string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers)
+    {
+        expression = RemoveComments(expression);
+        expression = RemoveFormatSpecifiers(expression, out formatSpecifiers);
+        return RemoveLeadingAndTrailingContent(expression, 0, expression.Length, IsWhitespace, ch => ch == ';' || IsWhitespace(ch));
+    }
+
+    internal override string GetOriginalLocalVariableName(string name)
+    {
+        if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
         {
+            return name;
         }
 
-        internal override bool IsValidIdentifier(string name)
+        var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+        return result;
+    }
+
+    internal override string GetOriginalFieldName(string name)
+    {
+        if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
         {
-            return SyntaxFacts.IsValidIdentifier(name);
+            return name;
         }
 
-        internal override bool IsIdentifierPartCharacter(char c)
-        {
-            return SyntaxFacts.IsIdentifierPartCharacter(c);
-        }
+        var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+        return result;
+    }
 
-        internal override bool IsPredefinedType(Type type)
-        {
-            return type.IsPredefinedType();
-        }
+    private static string RemoveComments(string expression)
+    {
+        var pooledBuilder = PooledStringBuilder.GetInstance();
+        var builder = pooledBuilder.Builder;
+        var inMultilineComment = false;
+        int length = expression.Length;
 
-        internal override bool IsWhitespace(char c)
-        {
-            return SyntaxFacts.IsWhitespace(c);
-        }
+        // Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
+        // Do not remove any comments that might be in a string. 
+        // This won't work when there are quotes in the comment, but that's not that common.
+        int lastQuote = expression.LastIndexOf('"') + 1;
+        builder.Append(expression, 0, lastQuote);
 
-        // TODO: https://github.com/dotnet/roslyn/issues/37536 
-        // This parsing is imprecise and may result in bad expressions.
-        internal override string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers)
+        for (int i = lastQuote; i < length; i++)
         {
-            expression = RemoveComments(expression);
-            expression = RemoveFormatSpecifiers(expression, out formatSpecifiers);
-            return RemoveLeadingAndTrailingContent(expression, 0, expression.Length, IsWhitespace, ch => ch == ';' || IsWhitespace(ch));
-        }
-
-        internal override string GetOriginalLocalVariableName(string name)
-        {
-            if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
+            var ch = expression[i];
+            if (inMultilineComment)
             {
-                return name;
-            }
-
-            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
-            return result;
-        }
-
-        internal override string GetOriginalFieldName(string name)
-        {
-            if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
-            {
-                return name;
-            }
-
-            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
-            return result;
-        }
-
-        private static string RemoveComments(string expression)
-        {
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            var inMultilineComment = false;
-            int length = expression.Length;
-
-            // Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
-            // Do not remove any comments that might be in a string. 
-            // This won't work when there are quotes in the comment, but that's not that common.
-            int lastQuote = expression.LastIndexOf('"') + 1;
-            builder.Append(expression, 0, lastQuote);
-
-            for (int i = lastQuote; i < length; i++)
-            {
-                var ch = expression[i];
-                if (inMultilineComment)
+                if (ch == '*' && i + 1 < length && expression[i + 1] == '/')
                 {
-                    if (ch == '*' && i + 1 < length && expression[i + 1] == '/')
+                    i++;
+                    inMultilineComment = false;
+                }
+            }
+            else
+            {
+                if (ch == '/' && i + 1 < length)
+                {
+                    var next = expression[i + 1];
+                    if (next == '*')
                     {
                         i++;
-                        inMultilineComment = false;
+                        inMultilineComment = true;
+                        continue;
                     }
-                }
-                else
-                {
-                    if (ch == '/' && i + 1 < length)
+                    else if (next == '/')
                     {
-                        var next = expression[i + 1];
-                        if (next == '*')
-                        {
-                            i++;
-                            inMultilineComment = true;
-                            continue;
-                        }
-                        else if (next == '/')
-                        {
-                            // Ignore remainder of string.
-                            break;
-                        }
+                        // Ignore remainder of string.
+                        break;
                     }
-                    builder.Append(ch);
                 }
+                builder.Append(ch);
             }
-            if (builder.Length < length)
-            {
-                expression = builder.ToString();
-            }
-            pooledBuilder.Free();
-            return expression;
         }
+        if (builder.Length < length)
+        {
+            expression = builder.ToString();
+        }
+        pooledBuilder.Free();
+        return expression;
     }
 }

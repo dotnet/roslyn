@@ -11,12 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 
-namespace Microsoft.CodeAnalysis.CompilerServer
-{
-    internal interface ICompilerServerHost
-    {
-        ICompilerServerLogger Logger { get; }
+namespace Microsoft.CodeAnalysis.CompilerServer;
 
-        BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken);
-    }
+internal interface ICompilerServerHost
+{
+    ICompilerServerLogger Logger { get; }
+
+    BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken);
 }

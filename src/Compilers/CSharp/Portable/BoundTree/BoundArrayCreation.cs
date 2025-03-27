@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class BoundArrayCreation
 {
-    internal partial class BoundArrayCreation
+    public new bool IsParamsArrayOrCollection
     {
-        public new bool IsParamsArrayOrCollection
+        get
         {
-            get
-            {
-                return base.IsParamsArrayOrCollection;
-            }
-            init
-            {
-                base.IsParamsArrayOrCollection = value;
-            }
+            return base.IsParamsArrayOrCollection;
+        }
+        init
+        {
+            base.IsParamsArrayOrCollection = value;
         }
     }
 }

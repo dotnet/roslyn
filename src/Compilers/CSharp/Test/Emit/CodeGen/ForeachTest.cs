@@ -14,15 +14,15 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class ForeachTest : EmitMetadataTestBase
 {
-    public class ForeachTest : EmitMetadataTestBase
+    // The loop object must be an array or an object collection
+    [Fact]
+    public void SimpleLoop()
     {
-        // The loop object must be an array or an object collection
-        [Fact]
-        public void SimpleLoop()
-        {
-            var text =
+        var text =
 @"
 using System;
 public class Test
@@ -41,17 +41,17 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"one
+        string expectedOutput = @"one
 two
 three
 four";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestIteration()
-        {
-            CompileAndVerify(@"
+    [Fact]
+    public void TestIteration()
+    {
+        CompileAndVerify(@"
 using System;
 public class Test
 {
@@ -98,13 +98,13 @@ public class Test
   IL_001e:  blt.s      IL_0012
   IL_0020:  ret
 }");
-        }
+    }
 
-        // Using the Linq as iteration variable
-        [Fact]
-        public void TestLinqInForeach()
-        {
-            var text =
+    // Using the Linq as iteration variable
+    [Fact]
+    public void TestLinqInForeach()
+    {
+        var text =
 @"using System;
 using System.Linq;
 public class Test
@@ -117,17 +117,17 @@ public class Test
         }
     }
 }";
-            string expectedOutput = @"97
+        string expectedOutput = @"97
 98
 99";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Empty foreach statement
-        [Fact]
-        public void TestEmptyStatementForeach()
-        {
-            var text =
+    // Empty foreach statement
+    [Fact]
+    public void TestEmptyStatementForeach()
+    {
+        var text =
 @"class C
 {
     static void Main()
@@ -135,7 +135,7 @@ public class Test
         foreach (char C in ""abc"");
     }
 }";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       32 (0x20)
   .maxstack  2
   .locals init (string V_0,
@@ -159,14 +159,14 @@ public class Test
   IL_001d:  blt.s      IL_000a
   IL_001f:  ret
 }";
-            CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
+    }
 
-        // Foreach value can't be deleted in a loop
-        [Fact]
-        public void TestRemoveValueInForeach()
-        {
-            var text =
+    // Foreach value can't be deleted in a loop
+    [Fact]
+    public void TestRemoveValueInForeach()
+    {
+        var text =
 @"using System.Collections;
 using System.Collections.Generic;
 
@@ -183,7 +183,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       64 (0x40)
   .maxstack  2
   .locals init (System.Collections.Generic.List<int> V_0, //arrInt
@@ -221,14 +221,14 @@ class C
   }
   IL_003f:  ret       
 }";
-            CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
-        }
+        CompileAndVerify(text).VerifyIL("C.Main", expectedIL);
+    }
 
-        // With multidimensional arrays, you can use one loop to iterate through the elements
-        [Fact]
-        public void TestMultiDimensionalArray()
-        {
-            var text =
+    // With multidimensional arrays, you can use one loop to iterate through the elements
+    [Fact]
+    public void TestMultiDimensionalArray()
+    {
+        var text =
 @"class T
 {
     static public void Main()
@@ -241,20 +241,20 @@ class C
     }
 }
 ";
-            string expectedOutput = @"9
+        string expectedOutput = @"9
 99
 3
 33
 5
 55";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [WorkItem(540917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
-        [Fact]
-        public void TestArray()
-        {
-            var text =
+    [WorkItem(540917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540917")]
+    [Fact]
+    public void TestArray()
+    {
+        var text =
 @"using System;
 public class Test
 {
@@ -270,7 +270,7 @@ public class Test
     }
 }
 ";
-            string expectedIL = @"
+        string expectedIL = @"
 {
   // Code size       46 (0x2e)
   .maxstack  4
@@ -305,13 +305,13 @@ public class Test
   IL_002b:  blt.s      IL_001b
   IL_002d:  ret
 }";
-            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
-        }
+        CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
+    }
 
-        [Fact]
-        public void TestSpan()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpan()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -328,7 +328,7 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
 {
   // Code size       56 (0x38)
   .maxstack  3
@@ -359,12 +359,12 @@ class Test
   IL_0035:  blt.s      IL_001b
   IL_0037:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanSideeffectingLoopBody()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpanSideeffectingLoopBody()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -384,7 +384,7 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "1230").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "1230").VerifyIL("Test.Main", @"
 {
   // Code size       79 (0x4f)
   .maxstack  4
@@ -423,12 +423,12 @@ class Test
   IL_0049:  call       ""void System.Console.Write(int)""
   IL_004e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestReadOnlySpan()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestReadOnlySpan()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -445,8 +445,8 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            //NOTE: the verification error is expected. Wrapping of literals into readonly spans uses unsafe Span.ctor.
-            CompileAndVerify(comp, expectedOutput: "RedGreenBlue", verify: Verification.Fails).VerifyIL("Test.Main", @"
+        //NOTE: the verification error is expected. Wrapping of literals into readonly spans uses unsafe Span.ctor.
+        CompileAndVerify(comp, expectedOutput: "RedGreenBlue", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       50 (0x32)
   .maxstack  2
@@ -475,12 +475,12 @@ class Test
   IL_002f:  blt.s      IL_0010
   IL_0031:  ret
 }");
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestReadOnlySpanString()
-        {
-            var comp = CreateCompilation(@"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestReadOnlySpanString()
+    {
+        var comp = CreateCompilation(@"
 using System;
 
 class Test
@@ -497,7 +497,7 @@ class Test
 
 ", targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "hello", verify: Verification.Passes).VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "hello", verify: Verification.Passes).VerifyIL("Test.Main", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -524,12 +524,12 @@ class Test
   IL_0029:  blt.s      IL_000f
   IL_002b:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestReadOnlySpan2()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestReadOnlySpan2()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -545,7 +545,7 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       45 (0x2d)
   .maxstack  2
@@ -573,12 +573,12 @@ class Test
   IL_002a:  blt.s      IL_0010
   IL_002c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanNoIndexer()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpanNoIndexer()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -594,9 +594,9 @@ class Test
 }
 ", TestOptions.ReleaseExe);
 
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
+        comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
 
-            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
 {
   // Code size       57 (0x39)
   .maxstack  4
@@ -622,12 +622,12 @@ class Test
   IL_0036:  brtrue.s   IL_0022
   IL_0038:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanValIndexer()
-        {
-            var comp = CreateEmptyCompilation(@"
+    [Fact]
+    public void TestSpanValIndexer()
+    {
+        var comp = CreateEmptyCompilation(@"
 using System;
 
 class Test
@@ -693,7 +693,7 @@ namespace System
 
 ", references: new[] { MscorlibRef_v4_0_30316_17626 }, TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       56 (0x38)
   .maxstack  4
@@ -718,12 +718,12 @@ namespace System
   IL_0035:  brtrue.s   IL_0022
   IL_0037:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanConvert()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpanConvert()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -740,7 +740,7 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
 {
   // Code size       57 (0x39)
   .maxstack  3
@@ -772,12 +772,12 @@ class Test
   IL_0036:  blt.s      IL_001b
   IL_0038:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanDeconstruct()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpanDeconstruct()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -795,9 +795,9 @@ class Test
 
 ", TestOptions.ReleaseExe);
 
-            comp = comp.WithReferences(comp.References.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef }));
+        comp = comp.WithReferences(comp.References.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef }));
 
-            CompileAndVerify(comp, expectedOutput: "1234").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "1234").VerifyIL("Test.Main", @"
 {
   // Code size       95 (0x5f)
   .maxstack  5
@@ -844,12 +844,12 @@ class Test
   IL_005c:  blt.s      IL_002c
   IL_005e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSpanConvertDebug()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+    [Fact]
+    public void TestSpanConvertDebug()
+    {
+        var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -866,7 +866,7 @@ class Test
 
 ", TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
+        CompileAndVerify(comp, expectedOutput: "123").VerifyIL("Test.Main", @"
 {
   // Code size       67 (0x43)
   .maxstack  4
@@ -909,14 +909,14 @@ class Test
   IL_0040:  blt.s      IL_0020
   IL_0042:  ret
 }");
-        }
+    }
 
-        // Traveled Multi-dimensional jagged arrays 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void TestJaggedArray()
-        {
-            var text =
+    // Traveled Multi-dimensional jagged arrays 
+    [WorkItem(9229, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void TestJaggedArray()
+    {
+        var text =
 @"using System;
 public class Test
 {
@@ -933,19 +933,19 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 4
 5
 6";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Optimization to foreach (char c in String) by treating String as a char array 
-        [Fact]
-        public void TestString01()
-        {
-            var text =
+    // Optimization to foreach (char c in String) by treating String as a char array 
+    [Fact]
+    public void TestString01()
+    {
+        var text =
 @"using System;
 public class Test
 {
@@ -956,14 +956,14 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"";
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestString02()
-        {
-            var text =
+    [Fact]
+    public void TestString02()
+    {
+        var text =
 @"using System;
 public class Test
 {
@@ -981,14 +981,14 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"";
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestString03()
-        {
-            var text =
+    [Fact]
+    public void TestString03()
+    {
+        var text =
 @"using System;
 public class Test
 {
@@ -999,7 +999,7 @@ public class Test
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (string V_0,
@@ -1023,14 +1023,14 @@ public class Test
   IL_0019:  blt.s      IL_0006
   IL_001b:  ret
 }";
-            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
-        }
+        CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
+    }
 
-        // Traversing items in 'Dictionary'
-        [Fact]
-        public void TestDictionary()
-        {
-            var text =
+    // Traversing items in 'Dictionary'
+    [Fact]
+    public void TestDictionary()
+    {
+        var text =
 @"using System;
 using System.Collections.Generic;
 public class Test
@@ -1046,20 +1046,20 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 2
 3
 4";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Inner foreach loop referencing the outer foreach loop iteration variable
-        [Fact]
-        public void TestNestedLoop()
-        {
-            var text =
+    // Inner foreach loop referencing the outer foreach loop iteration variable
+    [Fact]
+    public void TestNestedLoop()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1075,20 +1075,20 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"A
+        string expectedOutput = @"A
 B
 C
 X
 Y
 Z";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Breaking from nested Loops
-        [Fact]
-        public void TestBreakInNestedLoop()
-        {
-            var text =
+    // Breaking from nested Loops
+    [Fact]
+    public void TestBreakInNestedLoop()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1108,19 +1108,19 @@ Z";
     }
 }
 ";
-            string expectedOutput = @"ABC
+        string expectedOutput = @"ABC
 X
 Y
 Z
 XYZ";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Continuing  from nested Loops
-        [Fact]
-        public void TestContinueInNestedLoop()
-        {
-            var text =
+    // Continuing  from nested Loops
+    [Fact]
+    public void TestContinueInNestedLoop()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1138,19 +1138,19 @@ XYZ";
     }
 }
 ";
-            string expectedOutput = @"A
+        string expectedOutput = @"A
 B
 X
 Y
 Z";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // Goto in foreach loops
-        [Fact]
-        public void TestGoto01()
-        {
-            var text =
+    // Goto in foreach loops
+    [Fact]
+    public void TestGoto01()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1169,14 +1169,14 @@ Z";
     }
 }
 ";
-            string expectedOutput = @"A";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"A";
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestGoto02()
-        {
-            var text =
+    [Fact]
+    public void TestGoto02()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1195,15 +1195,15 @@ Z";
     }
 }
 ";
-            string expectedOutput = @"A";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"A";
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        // 'Return' in foreach
-        [Fact]
-        public void TestReturn()
-        {
-            var text =
+    // 'Return' in foreach
+    [Fact]
+    public void TestReturn()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1216,7 +1216,7 @@ Z";
     }
 }
 ";
-            string expectedIL = @"{
+        string expectedIL = @"{
   // Code size       39 (0x27)
   .maxstack  4
   .locals init (string[] V_0,
@@ -1248,14 +1248,14 @@ Z";
   IL_0026:  ret
 }
 ";
-            CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
-        }
+        CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
+    }
 
-        // Dynamic works in foreach 
-        [Fact]
-        public void TestDynamic()
-        {
-            var text =
+    // Dynamic works in foreach 
+    [Fact]
+    public void TestDynamic()
+    {
+        var text =
 @"public class Test
 {
     static public void Main(string[] args)
@@ -1268,15 +1268,15 @@ Z";
     }
 }
 ";
-            string expectedOutput = @"abc
+        string expectedOutput = @"abc
 xyz";
-            CompileAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, new[] { CSharpRef }, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestVar01()
-        {
-            var text =
+    [Fact]
+    public void TestVar01()
+    {
+        var text =
 @"using System.Collections.Generic;
 public class Test
 {
@@ -1292,16 +1292,16 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"True
+        string expectedOutput = @"True
 True
 True";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestVar02()
-        {
-            var text =
+    [Fact]
+    public void TestVar02()
+    {
+        var text =
 @"
 public class Test
 {
@@ -1317,16 +1317,16 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"False
+        string expectedOutput = @"False
 False
 False";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestVar03()
-        {
-            var text =
+    [Fact]
+    public void TestVar03()
+    {
+        var text =
 @"
 public class Test
 {
@@ -1365,16 +1365,16 @@ class MyEnumerator
     }
 }
 ";
-            string expectedOutput = @"True
+        string expectedOutput = @"True
 True
 True";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestQuery()
-        {
-            var text =
+    [Fact]
+    public void TestQuery()
+    {
+        var text =
 @"
 using System.Linq;
 public class Test
@@ -1391,19 +1391,19 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"a
+        string expectedOutput = @"a
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(comp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestYield01()
-        {
-            var text =
+    [Fact]
+    public void TestYield01()
+    {
+        var text =
 @"
 using System.Collections;
 public class Test
@@ -1431,7 +1431,7 @@ public class myClass
     }
 }
 ";
-            string expectedOutput = @"2
+        string expectedOutput = @"2
 4
 8
 16
@@ -1440,13 +1440,13 @@ public class myClass
 128
 256
 ";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestYield02()
-        {
-            var text =
+    [Fact]
+    public void TestYield02()
+    {
+        var text =
 @"
 using System.Collections.Generic;
 public class Test
@@ -1464,17 +1464,17 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"2
+        string expectedOutput = @"2
 3
 4
 ";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestYield03()
-        {
-            var text =
+    [Fact]
+    public void TestYield03()
+    {
+        var text =
 @"
 using System.Collections.Generic;
 public class Test
@@ -1492,14 +1492,14 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"abc";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"abc";
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestYield04()
-        {
-            var text =
+    [Fact]
+    public void TestYield04()
+    {
+        var text =
 @"
 using System.Collections.Generic;
 public class Test
@@ -1522,16 +1522,16 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"3
+        string expectedOutput = @"3
 4
 5";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestYield05()
-        {
-            var text =
+    [Fact]
+    public void TestYield05()
+    {
+        var text =
 @"
 using System.Collections.Generic;
 public class Test
@@ -1551,16 +1551,16 @@ public class Gen<T> where T : new()
     }
 }
 ";
-            string expectedOutput = @"0
+        string expectedOutput = @"0
 0
 0";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(text, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestValueTypeIterationVariableCanBeMutatedByInstanceMethods()
-        {
-            const string source = @"
+    [Fact]
+    public void TestValueTypeIterationVariableCanBeMutatedByInstanceMethods()
+    {
+        const string source = @"
 struct A
 {
     int field;
@@ -1580,13 +1580,13 @@ struct A
     }  
 }";
 
-            CompileAndVerify(source, expectedOutput: "5");
-        }
+        CompileAndVerify(source, expectedOutput: "5");
+    }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
-        public void TestValueTypeIterationVariableFieldsAreReadonly()
-        {
-            const string source = @"
+    [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+    public void TestValueTypeIterationVariableFieldsAreReadonly()
+    {
+        const string source = @"
 using System;
 
 struct A
@@ -1615,13 +1615,13 @@ struct B
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
-        }
+        CompileAndVerify(source, expectedOutput: "0");
+    }
 
-        [Fact]
-        public void TestValueTypeIterationVariableFieldsAreReadonly2()
-        {
-            const string source = @"
+    [Fact]
+    public void TestValueTypeIterationVariableFieldsAreReadonly2()
+    {
+        const string source = @"
 struct C
 {
     public int field;
@@ -1651,45 +1651,44 @@ struct A
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
-        }
+        CompileAndVerify(source, expectedOutput: "0");
+    }
 
-        [Fact]
-        public void Var_ExtensionGetEnumerator()
-        {
-            var source = """
-                using System.Collections.Generic;
-                class MyCollection<T>
+    [Fact]
+    public void Var_ExtensionGetEnumerator()
+    {
+        var source = """
+            using System.Collections.Generic;
+            class MyCollection<T>
+            {
+                public readonly List<T> Items;
+                public MyCollection(params T[] items) { Items = new(items); }
+            }
+            static class Extensions
+            {
+                public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+            }
+            class Program
+            {
+                static void Main()
                 {
-                    public readonly List<T> Items;
-                    public MyCollection(params T[] items) { Items = new(items); }
+                    MyCollection<int> x = new(1, 2, 3);
+                    int total = 0;
+                    foreach (var y in x)
+                        total += y;
                 }
-                static class Extensions
-                {
-                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
-                }
-                class Program
-                {
-                    static void Main()
-                    {
-                        MyCollection<int> x = new(1, 2, 3);
-                        int total = 0;
-                        foreach (var y in x)
-                            total += y;
-                    }
-                }
-                """;
+            }
+            """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decl = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            var local = (SourceLocalSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>();
-            Assert.True(local.IsVar);
-            Assert.Equal("System.Int32", local.Type.ToTestDisplayString());
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var decl = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        var local = (SourceLocalSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>();
+        Assert.True(local.IsVar);
+        Assert.Equal("System.Int32", local.Type.ToTestDisplayString());
 
-            comp.VerifyDiagnostics();
-        }
+        comp.VerifyDiagnostics();
     }
 }

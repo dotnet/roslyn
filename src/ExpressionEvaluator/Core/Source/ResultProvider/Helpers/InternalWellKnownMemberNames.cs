@@ -4,12 +4,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+internal static class InternalWellKnownMemberNames
 {
-    internal static class InternalWellKnownMemberNames
-    {
-        public const string NullableHasValue = "hasValue";
-        public const string NullableValue = "value";
-        public const string SqlStringValue = "m_value";
-    }
+    public const string NullableHasValue = "hasValue";
+    public const string NullableValue = "value";
+    public const string SqlStringValue = "m_value";
 }

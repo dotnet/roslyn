@@ -6,15 +6,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+public static class TestExceptionUtilities
 {
-    public static class TestExceptionUtilities
+    public static InvalidOperationException UnexpectedValue(object o)
     {
-        public static InvalidOperationException UnexpectedValue(object o)
-        {
-            string output = string.Format("Unexpected value '{0}' of type '{1}'", o, (o != null) ? o.GetType().FullName : "<unknown>");
-            System.Diagnostics.Debug.Fail(output);
-            return new InvalidOperationException(output);
-        }
+        string output = string.Format("Unexpected value '{0}' of type '{1}'", o, (o != null) ? o.GetType().FullName : "<unknown>");
+        System.Diagnostics.Debug.Fail(output);
+        return new InvalidOperationException(output);
     }
 }

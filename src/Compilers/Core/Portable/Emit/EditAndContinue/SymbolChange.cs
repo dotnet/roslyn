@@ -4,28 +4,27 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Emit
+namespace Microsoft.CodeAnalysis.Emit;
+
+internal enum SymbolChange
 {
-    internal enum SymbolChange
-    {
-        /// <summary>
-        /// No change to symbol or members.
-        /// </summary>
-        None = 0,
+    /// <summary>
+    /// No change to symbol or members.
+    /// </summary>
+    None = 0,
 
-        /// <summary>
-        /// No change to symbol but may contain changed symbols.
-        /// </summary>
-        ContainsChanges,
+    /// <summary>
+    /// No change to symbol but may contain changed symbols.
+    /// </summary>
+    ContainsChanges,
 
-        /// <summary>
-        /// Symbol updated.
-        /// </summary>
-        Updated,
+    /// <summary>
+    /// Symbol updated.
+    /// </summary>
+    Updated,
 
-        /// <summary>
-        /// Symbol added.
-        /// </summary>
-        Added,
-    }
+    /// <summary>
+    /// Symbol added.
+    /// </summary>
+    Added,
 }

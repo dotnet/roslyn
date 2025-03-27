@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
+
+public class PDBConstantTests : CSharpTestBase
 {
-    public class PDBConstantTests : CSharpTestBase
+    [Fact]
+    public void StringsWithSurrogateChar()
     {
-        [Fact]
-        public void StringsWithSurrogateChar()
-        {
-            var source = @"
+        var source = @"
 using System;
 public class T
 {
@@ -31,12 +31,12 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
-            // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
-            //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unpaired surrogates.
-            c.VerifyPdb(@"
+        // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
+        //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
+        //        unpaired surrogates.
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -62,7 +62,7 @@ public class T
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb);
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -81,13 +81,13 @@ public class T
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-        }
+    }
 
-        [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
-        [Fact]
-        public void InvalidUnicodeString()
-        {
-            var source = @"
+    [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
+    [Fact]
+    public void InvalidUnicodeString()
+    {
+        var source = @"
 using System;
 public class T
 {
@@ -97,12 +97,12 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
-            // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
-            //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unpaired surrogates.
-            c.VerifyPdb(@"
+        // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
+        //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
+        //        unpaired surrogates.
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -126,7 +126,7 @@ public class T
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb);
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -143,12 +143,12 @@ public class T
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-        }
+    }
 
-        [Fact]
-        public void AllTypes()
-        {
-            var source = @"
+    [Fact]
+    public void AllTypes()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -206,9 +206,9 @@ public class C<S>
     }
 }";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
 
-            c.VerifyPdb("C`1.F", @"
+        c.VerifyPdb("C`1.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -267,12 +267,12 @@ public class C<S>
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SimpleLocalConstant()
-        {
-            var text = @"
+    [Fact]
+    public void SimpleLocalConstant()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -284,7 +284,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+        CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -311,12 +311,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void LambdaLocalConstants()
-        {
-            var text = WithWindowsLineBreaks(@"
+    [Fact]
+    public void LambdaLocalConstants()
+    {
+        var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -334,8 +334,8 @@ class C
     }
 }
 ");
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -380,13 +380,13 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
-        [Fact]
-        public void IteratorLocalConstants()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
+    [Fact]
+    public void IteratorLocalConstants()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -402,23 +402,23 @@ class C
     }
 }
 ");
-            // NOTE: Roslyn's output is somewhat different than Dev10's in this case, but
-            // all of the changes look reasonable.  The main thing for this test is that 
-            // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
-            // do that - the <constant> in the <scope> is sufficient.
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        // NOTE: Roslyn's output is somewhat different than Dev10's in this case, but
+        // all of the changes look reasonable.  The main thing for this test is that 
+        // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
+        // do that - the <constant> in the <scope> is sufficient.
+        var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        {
+            Assert.Equal(new[]
             {
-                Assert.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "<>l__initialThreadId",
-                    "<>4__this",
-                    "<i>5__1"
-                }, module.GetFieldNames("C.<M>d__0"));
-            });
+                "<>1__state",
+                "<>2__current",
+                "<>l__initialThreadId",
+                "<>4__this",
+                "<i>5__1"
+            }, module.GetFieldNames("C.<M>d__0"));
+        });
 
-            v.VerifyPdb("C+<M>d__0.MoveNext", @"
+        v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -464,13 +464,13 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
-        public void LocalConstantsTypes()
-        {
-            var text = @"
+    [Fact]
+    [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+    public void LocalConstantsTypes()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -482,9 +482,9 @@ class C
     }
 }
 ";
-            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
-            {
-                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+        using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
+        {
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -509,14 +509,14 @@ class C
     </method>
   </methods>
 </symbols>");
-            }
         }
+    }
 
-        [Fact]
-        public void WRN_PDBConstantStringValueTooLong()
-        {
-            var longStringValue = new string('a', 2049);
-            var source = @"
+    [Fact]
+    public void WRN_PDBConstantStringValueTooLong()
+    {
+        var longStringValue = new string('a', 2049);
+        var source = @"
 using System;
 
 class C
@@ -529,39 +529,39 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+        var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
-            var exebits = new MemoryStream();
-            var pdbbits = new MemoryStream();
-            var result = compilation.Emit(exebits, pdbbits);
-            result.Diagnostics.Verify();
+        var exebits = new MemoryStream();
+        var pdbbits = new MemoryStream();
+        var result = compilation.Emit(exebits, pdbbits);
+        result.Diagnostics.Verify();
 
-            //  old behavior. This new warning was abandoned
-            // 
-            // result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
-            //                           Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
-            // 
-            // //make sure that this warning is suppressable
-            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
-            // 
-            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            // result.Diagnostics.Verify();
-            // 
-            // //make sure that this warning can be turned into an error.
-            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
-            // 
-            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            // Assert.False(result.Success);
-            // result.Diagnostics.Verify(
-            //                          Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
-        }
+        //  old behavior. This new warning was abandoned
+        // 
+        // result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
+        //                           Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
+        // 
+        // //make sure that this warning is suppressable
+        // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+        //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
+        // 
+        // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+        // result.Diagnostics.Verify();
+        // 
+        // //make sure that this warning can be turned into an error.
+        // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+        //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
+        // 
+        // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+        // Assert.False(result.Success);
+        // result.Diagnostics.Verify(
+        //                          Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
+    }
 
-        [Fact]
-        public void StringConstantTooLong()
-        {
-            var text = WithWindowsLineBreaks(@"
+    [Fact]
+    public void StringConstantTooLong()
+    {
+        var text = WithWindowsLineBreaks(@"
 class C
 {
     void M()
@@ -606,9 +606,9 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ");
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+        var c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -628,7 +628,7 @@ this is a string constant that is too long to fit into the PDB"";
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -645,16 +645,16 @@ this is a string constant that is too long to fit into the PDB"";
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-        }
+    }
 
-        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [Fact]
-        public void StringWithNulCharacter_MaxSupportedLength()
-        {
-            const int length = 2031;
-            string str = new string('x', 9) + "\0" + new string('x', length - 10);
+    [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+    [Fact]
+    public void StringWithNulCharacter_MaxSupportedLength()
+    {
+        const int length = 2031;
+        string str = new string('x', 9) + "\0" + new string('x', length - 10);
 
-            string text = @"
+        string text = @"
 class C
 {
     void M()
@@ -663,9 +663,9 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+        var c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -688,7 +688,7 @@ class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -705,16 +705,16 @@ class C
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-        }
+    }
 
-        [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [Fact]
-        public void StringWithNulCharacter_OverSupportedLength()
-        {
-            const int length = 2032;
-            string str = new string('x', 9) + "\0" + new string('x', length - 10);
+    [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
+    [Fact]
+    public void StringWithNulCharacter_OverSupportedLength()
+    {
+        const int length = 2032;
+        string str = new string('x', 9) + "\0" + new string('x', length - 10);
 
-            string text = @"
+        string text = @"
 class C
 {
     void M()
@@ -723,9 +723,9 @@ class C
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+        var c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -745,7 +745,7 @@ class C
   </methods>
 </symbols>", format: DebugInformationFormat.Pdb);
 
-            c.VerifyPdb("C.M", @"
+        c.VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -762,12 +762,12 @@ class C
     </method>
   </methods>
 </symbols>", format: DebugInformationFormat.PortablePdb);
-        }
+    }
 
-        [Fact]
-        public void DecimalLocalConstants()
-        {
-            var text = @"
+    [Fact]
+    public void DecimalLocalConstants()
+    {
+        var text = @"
 class C
 {
     void M()
@@ -776,9 +776,9 @@ class C
     }
 }
 ";
-            using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
-            {
-                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+        using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
+        {
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -800,7 +800,6 @@ class C
     </method>
   </methods>
 </symbols>");
-            }
         }
     }
 }

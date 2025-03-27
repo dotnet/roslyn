@@ -11,29 +11,28 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
+
+public struct DkmGetChildrenAsyncResult
 {
-    public struct DkmGetChildrenAsyncResult
+    public DkmGetChildrenAsyncResult(DkmEvaluationResult[] InitialChildren, DkmEvaluationResultEnumContext EnumContext)
+        : this()
     {
-        public DkmGetChildrenAsyncResult(DkmEvaluationResult[] InitialChildren, DkmEvaluationResultEnumContext EnumContext)
-            : this()
+        if (InitialChildren == null)
         {
-            if (InitialChildren == null)
-            {
-                throw new ArgumentNullException();
-            }
-            this.InitialChildren = InitialChildren;
-            this.EnumContext = EnumContext;
+            throw new ArgumentNullException();
         }
+        this.InitialChildren = InitialChildren;
+        this.EnumContext = EnumContext;
+    }
 
-        public DkmEvaluationResultEnumContext EnumContext { get; }
-        public DkmEvaluationResult[] InitialChildren { get; }
+    public DkmEvaluationResultEnumContext EnumContext { get; }
+    public DkmEvaluationResult[] InitialChildren { get; }
 
-        internal Exception Exception { get; set; }
+    internal Exception Exception { get; set; }
 
-        public static DkmGetChildrenAsyncResult CreateErrorResult(Exception exception)
-        {
-            return new DkmGetChildrenAsyncResult(new DkmEvaluationResult[0], EnumContext: null) { Exception = exception };
-        }
+    public static DkmGetChildrenAsyncResult CreateErrorResult(Exception exception)
+    {
+        return new DkmGetChildrenAsyncResult(new DkmEvaluationResult[0], EnumContext: null) { Exception = exception };
     }
 }

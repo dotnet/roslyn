@@ -5,14 +5,13 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.Operations;
+
+internal interface IBoundNodeWithIOperationChildren
 {
-    internal interface IBoundNodeWithIOperationChildren
-    {
-        /// <summary>
-        /// An array of child bound nodes.
-        /// </summary>
-        /// <remarks>Note that any of the child nodes may be null.</remarks>
-        ImmutableArray<BoundNode?> Children { get; }
-    }
+    /// <summary>
+    /// An array of child bound nodes.
+    /// </summary>
+    /// <remarks>Note that any of the child nodes may be null.</remarks>
+    ImmutableArray<BoundNode?> Children { get; }
 }

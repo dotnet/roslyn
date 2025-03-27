@@ -4,13 +4,12 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class BoundTypePattern
 {
-    internal partial class BoundTypePattern
+    private partial void Validate()
     {
-        private partial void Validate()
-        {
-            Debug.Assert(NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
-        }
+        Debug.Assert(NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
     }
 }

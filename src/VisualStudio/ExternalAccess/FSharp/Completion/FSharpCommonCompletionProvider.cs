@@ -7,11 +7,10 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
+internal static class FSharpCommonCompletionProvider
 {
-    internal static class FSharpCommonCompletionProvider
-    {
-        public static CompletionProvider Create(FSharpCommonCompletionProviderBase fsharpCommonCompletionProvider)
-            => new FSharpInternalCommonCompletionProvider(fsharpCommonCompletionProvider);
-    }
+    public static CompletionProvider Create(FSharpCommonCompletionProviderBase fsharpCommonCompletionProvider)
+        => new FSharpInternalCommonCompletionProvider(fsharpCommonCompletionProvider);
 }

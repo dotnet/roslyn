@@ -14,53 +14,52 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace IdeBenchmarks
+namespace IdeBenchmarks;
+
+[GcServer(true)]
+public class FormatterBenchmarks
 {
-    [GcServer(true)]
-    public class FormatterBenchmarks
+    private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
+
+    [Params(
+        "BoundNodes.xml.Generated",
+        "ErrorFacts.Generated",
+        "Syntax.xml.Internal.Generated",
+        "Syntax.xml.Main.Generated",
+        "Syntax.xml.Syntax.Generated")]
+    public string Document { get; set; }
+
+    [IterationSetup]
+    public void IterationSetup()
+        => _useExportProviderAttribute.Before(null);
+
+    [IterationCleanup]
+    public void IterationCleanup()
+        => _useExportProviderAttribute.After(null);
+
+    [Benchmark]
+    public object FormatCSharp()
     {
-        private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
+        var path = Path.Combine(Path.GetFullPath(@"..\..\..\..\..\src\Compilers\CSharp\Portable\Generated"), Document + ".cs");
+        var text = File.ReadAllText(path);
 
-        [Params(
-            "BoundNodes.xml.Generated",
-            "ErrorFacts.Generated",
-            "Syntax.xml.Internal.Generated",
-            "Syntax.xml.Main.Generated",
-            "Syntax.xml.Syntax.Generated")]
-        public string Document { get; set; }
+        using var workspace = TestWorkspace.CreateCSharp(text);
+        var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+        var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+        var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
+        return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
+    }
 
-        [IterationSetup]
-        public void IterationSetup()
-            => _useExportProviderAttribute.Before(null);
+    [Benchmark]
+    public object FormatVisualBasic()
+    {
+        var path = Path.Combine(Path.GetFullPath(@"..\..\..\..\..\src\Compilers\VisualBasic\Portable\Generated"), Document + ".vb");
+        var text = File.ReadAllText(path);
 
-        [IterationCleanup]
-        public void IterationCleanup()
-            => _useExportProviderAttribute.After(null);
-
-        [Benchmark]
-        public object FormatCSharp()
-        {
-            var path = Path.Combine(Path.GetFullPath(@"..\..\..\..\..\src\Compilers\CSharp\Portable\Generated"), Document + ".cs");
-            var text = File.ReadAllText(path);
-
-            using var workspace = TestWorkspace.CreateCSharp(text);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
-        }
-
-        [Benchmark]
-        public object FormatVisualBasic()
-        {
-            var path = Path.Combine(Path.GetFullPath(@"..\..\..\..\..\src\Compilers\VisualBasic\Portable\Generated"), Document + ".vb");
-            var text = File.ReadAllText(path);
-
-            using var workspace = TestWorkspace.CreateVisualBasic(text);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
-            var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
-            return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
-        }
+        using var workspace = TestWorkspace.CreateVisualBasic(text);
+        var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+        var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+        var options = workspace.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
+        return Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
     }
 }

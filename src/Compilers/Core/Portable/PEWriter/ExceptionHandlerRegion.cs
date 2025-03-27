@@ -5,168 +5,167 @@
 using System.Diagnostics;
 using System.Reflection.Metadata;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+/// <summary>
+/// A region representing an exception handler clause. The region exposes the type (catch or
+/// finally) and the bounds of the try block and catch or finally block as needed by 
+/// </summary>
+internal abstract class ExceptionHandlerRegion
 {
     /// <summary>
-    /// A region representing an exception handler clause. The region exposes the type (catch or
-    /// finally) and the bounds of the try block and catch or finally block as needed by 
+    /// Label instruction corresponding to the start of try block
     /// </summary>
-    internal abstract class ExceptionHandlerRegion
+    public int TryStartOffset { get; }
+
+    /// <summary>
+    /// Label instruction corresponding to the end of try block
+    /// </summary>
+    public int TryEndOffset { get; }
+
+    /// <summary>
+    /// Label instruction corresponding to the start of handler block
+    /// </summary>
+    public int HandlerStartOffset { get; }
+
+    /// <summary>
+    /// Label instruction corresponding to the end of handler block
+    /// </summary>
+    public int HandlerEndOffset { get; }
+
+    public ExceptionHandlerRegion(
+        int tryStartOffset,
+        int tryEndOffset,
+        int handlerStartOffset,
+        int handlerEndOffset)
     {
-        /// <summary>
-        /// Label instruction corresponding to the start of try block
-        /// </summary>
-        public int TryStartOffset { get; }
+        Debug.Assert(tryStartOffset < tryEndOffset);
+        Debug.Assert(tryEndOffset <= handlerStartOffset);
+        Debug.Assert(handlerStartOffset < handlerEndOffset);
+        Debug.Assert(tryStartOffset >= 0);
+        Debug.Assert(tryEndOffset >= 0);
+        Debug.Assert(handlerStartOffset >= 0);
+        Debug.Assert(handlerEndOffset >= 0);
 
-        /// <summary>
-        /// Label instruction corresponding to the end of try block
-        /// </summary>
-        public int TryEndOffset { get; }
+        TryStartOffset = tryStartOffset;
+        TryEndOffset = tryEndOffset;
+        HandlerStartOffset = handlerStartOffset;
+        HandlerEndOffset = handlerEndOffset;
+    }
 
-        /// <summary>
-        /// Label instruction corresponding to the start of handler block
-        /// </summary>
-        public int HandlerStartOffset { get; }
+    public int HandlerLength => HandlerEndOffset - HandlerStartOffset;
+    public int TryLength => TryEndOffset - TryStartOffset;
 
-        /// <summary>
-        /// Label instruction corresponding to the end of handler block
-        /// </summary>
-        public int HandlerEndOffset { get; }
+    /// <summary>
+    /// Handler kind for this SEH info
+    /// </summary>
+    public abstract ExceptionRegionKind HandlerKind { get; }
 
-        public ExceptionHandlerRegion(
-            int tryStartOffset,
-            int tryEndOffset,
-            int handlerStartOffset,
-            int handlerEndOffset)
+    /// <summary>
+    /// If HandlerKind == HandlerKind.Catch, this is the type of exception to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
+    /// Otherwise this is a Dummy.TypeReference.
+    /// </summary>
+    public virtual ITypeReference? ExceptionType
+    {
+        get
         {
-            Debug.Assert(tryStartOffset < tryEndOffset);
-            Debug.Assert(tryEndOffset <= handlerStartOffset);
-            Debug.Assert(handlerStartOffset < handlerEndOffset);
-            Debug.Assert(tryStartOffset >= 0);
-            Debug.Assert(tryEndOffset >= 0);
-            Debug.Assert(handlerStartOffset >= 0);
-            Debug.Assert(handlerEndOffset >= 0);
-
-            TryStartOffset = tryStartOffset;
-            TryEndOffset = tryEndOffset;
-            HandlerStartOffset = handlerStartOffset;
-            HandlerEndOffset = handlerEndOffset;
-        }
-
-        public int HandlerLength => HandlerEndOffset - HandlerStartOffset;
-        public int TryLength => TryEndOffset - TryStartOffset;
-
-        /// <summary>
-        /// Handler kind for this SEH info
-        /// </summary>
-        public abstract ExceptionRegionKind HandlerKind { get; }
-
-        /// <summary>
-        /// If HandlerKind == HandlerKind.Catch, this is the type of exception to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
-        /// Otherwise this is a Dummy.TypeReference.
-        /// </summary>
-        public virtual ITypeReference? ExceptionType
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Label instruction corresponding to the start of filter decision block
-        /// </summary>
-        public virtual int FilterDecisionStartOffset
-        {
-            get { return 0; }
+            return null;
         }
     }
 
-    internal sealed class ExceptionHandlerRegionFinally : ExceptionHandlerRegion
+    /// <summary>
+    /// Label instruction corresponding to the start of filter decision block
+    /// </summary>
+    public virtual int FilterDecisionStartOffset
     {
-        public ExceptionHandlerRegionFinally(
-            int tryStartOffset,
-            int tryEndOffset,
-            int handlerStartOffset,
-            int handlerEndOffset)
-            : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
-        {
-        }
+        get { return 0; }
+    }
+}
 
-        public override ExceptionRegionKind HandlerKind
-        {
-            get { return ExceptionRegionKind.Finally; }
-        }
+internal sealed class ExceptionHandlerRegionFinally : ExceptionHandlerRegion
+{
+    public ExceptionHandlerRegionFinally(
+        int tryStartOffset,
+        int tryEndOffset,
+        int handlerStartOffset,
+        int handlerEndOffset)
+        : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
+    {
     }
 
-    internal sealed class ExceptionHandlerRegionFault : ExceptionHandlerRegion
+    public override ExceptionRegionKind HandlerKind
     {
-        public ExceptionHandlerRegionFault(
-            int tryStartOffset,
-            int tryEndOffset,
-            int handlerStartOffset,
-            int handlerEndOffset)
-            : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
-        {
-        }
+        get { return ExceptionRegionKind.Finally; }
+    }
+}
 
-        public override ExceptionRegionKind HandlerKind
-        {
-            get { return ExceptionRegionKind.Fault; }
-        }
+internal sealed class ExceptionHandlerRegionFault : ExceptionHandlerRegion
+{
+    public ExceptionHandlerRegionFault(
+        int tryStartOffset,
+        int tryEndOffset,
+        int handlerStartOffset,
+        int handlerEndOffset)
+        : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
+    {
     }
 
-    internal sealed class ExceptionHandlerRegionCatch : ExceptionHandlerRegion
+    public override ExceptionRegionKind HandlerKind
     {
-        private readonly ITypeReference _exceptionType;
+        get { return ExceptionRegionKind.Fault; }
+    }
+}
 
-        public ExceptionHandlerRegionCatch(
-            int tryStartOffset,
-            int tryEndOffset,
-            int handlerStartOffset,
-            int handlerEndOffset,
-            ITypeReference exceptionType)
-            : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
-        {
-            _exceptionType = exceptionType;
-        }
+internal sealed class ExceptionHandlerRegionCatch : ExceptionHandlerRegion
+{
+    private readonly ITypeReference _exceptionType;
 
-        public override ExceptionRegionKind HandlerKind
-        {
-            get { return ExceptionRegionKind.Catch; }
-        }
-
-        public override ITypeReference ExceptionType
-        {
-            get { return _exceptionType; }
-        }
+    public ExceptionHandlerRegionCatch(
+        int tryStartOffset,
+        int tryEndOffset,
+        int handlerStartOffset,
+        int handlerEndOffset,
+        ITypeReference exceptionType)
+        : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
+    {
+        _exceptionType = exceptionType;
     }
 
-    internal sealed class ExceptionHandlerRegionFilter : ExceptionHandlerRegion
+    public override ExceptionRegionKind HandlerKind
     {
-        private readonly int _filterDecisionStartOffset;
+        get { return ExceptionRegionKind.Catch; }
+    }
 
-        public ExceptionHandlerRegionFilter(
-            int tryStartOffset,
-            int tryEndOffset,
-            int handlerStartOffset,
-            int handlerEndOffset,
-            int filterDecisionStartOffset)
-            : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
-        {
-            Debug.Assert(filterDecisionStartOffset >= 0);
+    public override ITypeReference ExceptionType
+    {
+        get { return _exceptionType; }
+    }
+}
 
-            _filterDecisionStartOffset = filterDecisionStartOffset;
-        }
+internal sealed class ExceptionHandlerRegionFilter : ExceptionHandlerRegion
+{
+    private readonly int _filterDecisionStartOffset;
 
-        public override ExceptionRegionKind HandlerKind
-        {
-            get { return ExceptionRegionKind.Filter; }
-        }
+    public ExceptionHandlerRegionFilter(
+        int tryStartOffset,
+        int tryEndOffset,
+        int handlerStartOffset,
+        int handlerEndOffset,
+        int filterDecisionStartOffset)
+        : base(tryStartOffset, tryEndOffset, handlerStartOffset, handlerEndOffset)
+    {
+        Debug.Assert(filterDecisionStartOffset >= 0);
 
-        public override int FilterDecisionStartOffset
-        {
-            get { return _filterDecisionStartOffset; }
-        }
+        _filterDecisionStartOffset = filterDecisionStartOffset;
+    }
+
+    public override ExceptionRegionKind HandlerKind
+    {
+        get { return ExceptionRegionKind.Filter; }
+    }
+
+    public override int FilterDecisionStartOffset
+    {
+        get { return _filterDecisionStartOffset; }
     }
 }

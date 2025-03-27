@@ -4,15 +4,14 @@
 
 using Microsoft.Cci;
 
-namespace Microsoft.CodeAnalysis.Emit
-{
-    internal readonly struct SynthesizedDelegateValue
-    {
-        public readonly ITypeDefinition Delegate;
+namespace Microsoft.CodeAnalysis.Emit;
 
-        public SynthesizedDelegateValue(ITypeDefinition @delegate)
-        {
-            Delegate = @delegate;
-        }
+internal readonly struct SynthesizedDelegateValue
+{
+    public readonly ITypeDefinition Delegate;
+
+    public SynthesizedDelegateValue(ITypeDefinition @delegate)
+    {
+        Delegate = @delegate;
     }
 }

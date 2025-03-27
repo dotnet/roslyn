@@ -6,52 +6,51 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+/// <summary>
+/// An object corresponding to a metadata entity such as a type or a field.
+/// </summary>
+internal interface IDefinition : IReference
 {
     /// <summary>
-    /// An object corresponding to a metadata entity such as a type or a field.
+    /// True if the definition represents a definition deleted during EnC.
     /// </summary>
-    internal interface IDefinition : IReference
-    {
-        /// <summary>
-        /// True if the definition represents a definition deleted during EnC.
-        /// </summary>
-        bool IsEncDeleted { get; }
-    }
+    bool IsEncDeleted { get; }
+}
+
+/// <summary>
+/// No-PIA embedded definition.
+/// </summary>
+internal interface IEmbeddedDefinition
+{
+}
+
+/// <summary>
+/// An object corresponding to reference to a metadata entity such as a type or a field.
+/// </summary>
+internal interface IReference
+{
+    /// <summary>
+    /// A collection of metadata custom attributes that are associated with this definition.
+    /// </summary>
+    IEnumerable<ICustomAttribute> GetAttributes(EmitContext context); // TODO: consider moving this to IDefinition, we shouldn't need to examine attributes on references.
 
     /// <summary>
-    /// No-PIA embedded definition.
+    /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
+    /// of the object implementing IDefinition. The dispatch method does not invoke Dispatch on any child objects. If child traversal
+    /// is desired, the implementations of the Visit methods should do the subsequent dispatching.
     /// </summary>
-    internal interface IEmbeddedDefinition
-    {
-    }
+    void Dispatch(MetadataVisitor visitor);
 
     /// <summary>
-    /// An object corresponding to reference to a metadata entity such as a type or a field.
+    /// Gets the definition object corresponding to this reference within the given context, 
+    /// or null if the referenced entity isn't defined in the context.
     /// </summary>
-    internal interface IReference
-    {
-        /// <summary>
-        /// A collection of metadata custom attributes that are associated with this definition.
-        /// </summary>
-        IEnumerable<ICustomAttribute> GetAttributes(EmitContext context); // TODO: consider moving this to IDefinition, we shouldn't need to examine attributes on references.
+    IDefinition? AsDefinition(EmitContext context);
 
-        /// <summary>
-        /// Calls the visitor.Visit(T) method where T is the most derived object model node interface type implemented by the concrete type
-        /// of the object implementing IDefinition. The dispatch method does not invoke Dispatch on any child objects. If child traversal
-        /// is desired, the implementations of the Visit methods should do the subsequent dispatching.
-        /// </summary>
-        void Dispatch(MetadataVisitor visitor);
-
-        /// <summary>
-        /// Gets the definition object corresponding to this reference within the given context, 
-        /// or null if the referenced entity isn't defined in the context.
-        /// </summary>
-        IDefinition? AsDefinition(EmitContext context);
-
-        /// <summary>
-        /// Returns underlying internal symbol object, if any.
-        /// </summary>
-        ISymbolInternal? GetInternalSymbol();
-    }
+    /// <summary>
+    /// Returns underlying internal symbol object, if any.
+    /// </summary>
+    ISymbolInternal? GetInternalSymbol();
 }

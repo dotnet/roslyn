@@ -13,15 +13,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_ILocalFunctionStatement : SemanticModelTestBase
 {
-    public class IOperationTests_ILocalFunctionStatement : SemanticModelTestBase
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_ContainingMethodParameterReference()
     {
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_ContainingMethodParameterReference()
-        {
-            string source = @"
+        string source = @"
 class C
 {
     public void M(int x)
@@ -35,7 +35,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local(i ... }')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
     IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return x++;')
@@ -44,16 +44,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
           Target: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_ContainingMethodParameterReference_ExpressionBodied()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_ContainingMethodParameterReference_ExpressionBodied()
+    {
+        string source = @"
 class C
 {
     public void M(int x)
@@ -63,7 +63,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local(i ... p1) => x++;')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x++')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x++')
@@ -72,16 +72,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
           Target: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_LocalFunctionParameterReference()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_LocalFunctionParameterReference()
+    {
+        string source = @"
 class C
 {
     public void M()
@@ -91,7 +91,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 x)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local(int x) => x++;')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x++')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x++')
@@ -100,16 +100,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 x)) (OperationK
           Target: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_ContainingLocalFunctionParameterReference()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_ContainingLocalFunctionParameterReference()
+    {
+        string source = @"
 class C
 {
     public void M()
@@ -124,7 +124,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local(i ... ) => x + y;')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x + y')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + y')
@@ -135,16 +135,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationK
           Right: 
             IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_LocalFunctionReference()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_LocalFunctionReference()
+    {
+        string source = @"
 class C
 {
     public void M()
@@ -158,7 +158,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local3(System.Int32 p1)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local3( ... Local2(p1);')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x + Local2(p1)')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x + Local2(p1)')
@@ -176,16 +176,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local3(System.Int32 p1)) (Operatio
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_Recursion()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_Recursion()
+    {
+        string source = @"
 class C
 {
     public void M(int x)
@@ -194,7 +194,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local(i ... al(x + p1);')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> Local(x + p1)')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'Local(x + p1)')
@@ -212,16 +212,16 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 p1)) (Operation
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_Async()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_Async()
+    {
+        string source = @"
 using System.Threading.Tasks;
 
 class C
@@ -238,7 +238,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Threading.Tasks.Task<System.Int32> LocalAsync(System.Int32 p1)) (OperationKind.LocalFunction, Type: null) (Syntax: 'async Task< ... }')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'await Task.Delay(0);')
@@ -261,16 +261,16 @@ ILocalFunctionOperation (Symbol: System.Threading.Tasks.Task<System.Int32> Local
           Right: 
             IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_CaptureForEachVar()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_CaptureForEachVar()
+    {
+        string source = @"
 class C
 {
     public void M(int[] array)
@@ -283,23 +283,23 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local()) (OperationKind.LocalFunction, Type: null) (Syntax: 'int Local() => x;')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
       ReturnedValue: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_UseOfUnusedVar()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_UseOfUnusedVar()
+    {
+        string source = @"
 class C
 {
     void M()
@@ -310,7 +310,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: void F()) (OperationKind.LocalFunction, Type: null) (Syntax: 'void F() => x++;')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> x++')
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'x++')
@@ -322,20 +322,20 @@ ILocalFunctionOperation (Symbol: void F()) (OperationKind.LocalFunction, Type: n
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0165: Use of unassigned local variable 'x'
-                //         F();
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "F()").WithArguments("x").WithLocation(6, 9)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0165: Use of unassigned local variable 'x'
+            //         F();
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "F()").WithArguments("x").WithLocation(6, 9)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_OutVar()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_OutVar()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -346,7 +346,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunction, Type: null) (Syntax: 'void F(out  ... ) => y = p;')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> y = p')
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'y = p')
@@ -360,16 +360,16 @@ ILocalFunctionOperation (Symbol: void F(out System.Int32 y)) (OperationKind.Loca
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestInvalidLocalFunction_MissingBody()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestInvalidLocalFunction_MissingBody()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -378,7 +378,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: void F(out System.Int32 y)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void F(out int y) => ;')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> ')
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: '')
@@ -389,26 +389,26 @@ ILocalFunctionOperation (Symbol: void F(out System.Int32 y)) (OperationKind.Loca
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,40): error CS1525: Invalid expression term ';'
-                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 40),
-                // file.cs(6,24): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
-                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("y").WithLocation(6, 24),
-                // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/void F(out int y) => ;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,40): error CS1525: Invalid expression term ';'
+            //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 40),
+            // file.cs(6,24): error CS0177: The out parameter 'y' must be assigned to before control leaves the current method
+            //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+            Diagnostic(ErrorCode.ERR_ParamUnassigned, "F").WithArguments("y").WithLocation(6, 24),
+            // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
+            //         /*<bind>*/void F(out int y) => ;/*</bind>*/
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestInvalidLocalFunction_MissingParameters()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestInvalidLocalFunction_MissingParameters()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -417,30 +417,30 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: void F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void F( { }')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
     IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '{ }')
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,27): error CS1026: ) expected
-                //         /*<bind>*/void F( { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 27),
-                // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/void F( { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,27): error CS1026: ) expected
+            //         /*<bind>*/void F( { }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(6, 27),
+            // file.cs(6,24): warning CS8321: The local function 'F' is declared but never used
+            //         /*<bind>*/void F( { }/*</bind>*/;
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 24)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestInvalidLocalFunction_InvalidReturnType()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestInvalidLocalFunction_InvalidReturnType()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -449,30 +449,30 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: X F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'X F() { }')
   IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0161: 'F()': not all code paths return a value
-                //         /*<bind>*/X F() { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("F()").WithLocation(6, 21),
-                // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
-                //         /*<bind>*/X F() { }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 19),
-                // CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/X F() { }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 21)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0161: 'F()': not all code paths return a value
+            //         /*<bind>*/X F() { }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("F()").WithLocation(6, 21),
+            // CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+            //         /*<bind>*/X F() { }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(6, 19),
+            // CS8321: The local function 'F' is declared but never used
+            //         /*<bind>*/X F() { }/*</bind>*/;
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 21)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
-        public void TestInvalidLocalFunction_ExpressionAndBlockBody()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+    public void TestInvalidLocalFunction_ExpressionAndBlockBody()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -481,7 +481,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null) (Syntax: 'object F()  ... w object();')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> new object()')
     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new object()')
@@ -491,23 +491,23 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
           Initializer: 
             null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,49): error CS0127: Since 'C.M(int)' returns void, a return keyword must not be followed by an object expression
-                //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M(int)").WithLocation(6, 49),
-                // file.cs(6,26): warning CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,49): error CS0127: Since 'C.M(int)' returns void, a return keyword must not be followed by an object expression
+            //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("C.M(int)").WithLocation(6, 49),
+            // file.cs(6,26): warning CS8321: The local function 'F' is declared but never used
+            //         /*<bind>*/object F() => new object(); { return new object(); }/*</bind>*/;
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
-        public void TestInvalidLocalFunction_BlockAndExpressionBody()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+    public void TestInvalidLocalFunction_BlockAndExpressionBody()
+    {
+        string source = @"
 class C
 {
     void M(int p)
@@ -516,7 +516,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'object F()  ...  } => null;')
   Body: 
     IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ return new object(); }')
@@ -535,23 +535,23 @@ ILocalFunctionOperation (Symbol: System.Object F()) (OperationKind.LocalFunction
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // error CS8057: Block bodies and expression bodies cannot both be provided.
-                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "object F() { return new object(); } => null;").WithLocation(6, 19),
-                // warning CS8321: The local function 'F' is declared but never used
-                //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // error CS8057: Block bodies and expression bodies cannot both be provided.
+            //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "object F() { return new object(); } => null;").WithLocation(6, 19),
+            // warning CS8321: The local function 'F' is declared but never used
+            //         /*<bind>*/object F() { return new object(); } => null;/*</bind>*/;
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(6, 26)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
-        public void TestLocalFunction_ExpressionBodyInnerMember()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(24650, "https://github.com/dotnet/roslyn/issues/24650")]
+    public void TestLocalFunction_ExpressionBodyInnerMember()
+    {
+        string source = @"
 class C
 {
     public void M(int x)
@@ -561,7 +561,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x++')
   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x++')
     ReturnedValue: 
@@ -569,16 +569,16 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x+
         Target: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_StaticWithShadowedVariableReference()
-        {
-            string source =
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_StaticWithShadowedVariableReference()
+    {
+        string source =
 @"#pragma warning disable 8321
 class C
 {
@@ -597,7 +597,7 @@ class C
         /*</bind>*/
     }
 }";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'static int  ... }')
   IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
     IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (y > 0) ... }')
@@ -631,20 +631,20 @@ ILocalFunctionOperation (Symbol: System.Int32 Local(System.Int32 y)) (OperationK
       ReturnedValue: 
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
 ";
-            var expectedDiagnostics = new[]
-            {
-                // (14,20): error CS8421: A static local function cannot contain a reference to 'x'.
-                //             return x;
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(14, 20)
-            };
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void TestLocalFunction_StaticWithThisReference()
+        var expectedDiagnostics = new[]
         {
-            string source =
+            // (14,20): error CS8421: A static local function cannot contain a reference to 'x'.
+            //             return x;
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(14, 20)
+        };
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void TestLocalFunction_StaticWithThisReference()
+    {
+        string source =
 @"#pragma warning disable 8321
 class C
 {
@@ -655,7 +655,7 @@ class C
         /*</bind>*/
     }
 }";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 ILocalFunctionOperation (Symbol: System.Object Local()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'static obje ... HashCode();')
   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> ToString ... tHashCode()')
     IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'ToString()  ... tHashCode()')
@@ -688,26 +688,26 @@ ILocalFunctionOperation (Symbol: System.Object Local()) (OperationKind.LocalFunc
                         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: System.Object, IsInvalid) (Syntax: 'base')
                       Arguments(0)
 ";
-            var expectedDiagnostics = new[]
-            {
-                // (7,34): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "ToString").WithLocation(7, 34),
-                // (7,47): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(7, 47),
-                // (7,68): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
-                //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 68)
-            };
-            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_01()
+        var expectedDiagnostics = new[]
         {
-            string source = @"
+            // (7,34): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+            //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "ToString").WithLocation(7, 34),
+            // (7,47): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+            //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "this").WithLocation(7, 47),
+            // (7,68): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+            //         static object Local() => ToString() + this.GetHashCode() + base.GetHashCode();
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "base").WithLocation(7, 68)
+        };
+        VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_01()
+    {
+        string source = @"
 struct C
 {
     void M()
@@ -721,7 +721,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -778,16 +778,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_02()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_02()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -800,7 +800,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -842,16 +842,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_03()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_03()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -861,7 +861,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -891,23 +891,23 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(7,44): error CS1002: ; expected
-                //         void local(bool result, bool input)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 44),
-                // file.cs(7,14): error CS8112: 'local(bool, bool)' is a local function and must therefore always have a body.
-                //         void local(bool result, bool input)
-                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local(bool, bool)").WithLocation(7, 14)
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(7,44): error CS1002: ; expected
+            //         void local(bool result, bool input)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 44),
+            // file.cs(7,14): error CS8112: 'local(bool, bool)' is a local function and must therefore always have a body.
+            //         void local(bool result, bool input)
+            Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local(bool, bool)").WithLocation(7, 14)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_04()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_04()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -921,7 +921,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -981,24 +981,24 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(7,9): error CS8057: Block bodies and expression bodies cannot both be provided.
-                //         void local(bool result, bool input1, bool input2)
-                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"void local(bool result, bool input1, bool input2)
+        var expectedDiagnostics = new[] {
+            // file.cs(7,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+            //         void local(bool result, bool input1, bool input2)
+            Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"void local(bool result, bool input1, bool input2)
         {
             result = input1;
         } 
         => result = input2;").WithLocation(7, 9)
-            };
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_05()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_05()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -1012,7 +1012,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1076,16 +1076,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_06()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_06()
+    {
+        string source = @"
 struct C
 {
     void M(int input)
@@ -1104,7 +1104,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1198,16 +1198,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_07()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_07()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -1225,7 +1225,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1267,16 +1267,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_08()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_08()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -1298,7 +1298,7 @@ struct C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1389,16 +1389,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_09()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_09()
+    {
+        string source = @"
 #pragma warning disable CS8321
 class C
 {
@@ -1413,7 +1413,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1564,16 +1564,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_10()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_10()
+    {
+        string source = @"
 #pragma warning disable CS8321
 class C
 {
@@ -1590,7 +1590,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1762,16 +1762,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_11()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_11()
+    {
+        string source = @"
 struct C
 {
     void M()
@@ -1787,48 +1787,48 @@ struct C
 }
 ";
 
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
+        var compilation = CreateCompilation(source);
+        var tree = compilation.SyntaxTrees.Single();
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
 
-            Assert.NotNull(graphM);
-            Assert.Null(graphM.Parent);
+        Assert.NotNull(graphM);
+        Assert.Null(graphM.Parent);
 
-            IMethodSymbol localFunctionD1 = getLocalFunction(graphM);
-            Assert.NotNull(localFunctionD1);
-            Assert.Equal("d1", localFunctionD1.Name);
+        IMethodSymbol localFunctionD1 = getLocalFunction(graphM);
+        Assert.NotNull(localFunctionD1);
+        Assert.Equal("d1", localFunctionD1.Name);
 
-            var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
-            Assert.NotNull(graphD1);
-            Assert.Same(graphM, graphD1.Parent);
-            var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
-            Assert.Same(graphD1, graphD1_FromExtension);
+        var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
+        Assert.NotNull(graphD1);
+        Assert.Same(graphM, graphD1.Parent);
+        var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+        Assert.Same(graphD1, graphD1_FromExtension);
 
-            IMethodSymbol localFunctionD2 = getLocalFunction(graphD1);
-            Assert.NotNull(localFunctionD2);
-            Assert.Equal("d2", localFunctionD2.Name);
+        IMethodSymbol localFunctionD2 = getLocalFunction(graphD1);
+        Assert.NotNull(localFunctionD2);
+        Assert.Equal("d2", localFunctionD2.Name);
 
-            var graphD2 = graphD1.GetLocalFunctionControlFlowGraph(localFunctionD2);
-            Assert.NotNull(graphD2);
-            Assert.Same(graphD1, graphD2.Parent);
+        var graphD2 = graphD1.GetLocalFunctionControlFlowGraph(localFunctionD2);
+        Assert.NotNull(graphD2);
+        Assert.Same(graphD1, graphD2.Parent);
 
-            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
-            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(localFunctionD2));
-            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(null));
-            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD2));
+        Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
+        Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(localFunctionD2));
+        Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(null));
+        Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD2));
 
-            IMethodSymbol getLocalFunction(ControlFlowGraph graph)
-            {
-                return graph.LocalFunctions.Single();
-            }
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_12()
+        IMethodSymbol getLocalFunction(ControlFlowGraph graph)
         {
-            string source = @"
+            return graph.LocalFunctions.Single();
+        }
+    }
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_12()
+    {
+        string source = @"
 struct C
 {
     void M()
@@ -1842,44 +1842,44 @@ struct C
 }
 ";
 
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
+        var compilation = CreateCompilation(source);
+        var tree = compilation.SyntaxTrees.Single();
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var graphM = ControlFlowGraph.Create((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First()));
 
-            Assert.NotNull(graphM);
-            Assert.Null(graphM.Parent);
+        Assert.NotNull(graphM);
+        Assert.Null(graphM.Parent);
 
-            IMethodSymbol localFunctionD1 = getLocalFunction(graphM, "d1");
-            Assert.NotNull(localFunctionD1);
-            IMethodSymbol localFunctionD2 = getLocalFunction(graphM, "d2");
-            Assert.NotNull(localFunctionD2);
+        IMethodSymbol localFunctionD1 = getLocalFunction(graphM, "d1");
+        Assert.NotNull(localFunctionD1);
+        IMethodSymbol localFunctionD2 = getLocalFunction(graphM, "d2");
+        Assert.NotNull(localFunctionD2);
 
-            var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
-            Assert.NotNull(graphD1);
-            Assert.Same(graphM, graphD1.Parent);
-            var graphD2 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD2);
-            Assert.NotNull(graphD2);
-            Assert.Same(graphM, graphD2.Parent);
+        var graphD1 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD1);
+        Assert.NotNull(graphD1);
+        Assert.Same(graphM, graphD1.Parent);
+        var graphD2 = graphM.GetLocalFunctionControlFlowGraph(localFunctionD2);
+        Assert.NotNull(graphD2);
+        Assert.Same(graphM, graphD2.Parent);
 
-            var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
-            Assert.Same(graphD1, graphD1_FromExtension);
+        var graphD1_FromExtension = graphM.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+        Assert.Same(graphD1, graphD1_FromExtension);
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => graphD2.GetLocalFunctionControlFlowGraph(localFunctionD1));
-            graphD1_FromExtension = graphD2.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
-            Assert.Same(graphD1, graphD1_FromExtension);
+        Assert.Throws<ArgumentOutOfRangeException>(() => graphD2.GetLocalFunctionControlFlowGraph(localFunctionD1));
+        graphD1_FromExtension = graphD2.GetLocalFunctionControlFlowGraphInScope(localFunctionD1);
+        Assert.Same(graphD1, graphD1_FromExtension);
 
-            IMethodSymbol getLocalFunction(ControlFlowGraph graph, string name)
-            {
-                return graph.LocalFunctions.Single(l => l.Name == name);
-            }
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void LocalFunctionFlow_StaticWithShadowedVariableReference()
+        IMethodSymbol getLocalFunction(ControlFlowGraph graph, string name)
         {
-            string source =
+            return graph.LocalFunctions.Single(l => l.Name == name);
+        }
+    }
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void LocalFunctionFlow_StaticWithShadowedVariableReference()
+    {
+        string source =
 @"#pragma warning disable 0219
 #pragma warning disable 8321
 class C
@@ -1893,7 +1893,7 @@ class C
     }
     /*</bind>*/
 }";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2025,13 +2025,12 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[]
-            {
-                // (10,52): error CS8421: A static local function cannot contain a reference to 'x'.
-                //         static object Local(string y, object z) => x ?? y ?? z;
-                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 52)
-            };
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        var expectedDiagnostics = new[]
+        {
+            // (10,52): error CS8421: A static local function cannot contain a reference to 'x'.
+            //         static object Local(string y, object z) => x ?? y ?? z;
+            Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "x").WithArguments("x").WithLocation(10, 52)
+        };
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
     }
 }

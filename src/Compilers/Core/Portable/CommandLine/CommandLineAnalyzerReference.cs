@@ -6,45 +6,44 @@ using System;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Describes a command line analyzer assembly specification.
+/// </summary>
+[DebuggerDisplay("{FilePath,nq}")]
+public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
 {
-    /// <summary>
-    /// Describes a command line analyzer assembly specification.
-    /// </summary>
-    [DebuggerDisplay("{FilePath,nq}")]
-    public readonly struct CommandLineAnalyzerReference : IEquatable<CommandLineAnalyzerReference>
+    private readonly string _path;
+
+    public CommandLineAnalyzerReference(string path)
     {
-        private readonly string _path;
+        _path = path;
+    }
 
-        public CommandLineAnalyzerReference(string path)
+    /// <summary>
+    /// Assembly file path.
+    /// </summary>
+    public string FilePath
+    {
+        get
         {
-            _path = path;
+            return _path;
         }
+    }
 
-        /// <summary>
-        /// Assembly file path.
-        /// </summary>
-        public string FilePath
-        {
-            get
-            {
-                return _path;
-            }
-        }
+    public override bool Equals(object? obj)
+    {
+        return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
+    }
 
-        public override bool Equals(object? obj)
-        {
-            return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
-        }
+    public bool Equals(CommandLineAnalyzerReference other)
+    {
+        return _path == other._path;
+    }
 
-        public bool Equals(CommandLineAnalyzerReference other)
-        {
-            return _path == other._path;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(_path, 0);
-        }
+    public override int GetHashCode()
+    {
+        return Hash.Combine(_path, 0);
     }
 }

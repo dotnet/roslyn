@@ -9,26 +9,25 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace AnalyzerRunner
+namespace AnalyzerRunner;
+
+internal static class AnalyzerRunnerMefHostServices
 {
-    internal static class AnalyzerRunnerMefHostServices
+    private static MefHostServices s_defaultServices;
+
+    public static MefHostServices DefaultServices
     {
-        private static MefHostServices s_defaultServices;
-
-        public static MefHostServices DefaultServices
+        get
         {
-            get
+            if (s_defaultServices is null)
             {
-                if (s_defaultServices is null)
-                {
-                    Interlocked.CompareExchange(ref s_defaultServices, MefHostServices.Create(DefaultAssemblies), null);
-                }
-
-                return s_defaultServices;
+                Interlocked.CompareExchange(ref s_defaultServices, MefHostServices.Create(DefaultAssemblies), null);
             }
-        }
 
-        private static ImmutableArray<Assembly> DefaultAssemblies
-            => MSBuildMefHostServices.DefaultAssemblies.Add(typeof(AnalyzerRunnerMefHostServices).Assembly);
+            return s_defaultServices;
+        }
     }
+
+    private static ImmutableArray<Assembly> DefaultAssemblies
+        => MSBuildMefHostServices.DefaultAssemblies.Add(typeof(AnalyzerRunnerMefHostServices).Assembly);
 }

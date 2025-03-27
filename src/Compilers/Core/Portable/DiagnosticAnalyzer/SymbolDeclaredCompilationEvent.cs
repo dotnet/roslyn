@@ -6,52 +6,51 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// An event for each declaration in the program (namespace, type, method, field, parameter, etc).
+/// Note that some symbols may have multiple declarations (namespaces, partial types) and may therefore
+/// have multiple events.
+/// </summary>
+internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
 {
-    /// <summary>
-    /// An event for each declaration in the program (namespace, type, method, field, parameter, etc).
-    /// Note that some symbols may have multiple declarations (namespaces, partial types) and may therefore
-    /// have multiple events.
-    /// </summary>
-    internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
+    private ImmutableArray<SyntaxReference> _lazyCachedDeclaringReferences;
+
+    public SymbolDeclaredCompilationEvent(
+        Compilation compilation,
+        ISymbolInternal symbolInternal,
+        SemanticModel? semanticModelWithCachedBoundNodes = null)
+        : base(compilation)
     {
-        private ImmutableArray<SyntaxReference> _lazyCachedDeclaringReferences;
+        SymbolInternal = symbolInternal;
+        SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
+        _lazyCachedDeclaringReferences = default(ImmutableArray<SyntaxReference>);
+    }
 
-        public SymbolDeclaredCompilationEvent(
-            Compilation compilation,
-            ISymbolInternal symbolInternal,
-            SemanticModel? semanticModelWithCachedBoundNodes = null)
-            : base(compilation)
+    public ISymbol Symbol => SymbolInternal.GetISymbol();
+
+    public ISymbolInternal SymbolInternal { get; }
+
+    public SemanticModel? SemanticModelWithCachedBoundNodes { get; }
+
+    // PERF: We avoid allocations in re-computing syntax references for declared symbol during event processing by caching them directly on this member.
+    public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    {
+        get
         {
-            SymbolInternal = symbolInternal;
-            SemanticModelWithCachedBoundNodes = semanticModelWithCachedBoundNodes;
-            _lazyCachedDeclaringReferences = default(ImmutableArray<SyntaxReference>);
+            return InterlockedOperations.Initialize(
+                ref _lazyCachedDeclaringReferences,
+                static self => self.Symbol.DeclaringSyntaxReferences,
+                this);
         }
+    }
 
-        public ISymbol Symbol => SymbolInternal.GetISymbol();
-
-        public ISymbolInternal SymbolInternal { get; }
-
-        public SemanticModel? SemanticModelWithCachedBoundNodes { get; }
-
-        // PERF: We avoid allocations in re-computing syntax references for declared symbol during event processing by caching them directly on this member.
-        public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return InterlockedOperations.Initialize(
-                    ref _lazyCachedDeclaringReferences,
-                    static self => self.Symbol.DeclaringSyntaxReferences,
-                    this);
-            }
-        }
-
-        public override string ToString()
-        {
-            var name = Symbol.Name;
-            if (name == "") name = "<empty>";
-            var loc = DeclaringSyntaxReferences.Length != 0 ? " @ " + string.Join(", ", System.Linq.Enumerable.Select(DeclaringSyntaxReferences, r => r.GetLocation().GetLineSpan())) : null;
-            return "SymbolDeclaredCompilationEvent(" + name + " " + Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) + loc + ")";
-        }
+    public override string ToString()
+    {
+        var name = Symbol.Name;
+        if (name == "") name = "<empty>";
+        var loc = DeclaringSyntaxReferences.Length != 0 ? " @ " + string.Join(", ", System.Linq.Enumerable.Select(DeclaringSyntaxReferences, r => r.GetLocation().GetLineSpan())) : null;
+        return "SymbolDeclaredCompilationEvent(" + name + " " + Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) + loc + ")";
     }
 }

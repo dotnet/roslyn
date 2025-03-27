@@ -5,18 +5,17 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+internal class NullErrorLogger : ErrorLogger
 {
-    internal class NullErrorLogger : ErrorLogger
+    internal static ErrorLogger Instance => new NullErrorLogger();
+
+    public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
     {
-        internal static ErrorLogger Instance => new NullErrorLogger();
+    }
 
-        public override void LogDiagnostic(Diagnostic diagnostic, SuppressionInfo? suppressionInfo)
-        {
-        }
-
-        public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
-        {
-        }
+    public override void AddAnalyzerDescriptorsAndExecutionTime(ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> descriptors, double totalAnalyzerExecutionTime)
+    {
     }
 }

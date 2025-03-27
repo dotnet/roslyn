@@ -11,14 +11,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class CodeGenIncrementTests : CSharpTestBase
 {
-    public class CodeGenIncrementTests : CSharpTestBase
-    {
-        //{0} is a numeric type
-        //{1} is some value
-        //{2} is one greater than {1}
-        private const string NUMERIC_INCREMENT_TEMPLATE = @"
+    //{0} is a numeric type
+    //{1} is some value
+    //{2} is one greater than {1}
+    private const string NUMERIC_INCREMENT_TEMPLATE = @"
 using System.Globalization;
 
 class C
@@ -48,8 +48,8 @@ class C
 }}
 ";
 
-        //{0} is some value, {1} is one greater
-        private const string NUMERIC_OUTPUT_TEMPLATE = @"
+    //{0} is some value, {1} is one greater
+    private const string NUMERIC_OUTPUT_TEMPLATE = @"
 {1}
 {0}
 {1}
@@ -60,86 +60,86 @@ class C
 {0}
 ";
 
-        [Fact]
-        public void TestIncrementInt()
-        {
-            TestIncrementCompilationAndOutput<int>(int.MaxValue, int.MinValue);
-        }
+    [Fact]
+    public void TestIncrementInt()
+    {
+        TestIncrementCompilationAndOutput<int>(int.MaxValue, int.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementUInt()
-        {
-            TestIncrementCompilationAndOutput<uint>(uint.MaxValue, uint.MinValue);
-        }
+    [Fact]
+    public void TestIncrementUInt()
+    {
+        TestIncrementCompilationAndOutput<uint>(uint.MaxValue, uint.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementLong()
-        {
-            TestIncrementCompilationAndOutput<long>(long.MaxValue, long.MinValue);
-        }
+    [Fact]
+    public void TestIncrementLong()
+    {
+        TestIncrementCompilationAndOutput<long>(long.MaxValue, long.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementULong()
-        {
-            TestIncrementCompilationAndOutput<ulong>(ulong.MaxValue, ulong.MinValue);
-        }
+    [Fact]
+    public void TestIncrementULong()
+    {
+        TestIncrementCompilationAndOutput<ulong>(ulong.MaxValue, ulong.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementSByte()
-        {
-            TestIncrementCompilationAndOutput<sbyte>(sbyte.MaxValue, sbyte.MinValue);
-        }
+    [Fact]
+    public void TestIncrementSByte()
+    {
+        TestIncrementCompilationAndOutput<sbyte>(sbyte.MaxValue, sbyte.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementByte()
-        {
-            TestIncrementCompilationAndOutput<byte>(byte.MaxValue, byte.MinValue);
-        }
+    [Fact]
+    public void TestIncrementByte()
+    {
+        TestIncrementCompilationAndOutput<byte>(byte.MaxValue, byte.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementShort()
-        {
-            TestIncrementCompilationAndOutput<short>(short.MaxValue, short.MinValue);
-        }
+    [Fact]
+    public void TestIncrementShort()
+    {
+        TestIncrementCompilationAndOutput<short>(short.MaxValue, short.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementUShort()
-        {
-            TestIncrementCompilationAndOutput<int>(int.MaxValue, int.MinValue);
-        }
+    [Fact]
+    public void TestIncrementUShort()
+    {
+        TestIncrementCompilationAndOutput<int>(int.MaxValue, int.MinValue);
+    }
 
-        [Fact]
-        public void TestIncrementFloat()
-        {
-            TestIncrementCompilationAndOutput<float>(0, 1);
-        }
+    [Fact]
+    public void TestIncrementFloat()
+    {
+        TestIncrementCompilationAndOutput<float>(0, 1);
+    }
 
-        [Fact]
-        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
-        public void TestIncrementDecimal()
-        {
-            TestIncrementCompilationAndOutput<decimal>(-1, 0);
-        }
+    [Fact]
+    [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+    public void TestIncrementDecimal()
+    {
+        TestIncrementCompilationAndOutput<decimal>(-1, 0);
+    }
 
-        [Fact]
-        public void TestIncrementDouble()
-        {
-            TestIncrementCompilationAndOutput<double>(-0.5, 0.5);
-        }
+    [Fact]
+    public void TestIncrementDouble()
+    {
+        TestIncrementCompilationAndOutput<double>(-0.5, 0.5);
+    }
 
-        [Fact]
-        public void TestIncrementChar()
-        {
-            string source = string.Format(NUMERIC_INCREMENT_TEMPLATE, typeof(char).FullName, "'a'", "'b'");
-            string expectedOutput = string.Format(NUMERIC_OUTPUT_TEMPLATE, 'a', 'b');
+    [Fact]
+    public void TestIncrementChar()
+    {
+        string source = string.Format(NUMERIC_INCREMENT_TEMPLATE, typeof(char).FullName, "'a'", "'b'");
+        string expectedOutput = string.Format(NUMERIC_OUTPUT_TEMPLATE, 'a', 'b');
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestIncrementEnum()
-        {
-            string source = @"
+    [Fact]
+    public void TestIncrementEnum()
+    {
+        string source = @"
 class C
 {
     enum E
@@ -192,7 +192,7 @@ class C
 }
 ";
 
-            string expectedOutput = @"
+        string expectedOutput = @"
 B
 A
 B
@@ -211,13 +211,13 @@ A
 12
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestIncrementNonLocal()
-        {
-            string source = @"
+    [Fact]
+    public void TestIncrementNonLocal()
+    {
+        string source = @"
 class C
 {
     int field;
@@ -265,7 +265,7 @@ class C
 }
 ";
 
-            string expectedOutput = @"
+        string expectedOutput = @"
 3
 2
 4
@@ -280,13 +280,13 @@ a
 8
 ";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestIncrementIL()
-        {
-            string source = @"
+    [Fact]
+    public void TestIncrementIL()
+    {
+        string source = @"
 class C
 {
     enum E { A, B }
@@ -440,8 +440,8 @@ class C
 }
 ";
 
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C.Main", @"
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C.Main", @"
 {
   // Code size      754 (0x2f2)
   .maxstack  3
@@ -829,13 +829,13 @@ class C
   IL_02f1:  ret
 }
 ");
-        }
+    }
 
-        [WorkItem(540718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540718")]
-        [Fact]
-        public void GenConditionalBranchTempForInc()
-        {
-            var source = @"using System;
+    [WorkItem(540718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540718")]
+    [Fact]
+    public void GenConditionalBranchTempForInc()
+    {
+        var source = @"using System;
 class Test
 {
     void M(int i)
@@ -847,8 +847,8 @@ class Test
     }
 }
 ";
-            base.CompileAndVerify(source).
-                VerifyIL("Test.M",
+        base.CompileAndVerify(source).
+            VerifyIL("Test.M",
 @"
 {
   // Code size        8 (0x8)
@@ -862,14 +862,14 @@ class Test
   IL_0007:  ret
 }
 "
-                );
-        }
+            );
+    }
 
-        [WorkItem(540718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540718")]
-        [Fact]
-        public void IncrementField()
-        {
-            var source = @"
+    [WorkItem(540718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540718")]
+    [Fact]
+    public void IncrementField()
+    {
+        var source = @"
 using System;
 class Test
 {
@@ -884,8 +884,8 @@ class Test
     }
 }
 ";
-            base.CompileAndVerify(source).
-                VerifyIL("Test.M",
+        base.CompileAndVerify(source).
+            VerifyIL("Test.M",
 @"
 {
   // Code size       43 (0x2b)
@@ -911,14 +911,14 @@ class Test
   IL_002a:  ret
 }
 "
-                );
-        }
+            );
+    }
 
-        [WorkItem(540723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540723")]
-        [Fact]
-        public void MissingIncInFinallyBlock()
-        {
-            var source = @"using System;
+    [WorkItem(540723, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540723")]
+    [Fact]
+    public void MissingIncInFinallyBlock()
+    {
+        var source = @"using System;
 
 class My
 {
@@ -932,14 +932,14 @@ class My
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1");
-        }
+        CompileAndVerify(source, expectedOutput: "1");
+    }
 
-        [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
-        [Fact]
-        public void NestedIncrement()
-        {
-            var source = @"
+    [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
+    [Fact]
+    public void NestedIncrement()
+    {
+        var source = @"
 using System;
 class My
 {
@@ -953,14 +953,14 @@ class My
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "11");
-        }
+        CompileAndVerify(source, expectedOutput: "11");
+    }
 
-        [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
-        [Fact]
-        public void IncrementSideEffects()
-        {
-            var source = @"
+    [WorkItem(540810, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540810")]
+    [Fact]
+    public void IncrementSideEffects()
+    {
+        var source = @"
 class Class
 {
     static int[] array = new int[1];
@@ -986,7 +986,7 @@ class Class
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 Array
 Zero
 0
@@ -999,25 +999,25 @@ Zero
 Array
 Zero
 0");
-        }
+    }
 
-        private void TestIncrementCompilationAndOutput<T>(T value, T valuePlusOne) where T : struct
-        {
-            Type type = typeof(T);
-            Assert.True(type.IsPrimitive || type == typeof(decimal), string.Format("Type {0} is neither primitive nor decimal", type));
+    private void TestIncrementCompilationAndOutput<T>(T value, T valuePlusOne) where T : struct
+    {
+        Type type = typeof(T);
+        Assert.True(type.IsPrimitive || type == typeof(decimal), string.Format("Type {0} is neither primitive nor decimal", type));
 
-            // Explicitly provide InvariantCulture to use the proper C# decimal separator '.' in the source regardless of the current culture
-            string source = string.Format(CultureInfo.InvariantCulture, NUMERIC_INCREMENT_TEMPLATE, type.FullName, value, valuePlusOne);
-            string expectedOutput = string.Format(CultureInfo.InvariantCulture, NUMERIC_OUTPUT_TEMPLATE, value, valuePlusOne);
+        // Explicitly provide InvariantCulture to use the proper C# decimal separator '.' in the source regardless of the current culture
+        string source = string.Format(CultureInfo.InvariantCulture, NUMERIC_INCREMENT_TEMPLATE, type.FullName, value, valuePlusOne);
+        string expectedOutput = string.Format(CultureInfo.InvariantCulture, NUMERIC_OUTPUT_TEMPLATE, value, valuePlusOne);
 
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [WorkItem(720742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720742")]
-        [Fact]
-        public void IncrementRefVal()
-        {
-            var source = @"
+    [WorkItem(720742, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/720742")]
+    [Fact]
+    public void IncrementRefVal()
+    {
+        var source = @"
 using System;
 
 public class Test
@@ -1036,8 +1036,8 @@ public class Test
     }
 }
 ";
-            base.CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: "12").
-                VerifyIL("Test.Main",
+        base.CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: "12").
+            VerifyIL("Test.Main",
 @"
 {
   // Code size       57 (0x39)
@@ -1077,7 +1077,6 @@ public class Test
   IL_0038:  ret
 }
 "
-                );
-        }
+            );
     }
 }

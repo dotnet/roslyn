@@ -11,27 +11,26 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
+
+public struct DkmEvaluationEnumAsyncResult
 {
-    public struct DkmEvaluationEnumAsyncResult
+    public DkmEvaluationEnumAsyncResult(DkmEvaluationResult[] Items)
+        : this()
     {
-        public DkmEvaluationEnumAsyncResult(DkmEvaluationResult[] Items)
-            : this()
+        if (Items == null)
         {
-            if (Items == null)
-            {
-                throw new ArgumentNullException();
-            }
-            this.Items = Items;
+            throw new ArgumentNullException();
         }
+        this.Items = Items;
+    }
 
-        public DkmEvaluationResult[] Items { get; internal set; }
+    public DkmEvaluationResult[] Items { get; internal set; }
 
-        internal Exception Exception { get; set; }
+    internal Exception Exception { get; set; }
 
-        public static DkmEvaluationEnumAsyncResult CreateErrorResult(Exception exception)
-        {
-            return new DkmEvaluationEnumAsyncResult(new DkmEvaluationResult[0]) { Exception = exception };
-        }
+    public static DkmEvaluationEnumAsyncResult CreateErrorResult(Exception exception)
+    {
+        return new DkmEvaluationEnumAsyncResult(new DkmEvaluationResult[0]) { Exception = exception };
     }
 }

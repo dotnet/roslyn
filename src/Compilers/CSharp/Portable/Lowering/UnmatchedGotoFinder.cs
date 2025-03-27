@@ -11,111 +11,110 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Compiles a list of all labels that are targeted by gotos within a
+/// node, but are not declared within the node.
+/// </summary>
+internal sealed class UnmatchedGotoFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 {
-    /// <summary>
-    /// Compiles a list of all labels that are targeted by gotos within a
-    /// node, but are not declared within the node.
-    /// </summary>
-    internal sealed class UnmatchedGotoFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+    private readonly Dictionary<BoundNode, HashSet<LabelSymbol>> _unmatchedLabelsCache; // NB: never modified.
+
+    private HashSet<LabelSymbol> _gotos;
+    private HashSet<LabelSymbol> _targets;
+
+    private UnmatchedGotoFinder(Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache, int recursionDepth)
+        : base(recursionDepth)
     {
-        private readonly Dictionary<BoundNode, HashSet<LabelSymbol>> _unmatchedLabelsCache; // NB: never modified.
+        Debug.Assert(unmatchedLabelsCache != null);
+        _unmatchedLabelsCache = unmatchedLabelsCache;
+    }
 
-        private HashSet<LabelSymbol> _gotos;
-        private HashSet<LabelSymbol> _targets;
-
-        private UnmatchedGotoFinder(Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache, int recursionDepth)
-            : base(recursionDepth)
+    public static HashSet<LabelSymbol> Find(BoundNode node, Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache, int recursionDepth)
+    {
+        UnmatchedGotoFinder finder = new UnmatchedGotoFinder(unmatchedLabelsCache, recursionDepth);
+        finder.Visit(node);
+        HashSet<LabelSymbol> gotos = finder._gotos;
+        HashSet<LabelSymbol> targets = finder._targets;
+        if (gotos != null && targets != null)
         {
-            Debug.Assert(unmatchedLabelsCache != null);
-            _unmatchedLabelsCache = unmatchedLabelsCache;
+            gotos.RemoveAll(targets);
         }
+        return gotos;
+    }
 
-        public static HashSet<LabelSymbol> Find(BoundNode node, Dictionary<BoundNode, HashSet<LabelSymbol>> unmatchedLabelsCache, int recursionDepth)
+    public override BoundNode Visit(BoundNode node)
+    {
+        HashSet<LabelSymbol> unmatched;
+        if (node != null && _unmatchedLabelsCache.TryGetValue(node, out unmatched))
         {
-            UnmatchedGotoFinder finder = new UnmatchedGotoFinder(unmatchedLabelsCache, recursionDepth);
-            finder.Visit(node);
-            HashSet<LabelSymbol> gotos = finder._gotos;
-            HashSet<LabelSymbol> targets = finder._targets;
-            if (gotos != null && targets != null)
+            if (unmatched != null)
             {
-                gotos.RemoveAll(targets);
-            }
-            return gotos;
-        }
-
-        public override BoundNode Visit(BoundNode node)
-        {
-            HashSet<LabelSymbol> unmatched;
-            if (node != null && _unmatchedLabelsCache.TryGetValue(node, out unmatched))
-            {
-                if (unmatched != null)
+                foreach (LabelSymbol label in unmatched)
                 {
-                    foreach (LabelSymbol label in unmatched)
-                    {
-                        AddGoto(label);
-                    }
+                    AddGoto(label);
                 }
-
-                return null; // Don't visit children.
             }
 
-            return base.Visit(node);
+            return null; // Don't visit children.
         }
 
-        public override BoundNode VisitGotoStatement(BoundGotoStatement node)
+        return base.Visit(node);
+    }
+
+    public override BoundNode VisitGotoStatement(BoundGotoStatement node)
+    {
+        AddGoto(node.Label);
+        return base.VisitGotoStatement(node);
+    }
+
+    public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
+    {
+        AddGoto(node.Label);
+        return base.VisitConditionalGoto(node);
+    }
+
+    public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+    {
+        AddGoto(node.DefaultLabel);
+        foreach ((_, LabelSymbol label) in node.Cases)
         {
-            AddGoto(node.Label);
-            return base.VisitGotoStatement(node);
+            AddGoto(label);
         }
 
-        public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
+        return base.VisitSwitchDispatch(node);
+    }
+
+    public override BoundNode VisitLabelStatement(BoundLabelStatement node)
+    {
+        AddTarget(node.Label);
+        return base.VisitLabelStatement(node);
+    }
+
+    public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
+    {
+        AddTarget(node.Label);
+        return base.VisitLabeledStatement(node);
+    }
+
+    private void AddGoto(LabelSymbol label)
+    {
+        if (_gotos == null)
         {
-            AddGoto(node.Label);
-            return base.VisitConditionalGoto(node);
+            _gotos = new HashSet<LabelSymbol>();
         }
 
-        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        _gotos.Add(label);
+    }
+
+    private void AddTarget(LabelSymbol label)
+    {
+        if (_targets == null)
         {
-            AddGoto(node.DefaultLabel);
-            foreach ((_, LabelSymbol label) in node.Cases)
-            {
-                AddGoto(label);
-            }
-
-            return base.VisitSwitchDispatch(node);
+            _targets = new HashSet<LabelSymbol>();
         }
 
-        public override BoundNode VisitLabelStatement(BoundLabelStatement node)
-        {
-            AddTarget(node.Label);
-            return base.VisitLabelStatement(node);
-        }
-
-        public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
-        {
-            AddTarget(node.Label);
-            return base.VisitLabeledStatement(node);
-        }
-
-        private void AddGoto(LabelSymbol label)
-        {
-            if (_gotos == null)
-            {
-                _gotos = new HashSet<LabelSymbol>();
-            }
-
-            _gotos.Add(label);
-        }
-
-        private void AddTarget(LabelSymbol label)
-        {
-            if (_targets == null)
-            {
-                _targets = new HashSet<LabelSymbol>();
-            }
-
-            _targets.Add(label);
-        }
+        _targets.Add(label);
     }
 }

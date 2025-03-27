@@ -12,14 +12,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class CodeGenClosureLambdaTests : CSharpTestBase
 {
-    public class CodeGenClosureLambdaTests : CSharpTestBase
+    [Fact]
+    public void LambdaInIndexerAndBinaryOperator()
     {
-        [Fact]
-        public void LambdaInIndexerAndBinaryOperator()
-        {
-            var verifier = CompileAndVerify(@"
+        var verifier = CompileAndVerify(@"
 using System;
 
 class C
@@ -38,12 +38,12 @@ class C
         set { _f2 = f; }
     }
 }", expectedOutput: "True");
-        }
+    }
 
-        [Fact]
-        public void MethodGroupInIndexerAndBinaryOperator()
-        {
-            CompileAndVerify(@"
+    [Fact]
+    public void MethodGroupInIndexerAndBinaryOperator()
+    {
+        CompileAndVerify(@"
 using System;
 
 class C
@@ -64,12 +64,12 @@ class C
         set { _f2 = f; }
     }
 }", expectedOutput: "True");
-        }
+    }
 
-        [Fact]
-        public void EnvironmentChainContainsUnusedEnvironment()
-        {
-            CompileAndVerify(@"
+    [Fact]
+    public void EnvironmentChainContainsUnusedEnvironment()
+    {
+        CompileAndVerify(@"
 using System;
 class C
 {
@@ -90,12 +90,12 @@ class C
     public static void Main() => new C().M(3);
 }", expectedOutput: @"8
 10");
-        }
+    }
 
-        [Fact]
-        public void CaptureThisAsFramePointer()
-        {
-            var comp = @"
+    [Fact]
+    public void CaptureThisAsFramePointer()
+    {
+        var comp = @"
 using System;
 using System.Collections.Generic;
 
@@ -110,13 +110,13 @@ class C
         }
     }
 }";
-            CompileAndVerify(comp);
-        }
+        CompileAndVerify(comp);
+    }
 
-        [Fact]
-        public void StaticClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void StaticClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -128,9 +128,9 @@ class C
         d2();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+        var compilation = CompileAndVerify(source, expectedOutput: @"12");
 
-            compilation.VerifyIL("C.Main",
+        compilation.VerifyIL("C.Main",
 @"
 {
   // Code size       73 (0x49)
@@ -158,12 +158,12 @@ class C
   IL_0048:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ThisOnlyClosure()
-        {
-            string source = @"using System;
+    [Fact]
+    public void ThisOnlyClosure()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -185,10 +185,10 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12
+        var compilation = CompileAndVerify(source, expectedOutput: @"12
 12");
 
-            compilation.VerifyIL("C.M",
+        compilation.VerifyIL("C.M",
 @"{
   // Code size       47 (0x2f)
   .maxstack  2
@@ -213,12 +213,12 @@ class C
   IL_002c:  blt.s      IL_0004
   IL_002e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void StaticClosure02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void StaticClosure02()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -233,13 +233,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "1");
-        }
+        CompileAndVerify(source, expectedOutput: "1");
+    }
 
-        [Fact]
-        public void StaticClosure03()
-        {
-            string source = @"using System;
+    [Fact]
+    public void StaticClosure03()
+    {
+        string source = @"using System;
 delegate int D(int x);
 class Program
 {
@@ -253,13 +253,13 @@ class Program
         Console.WriteLine(d(2));
     }
 } ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
-        }
+        var compilation = CompileAndVerify(source, expectedOutput: @"12");
+    }
 
-        [Fact]
-        public void InstanceClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -280,13 +280,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void InstanceClosure02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure02()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -310,13 +310,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void InstanceClosure03()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure03()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -340,13 +340,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void InstanceClosure04()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure04()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -370,13 +370,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void InstanceClosure05()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure05()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -404,16 +404,16 @@ class C
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 13
 ");
-        }
+    }
 
-        [Fact]
-        public void InstanceClosure06()
-        {
-            string source = @"using System;
+    [Fact]
+    public void InstanceClosure06()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -434,16 +434,16 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 11
 12
 ");
-        }
+    }
 
-        [Fact]
-        public void LoopClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void LoopClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -465,16 +465,16 @@ class C
         d2();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 5
 10
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -492,13 +492,13 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"12");
-        }
+        CompileAndVerify(source, expectedOutput: @"12");
+    }
 
-        [Fact]
-        public void NestedClosure02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure02()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -522,16 +522,16 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 11
 12
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedClosure10()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure10()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -552,16 +552,16 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 13
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedClosure11()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure11()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -588,17 +588,17 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 11
 12
 13
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedClosure20()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure20()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -618,16 +618,16 @@ class C
         d1();
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 13
 ");
-        }
+    }
 
-        [Fact]
-        public void NestedClosure21()
-        {
-            string source = @"using System;
+    [Fact]
+    public void NestedClosure21()
+    {
+        string source = @"using System;
 delegate void D();
 class C
 {
@@ -654,18 +654,18 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 11
 12
 13
 ");
-        }
+    }
 
-        [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
-        [Fact]
-        public void NestedClosureThisConstructorInitializer()
-        {
-            string source = @"using System;
+    [WorkItem(540146, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540146")]
+    [Fact]
+    public void NestedClosureThisConstructorInitializer()
+    {
+        string source = @"using System;
 delegate void D();
 delegate void D1(int i);
 class C
@@ -718,7 +718,7 @@ public static void Main(string[] args)
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 13
 14
@@ -727,12 +727,12 @@ public static void Main(string[] args)
 14
 15
 ");
-        }
+    }
 
-        [Fact]
-        public void FilterParameterClosure01()
-        {
-            string source = @"
+    [Fact]
+    public void FilterParameterClosure01()
+    {
+        string source = @"
 using System;
 class Program
 {
@@ -750,13 +750,13 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "pass");
-        }
+        CompileAndVerify(source, expectedOutput: "pass");
+    }
 
-        [Fact]
-        public void FilterParameterClosure02()
-        {
-            string source = @"
+    [Fact]
+    public void FilterParameterClosure02()
+    {
+        string source = @"
 using System;
 class Program
 {
@@ -774,14 +774,14 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "xxxpass");
-        }
+        CompileAndVerify(source, expectedOutput: "xxxpass");
+    }
 
-        [WorkItem(541258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541258")]
-        [Fact]
-        public void CatchVarLifted1()
-        {
-            string source = @"using System;
+    [WorkItem(541258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541258")]
+    [Fact]
+    public void CatchVarLifted1()
+    {
+        string source = @"using System;
 class Program
 {
     static void Main()
@@ -798,9 +798,9 @@ class Program
         a();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+        var verifier = CompileAndVerify(source, expectedOutput: "pass");
 
-            verifier.VerifyIL("Program.Main", @"
+        verifier.VerifyIL("Program.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -834,12 +834,12 @@ class Program
   IL_0030:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CatchVarLifted2()
-        {
-            var source = @"
+    [Fact]
+    public void CatchVarLifted2()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -863,9 +863,9 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+        var verifier = CompileAndVerify(source, expectedOutput: "pass");
 
-            verifier.VerifyIL("Program.Main", @"
+        verifier.VerifyIL("Program.Main", @"
 {
   // Code size       79 (0x4f)
   .maxstack  2
@@ -910,12 +910,12 @@ class Program
   IL_004e:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CatchVarLifted2a()
-        {
-            var source = @"
+    [Fact]
+    public void CatchVarLifted2a()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -943,13 +943,13 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
-        }
+        var verifier = CompileAndVerify(source, expectedOutput: "pass");
+    }
 
-        [Fact]
-        public void CatchVarLifted3()
-        {
-            string source = @"
+    [Fact]
+    public void CatchVarLifted3()
+    {
+        string source = @"
 using System;
 class Program
 {
@@ -965,8 +965,8 @@ class Program
         }
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
-            verifier.VerifyIL("Program.Main", @"
+        var verifier = CompileAndVerify(source, expectedOutput: "pass");
+        verifier.VerifyIL("Program.Main", @"
 {
   // Code size       73 (0x49)
   .maxstack  2
@@ -1009,12 +1009,12 @@ class Program
   IL_0048:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CatchVarLifted_Generic1()
-        {
-            string source = @"
+    [Fact]
+    public void CatchVarLifted_Generic1()
+    {
+        string source = @"
 using System;
 using System.IO;
 
@@ -1040,8 +1040,8 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
-            verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: "pass");
+        verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0", @"
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -1077,12 +1077,12 @@ class Program
   IL_0042:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CatchVarLifted_Generic2()
-        {
-            string source = @"
+    [Fact]
+    public void CatchVarLifted_Generic2()
+    {
+        string source = @"
 using System;
 using System.IO;
 
@@ -1112,8 +1112,8 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
-            verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
+        var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+        verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
 {
   // Code size      113 (0x71)
   .maxstack  3
@@ -1168,12 +1168,12 @@ class Program
   IL_0070:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CatchVarLifted_Generic3()
-        {
-            string source = @"
+    [Fact]
+    public void CatchVarLifted_Generic3()
+    {
+        string source = @"
 using System;
 using System.IO;
 
@@ -1216,13 +1216,13 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
-        }
+        var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+    }
 
-        [Fact]
-        public void ForeachParameterClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void ForeachParameterClosure01()
+    {
+        string source = @"using System;
 using System.Collections.Generic;
 delegate void D();
 class C
@@ -1244,15 +1244,15 @@ class C
         d();
     }
 }";
-            // Dev10 prints B, but we have intentionally changed the scope
-            // of the loop variable.
-            CompileAndVerify(source, expectedOutput: "A");
-        }
+        // Dev10 prints B, but we have intentionally changed the scope
+        // of the loop variable.
+        CompileAndVerify(source, expectedOutput: "A");
+    }
 
-        [Fact]
-        public void LambdaParameterClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void LambdaParameterClosure01()
+    {
+        string source = @"using System;
 delegate void D0();
 delegate void D1(string s);
 class C
@@ -1271,13 +1271,13 @@ class C
         d0();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "goo");
-        }
+        CompileAndVerify(source, expectedOutput: "goo");
+    }
 
-        [Fact]
-        public void BaseInvocation01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseInvocation01()
+    {
+        string source = @"using System;
 class B
 {
     public virtual void F()
@@ -1300,13 +1300,13 @@ class C : B
         new C().Main();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
-        }
+        CompileAndVerify(source, expectedOutput: "base");
+    }
 
-        [Fact]
-        public void BaseInvocationClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseInvocationClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 
 class B
@@ -1335,13 +1335,13 @@ class C : B
         new C().Main();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
-        }
+        CompileAndVerify(source, expectedOutput: "base");
+    }
 
-        [Fact]
-        public void BaseInvocationClosure02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseInvocationClosure02()
+    {
+        string source = @"using System;
 delegate void D();
 
 class B
@@ -1371,13 +1371,13 @@ class C : B
         new C().Main(3);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
-        }
+        CompileAndVerify(source, expectedOutput: "base");
+    }
 
-        [Fact]
-        public void BaseInvocationClosure03()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseInvocationClosure03()
+    {
+        string source = @"using System;
 delegate void D();
 
 class B
@@ -1403,13 +1403,13 @@ class C : B
         new C().Main(3);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "base");
-        }
+        CompileAndVerify(source, expectedOutput: "base");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_01()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1458,13 +1458,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
-        }
+        CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_02()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1517,13 +1517,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
-        }
+        CompileAndVerify(source, expectedOutput: $"this: D::F{Environment.NewLine}base: B1::F");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_03_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_03_WithILCheck()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1567,8 +1567,8 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "B1::F").
-                VerifyIL("M1.B2.<TestBase>b__1_0",
+        CompileAndVerify(source, expectedOutput: "B1::F").
+            VerifyIL("M1.B2.<TestBase>b__1_0",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1576,12 +1576,12 @@ static class M1
   IL_0001:  call       ""string M1.B1.F()""
   IL_0006:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_03a_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_03a_WithILCheck()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1630,8 +1630,8 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "B1a::F").
-                VerifyIL("M1.B2.<TestBase>b__1_0",
+        CompileAndVerify(source, expectedOutput: "B1a::F").
+            VerifyIL("M1.B2.<TestBase>b__1_0",
 @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1639,12 +1639,12 @@ static class M1
   IL_0001:  call       ""string M1.B1a.F()""
   IL_0006:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_04()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_04()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1691,13 +1691,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
-        }
+        CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_05()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_05()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1744,13 +1744,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
-        }
+        CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_06()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_06()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1799,13 +1799,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
-        }
+        CompileAndVerify(source, expectedOutput: $"D::F{Environment.NewLine}B1::F");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_07()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_07()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1848,13 +1848,13 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F.Get;F::F.Set;D::F.Get;B1::F.Set;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F.Get;F::F.Set;D::F.Get;B1::F.Set;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_08()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_08()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1894,13 +1894,13 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "D::F;B1::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "D::F;B1::F;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_09()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_09()
+    {
+        string source = @"using System;
 static class M1
 {
 
@@ -1942,13 +1942,13 @@ static class M1
         (new D()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_10()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_10()
+    {
+        string source = @"using System;
 static class M1
 {
     class B1<T>
@@ -1989,13 +1989,13 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_11()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_11()
+    {
+        string source = @"using System;
 static class M1
 {
     class B1<T>
@@ -2039,13 +2039,13 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_12()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_12()
+    {
+        string source = @"using System;
 static class M1
 {
     public class Outer<T>
@@ -2097,13 +2097,13 @@ static class M1
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "D::F2;B1::F1;D::F2;B1::F2;");
-        }
+        CompileAndVerify(source, expectedOutput: "D::F2;B1::F1;D::F2;B1::F2;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_13()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_13()
+    {
+        string source = @"using System;
 static class M1
 {
     interface I{}
@@ -2154,13 +2154,13 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_14_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_14_WithILCheck()
+    {
+        string source = @"using System;
 
 static class M1
 {
@@ -2195,10 +2195,10 @@ static class M1
         (new B2()).Test();
     }
 }";
-            CompileAndVerify(source,
-                expectedOutput: @"B1:F"
-            ).
-            VerifyIL("M1.B2.<>n__0<U>",
+        CompileAndVerify(source,
+            expectedOutput: @"B1:F"
+        ).
+        VerifyIL("M1.B2.<>n__0<U>",
 @"{
   // Code size        9 (0x9)
   .maxstack  3
@@ -2208,12 +2208,12 @@ static class M1
   IL_0003:  call       ""string M1.Outer<int>.B1.F<U>(int, U)""
   IL_0008:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_15_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_15_WithILCheck()
+    {
+        string source = @"using System;
 static class M1
 {
     public interface I { }
@@ -2253,10 +2253,10 @@ static class M1
         (new B2()).Test();
     }
 }";
-            CompileAndVerify(source,
-                expectedOutput: @"B1::F;"
-            ).
-            VerifyIL("M1.B2.<>c__DisplayClass1_0.<Test>b__0",
+        CompileAndVerify(source,
+            expectedOutput: @"B1::F;"
+        ).
+        VerifyIL("M1.B2.<>c__DisplayClass1_0.<Test>b__0",
 @"{
   // Code size       35 (0x23)
   .maxstack  3
@@ -2271,7 +2271,7 @@ static class M1
   IL_001d:  callvirt   ""string System.Func<M1.C, M1.C, string>.Invoke(M1.C, M1.C)""
   IL_0022:  ret
 }").
-            VerifyIL("M1.B2.<>n__0<U>",
+        VerifyIL("M1.B2.<>n__0<U>",
 @"{
   // Code size        9 (0x9)
   .maxstack  3
@@ -2281,12 +2281,12 @@ static class M1
   IL_0003:  call       ""string M1.Outer<M1.C>.B1.F<U>(M1.C, U)""
   IL_0008:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_16()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_16()
+    {
+        string source = @"using System;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2345,8 +2345,8 @@ static class M1
         Console.WriteLine(arg0constraints[1]);
     }
 }";
-            CompileAndVerify(source,
-                expectedOutput: @"
+        CompileAndVerify(source,
+            expectedOutput: @"
 True
 True
 False
@@ -2356,13 +2356,13 @@ DefaultConstructorConstraint
 2
 M1+I
 M1+C"
-            );
-        }
+        );
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_17_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_17_WithILCheck()
+    {
+        string source = @"using System;
 
 class Base<T>
 {
@@ -2393,10 +2393,10 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source,
-                expectedOutput: "System.Int32 System.String"
-            ).
-            VerifyIL("Base<T>.Derived.<>n__0<U>",
+        CompileAndVerify(source,
+            expectedOutput: "System.Int32 System.String"
+        ).
+        VerifyIL("Base<T>.Derived.<>n__0<U>",
 @"{
   // Code size        9 (0x9)
   .maxstack  3
@@ -2406,12 +2406,12 @@ class Program
   IL_0003:  call       ""void Base<int>.Func<U>(int, U)""
   IL_0008:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_18_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_18_WithILCheck()
+    {
+        string source = @"using System;
 
 class Base
 {
@@ -2433,10 +2433,10 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
-                expectedOutput: "Base::F;Derived::F;"
-            ).
-            VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
+        CompileAndVerify(source,
+            expectedOutput: "Base::F;Derived::F;"
+        ).
+        VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
 @"
 {
   // Code size       35 (0x23)
@@ -2453,12 +2453,12 @@ class Derived : Base
   IL_001d:  call       ""void Derived.F(int)""
   IL_0022:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_19_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_19_WithILCheck()
+    {
+        string source = @"using System;
 
 class Base
 {
@@ -2480,10 +2480,10 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
-                expectedOutput: "Base::F;"
-            ).
-            VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
+        CompileAndVerify(source,
+            expectedOutput: "Base::F;"
+        ).
+        VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
 @"{
   // Code size       29 (0x1d)
   .maxstack  2
@@ -2496,12 +2496,12 @@ class Derived : Base
   IL_0017:  callvirt   ""void System.Action<int>.Invoke(int)""
   IL_001c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void BaseAccessInClosure_20_WithILCheck()
-        {
-            string source = @"using System;
+    [Fact]
+    public void BaseAccessInClosure_20_WithILCheck()
+    {
+        string source = @"using System;
 
 class Base
 {
@@ -2523,10 +2523,10 @@ class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source,
-                expectedOutput: "Base::F;"
-            ).
-            VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
+        CompileAndVerify(source,
+            expectedOutput: "Base::F;"
+        ).
+        VerifyIL("Derived.<>c__DisplayClass1_0.<Test>b__0",
 @"{
   // Code size       29 (0x1d)
   .maxstack  2
@@ -2539,12 +2539,12 @@ class Derived : Base
   IL_0017:  callvirt   ""void System.Action<int>.Invoke(int)""
   IL_001c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UnsafeInvocationClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void UnsafeInvocationClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 
 class C
@@ -2566,13 +2566,13 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
-        }
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
+    }
 
-        [Fact]
-        public void LambdaWithParameters01()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaWithParameters01()
+    {
+        var source = @"
 delegate void D(int x);
 class LWP
 {
@@ -2585,13 +2585,13 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void LambdaWithParameters02()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaWithParameters02()
+    {
+        var source = @"
 delegate void D(int x);
 class LWP
 {
@@ -2606,13 +2606,13 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void LambdaWithParameters03()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaWithParameters03()
+    {
+        var source = @"
 delegate void D(int x);
 class LWP
 {
@@ -2629,13 +2629,13 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void LambdaWithParameters04()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaWithParameters04()
+    {
+        var source = @"
 delegate void D(int x);
 class LWP
 {
@@ -2654,13 +2654,13 @@ class LWP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void CapturedLambdaParameter01()
-        {
-            var source = @"
+    [Fact]
+    public void CapturedLambdaParameter01()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2674,13 +2674,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void CapturedLambdaParameter02()
-        {
-            var source = @"
+    [Fact]
+    public void CapturedLambdaParameter02()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2698,13 +2698,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123");
-        }
+        CompileAndVerify(source, expectedOutput: "123");
+    }
 
-        [Fact]
-        public void CapturedLambdaParameter03()
-        {
-            var source = @"
+    [Fact]
+    public void CapturedLambdaParameter03()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2719,13 +2719,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "4123");
-        }
+        CompileAndVerify(source, expectedOutput: "4123");
+    }
 
-        [Fact]
-        public void CapturedLambdaParameter04()
-        {
-            var source = @"
+    [Fact]
+    public void CapturedLambdaParameter04()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2744,13 +2744,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "4123");
-        }
+        CompileAndVerify(source, expectedOutput: "4123");
+    }
 
-        [Fact]
-        public void GenericClosure01()
-        {
-            string source = @"using System;
+    [Fact]
+    public void GenericClosure01()
+    {
+        string source = @"using System;
 delegate void D();
 
 class G<T>
@@ -2774,16 +2774,16 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 goo
 ");
-        }
+    }
 
-        [Fact]
-        public void GenericClosure02()
-        {
-            string source = @"using System;
+    [Fact]
+    public void GenericClosure02()
+    {
+        string source = @"using System;
 delegate void D();
 
 class G
@@ -2807,16 +2807,16 @@ class C
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 12
 goo
 ");
-        }
+    }
 
-        [Fact]
-        public void GenericClosure03()
-        {
-            var source = @"using System;
+    [Fact]
+    public void GenericClosure03()
+    {
+        var source = @"using System;
 
 delegate U D<U>();
 class GenericClosure
@@ -2835,15 +2835,15 @@ class GenericClosure
     }
 }
 ";
-            var expectedOutput = @"Hello
+        var expectedOutput = @"Hello
 1234";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void GenericClosure04()
-        {
-            var source = @"using System;
+    [Fact]
+    public void GenericClosure04()
+    {
+        var source = @"using System;
 
 delegate T D<T>();
 class GenericClosure
@@ -2862,15 +2862,15 @@ class GenericClosure
     }
 }
 ";
-            var expectedOutput = @"
+        var expectedOutput = @"
 0";
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void GenericCapturedLambdaParameter01()
-        {
-            var source = @"
+    [Fact]
+    public void GenericCapturedLambdaParameter01()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2889,13 +2889,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123123");
-        }
+        CompileAndVerify(source, expectedOutput: "123123");
+    }
 
-        [Fact]
-        public void GenericCapturedLambdaParameter02()
-        {
-            var source = @"
+    [Fact]
+    public void GenericCapturedLambdaParameter02()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2914,13 +2914,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123123");
-        }
+        CompileAndVerify(source, expectedOutput: "123123");
+    }
 
-        [Fact]
-        public void GenericCapturedLambdaParameter03()
-        {
-            var source = @"
+    [Fact]
+    public void GenericCapturedLambdaParameter03()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2940,13 +2940,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "41234123");
-        }
+        CompileAndVerify(source, expectedOutput: "41234123");
+    }
 
-        [Fact]
-        public void GenericCapturedLambdaParameter04()
-        {
-            var source = @"
+    [Fact]
+    public void GenericCapturedLambdaParameter04()
+    {
+        var source = @"
 delegate D D(int x);
 class CLP
 {
@@ -2966,13 +2966,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "41234123");
-        }
+        CompileAndVerify(source, expectedOutput: "41234123");
+    }
 
-        [Fact]
-        public void GenericCapturedTypeParameterLocal()
-        {
-            var source = @"
+    [Fact]
+    public void GenericCapturedTypeParameterLocal()
+    {
+        var source = @"
 delegate void D();
 class CLP
 {
@@ -2992,13 +2992,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
-        }
+        CompileAndVerify(source, expectedOutput: "000hhh");
+    }
 
-        [Fact]
-        public void CaptureConstructedMethodInvolvingTypeParameter()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureConstructedMethodInvolvingTypeParameter()
+    {
+        var source = @"
 delegate void D();
 class CLP
 {
@@ -3022,13 +3022,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
-        }
+        CompileAndVerify(source, expectedOutput: "000hhh");
+    }
 
-        [Fact]
-        public void CaptureConstructionInvolvingTypeParameter()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureConstructionInvolvingTypeParameter()
+    {
+        var source = @"
 delegate void D();
 class CLP
 {
@@ -3056,13 +3056,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
-        }
+        CompileAndVerify(source, expectedOutput: "000hhh");
+    }
 
-        [Fact]
-        public void CaptureDelegateConversionInvolvingTypeParameter()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureDelegateConversionInvolvingTypeParameter()
+    {
+        var source = @"
 delegate void D();
 class CLP
 {
@@ -3090,13 +3090,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "000hhh");
-        }
+        CompileAndVerify(source, expectedOutput: "000hhh");
+    }
 
-        [Fact]
-        public void CaptureFieldInvolvingTypeParameter()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureFieldInvolvingTypeParameter()
+    {
+        var source = @"
 delegate void D();
 class CLP
 {
@@ -3124,13 +3124,13 @@ class CLP
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "12he");
-        }
+        CompileAndVerify(source, expectedOutput: "12he");
+    }
 
-        [Fact]
-        public void CaptureReadonly01()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureReadonly01()
+    {
+        var source = @"
 using System;
  
 class Program
@@ -3143,13 +3143,13 @@ class Program
         Console.Write(string.Concat(myDelegate(3), ""he""));
     }
 }";
-            CompileAndVerify(source, expectedOutput: "15he");
-        }
+        CompileAndVerify(source, expectedOutput: "15he");
+    }
 
-        [Fact]
-        public void CaptureReadonly02()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureReadonly02()
+    {
+        var source = @"
 using System;
  
 class Program
@@ -3166,13 +3166,13 @@ class Program
         new Program().M();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "15he");
-        }
+        CompileAndVerify(source, expectedOutput: "15he");
+    }
 
-        [Fact]
-        public void CaptureLoopIndex()
-        {
-            var source = @"
+    [Fact]
+    public void CaptureLoopIndex()
+    {
+        var source = @"
 using System;
 delegate void D();
 class Program
@@ -3191,14 +3191,14 @@ class Program
         d0();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "01234");
-        }
+        CompileAndVerify(source, expectedOutput: "01234");
+    }
 
-        // see Roslyn bug 5956
-        [Fact]
-        public void CapturedIncrement()
-        {
-            var source = @"
+    // see Roslyn bug 5956
+    [Fact]
+    public void CapturedIncrement()
+    {
+        var source = @"
 class Program
 {
     delegate int Func();
@@ -3227,13 +3227,13 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "7");
-        }
+        CompileAndVerify(source, expectedOutput: "7");
+    }
 
-        [Fact]
-        public void StructDelegate()
-        {
-            var source = @"
+    [Fact]
+    public void StructDelegate()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -3244,11 +3244,11 @@ class Program
         Console.Write(f.Invoke());
     }
 }";
-            // See tracking issue https://github.com/dotnet/runtime/issues/96695
-            var verifier = CompileAndVerify(source, expectedOutput: "42",
-                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0xe }" });
+        // See tracking issue https://github.com/dotnet/runtime/issues/96695
+        var verifier = CompileAndVerify(source, expectedOutput: "42",
+            verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0xe }" });
 
-            verifier.VerifyIL("Program.Main", """
+        verifier.VerifyIL("Program.Main", """
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -3262,12 +3262,12 @@ class Program
   IL_001d:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        public void StructDelegate1()
-        {
-            var source = @"
+    [Fact]
+    public void StructDelegate1()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -3287,13 +3287,13 @@ class Program
     }
 }"
 ;
-            CompileAndVerify(source, expectedOutput: "Hi42");
-        }
+        CompileAndVerify(source, expectedOutput: "Hi42");
+    }
 
-        [Fact]
-        public void StaticDelegateFromMethodGroupInLambda()
-        {
-            var source = @"using System;
+    [Fact]
+    public void StaticDelegateFromMethodGroupInLambda()
+    {
+        var source = @"using System;
 class Program
 {
     static void M()
@@ -3309,13 +3309,13 @@ class Program
         a();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void StaticDelegateFromMethodGroupInLambda2()
-        {
-            var source = @"using System;
+    [Fact]
+    public void StaticDelegateFromMethodGroupInLambda2()
+    {
+        var source = @"using System;
 class Program
 {
     static void M()
@@ -3335,14 +3335,14 @@ class Program
         new Program().G();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
-        [Fact]
-        public void CachedLambdas()
-        {
-            var source = @"using System;
+    [WorkItem(539346, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539346")]
+    [Fact]
+    public void CachedLambdas()
+    {
+        var source = @"using System;
 
 public class Program
 {
@@ -3455,15 +3455,15 @@ class Goo<T>
         return () => Goo<U>.t;
     }
 }";
-            CompileAndVerify(source, expectedOutput: "");
-        }
+        CompileAndVerify(source, expectedOutput: "");
+    }
 
-        [Fact]
-        public void ParentFrame01()
-        {
-            //IMPORTANT: the parent frame field in Program.c1.<>c__DisplayClass1 should be named CS$<>8__locals, not <>4__this.
+    [Fact]
+    public void ParentFrame01()
+    {
+        //IMPORTANT: the parent frame field in Program.c1.<>c__DisplayClass1 should be named CS$<>8__locals, not <>4__this.
 
-            string source = @"
+        string source = @"
 using System;
 class Program
 {
@@ -3493,8 +3493,8 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "13").
-            VerifyIL("Program.c1.<>c__DisplayClass1_0.<Test>b__2",
+        CompileAndVerify(source, expectedOutput: "13").
+        VerifyIL("Program.c1.<>c__DisplayClass1_0.<Test>b__2",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
@@ -3509,12 +3509,12 @@ class Program
   IL_0019:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ParentFrame02()
-        {
-            string source = @"
+    [Fact]
+    public void ParentFrame02()
+    {
+        string source = @"
 using System;
     class Program
     {
@@ -3550,8 +3550,8 @@ using System;
         }
     }
 ";
-            CompileAndVerify(source, expectedOutput: "10").
-            VerifyIL("Program.c1.Test",
+        CompileAndVerify(source, expectedOutput: "10").
+        VerifyIL("Program.c1.Test",
 @"{
   // Code size      134 (0x86)
   .maxstack  3
@@ -3607,12 +3607,12 @@ using System;
   IL_0080:  call       ""void System.Console.WriteLine(int)""
   IL_0085:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ParentFrame03()
-        {
-            string source = @"
+    [Fact]
+    public void ParentFrame03()
+    {
+        string source = @"
 using System;
     class Program
     {
@@ -3648,8 +3648,8 @@ using System;
         }
     }
 ";
-            CompileAndVerify(source, expectedOutput: "6").
-            VerifyIL("Program.c1.Test",
+        CompileAndVerify(source, expectedOutput: "6").
+        VerifyIL("Program.c1.Test",
 @"{
   // Code size      133 (0x85)
   .maxstack  3
@@ -3705,12 +3705,12 @@ using System;
   IL_0084:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ParentFrame04()
-        {
-            string source = @"
+    [Fact]
+    public void ParentFrame04()
+    {
+        string source = @"
 using System;
 public static class Program
 {
@@ -3751,8 +3751,8 @@ public static class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "True").
-            VerifyIL("Program.c1.Test",
+        CompileAndVerify(source, expectedOutput: "True").
+        VerifyIL("Program.c1.Test",
 @"
 {
   // Code size       89 (0x59)
@@ -3790,14 +3790,14 @@ public static class Program
   IL_0058:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ParentFrame05()
-        {
-            // IMPORTANT: Program.c1.<>c__DisplayClass1_0 should not capture any frame pointers.
+    [Fact]
+    public void ParentFrame05()
+    {
+        // IMPORTANT: Program.c1.<>c__DisplayClass1_0 should not capture any frame pointers.
 
-            string source = @"
+        string source = @"
 using System;
 class Program
 {
@@ -3838,8 +3838,8 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "6").
-            VerifyIL("Program.c1.Test",
+        CompileAndVerify(source, expectedOutput: "6").
+        VerifyIL("Program.c1.Test",
 @"{
   // Code size       85 (0x55)
   .maxstack  2
@@ -3880,12 +3880,12 @@ class Program
   IL_004f:  call       ""void System.Console.WriteLine(int)""
   IL_0054:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ClosuresInConstructorAndInitializers1()
-        {
-            string source = @"
+    [Fact]
+    public void ClosuresInConstructorAndInitializers1()
+    {
+        string source = @"
 using System;
 
 class C
@@ -3898,13 +3898,13 @@ class C
         int l = new Func<int, int>(x => 3)(1);
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact]
-        public void ClosuresInConstructorAndInitializers2()
-        {
-            string source = @"
+    [Fact]
+    public void ClosuresInConstructorAndInitializers2()
+    {
+        string source = @"
 using System;
 
 class C
@@ -3917,13 +3917,13 @@ class C
         int l = ((Func<int, int>)(x => ((Func<int>)(() => x + 4))() + x))(1);
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact]
-        public void ClosuresInConstructorAndInitializers3()
-        {
-            string source = @"
+    [Fact]
+    public void ClosuresInConstructorAndInitializers3()
+    {
+        string source = @"
 using System;
 
 class C
@@ -3936,13 +3936,13 @@ class C
         int l = ((Func<int, int>)(x => ((Func<int>)(() => x + 4))() + x))(1);
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact]
-        public void GenericStaticFrames()
-        {
-            string source = @"
+    [Fact]
+    public void GenericStaticFrames()
+    {
+        string source = @"
 using System;
 
 public class C
@@ -3967,63 +3967,63 @@ public class C
 		var f = new Func<TG1, TG2>(a => default(TG2));
 	}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
-            {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                AssertEx.Equal(new[]
-                {
-                    "C.<>c__0<TF>",
-                    "C.<>c__1<TG>",
-                    "C.<>c__2<TF1, TF2>",
-                    "C.<>c__3<TG1, TG2>"
-                }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
-
-                var c0 = c.GetMember<NamedTypeSymbol>("<>c__0");
-                AssertEx.SetEqual(new[]
-                {
-                    "C.<>c__0<TF>.<>9",
-                    "C.<>c__0<TF>.<>9__0_0",
-                    "C.<>c__0<TF>.<>c__0()",
-                    "C.<>c__0<TF>.<>c__0()",
-                    "C.<>c__0<TF>.<F>b__0_0()",
-                }, c0.GetMembers().Select(member => member.ToString()));
-
-                var c1 = c.GetMember<NamedTypeSymbol>("<>c__1");
-                AssertEx.SetEqual(new[]
-                {
-                    "C.<>c__1<TG>.<>9",
-                    "C.<>c__1<TG>.<>9__1_0",
-                    "C.<>c__1<TG>.<>c__1()",
-                    "C.<>c__1<TG>.<>c__1()",
-                    "C.<>c__1<TG>.<G>b__1_0()",
-                }, c1.GetMembers().Select(member => member.ToString()));
-
-                var c2 = c.GetMember<NamedTypeSymbol>("<>c__2");
-                AssertEx.SetEqual(new[]
-                {
-                    "C.<>c__2<TF1, TF2>.<>9",
-                    "C.<>c__2<TF1, TF2>.<>9__2_0",
-                    "C.<>c__2<TF1, TF2>.<>c__2()",
-                    "C.<>c__2<TF1, TF2>.<>c__2()",
-                    "C.<>c__2<TF1, TF2>.<F>b__2_0(TF1)",
-                }, c2.GetMembers().Select(member => member.ToString()));
-
-                var c3 = c.GetMember<NamedTypeSymbol>("<>c__3");
-                AssertEx.SetEqual(new[]
-                {
-                    "C.<>c__3<TG1, TG2>.<>9",
-                    "C.<>c__3<TG1, TG2>.<>9__3_0",
-                    "C.<>c__3<TG1, TG2>.<>c__3()",
-                    "C.<>c__3<TG1, TG2>.<>c__3()",
-                    "C.<>c__3<TG1, TG2>.<G>b__3_0(TG1)",
-                }, c3.GetMembers().Select(member => member.ToString()));
-            });
-        }
-
-        [Fact]
-        public void GenericStaticFramesWithConstraints()
+        CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
         {
-            string source = @"
+            var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.Equal(new[]
+            {
+                "C.<>c__0<TF>",
+                "C.<>c__1<TG>",
+                "C.<>c__2<TF1, TF2>",
+                "C.<>c__3<TG1, TG2>"
+            }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
+
+            var c0 = c.GetMember<NamedTypeSymbol>("<>c__0");
+            AssertEx.SetEqual(new[]
+            {
+                "C.<>c__0<TF>.<>9",
+                "C.<>c__0<TF>.<>9__0_0",
+                "C.<>c__0<TF>.<>c__0()",
+                "C.<>c__0<TF>.<>c__0()",
+                "C.<>c__0<TF>.<F>b__0_0()",
+            }, c0.GetMembers().Select(member => member.ToString()));
+
+            var c1 = c.GetMember<NamedTypeSymbol>("<>c__1");
+            AssertEx.SetEqual(new[]
+            {
+                "C.<>c__1<TG>.<>9",
+                "C.<>c__1<TG>.<>9__1_0",
+                "C.<>c__1<TG>.<>c__1()",
+                "C.<>c__1<TG>.<>c__1()",
+                "C.<>c__1<TG>.<G>b__1_0()",
+            }, c1.GetMembers().Select(member => member.ToString()));
+
+            var c2 = c.GetMember<NamedTypeSymbol>("<>c__2");
+            AssertEx.SetEqual(new[]
+            {
+                "C.<>c__2<TF1, TF2>.<>9",
+                "C.<>c__2<TF1, TF2>.<>9__2_0",
+                "C.<>c__2<TF1, TF2>.<>c__2()",
+                "C.<>c__2<TF1, TF2>.<>c__2()",
+                "C.<>c__2<TF1, TF2>.<F>b__2_0(TF1)",
+            }, c2.GetMembers().Select(member => member.ToString()));
+
+            var c3 = c.GetMember<NamedTypeSymbol>("<>c__3");
+            AssertEx.SetEqual(new[]
+            {
+                "C.<>c__3<TG1, TG2>.<>9",
+                "C.<>c__3<TG1, TG2>.<>9__3_0",
+                "C.<>c__3<TG1, TG2>.<>c__3()",
+                "C.<>c__3<TG1, TG2>.<>c__3()",
+                "C.<>c__3<TG1, TG2>.<G>b__3_0(TG1)",
+            }, c3.GetMembers().Select(member => member.ToString()));
+        });
+    }
+
+    [Fact]
+    public void GenericStaticFramesWithConstraints()
+    {
+        string source = @"
 using System;
 
 public class C
@@ -4038,21 +4038,21 @@ public class C
 		var f = new Func<TG>(() => default(TG));
 	}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
-            {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                AssertEx.Equal(new[]
-                {
-                    "C.<>c__0<TF>",
-                    "C.<>c__1<TG>",
-                }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
-            });
-        }
-
-        [Fact]
-        public void GenericInstance()
+        CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
         {
-            string source = @"
+            var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.Equal(new[]
+            {
+                "C.<>c__0<TF>",
+                "C.<>c__1<TG>",
+            }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
+        });
+    }
+
+    [Fact]
+    public void GenericInstance()
+    {
+        string source = @"
 using System;
 
 public class C
@@ -4079,32 +4079,32 @@ public class C
 
     private void F() {}
 }";
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
-            {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                AssertEx.SetEqual(new[]
-                {
-                    "C.F<TF>()",
-                    "C.G<TG>()",
-                    "C.F<TF1, TF2>()",
-                    "C.G<TG1, TG2>()",
-                    "C.F()",
-                    "C.C()",
-                    "C.<F>b__0_0<TF>()",
-                    "C.<G>b__1_0<TG>()",
-                    "C.<F>b__2_0<TF1, TF2>(TF1)",
-                    "C.<G>b__3_0<TG1, TG2>(TG1)",
-                }, c.GetMembers().Select(member => member.ToString()));
-            });
-        }
-
-        #region "Regressions"
-
-        [WorkItem(539439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539439")]
-        [Fact]
-        public void LambdaWithReturn()
+        CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
         {
-            string source = @"
+            var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            AssertEx.SetEqual(new[]
+            {
+                "C.F<TF>()",
+                "C.G<TG>()",
+                "C.F<TF1, TF2>()",
+                "C.G<TG1, TG2>()",
+                "C.F()",
+                "C.C()",
+                "C.<F>b__0_0<TF>()",
+                "C.<G>b__1_0<TG>()",
+                "C.<F>b__2_0<TF1, TF2>(TF1)",
+                "C.<G>b__3_0<TG1, TG2>(TG1)",
+            }, c.GetMembers().Select(member => member.ToString()));
+        });
+    }
+
+    #region "Regressions"
+
+    [WorkItem(539439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539439")]
+    [Fact]
+    public void LambdaWithReturn()
+    {
+        string source = @"
 using System;
 class Program
 {
@@ -4116,18 +4116,18 @@ class Program
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"3");
-        }
+        CompileAndVerify(source, expectedOutput: @"3");
+    }
 
-        /// <remarks>
-        /// Based on MadsT blog post:
-        /// http://blogs.msdn.com/b/madst/archive/2007/05/11/recursive-lambda-expressions.aspx
-        /// </remarks>
-        [WorkItem(540034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540034")]
-        [Fact]
-        public void YCombinatorTest()
-        {
-            var source = @"
+    /// <remarks>
+    /// Based on MadsT blog post:
+    /// http://blogs.msdn.com/b/madst/archive/2007/05/11/recursive-lambda-expressions.aspx
+    /// </remarks>
+    [WorkItem(540034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540034")]
+    [Fact]
+    public void YCombinatorTest()
+    {
+        var source = @"
 using System;
 using System.Linq;
 
@@ -4161,9 +4161,9 @@ public class Program
 }
 ";
 
-            CompileAndVerify(
-                source,
-                expectedOutput:
+        CompileAndVerify(
+            source,
+            expectedOutput:
 @"1
 1
 2
@@ -4177,13 +4177,13 @@ public class Program
 3628800
 39916800"
 );
-        }
+    }
 
-        [WorkItem(540035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540035")]
-        [Fact]
-        public void LongNameTest()
-        {
-            var source = @"
+    [WorkItem(540035, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540035")]
+    [Fact]
+    public void LongNameTest()
+    {
+        var source = @"
 using System;
 
 namespace Lambda.Bugs
@@ -4220,24 +4220,24 @@ namespace Lambda.Bugs
 }
 ";
 
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
-                //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo(int x)
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Goo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo").WithLocation(17, 81),
-                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
-                //                 Func<int> f = () => x;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31),
-                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
-                //                 Func<int> f = () => x;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31)
-                );
-        }
+        CreateCompilation(source).VerifyEmitDiagnostics(
+            // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
+            //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo(int x)
+            Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Goo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo").WithLocation(17, 81),
+            // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
+            //                 Func<int> f = () => x;
+            Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31),
+            // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
+            //                 Func<int> f = () => x;
+            Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31)
+            );
+    }
 
-        [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
-        [Fact]
-        public void LambdaWithUnreachableCode()
-        {
-            var source = @"
+    [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
+    [Fact]
+    public void LambdaWithUnreachableCode()
+    {
+        var source = @"
 using System;
 
 class Program
@@ -4251,15 +4251,15 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "7");
-        }
+        CompileAndVerify(source, expectedOutput: "7");
+    }
 
-        [Fact]
-        [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
-        public void OrderOfDelegateMembers()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
+    [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+    public void OrderOfDelegateMembers()
+    {
+        var source = @"
 using System.Linq;
 
 class Program
@@ -4278,22 +4278,22 @@ class Program
     }
 }
 ";
-            // ref emit would just have different metadata tokens
-            // we are not interested in testing that
-            CompileAndVerify(source,
-                expectedOutput: @"
+        // ref emit would just have different metadata tokens
+        // we are not interested in testing that
+        CompileAndVerify(source,
+            expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
 System.IAsyncResult BeginInvoke(System.AsyncCallback, System.Object)
 Int32 EndInvoke(System.IAsyncResult)
 ");
-        }
+    }
 
-        [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
-        [Fact]
-        public void NestedAnonymousMethodsUsingLocalAndField()
-        {
-            string source = @"
+    [WorkItem(540092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540092")]
+    [Fact]
+    public void NestedAnonymousMethodsUsingLocalAndField()
+    {
+        string source = @"
 using System;
 
 delegate void MyDel(int i);
@@ -4332,14 +4332,14 @@ class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "111");
-        }
+        CompileAndVerify(source, expectedOutput: "111");
+    }
 
-        [WorkItem(540129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540129")]
-        [Fact]
-        public void CacheStaticAnonymousMethodInField()
-        {
-            string source = @"
+    [WorkItem(540129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540129")]
+    [Fact]
+    public void CacheStaticAnonymousMethodInField()
+    {
+        string source = @"
 using System;
 
 delegate void D();
@@ -4369,15 +4369,15 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "PASS");
-        }
+        CompileAndVerify(source, expectedOutput: "PASS");
+    }
 
-        [WorkItem(540147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540147")]
-        [Fact]
-        public void CapturedVariableNamedThis()
-        {
-            var source =
-                @"
+    [WorkItem(540147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540147")]
+    [Fact]
+    public void CapturedVariableNamedThis()
+    {
+        var source =
+            @"
 using System;
  
 class A
@@ -4406,15 +4406,15 @@ class A
     }
 }
 ";
-            var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "12");
-        }
+        var verifier = CompileAndVerify(
+            source,
+            expectedOutput: "12");
+    }
 
-        [Fact]
-        public void StaticClosureSerialize()
-        {
-            string source = @"
+    [Fact]
+    public void StaticClosureSerialize()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -4429,14 +4429,14 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
+        var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
 False");
-        }
+    }
 
-        [Fact]
-        public void StaticClosureSerializeD()
-        {
-            string source = @"
+    [Fact]
+    public void StaticClosureSerializeD()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -4451,16 +4451,16 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
+        var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
 False");
-        }
+    }
 
-        [WorkItem(540178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540178")]
-        [Fact]
-        public void NestedGenericLambda()
-        {
-            var source =
-                @"
+    [WorkItem(540178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540178")]
+    [Fact]
+    public void NestedGenericLambda()
+    {
+        var source =
+            @"
 using System;
  
 class Program
@@ -4477,16 +4477,16 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "");
-        }
+        var verifier = CompileAndVerify(
+            source,
+            expectedOutput: "");
+    }
 
-        [WorkItem(540768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540768")]
-        [Fact]
-        public void TestClosureMethodAccessibility()
-        {
-            var source = @"
+    [WorkItem(540768, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540768")]
+    [Fact]
+    public void TestClosureMethodAccessibility()
+    {
+        var source = @"
 using System;
 class Test
 {
@@ -4500,21 +4500,21 @@ class Test
         return (a) => s;
     }
 }";
-            // Dev11 emits "public", we emit "internal" visibility for <Goo>b__1:
-            CompileAndVerify(source, expectedSignatures: new[]
-            {
-                Signature("Test+<>c__DisplayClass2_0", "<Goo>b__0",
-                          ".method assembly hidebysig instance System.String <Goo>b__0(System.String a) cil managed"),
-            });
-        }
-
-        [WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")]
-        [Fact]
-        public void TooEarlyForThis()
+        // Dev11 emits "public", we emit "internal" visibility for <Goo>b__1:
+        CompileAndVerify(source, expectedSignatures: new[]
         {
-            // this tests for the C# analogue of VB bug 7520
-            var source =
-                @"using System;
+            Signature("Test+<>c__DisplayClass2_0", "<Goo>b__0",
+                      ".method assembly hidebysig instance System.String <Goo>b__0(System.String a) cil managed"),
+        });
+    }
+
+    [WorkItem(541008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541008")]
+    [Fact]
+    public void TooEarlyForThis()
+    {
+        // this tests for the C# analogue of VB bug 7520
+        var source =
+            @"using System;
 
 class Program
 {
@@ -4535,16 +4535,16 @@ class Program
         new Program(1);
     }
 }";
-            var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "11102");
-        }
+        var verifier = CompileAndVerify(
+            source,
+            expectedOutput: "11102");
+    }
 
-        [WorkItem(542062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542062")]
-        [Fact]
-        public void TestLambdaNoClosureClass()
-        {
-            var source = @"
+    [WorkItem(542062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542062")]
+    [Fact]
+    public void TestLambdaNoClosureClass()
+    {
+        var source = @"
 using System;
 
 delegate int D();
@@ -4560,8 +4560,8 @@ class Test
     }
 }
 ";
-            //IMPORTANT!!! we should not be caching static lambda in static initializer.
-            CompileAndVerify(source, expectedOutput: "(1,-1)").VerifyIL("Test..cctor", @"
+        //IMPORTANT!!! we should not be caching static lambda in static initializer.
+        CompileAndVerify(source, expectedOutput: "(1,-1)").VerifyIL("Test..cctor", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -4574,13 +4574,13 @@ class Test
   IL_001b:  ret
 }
 ");
-        }
+    }
 
-        [WorkItem(543087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543087")]
-        [Fact]
-        public void LambdaInGenericMethod()
-        {
-            var source = @"
+    [WorkItem(543087, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543087")]
+    [Fact]
+    public void LambdaInGenericMethod()
+    {
+        var source = @"
 using System;
 
 delegate bool D();
@@ -4610,16 +4610,16 @@ class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "True");
-        }
+        var verifier = CompileAndVerify(
+            source,
+            expectedOutput: "True");
+    }
 
-        [WorkItem(543344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543344")]
-        [Fact]
-        public void AnonymousMethodOmitParameterList()
-        {
-            var source = @"
+    [WorkItem(543344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543344")]
+    [Fact]
+    public void AnonymousMethodOmitParameterList()
+    {
+        var source = @"
 using System;
 
 class C
@@ -4637,16 +4637,16 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(
-                source,
-                expectedOutput: "0");
-        }
+        var verifier = CompileAndVerify(
+            source,
+            expectedOutput: "0");
+    }
 
-        [WorkItem(543345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543345")]
-        [Fact()]
-        public void ExtraCompilerGeneratedAttribute()
-        {
-            string source = @"using System;
+    [WorkItem(543345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543345")]
+    [Fact()]
+    public void ExtraCompilerGeneratedAttribute()
+    {
+        string source = @"using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -4679,14 +4679,14 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
-        }
+        var compilation = CompileAndVerify(source, expectedOutput: "0");
+    }
 
-        [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
-        [Fact]
-        public void CacheNonStaticLambdaInGenericMethod()
-        {
-            var source = @"
+    [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
+    [Fact]
+    public void CacheNonStaticLambdaInGenericMethod()
+    {
+        var source = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -4712,14 +4712,14 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
-            {
-                Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
-                    ".field public instance System.Func`2[T,System.Boolean] <>9__0")
-            });
+        var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp, expectedSignatures: new[]
+        {
+            Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
+                ".field public instance System.Func`2[T,System.Boolean] <>9__0")
+        });
 
-            verifier.VerifyIL("C.M<T>", @"
+        verifier.VerifyIL("C.M<T>", @"
 {
   // Code size       70 (0x46)
   .maxstack  4
@@ -4757,12 +4757,12 @@ class D
   IL_0045:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CacheNonStaticLambda001()
-        {
-            var source = @"
+    [Fact]
+    public void CacheNonStaticLambda001()
+    {
+        var source = @"
     using System;
 
     class Program
@@ -4804,10 +4804,10 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp);
+        var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp);
 
-            verifier.VerifyIL("Program.Test", @"
+        verifier.VerifyIL("Program.Test", @"
 {
   // Code size      142 (0x8e)
   .maxstack  4
@@ -4885,12 +4885,12 @@ class D
   IL_008d:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void CacheNonStaticLambda002()
-        {
-            var source = @"
+    [Fact]
+    public void CacheNonStaticLambda002()
+    {
+        var source = @"
     using System;
 
     class Program
@@ -4933,10 +4933,10 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp);
+        var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+        var verifier = CompileAndVerify(comp);
 
-            verifier.VerifyIL("Program.Test", @"
+        verifier.VerifyIL("Program.Test", @"
 {
   // Code size       70 (0x46)
   .maxstack  3
@@ -4965,7 +4965,7 @@ class D
 }
 ");
 
-            verifier.VerifyIL("Program.<>c.<Test>b__1_1(int)",
+        verifier.VerifyIL("Program.<>c.<Test>b__1_1(int)",
 @"
 {
   // Code size       44 (0x2c)
@@ -4991,7 +4991,7 @@ class D
 }
 "
 );
-            verifier.VerifyIL("Program.<>c__DisplayClass1_0.<Test>b__0(int)",
+        verifier.VerifyIL("Program.<>c__DisplayClass1_0.<Test>b__0(int)",
 @"
 {
   // Code size       45 (0x2d)
@@ -5021,13 +5021,13 @@ class D
 }
 "
 );
-        }
+    }
 
-        [WorkItem(546211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546211")]
-        [Fact]
-        public void LambdaInCatchInLambdaInInstance()
-        {
-            var source =
+    [WorkItem(546211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546211")]
+    [Fact]
+    public void LambdaInCatchInLambdaInInstance()
+    {
+        var source =
 @"using System;
 
 static class Utilities
@@ -5062,14 +5062,14 @@ class VsCatalogProvider
         });
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "success");
-        }
+        var compilation = CompileAndVerify(source, expectedOutput: "success");
+    }
 
-        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
-        [Fact]
-        public void LambdaWithCatchTypeParameter()
-        {
-            var source =
+    [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
+    [Fact]
+    public void LambdaWithCatchTypeParameter()
+    {
+        var source =
 @"using System; 
 class Program
 {
@@ -5089,14 +5089,14 @@ class Program
         };
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
-        [Fact]
-        public void LambdaWithCapturedCatchTypeParameter()
-        {
-            var source =
+    [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
+    [Fact]
+    public void LambdaWithCapturedCatchTypeParameter()
+    {
+        var source =
 @"using System; 
 class Program
 {
@@ -5119,14 +5119,14 @@ class Program
         };
     }
 }";
-            var compilation = CompileAndVerify(source);
-        }
+        var compilation = CompileAndVerify(source);
+    }
 
-        [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
-        [Fact]
-        public void LambdaWithOutParameter()
-        {
-            var source =
+    [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
+    [Fact]
+    public void LambdaWithOutParameter()
+    {
+        var source =
 @"
 
 using System;
@@ -5150,14 +5150,14 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
-        }
+        var compilation = CompileAndVerify(source);
+    }
 
-        [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
-        [Fact]
-        public void LambdaWithSwitch()
-        {
-            var source =
+    [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
+    [Fact]
+    public void LambdaWithSwitch()
+    {
+        var source =
 @"
 
 using System;
@@ -5234,15 +5234,15 @@ namespace ConsoleApplication16
 }
 
 ";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        #endregion
+    #endregion
 
-        [Fact]
-        public void LambdaInQuery_Let()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaInQuery_Let()
+    {
+        var source = @"
 using System;
 using System.Linq;
 
@@ -5256,13 +5256,13 @@ class C
     }
 }";
 
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact]
-        public void LambdaInQuery_From()
-        {
-            var source = @"
+    [Fact]
+    public void LambdaInQuery_From()
+    {
+        var source = @"
 using System;
 using System.Linq;
 
@@ -5276,13 +5276,13 @@ class C
     }
 }";
 
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact]
-        public void EmbeddedStatementClosures1()
-        {
-            var source = @"
+    [Fact]
+    public void EmbeddedStatementClosures1()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5309,13 +5309,13 @@ class C
     }
 }";
 
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
-        public void NestedLambdaWithExtensionMethodsInGeneric()
-        {
-            var source =
+    [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
+    public void NestedLambdaWithExtensionMethodsInGeneric()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5328,14 +5328,14 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileAndVerify(source);
-        }
+        CompileAndVerify(source);
+    }
 
-        [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
-        [Fact]
-        public void ClosureInSwitchStatementWithNullableExpression()
-        {
-            string source =
+    [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]
+    [Fact]
+    public void ClosureInSwitchStatementWithNullableExpression()
+    {
+        string source =
 @"using System;
 class C
 {
@@ -5355,8 +5355,8 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"True");
-            compilation.VerifyIL("C.Main",
+        var compilation = CompileAndVerify(source, expectedOutput: @"True");
+        compilation.VerifyIL("C.Main",
 @"{
   // Code size       90 (0x5a)
   .maxstack  3
@@ -5394,27 +5394,27 @@ class C
   IL_0054:  stfld      ""object C.<>c__DisplayClass0_0.o""
   IL_0059:  ret
 }");
-        }
+    }
 
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly()
-        {
-            // The lambda passed into StaticMethod depends on TLocal type argument of LocalMethod
-            // so if the delegate is cached outside the method the type argument reference is broken
-            // and code throws BadImageFormatException. Such a broken code will looks like:
-            // class DisplayClass
-            // {
-            //     Func<TLocal, string> _cachedDelegate;
-            //
-            //     void LocalMethod<TLocal>()
-            //     {
-            //         ...
-            //     }
-            //
-            // The test checks that it is not the issue.
-            string source =
-                @"using System;
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly()
+    {
+        // The lambda passed into StaticMethod depends on TLocal type argument of LocalMethod
+        // so if the delegate is cached outside the method the type argument reference is broken
+        // and code throws BadImageFormatException. Such a broken code will looks like:
+        // class DisplayClass
+        // {
+        //     Func<TLocal, string> _cachedDelegate;
+        //
+        //     void LocalMethod<TLocal>()
+        //     {
+        //         ...
+        //     }
+        //
+        // The test checks that it is not the issue.
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5447,19 +5447,19 @@ static class Program
         Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
-        }
+        CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+    }
 
-        /// <summary>
-        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
-        /// for the test case description
-        /// </summary>
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter2_CompilesCorrectly()
-        {
-            string source =
-                @"using System;
+    /// <summary>
+    /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+    /// for the test case description
+    /// </summary>
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaDependentOnEnclosingLocalFunctionTypeParameter2_CompilesCorrectly()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5497,19 +5497,19 @@ static class Program
         Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
-        }
+        CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+    }
 
-        /// <summary>
-        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
-        /// for the test case description
-        /// </summary>
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter3_CompilesCorrectly()
-        {
-            string source =
-                @"using System;
+    /// <summary>
+    /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+    /// for the test case description
+    /// </summary>
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaDependentOnEnclosingLocalFunctionTypeParameter3_CompilesCorrectly()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5547,15 +5547,15 @@ static class Program
         Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
-        }
+        CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+    }
 
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaInsideLocalFunctionInsideLoop_IsCached()
-        {
-            string source =
-                @"using System;
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaInsideLocalFunctionInsideLoop_IsCached()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5581,9 +5581,9 @@ static class Program
         Console.Write($""{func(value)}-{typeof(TIn)};"");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
-            compilation.VerifyIL("Program.<>c__DisplayClass0_0.<Main>g__LocalMethod|0()",
-                @"{
+        var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+        compilation.VerifyIL("Program.<>c__DisplayClass0_0.<Main>g__LocalMethod|0()",
+            @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Func<string, string> V_0)
@@ -5605,14 +5605,14 @@ static class Program
   IL_0025:  call       ""void Program.StaticMethod<string, string>(string, System.Func<string, string>)""
   IL_002a:  ret
 }");
-        }
+    }
 
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaDependentOnEnclosingMethodTypeParameter_IsCached()
-        {
-            string source =
-                @"using System;
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaDependentOnEnclosingMethodTypeParameter_IsCached()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5639,9 +5639,9 @@ static class Program
         Console.Write($""{func(value)}-{typeof(TIn)};"");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
-            compilation.VerifyIL("Program.TestMethod<T>(T)",
-                @"{
+        var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+        compilation.VerifyIL("Program.TestMethod<T>(T)",
+            @"{
   // Code size       80 (0x50)
   .maxstack  4
   .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
@@ -5683,14 +5683,14 @@ static class Program
   IL_004d:  blt.s      IL_0015
   IL_004f:  ret
 }");
-        }
+    }
 
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaInsideGenericLocalFunction_IsCached()
-        {
-            string source =
-                @"using System;
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaInsideGenericLocalFunction_IsCached()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5721,9 +5721,9 @@ static class Program
         Console.Write($""{func(value)}-{typeof(TIn)};"");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
-            compilation.VerifyIL("Program.<>c__DisplayClass1_0<T>.<TestMethod>g__LocalFunction|0<TLocal>(TLocal)",
-                @"{
+        var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+        compilation.VerifyIL("Program.<>c__DisplayClass1_0<T>.<TestMethod>g__LocalFunction|0<TLocal>(TLocal)",
+            @"{
   // Code size       43 (0x2b)
   .maxstack  4
   .locals init (System.Func<T, string> V_0)
@@ -5745,14 +5745,14 @@ static class Program
   IL_0025:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
   IL_002a:  ret
 }");
-        }
+    }
 
-        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
-        [Fact]
-        public void LambdaInsideGenericMethod_IsCached()
-        {
-            string source =
-                @"using System;
+    [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+    [Fact]
+    public void LambdaInsideGenericMethod_IsCached()
+    {
+        string source =
+            @"using System;
 using System.Collections.Generic;
 
 static class Program
@@ -5778,9 +5778,9 @@ static class Program
         Console.Write($""{func(value)}-{typeof(TIn)};"");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
-            compilation.VerifyIL("Program.TestMethod<T>(T)",
-                @"{
+        var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+        compilation.VerifyIL("Program.TestMethod<T>(T)",
+            @"{
   // Code size       80 (0x50)
   .maxstack  4
   .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
@@ -5822,6 +5822,5 @@ static class Program
   IL_004d:  blt.s      IL_0015
   IL_004f:  ret
 }");
-        }
     }
 }

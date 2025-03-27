@@ -7,100 +7,99 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public partial struct SeparatedSyntaxList<TNode>
 {
-    public partial struct SeparatedSyntaxList<TNode>
+    // Public struct enumerator
+    // Only implements enumerator pattern as used by foreach
+    // Does not implement IEnumerator. Doing so would require the struct to implement IDisposable too.
+    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
+    public struct Enumerator
     {
-        // Public struct enumerator
-        // Only implements enumerator pattern as used by foreach
-        // Does not implement IEnumerator. Doing so would require the struct to implement IDisposable too.
-        [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-        public struct Enumerator
+        private readonly SeparatedSyntaxList<TNode> _list;
+        private int _index;
+
+        internal Enumerator(in SeparatedSyntaxList<TNode> list)
         {
-            private readonly SeparatedSyntaxList<TNode> _list;
-            private int _index;
+            _list = list;
+            _index = -1;
+        }
 
-            internal Enumerator(in SeparatedSyntaxList<TNode> list)
+        public bool MoveNext()
+        {
+            int newIndex = _index + 1;
+            if (newIndex < _list.Count)
             {
-                _list = list;
-                _index = -1;
+                _index = newIndex;
+                return true;
             }
 
-            public bool MoveNext()
-            {
-                int newIndex = _index + 1;
-                if (newIndex < _list.Count)
-                {
-                    _index = newIndex;
-                    return true;
-                }
+            return false;
+        }
 
-                return false;
-            }
-
-            public TNode Current
+        public TNode Current
+        {
+            get
             {
-                get
-                {
-                    return _list[_index];
-                }
-            }
-
-            public void Reset()
-            {
-                _index = -1;
-            }
-
-            public override bool Equals(object? obj)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override int GetHashCode()
-            {
-                throw new NotSupportedException();
+                return _list[_index];
             }
         }
 
-        // IEnumerator wrapper for Enumerator.
-        private class EnumeratorImpl : IEnumerator<TNode>
+        public void Reset()
         {
-            private Enumerator _e;
+            _index = -1;
+        }
 
-            internal EnumeratorImpl(in SeparatedSyntaxList<TNode> list)
-            {
-                _e = new Enumerator(in list);
-            }
+        public override bool Equals(object? obj)
+        {
+            throw new NotSupportedException();
+        }
 
-            public TNode Current
-            {
-                get
-                {
-                    return _e.Current;
-                }
-            }
+        public override int GetHashCode()
+        {
+            throw new NotSupportedException();
+        }
+    }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return _e.Current;
-                }
-            }
+    // IEnumerator wrapper for Enumerator.
+    private class EnumeratorImpl : IEnumerator<TNode>
+    {
+        private Enumerator _e;
 
-            public void Dispose()
-            {
-            }
+        internal EnumeratorImpl(in SeparatedSyntaxList<TNode> list)
+        {
+            _e = new Enumerator(in list);
+        }
 
-            public bool MoveNext()
+        public TNode Current
+        {
+            get
             {
-                return _e.MoveNext();
+                return _e.Current;
             }
+        }
 
-            public void Reset()
+        object IEnumerator.Current
+        {
+            get
             {
-                _e.Reset();
+                return _e.Current;
             }
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            return _e.MoveNext();
+        }
+
+        public void Reset()
+        {
+            _e.Reset();
         }
     }
 }

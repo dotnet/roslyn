@@ -9,9 +9,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+internal static class BuildPathsUtil
 {
-    internal static class BuildPathsUtil
-    {
-    }
 }

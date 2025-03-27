@@ -8,88 +8,87 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed partial class AnonymousTypeManager
 {
-    internal sealed partial class AnonymousTypeManager
+    /// <summary>
+    /// Represents an anonymous type constructor.
+    /// </summary>
+    private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
     {
-        /// <summary>
-        /// Represents an anonymous type constructor.
-        /// </summary>
-        private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
+        private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+        internal AnonymousTypeConstructorSymbol(NamedTypeSymbol container, ImmutableArray<AnonymousTypePropertySymbol> properties)
+            : base(container, WellKnownMemberNames.InstanceConstructorName)
         {
-            private readonly ImmutableArray<ParameterSymbol> _parameters;
-
-            internal AnonymousTypeConstructorSymbol(NamedTypeSymbol container, ImmutableArray<AnonymousTypePropertySymbol> properties)
-                : base(container, WellKnownMemberNames.InstanceConstructorName)
+            // Create constructor parameters
+            int fieldsCount = properties.Length;
+            if (fieldsCount > 0)
             {
-                // Create constructor parameters
-                int fieldsCount = properties.Length;
-                if (fieldsCount > 0)
+                var paramsArr = ArrayBuilder<ParameterSymbol>.GetInstance(fieldsCount);
+                for (int index = 0; index < fieldsCount; index++)
                 {
-                    var paramsArr = ArrayBuilder<ParameterSymbol>.GetInstance(fieldsCount);
-                    for (int index = 0; index < fieldsCount; index++)
-                    {
-                        PropertySymbol property = properties[index];
-                        paramsArr.Add(SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name));
-                    }
-                    _parameters = paramsArr.ToImmutableAndFree();
+                    PropertySymbol property = properties[index];
+                    paramsArr.Add(SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name));
                 }
-                else
-                {
-                    _parameters = ImmutableArray<ParameterSymbol>.Empty;
-                }
+                _parameters = paramsArr.ToImmutableAndFree();
             }
-
-            public override MethodKind MethodKind
+            else
             {
-                get { return MethodKind.Constructor; }
+                _parameters = ImmutableArray<ParameterSymbol>.Empty;
             }
+        }
 
-            public override bool ReturnsVoid
-            {
-                get { return true; }
-            }
+        public override MethodKind MethodKind
+        {
+            get { return MethodKind.Constructor; }
+        }
 
-            public override RefKind RefKind
-            {
-                get { return RefKind.None; }
-            }
+        public override bool ReturnsVoid
+        {
+            get { return true; }
+        }
 
-            public override TypeWithAnnotations ReturnTypeWithAnnotations
-            {
-                get { return TypeWithAnnotations.Create(this.Manager.System_Void); }
-            }
+        public override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
 
-            public override ImmutableArray<ParameterSymbol> Parameters
-            {
-                get { return _parameters; }
-            }
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
+        {
+            get { return TypeWithAnnotations.Create(this.Manager.System_Void); }
+        }
 
-            public override bool IsOverride
-            {
-                get { return false; }
-            }
+        public override ImmutableArray<ParameterSymbol> Parameters
+        {
+            get { return _parameters; }
+        }
 
-            internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        public override bool IsOverride
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        {
+            return false;
+        }
+
+        internal override bool IsMetadataFinal
+        {
+            get
             {
                 return false;
             }
+        }
 
-            internal override bool IsMetadataFinal
+        public override ImmutableArray<Location> Locations
+        {
+            get
             {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override ImmutableArray<Location> Locations
-            {
-                get
-                {
-                    // The accessor for an anonymous type constructor has the same location as the type.
-                    return this.ContainingSymbol.Locations;
-                }
+                // The accessor for an anonymous type constructor has the same location as the type.
+                return this.ContainingSymbol.Locations;
             }
         }
     }

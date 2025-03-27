@@ -7,16 +7,15 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public static class RegexExtensions
 {
-    public static class RegexExtensions
+    public static IEnumerable<Match> ToEnumerable(this MatchCollection collection)
     {
-        public static IEnumerable<Match> ToEnumerable(this MatchCollection collection)
+        foreach (Match m in collection)
         {
-            foreach (Match m in collection)
-            {
-                yield return m;
-            }
+            yield return m;
         }
     }
 }

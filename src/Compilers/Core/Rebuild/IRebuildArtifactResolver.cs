@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Rebuild
-{
-    public interface IRebuildArtifactResolver
-    {
-        SourceText ResolveSourceText(SourceTextInfo sourceTextInfo);
+namespace Microsoft.CodeAnalysis.Rebuild;
 
-        MetadataReference ResolveMetadataReference(MetadataReferenceInfo metadataReferenceInfo);
-    }
+public interface IRebuildArtifactResolver
+{
+    SourceText ResolveSourceText(SourceTextInfo sourceTextInfo);
+
+    MetadataReference ResolveMetadataReference(MetadataReferenceInfo metadataReferenceInfo);
 }

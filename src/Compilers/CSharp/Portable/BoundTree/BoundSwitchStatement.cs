@@ -5,27 +5,26 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    internal partial class BoundSwitchStatement
-    {
-        public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
-        {
-            BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
-            if (decisionDag.ContainsAnySynthesizedNodes())
-            {
-                decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
-                    compilation,
-                    this.Syntax,
-                    this.Expression,
-                    this.SwitchSections,
-                    this.DefaultLabel?.Label ?? this.BreakLabel,
-                    BindingDiagnosticBag.Discarded,
-                    forLowering: true);
-                Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
-            }
+namespace Microsoft.CodeAnalysis.CSharp;
 
-            return decisionDag;
+internal partial class BoundSwitchStatement
+{
+    public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
+    {
+        BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
+        if (decisionDag.ContainsAnySynthesizedNodes())
+        {
+            decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
+                compilation,
+                this.Syntax,
+                this.Expression,
+                this.SwitchSections,
+                this.DefaultLabel?.Label ?? this.BreakLabel,
+                BindingDiagnosticBag.Discarded,
+                forLowering: true);
+            Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
         }
+
+        return decisionDag;
     }
 }

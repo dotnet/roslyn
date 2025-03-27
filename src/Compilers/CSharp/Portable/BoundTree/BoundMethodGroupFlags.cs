@@ -4,17 +4,16 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    [Flags]
-    internal enum BoundMethodGroupFlags
-    {
-        None = 0,
-        SearchExtensionMethods = 1,
+namespace Microsoft.CodeAnalysis.CSharp;
 
-        /// <summary>
-        /// Set if the group has a receiver but one was not specified in syntax.
-        /// </summary>
-        HasImplicitReceiver = 2,
-    }
+[Flags]
+internal enum BoundMethodGroupFlags
+{
+    None = 0,
+    SearchExtensionMethods = 1,
+
+    /// <summary>
+    /// Set if the group has a receiver but one was not specified in syntax.
+    /// </summary>
+    HasImplicitReceiver = 2,
 }

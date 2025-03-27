@@ -8,20 +8,19 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class LanguageVersionTests
-    {
-        [Fact]
-        public void CurrentVersion()
-        {
-            var highest = Enum.
-                GetValues(typeof(LanguageVersion)).
-                Cast<LanguageVersion>().
-                Where(x => x != LanguageVersion.Latest && x != LanguageVersion.Preview && x != LanguageVersion.LatestMajor).
-                Max();
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-            Assert.Equal(LanguageVersionFacts.CurrentVersion, highest);
-        }
+public class LanguageVersionTests
+{
+    [Fact]
+    public void CurrentVersion()
+    {
+        var highest = Enum.
+            GetValues(typeof(LanguageVersion)).
+            Cast<LanguageVersion>().
+            Where(x => x != LanguageVersion.Latest && x != LanguageVersion.Preview && x != LanguageVersion.LatestMajor).
+            Max();
+
+        Assert.Equal(LanguageVersionFacts.CurrentVersion, highest);
     }
 }

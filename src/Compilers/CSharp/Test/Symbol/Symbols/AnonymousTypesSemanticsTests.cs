@@ -15,14 +15,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
+
+public class AnonymousTypesSemanticsTests : CompilingTestBase
 {
-    public class AnonymousTypesSemanticsTests : CompilingTestBase
+    [Fact()]
+    public void AnonymousTypeSymbols_Simple()
     {
-        [Fact()]
-        public void AnonymousTypeSymbols_Simple()
-        {
-            var source = @"
+        var source = @"
 public class ClassA
 {
     public struct SSS
@@ -63,38 +63,38 @@ public class ClassA
 
     public static SSS CCC = new SSS();
 }";
-            var data = Compile(source, 14);
+        var data = Compile(source, 14);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, 2, 3);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, 2, 3);
 
-            var info1 = GetAnonymousTypeInfoSummary(data, 4,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
-                            5, 6, 7);
+        var info1 = GetAnonymousTypeInfoSummary(data, 4,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
+                        5, 6, 7);
 
-            var info2 = GetAnonymousTypeInfoSummary(data, 8,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
-                            9, 10, 11);
+        var info2 = GetAnonymousTypeInfoSummary(data, 8,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
+                        9, 10, 11);
 
-            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetSymbol().GetType().Name);
-            Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
+        Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetSymbol().GetType().Name);
+        Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
 
-            Assert.Equal(info0.Type, info2.Type);
-            Assert.NotEqual(info0.Type, info1.Type);
+        Assert.Equal(info0.Type, info2.Type);
+        Assert.NotEqual(info0.Type, info1.Type);
 
-            var info3 = GetAnonymousTypeInfoSummary(data, 12,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 7).Span);
-            var info4 = GetAnonymousTypeInfoSummary(data, 13,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 8).Span);
-            Assert.Equal(info3.Type, info4.Type);
-        }
+        var info3 = GetAnonymousTypeInfoSummary(data, 12,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 7).Span);
+        var info4 = GetAnonymousTypeInfoSummary(data, 13,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 8).Span);
+        Assert.Equal(info3.Type, info4.Type);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_Simple_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_Simple_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     public struct SSS
@@ -136,7 +136,7 @@ class ClassA
     public static SSS CCC = new SSS();
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Object v1
     Local_2: System.Object v2
@@ -271,15 +271,15 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
       Initializer: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_ContextualKeywordsInFields()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_ContextualKeywordsInFields()
+    {
+        var source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -303,30 +303,30 @@ class ClassA
 
     public const string global = ""-=-=-"";
 }";
-            var data = Compile(source, 7);
+        var data = Compile(source, 7);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, 2, 3);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, 2, 3);
 
-            var info1 = GetAnonymousTypeInfoSummary(data, 4,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
-                            5, 6);
+        var info1 = GetAnonymousTypeInfoSummary(data, 4,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
+                        5, 6);
 
-            Assert.Equal(
-                "<anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>",
-                info0.Type.ToTestDisplayString());
+        Assert.Equal(
+            "<anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>",
+            info0.Type.ToTestDisplayString());
 
-            Assert.Equal(
-                "<anonymous type: System.Int32 select, System.String global>..ctor(System.Int32 select, System.String global)",
-                info1.Symbol.ToTestDisplayString());
-        }
+        Assert.Equal(
+            "<anonymous type: System.Int32 select, System.String global>..ctor(System.Int32 select, System.String global)",
+            info1.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_ContextualKeywordsInFields_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_ContextualKeywordsInFields_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -351,7 +351,7 @@ class ClassA
     public const string global = "" -=-= -"";
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>) (Syntax: 'new ... }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: ""var"") (Syntax: 'var = ""var""')
@@ -399,15 +399,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                       Instance Receiver: 
                         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_DelegateMembers()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_DelegateMembers()
+    {
+        var source = @"
 delegate bool D1();
 class ClassA
 {
@@ -416,21 +416,21 @@ class ClassA
         var at1 = [# new { [# module #] = (D1)(() => false)} #].module();
     }
 }";
-            var data = Compile(source, 2);
+        var data = Compile(source, 2);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1);
 
-            Assert.Equal("<anonymous type: D1 module>", info0.Type.ToTestDisplayString());
-            Assert.Equal("<anonymous type: D1 module>..ctor(D1 module)", info0.Symbol.ToTestDisplayString());
-        }
+        Assert.Equal("<anonymous type: D1 module>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: D1 module>..ctor(D1 module)", info0.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_DelegateMembers_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_DelegateMembers_OperationTree()
+    {
+        string source = @"
 delegate bool D1();
 class ClassA
 {
@@ -440,7 +440,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: D1 module>) (Syntax: 'new { modul ... => false) }')
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: D1) (Syntax: 'module = (D ... ) => false)')
@@ -457,15 +457,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                     ReturnedValue: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_BaseAccessInMembers()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_BaseAccessInMembers()
+    {
+        var source = @"
 delegate bool D1();
 class ClassB
 {
@@ -478,24 +478,24 @@ class ClassA: ClassB
         var at1 = [# [# new { base.[# F #] } #].F(1) #];
     }
 }";
-            var data = Compile(source, 3);
+        var data = Compile(source, 3);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 1,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 1,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        2);
 
-            Assert.Equal("<anonymous type: System.Func<System.Int32, System.Int32> F>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: System.Func<System.Int32, System.Int32> F>", info0.Type.ToTestDisplayString());
 
-            var info1 = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
+        var info1 = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
 
-            Assert.Equal("System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)", info1.Symbol.ToTestDisplayString());
-        }
+        Assert.Equal("System.Int32 System.Func<System.Int32, System.Int32>.Invoke(System.Int32 arg)", info1.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_BaseAccessInMembers_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_BaseAccessInMembers_OperationTree()
+    {
+        string source = @"
 delegate bool D1();
 class ClassB
 {
@@ -509,7 +509,7 @@ class ClassA : ClassB
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Func<System.Int32, System.Int32> F>) (Syntax: 'new { base.F }')
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: 'base.F')
@@ -522,39 +522,39 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassB) (Syntax: 'base')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_InFieldInitializer()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_InFieldInitializer()
+    {
+        var source = @"
 class ClassA
 {
     private static object F = [# new { [# F123 #] = typeof(ClassA) } #];
 }";
-            var data = Compile(source, 2);
+        var data = Compile(source, 2);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1);
 
-            Assert.Equal("<anonymous type: System.Type F123>", info0.Type.ToTestDisplayString());
-        }
+        Assert.Equal("<anonymous type: System.Type F123>", info0.Type.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_InFieldInitializer_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_InFieldInitializer_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     private static object F = /*<bind>*/new { F123 = typeof(ClassA) }/*</bind>*/;
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Type F123>) (Syntax: 'new { F123  ... f(ClassA) }')
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Type) (Syntax: 'F123 = typeof(ClassA)')
@@ -566,15 +566,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(ClassA)')
             TypeOperand: ClassA
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_Equals()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_Equals()
+    {
+        var source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -582,21 +582,21 @@ class ClassA
         bool result = [# new { f1 = 1, f2 = """" }.Equals(new { }) #];
     }
 }";
-            var data = Compile(source, 1);
+        var data = Compile(source, 1);
 
-            var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
+        var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
 
-            var method = info.Symbol;
-            Assert.NotNull(method);
-            Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.Equal("object.Equals(object)", method.ToDisplayString());
-        }
+        var method = info.Symbol;
+        Assert.NotNull(method);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.Equal("object.Equals(object)", method.ToDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_Equals_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_Equals_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -605,7 +605,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object obj)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'new { f1 =  ... ls(new { })')
   Instance Receiver: 
     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 f1, System.String f2>) (Syntax: 'new { f1 = 1, f2 = """" }')
@@ -634,15 +634,15 @@ IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object 
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_ToString()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_ToString()
+    {
+        var source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -650,20 +650,20 @@ class ClassA
         string result = [# new { f1 = 1, f2 = """" }.ToString() #];
     }
 }";
-            var data = Compile(source, 1);
+        var data = Compile(source, 1);
 
-            var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
+        var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
 
-            var method = info.Symbol;
-            Assert.NotNull(method);
-            Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.Equal("object.ToString()", method.ToDisplayString());
-        }
+        var method = info.Symbol;
+        Assert.NotNull(method);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.Equal("object.ToString()", method.ToDisplayString());
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_GetHashCode()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_GetHashCode()
+    {
+        var source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -671,20 +671,20 @@ class ClassA
         int result = [# new { f1 = 1, f2 = """" }.GetHashCode() #];
     }
 }";
-            var data = Compile(source, 1);
+        var data = Compile(source, 1);
 
-            var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
+        var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
 
-            var method = info.Symbol;
-            Assert.NotNull(method);
-            Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.Equal("object.GetHashCode()", method.ToDisplayString());
-        }
+        var method = info.Symbol;
+        Assert.NotNull(method);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.Equal("object.GetHashCode()", method.ToDisplayString());
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_Ctor()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_Ctor()
+    {
+        var source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -692,75 +692,75 @@ class ClassA
         var result = [# new { f1 = 1, f2 = """" } #];
     }
 }";
-            var data = Compile(source, 1);
+        var data = Compile(source, 1);
 
-            var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
+        var info = data.Model.GetSemanticInfoSummary(data.Nodes[0]);
 
-            var method = info.Symbol;
-            Assert.NotNull(method);
-            Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.Equal("<anonymous type: int f1, string f2>..ctor(int, string)", method.ToDisplayString());
-            Assert.Equal("<anonymous type: System.Int32 f1, System.String f2>..ctor(System.Int32 f1, System.String f2)", method.ToTestDisplayString());
-        }
+        var method = info.Symbol;
+        Assert.NotNull(method);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.Equal("<anonymous type: int f1, string f2>..ctor(int, string)", method.ToDisplayString());
+        Assert.Equal("<anonymous type: System.Int32 f1, System.String f2>..ctor(System.Int32 f1, System.String f2)", method.ToTestDisplayString());
+    }
 
-        [Fact()]
-        public void AnonymousTypeTemplateCannotConstruct()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeTemplateCannotConstruct()
+    {
+        var source = @"
 class ClassA
 {
     object F = [# new { [# F123 #] = typeof(ClassA) } #];
 }";
-            var data = Compile(source, 2);
+        var data = Compile(source, 2);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1);
 
-            var type = info0.Type;
-            Assert.Equal("<anonymous type: System.Type F123>", type.ToTestDisplayString());
-            Assert.True(type.IsDefinition);
-            AssertCannotConstruct(type);
-        }
+        var type = info0.Type;
+        Assert.Equal("<anonymous type: System.Type F123>", type.ToTestDisplayString());
+        Assert.True(type.IsDefinition);
+        AssertCannotConstruct(type);
+    }
 
-        [Fact()]
-        public void AnonymousTypeTemplateCannotConstruct_Empty()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeTemplateCannotConstruct_Empty()
+    {
+        var source = @"
 class ClassA
 {
     object F = [# new { } #];
 }";
-            var data = Compile(source, 1);
+        var data = Compile(source, 1);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span);
 
-            var type = info0.Type;
-            Assert.Equal("<empty anonymous type>", type.ToTestDisplayString());
-            Assert.True(type.IsDefinition);
-            AssertCannotConstruct(type);
-        }
+        var type = info0.Type;
+        Assert.Equal("<empty anonymous type>", type.ToTestDisplayString());
+        Assert.True(type.IsDefinition);
+        AssertCannotConstruct(type);
+    }
 
-        [Fact()]
-        public void AnonymousTypeFieldDeclarationIdentifier()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeFieldDeclarationIdentifier()
+    {
+        var source = @"
 class ClassA
 {
     object F = new { [# F123 #] = typeof(ClassA) };
 }";
-            var data = Compile(source, 1);
-            var info = data.Model.GetSymbolInfo((ExpressionSyntax)data.Nodes[0]);
-            Assert.NotNull(info.Symbol);
-            Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
-            Assert.Equal("System.Type <anonymous type: System.Type F123>.F123 { get; }", info.Symbol.ToTestDisplayString());
-        }
+        var data = Compile(source, 1);
+        var info = data.Model.GetSymbolInfo((ExpressionSyntax)data.Nodes[0]);
+        Assert.NotNull(info.Symbol);
+        Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
+        Assert.Equal("System.Type <anonymous type: System.Type F123>.F123 { get; }", info.Symbol.ToTestDisplayString());
+    }
 
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInQuery()
-        {
-            var source = LINQ + @"
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInQuery()
+    {
+        var source = LINQ + @"
 class ClassA
 {
     void m()
@@ -768,28 +768,28 @@ class ClassA
         var o = from x in new List1<int>(1, 2, 3) select [# new { [# x #], [# y #] = x } #];
     }
 }";
-            var data = Compile(source, 3);
+        var data = Compile(source, 3);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, NumberOfNewKeywords(LINQ) + 2).Span,
-                1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, NumberOfNewKeywords(LINQ) + 2).Span,
+            1, 2);
 
-            var info1 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[1]).Expression);
-            Assert.NotNull(info1.Symbol);
-            Assert.Equal(SymbolKind.RangeVariable, info1.Symbol.Kind);
-            Assert.Equal("x", info1.Symbol.ToDisplayString());
+        var info1 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[1]).Expression);
+        Assert.NotNull(info1.Symbol);
+        Assert.Equal(SymbolKind.RangeVariable, info1.Symbol.Kind);
+        Assert.Equal("x", info1.Symbol.ToDisplayString());
 
-            var info2 = data.Model.GetSymbolInfo((ExpressionSyntax)data.Nodes[2]);
-            Assert.NotNull(info2.Symbol);
-            Assert.Equal(SymbolKind.Property, info2.Symbol.Kind);
-            Assert.Equal("System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; }", info2.Symbol.ToTestDisplayString());
-        }
+        var info2 = data.Model.GetSymbolInfo((ExpressionSyntax)data.Nodes[2]);
+        Assert.NotNull(info2.Symbol);
+        Assert.Equal(SymbolKind.Property, info2.Symbol.Kind);
+        Assert.Equal("System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; }", info2.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInQuery_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInQuery_OperationTree()
+    {
+        string source = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -801,7 +801,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.Int32 y>) (Syntax: 'new { x, y = x }')
   Initializers(2):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x')
@@ -819,15 +819,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInQuery2()
-        {
-            var source = LINQ + @"
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInQuery2()
+    {
+        var source = LINQ + @"
 class ClassA
 {
     void m()
@@ -835,30 +835,30 @@ class ClassA
         var o = from x in new List1<int>(1, 2, 3) let y = """" select [# new { [# x #], [# y #] } #];
     }
 }";
-            var data = Compile(source, 3);
+        var data = Compile(source, 3);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, NumberOfNewKeywords(LINQ) + 2).Span,
-                1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, NumberOfNewKeywords(LINQ) + 2).Span,
+            1, 2);
 
-            Assert.Equal("<anonymous type: System.Int32 x, System.String y>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: System.Int32 x, System.String y>", info0.Type.ToTestDisplayString());
 
-            var info1 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[1]).Expression);
-            Assert.NotNull(info1.Symbol);
-            Assert.Equal(SymbolKind.RangeVariable, info1.Symbol.Kind);
-            Assert.Equal("x", info1.Symbol.ToDisplayString());
+        var info1 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[1]).Expression);
+        Assert.NotNull(info1.Symbol);
+        Assert.Equal(SymbolKind.RangeVariable, info1.Symbol.Kind);
+        Assert.Equal("x", info1.Symbol.ToDisplayString());
 
-            var info2 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[2]).Expression);
-            Assert.NotNull(info2.Symbol);
-            Assert.Equal(SymbolKind.RangeVariable, info2.Symbol.Kind);
-            Assert.Equal("y", info2.Symbol.ToDisplayString());
-        }
+        var info2 = data.Model.GetSymbolInfo(((AnonymousObjectMemberDeclaratorSyntax)data.Nodes[2]).Expression);
+        Assert.NotNull(info2.Symbol);
+        Assert.Equal(SymbolKind.RangeVariable, info2.Symbol.Kind);
+        Assert.Equal("y", info2.Symbol.ToDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInQuery2_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInQuery2_OperationTree()
+    {
+        string source = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -870,8 +870,8 @@ class ClassA
     }
 }
 ";
-            // OperationKind.None is for Range variables, IOperation support for it is NYI.
-            string expectedOperationTree = @"
+        // OperationKind.None is for Range variables, IOperation support for it is NYI.
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.String y>) (Syntax: 'new { x, y }')
   Initializers(2):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x')
@@ -893,15 +893,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInLambda()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInLambda()
+    {
+        var source = @"
 using System;
 class ClassA
 {
@@ -910,23 +910,23 @@ class ClassA
         var o = (Action)(() => ( [# new { [# x #] = 1, [# y #] = [# new { } #] } #]).ToString());;
     }
 }";
-            var data = Compile(source, 4);
+        var data = Compile(source, 4);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+            1, 2);
 
-            var info1 = GetAnonymousTypeInfoSummary(data, 3,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
+        var info1 = GetAnonymousTypeInfoSummary(data, 3,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
-        }
+        Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInLambda_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInLambda_OperationTree()
+    {
+        string source = @"
 using System;
 class ClassA
 {
@@ -936,7 +936,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, <empty anonymous type> y>) (Syntax: 'new { x = 1 ... = new { } }')
   Initializers(2):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: 'x = 1')
@@ -955,15 +955,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
             Initializers(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInLambda2()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInLambda2()
+    {
+        var source = @"
 using System;
 class ClassA
 {
@@ -975,23 +975,23 @@ class ClassA
                     ).Invoke());
     }
 }";
-            var data = Compile(source, 4);
+        var data = Compile(source, 4);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+            1, 2);
 
-            var info1 = GetAnonymousTypeInfoSummary(data, 3,
-                data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
+        var info1 = GetAnonymousTypeInfoSummary(data, 3,
+            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
-        }
+        Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeFieldCreatedInLambda2_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeFieldCreatedInLambda2_OperationTree()
+    {
+        string source = @"
 using System;
 class ClassA
 {
@@ -1004,7 +1004,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, <empty anonymous type> y>) (Syntax: 'new { x = 1 ... = new { } }')
   Initializers(2):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: 'x = 1')
@@ -1023,15 +1023,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <empty anonymous type>) (Syntax: 'new { }')
             Initializers(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [ClrOnlyFact]
-        public void AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit()
-        {
-            var source = @"
+    [ClrOnlyFact]
+    public void AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit()
+    {
+        var source = @"
 public class ClassA
 {
     public static void Test1(int x)
@@ -1040,57 +1040,57 @@ public class ClassA
         object v2 = [# new { } #];
     }
 }";
-            var data = Compile(source, 4);
+        var data = Compile(source, 4);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, 2);
 
-            CheckAnonymousType(info0.Type, "", "");
+        CheckAnonymousType(info0.Type, "", "");
 
-            info0 = GetAnonymousTypeInfoSummary(data, 3,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
+        info0 = GetAnonymousTypeInfoSummary(data, 3,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            CheckAnonymousType(info0.Type, "", "");
+        CheckAnonymousType(info0.Type, "", "");
 
-            //  perform emit
-            CompileAndVerify(
-                data.Compilation,
-                symbolValidator: module => CheckAnonymousTypes(module)
-            );
-        }
+        //  perform emit
+        CompileAndVerify(
+            data.Compilation,
+            symbolValidator: module => CheckAnonymousTypes(module)
+        );
+    }
 
-        #region "AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit"
+    #region "AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit"
 
-        private static void CheckAnonymousType(TypeSymbol type, string name, string metadataName)
-        {
-            Assert.NotNull(type);
-            Assert.Equal(name, type.Name);
-            Assert.Equal(metadataName, type.MetadataName);
-        }
+    private static void CheckAnonymousType(TypeSymbol type, string name, string metadataName)
+    {
+        Assert.NotNull(type);
+        Assert.Equal(name, type.Name);
+        Assert.Equal(metadataName, type.MetadataName);
+    }
 
-        private static void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
-        {
-            Assert.NotNull(type);
-            Assert.Equal(name, type.Name);
-            Assert.Equal(metadataName, type.MetadataName);
-        }
+    private static void CheckAnonymousType(ITypeSymbol type, string name, string metadataName)
+    {
+        Assert.NotNull(type);
+        Assert.Equal(name, type.Name);
+        Assert.Equal(metadataName, type.MetadataName);
+    }
 
-        private void CheckAnonymousTypes(ModuleSymbol module)
-        {
-            var ns = module.GlobalNamespace;
-            Assert.NotNull(ns);
+    private void CheckAnonymousTypes(ModuleSymbol module)
+    {
+        var ns = module.GlobalNamespace;
+        Assert.NotNull(ns);
 
-            CheckAnonymousType(ns.GetMember<NamedTypeSymbol>("<>f__AnonymousType0"), "<>f__AnonymousType0", "<>f__AnonymousType0`2");
-            CheckAnonymousType(ns.GetMember<NamedTypeSymbol>("<>f__AnonymousType1"), "<>f__AnonymousType1", "<>f__AnonymousType1");
-        }
+        CheckAnonymousType(ns.GetMember<NamedTypeSymbol>("<>f__AnonymousType0"), "<>f__AnonymousType0", "<>f__AnonymousType0`2");
+        CheckAnonymousType(ns.GetMember<NamedTypeSymbol>("<>f__AnonymousType1"), "<>f__AnonymousType1", "<>f__AnonymousType1");
+    }
 
-        #endregion
+    #endregion
 
-        [Fact()]
-        public void AnonymousTypeSymbols_Error_Simple()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_Error_Simple()
+    {
+        var source = @"
 public class ClassA
 {
     public static void Test1(int x)
@@ -1115,49 +1115,49 @@ public class ClassA
         } #];
     }
 }";
-            var data = Compile(source, 12,
-                // (8,25): error CS0103: The name 'xyz' does not exist in the current context
-                //                aa     = xyz,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "xyz").WithArguments("xyz"),
-                // (10,29): error CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
-                //                CCC    = new SSS()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS"),
-                // (15,29): error CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
-                //                aa     = new SSS(),
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS"),
-                // (19,35): error CS1061: 'ClassA' does not contain a definition for 'aa' and no extension method 'aa' accepting a first argument of type 'ClassA' could be found (are you missing a using directive or an assembly reference?)
-                //                 (new ClassA()).   aa    ,
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "aa").WithArguments("ClassA", "aa"),
-                // (20,27): error CS0117: 'ClassA' does not contain a definition for 'BB'
-                //                 ClassA.   BB    ,
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "BB").WithArguments("ClassA", "BB"),
-                // (21,27): error CS0117: 'ClassA' does not contain a definition for 'CCC'
-                //                 ClassA.   CCC   
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "CCC").WithArguments("ClassA", "CCC")
-            );
+        var data = Compile(source, 12,
+            // (8,25): error CS0103: The name 'xyz' does not exist in the current context
+            //                aa     = xyz,
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "xyz").WithArguments("xyz"),
+            // (10,29): error CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
+            //                CCC    = new SSS()
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS"),
+            // (15,29): error CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
+            //                aa     = new SSS(),
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS"),
+            // (19,35): error CS1061: 'ClassA' does not contain a definition for 'aa' and no extension method 'aa' accepting a first argument of type 'ClassA' could be found (are you missing a using directive or an assembly reference?)
+            //                 (new ClassA()).   aa    ,
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "aa").WithArguments("ClassA", "aa"),
+            // (20,27): error CS0117: 'ClassA' does not contain a definition for 'BB'
+            //                 ClassA.   BB    ,
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "BB").WithArguments("ClassA", "BB"),
+            // (21,27): error CS0117: 'ClassA' does not contain a definition for 'CCC'
+            //                 ClassA.   CCC   
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "CCC").WithArguments("ClassA", "CCC")
+        );
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, 2, 3);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, 2, 3);
 
-            var info1 = GetAnonymousTypeInfoSummary(data, 4,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
-                            5, 6, 7);
+        var info1 = GetAnonymousTypeInfoSummary(data, 4,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 3).Span,
+                        5, 6, 7);
 
-            var info2 = GetAnonymousTypeInfoSummary(data, 8,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
-                            9, 10, 11);
+        var info2 = GetAnonymousTypeInfoSummary(data, 8,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
+                        9, 10, 11);
 
-            Assert.Equal("<anonymous type: ? aa, System.String BB, SSS CCC>", info0.Type.ToTestDisplayString());
-            Assert.Equal("<anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>", info1.Type.ToTestDisplayString());
-            Assert.Equal("<anonymous type: ? aa, ? BB, ? CCC>", info2.Type.ToTestDisplayString());
-        }
+        Assert.Equal("<anonymous type: ? aa, System.String BB, SSS CCC>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>", info1.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: ? aa, ? BB, ? CCC>", info2.Type.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_Error_Simple_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_Error_Simple_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     public static void Test1(int x)
@@ -1183,7 +1183,7 @@ class ClassA
     }/*</bind>*/
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: System.Object v1
     Local_2: System.Object v2
@@ -1290,34 +1290,34 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
       Initializer: 
         null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0103: The name 'xyz' does not exist in the current context
-                //             aa = xyz,
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "xyz").WithArguments("xyz").WithLocation(8, 18),
-                // CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
-                //             CCC = new SSS()
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS").WithLocation(10, 23),
-                // CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
-                //             aa = new SSS(),
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS").WithLocation(15, 22),
-                // CS1061: 'ClassA' does not contain a definition for 'aa' and no extension method 'aa' accepting a first argument of type 'ClassA' could be found (are you missing a using directive or an assembly reference?)
-                //                 (new ClassA()).aa,
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "aa").WithArguments("ClassA", "aa").WithLocation(19, 32),
-                // CS0117: 'ClassA' does not contain a definition for 'BB'
-                //                 ClassA.BB,
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "BB").WithArguments("ClassA", "BB").WithLocation(20, 24),
-                // CS0117: 'ClassA' does not contain a definition for 'CCC'
-                //                 ClassA.CCC
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "CCC").WithArguments("ClassA", "CCC").WithLocation(21, 24)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0103: The name 'xyz' does not exist in the current context
+            //             aa = xyz,
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "xyz").WithArguments("xyz").WithLocation(8, 18),
+            // CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
+            //             CCC = new SSS()
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS").WithLocation(10, 23),
+            // CS0246: The type or namespace name 'SSS' could not be found (are you missing a using directive or an assembly reference?)
+            //             aa = new SSS(),
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SSS").WithArguments("SSS").WithLocation(15, 22),
+            // CS1061: 'ClassA' does not contain a definition for 'aa' and no extension method 'aa' accepting a first argument of type 'ClassA' could be found (are you missing a using directive or an assembly reference?)
+            //                 (new ClassA()).aa,
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "aa").WithArguments("ClassA", "aa").WithLocation(19, 32),
+            // CS0117: 'ClassA' does not contain a definition for 'BB'
+            //                 ClassA.BB,
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "BB").WithArguments("ClassA", "BB").WithLocation(20, 24),
+            // CS0117: 'ClassA' does not contain a definition for 'CCC'
+            //                 ClassA.CCC
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "CCC").WithArguments("ClassA", "CCC").WithLocation(21, 24)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_Error_InUsingStatement()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_Error_InUsingStatement()
+    {
+        var source = @"
 public class ClassA
 {
     public static void Test1(int x)
@@ -1327,23 +1327,23 @@ public class ClassA
         }
     }
 }";
-            var data = Compile(source, 1,
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
-                //         using (var v1 =    new { }   )
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
-            );
+        var data = Compile(source, 1,
+            // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
+            //         using (var v1 =    new { }   )
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
+        );
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span);
 
-            Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
-        }
+        Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void AnonymousTypeSymbols_Error_InUsingStatement_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void AnonymousTypeSymbols_Error_InUsingStatement_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     public static void Test1(int x)
@@ -1354,7 +1354,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'var v1 = new { }')
   Declarators:
       IVariableDeclaratorOperation (Symbol: <empty anonymous type> v1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'v1 = new { }')
@@ -1364,19 +1364,19 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
               Initializers(0)
   Initializer: 
     null";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
-                //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
+            //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_Error_DuplicateName()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_Error_DuplicateName()
+    {
+        var source = @"
 public class ClassA
 {
     public static void Test1(int x)
@@ -1391,31 +1391,31 @@ public class ClassA
 
     public static string aa = ""-field-aa-"";
 }";
-            var data = Compile(source, 4,
-                // (9,13): error CS0833: An anonymous type cannot have multiple properties with the same name
-                //             ClassA.   aa   ,
-                Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "ClassA.   aa")
-            );
+        var data = Compile(source, 4,
+            // (9,13): error CS0833: An anonymous type cannot have multiple properties with the same name
+            //             ClassA.   aa   ,
+            Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "ClassA.   aa")
+        );
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, /*2,*/ 3);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, /*2,*/ 3);
 
-            Assert.Equal("<anonymous type: System.Int32 aa, System.String $1, System.Double bb>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: System.Int32 aa, System.String $1, System.Double bb>", info0.Type.ToTestDisplayString());
 
-            var properties = (from m in info0.Type.GetMembers() where m.Kind == SymbolKind.Property select m).ToArray();
-            Assert.Equal(3, properties.Length);
+        var properties = (from m in info0.Type.GetMembers() where m.Kind == SymbolKind.Property select m).ToArray();
+        Assert.Equal(3, properties.Length);
 
-            Assert.Equal("System.Int32 <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.aa { get; }", properties[0].ToTestDisplayString());
-            Assert.Equal("System.String <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; }", properties[1].ToTestDisplayString());
-            Assert.Equal("System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; }", properties[2].ToTestDisplayString());
-        }
+        Assert.Equal("System.Int32 <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.aa { get; }", properties[0].ToTestDisplayString());
+        Assert.Equal("System.String <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; }", properties[1].ToTestDisplayString());
+        Assert.Equal("System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; }", properties[2].ToTestDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(20338, "https://github.com/dotnet/roslyn/issues/20338")]
-        public void AnonymousTypeSymbols_Error_DuplicateName_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(20338, "https://github.com/dotnet/roslyn/issues/20338")]
+    public void AnonymousTypeSymbols_Error_DuplicateName_OperationTree()
+    {
+        string source = @"
 class ClassA
 {
     public static void Test1(int x)
@@ -1431,7 +1431,7 @@ class ClassA
     public static string aa = ""-field-aa-"";
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 aa, System.String $1, System.Double bb>, IsInvalid) (Syntax: 'new ... }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
@@ -1458,19 +1458,19 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1.2) (Syntax: '1.2')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0833: An anonymous type cannot have multiple properties with the same name
-                //             ClassA.aa,
-                Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "ClassA.aa").WithLocation(9, 13)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0833: An anonymous type cannot have multiple properties with the same name
+            //             ClassA.aa,
+            Diagnostic(ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, "ClassA.aa").WithLocation(9, 13)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact()]
-        public void AnonymousTypeSymbols_LookupSymbols()
-        {
-            var source = @"
+    [Fact()]
+    public void AnonymousTypeSymbols_LookupSymbols()
+    {
+        var source = @"
 public class ClassA
 {
     public static void Test1(int x)
@@ -1483,74 +1483,74 @@ public class ClassA
         object v2 = [# new{ } #];
     }
 }";
-            var data = Compile(source, 4);
+        var data = Compile(source, 4);
 
-            var info0 = GetAnonymousTypeInfoSummary(data, 0,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
-                            1, 2);
+        var info0 = GetAnonymousTypeInfoSummary(data, 0,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 1).Span,
+                        1, 2);
 
-            Assert.Equal("<anonymous type: System.String aa, System.Double abc>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<anonymous type: System.String aa, System.Double abc>", info0.Type.ToTestDisplayString());
 
-            var pos = data.Nodes[0].Span.End;
-            var syms = data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x).ToArray();
-            Assert.Equal(8, syms.Length);
+        var pos = data.Nodes[0].Span.End;
+        var syms = data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x).ToArray();
+        Assert.Equal(8, syms.Length);
 
-            int index = 0;
-            Assert.Equal("System.Boolean System.Object.Equals(System.Object obj)", syms[index++]);
-            Assert.Equal("System.Boolean System.Object.Equals(System.Object objA, System.Object objB)", syms[index++]);
-            Assert.Equal("System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)", syms[index++]);
-            Assert.Equal("System.Double <anonymous type: System.String aa, System.Double abc>.abc { get; }", syms[index++]);
-            Assert.Equal("System.Int32 System.Object.GetHashCode()", syms[index++]);
-            Assert.Equal("System.String <anonymous type: System.String aa, System.Double abc>.aa { get; }", syms[index++]);
-            Assert.Equal("System.String System.Object.ToString()", syms[index++]);
-            Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
+        int index = 0;
+        Assert.Equal("System.Boolean System.Object.Equals(System.Object obj)", syms[index++]);
+        Assert.Equal("System.Boolean System.Object.Equals(System.Object objA, System.Object objB)", syms[index++]);
+        Assert.Equal("System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)", syms[index++]);
+        Assert.Equal("System.Double <anonymous type: System.String aa, System.Double abc>.abc { get; }", syms[index++]);
+        Assert.Equal("System.Int32 System.Object.GetHashCode()", syms[index++]);
+        Assert.Equal("System.String <anonymous type: System.String aa, System.Double abc>.aa { get; }", syms[index++]);
+        Assert.Equal("System.String System.Object.ToString()", syms[index++]);
+        Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
 
-            info0 = GetAnonymousTypeInfoSummary(data, 3,
-                            data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
+        info0 = GetAnonymousTypeInfoSummary(data, 3,
+                        data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
+        Assert.Equal("<empty anonymous type>", info0.Type.ToTestDisplayString());
 
-            pos = data.Nodes[3].Span.End;
-            syms = data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x).ToArray();
-            Assert.Equal(6, syms.Length);
+        pos = data.Nodes[3].Span.End;
+        syms = data.Model.LookupSymbols(pos, container: info0.Type).Select(x => x.ToTestDisplayString()).OrderBy(x => x).ToArray();
+        Assert.Equal(6, syms.Length);
 
-            index = 0;
-            Assert.Equal("System.Boolean System.Object.Equals(System.Object obj)", syms[index++]);
-            Assert.Equal("System.Boolean System.Object.Equals(System.Object objA, System.Object objB)", syms[index++]);
-            Assert.Equal("System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)", syms[index++]);
-            Assert.Equal("System.Int32 System.Object.GetHashCode()", syms[index++]);
-            Assert.Equal("System.String System.Object.ToString()", syms[index++]);
-            Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
-        }
+        index = 0;
+        Assert.Equal("System.Boolean System.Object.Equals(System.Object obj)", syms[index++]);
+        Assert.Equal("System.Boolean System.Object.Equals(System.Object objA, System.Object objB)", syms[index++]);
+        Assert.Equal("System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)", syms[index++]);
+        Assert.Equal("System.Int32 System.Object.GetHashCode()", syms[index++]);
+        Assert.Equal("System.String System.Object.ToString()", syms[index++]);
+        Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
+    }
 
-        [WorkItem(543189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543189")]
-        [Fact()]
-        public void CheckAnonymousTypeAsConstValue()
-        {
-            var source = @"
+    [WorkItem(543189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543189")]
+    [Fact()]
+    public void CheckAnonymousTypeAsConstValue()
+    {
+        var source = @"
 public class A
 {
     const int i = /*<bind>*/(new {a = 2}).a/*</bind>*/;
 }";
 
-            var comp = CreateCompilation(source);
-            var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
-            var info = tuple.Item2.GetSymbolInfo(tuple.Item1);
-            Assert.NotNull(info.Symbol);
-            Assert.Equal("<anonymous type: int a>.a", info.Symbol.ToDisplayString());
-        }
+        var comp = CreateCompilation(source);
+        var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
+        var info = tuple.Item2.GetSymbolInfo(tuple.Item1);
+        Assert.NotNull(info.Symbol);
+        Assert.Equal("<anonymous type: int a>.a", info.Symbol.ToDisplayString());
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact()]
-        public void CheckAnonymousTypeAsConstValue_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact()]
+    public void CheckAnonymousTypeAsConstValue_OperationTree()
+    {
+        string source = @"
 class A
 {
     const int i = (/*<bind>*/new { a = 2 }/*</bind>*/).a;
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a>, IsInvalid) (Syntax: 'new { a = 2 }')
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 2) (Syntax: 'a = 2')
@@ -1561,21 +1561,21 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0836: Cannot use anonymous type in a constant expression
-                //     const int i = (/*<bind>*/new { a = 2 }/*</bind>*/).a;
-                Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new").WithLocation(4, 30)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0836: Cannot use anonymous type in a constant expression
+            //     const int i = (/*<bind>*/new { a = 2 }/*</bind>*/).a;
+            Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new").WithLocation(4, 30)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
-        [ClrOnlyFact]
-        public void TestAnonymousTypeInsideGroupBy_Queryable()
-        {
-            CompileAndVerify(
- @"using System.Linq;
+    [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+    [ClrOnlyFact]
+    public void TestAnonymousTypeInsideGroupBy_Queryable()
+    {
+        CompileAndVerify(
+@"using System.Linq;
 
 public class Product
 {
@@ -1596,14 +1596,14 @@ public class Program
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
-        [ClrOnlyFact]
-        public void TestAnonymousTypeInsideGroupBy_Queryable_OperationTree()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+    [ClrOnlyFact]
+    public void TestAnonymousTypeInsideGroupBy_Queryable_OperationTree()
+    {
+        string source = @"
 using System.Linq;
 
 class Product
@@ -1626,7 +1626,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>) (Syntax: 'new { Condi ... plierID } }')
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional ... upplierID }')
@@ -1699,30 +1699,30 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                           Instance Receiver: 
                             IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: Product) (Syntax: 'p')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0649: Field 'Product.ProductName' is never assigned to, and will always have its default value null
-                //     public string ProductName;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ProductName").WithArguments("Product.ProductName", "null").WithLocation(7, 19),
-                // CS0649: Field 'Product.SupplierID' is never assigned to, and will always have its default value 0
-                //     public int SupplierID;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "SupplierID").WithArguments("Product.SupplierID", "0").WithLocation(8, 16),
-                // CS0649: Field 'Product.ProductID' is never assigned to, and will always have its default value 0
-                //     public int ProductID;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ProductID").WithArguments("Product.ProductID", "0").WithLocation(6, 16),
-                // CS0649: Field 'DB.Products' is never assigned to, and will always have its default value null
-                //     public IQueryable<Product> Products;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Products").WithArguments("DB.Products", "null").WithLocation(12, 32)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0649: Field 'Product.ProductName' is never assigned to, and will always have its default value null
+            //     public string ProductName;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ProductName").WithArguments("Product.ProductName", "null").WithLocation(7, 19),
+            // CS0649: Field 'Product.SupplierID' is never assigned to, and will always have its default value 0
+            //     public int SupplierID;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "SupplierID").WithArguments("Product.SupplierID", "0").WithLocation(8, 16),
+            // CS0649: Field 'Product.ProductID' is never assigned to, and will always have its default value 0
+            //     public int ProductID;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ProductID").WithArguments("Product.ProductID", "0").WithLocation(6, 16),
+            // CS0649: Field 'DB.Products' is never assigned to, and will always have its default value null
+            //     public IQueryable<Product> Products;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Products").WithArguments("DB.Products", "null").WithLocation(12, 32)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
-        [ClrOnlyFact]
-        public void TestAnonymousTypeInsideGroupBy_Enumerable()
-        {
-            CompileAndVerify(
- @"using System.Linq;
+    [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+    [ClrOnlyFact]
+    public void TestAnonymousTypeInsideGroupBy_Enumerable()
+    {
+        CompileAndVerify(
+@"using System.Linq;
 using System.Collections.Generic;
 
 public class Product
@@ -1744,14 +1744,14 @@ public class Program
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
-        [ClrOnlyFact]
-        public void TestAnonymousTypeInsideGroupBy_Enumerable2()
-        {
-            CompileAndVerify(
- @"using System.Linq;
+    [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
+    [ClrOnlyFact]
+    public void TestAnonymousTypeInsideGroupBy_Enumerable2()
+    {
+        CompileAndVerify(
+@"using System.Linq;
 using System.Collections.Generic;
 
 public class Product
@@ -1773,13 +1773,13 @@ public class Program
         var q1 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.SupplierID } : new { p.ProductID, p.SupplierID } }).ToList();
     }
 }").VerifyDiagnostics();
-        }
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
-        public void AnonymousTypeSymbols_ErrorCases()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(22588, "https://github.com/dotnet/roslyn/issues/22588")]
+    public void AnonymousTypeSymbols_ErrorCases()
+    {
+        string source = @"
 class ClassA
 {
     static void Test1(int x)
@@ -1792,7 +1792,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: error f1, error f2, ? f3>, IsInvalid) (Syntax: 'new { f1 =  ... = default }')
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, Constant: null, IsInvalid) (Syntax: 'f1 = null')
@@ -1819,26 +1819,26 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, IsInvalid) (Syntax: 'default')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,35): error CS0828: Cannot assign '<null>' to anonymous type property
-                //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f1 = null").WithArguments("<null>").WithLocation(6, 35),
-                // file.cs(6,46): error CS0828: Cannot assign 'method group' to anonymous type property
-                //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f2 = M").WithArguments("method group").WithLocation(6, 46),
-                // file.cs(6,59): error CS8716: There is no target type for the default literal.
-                //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 59)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,35): error CS0828: Cannot assign '<null>' to anonymous type property
+            //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f1 = null").WithArguments("<null>").WithLocation(6, 35),
+            // file.cs(6,46): error CS0828: Cannot assign 'method group' to anonymous type property
+            //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "f2 = M").WithArguments("method group").WithLocation(6, 46),
+            // file.cs(6,59): error CS8716: There is no target type for the default literal.
+            //         var obj = /*<bind>*/new { f1 = null, f2 = M, f3 = default }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 59)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(27338, "https://github.com/dotnet/roslyn/issues/27338")]
-        public void AnonymousTypeCreation_MixedInitializers()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(27338, "https://github.com/dotnet/roslyn/issues/27338")]
+    public void AnonymousTypeCreation_MixedInitializers()
+    {
+        string source = @"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -1850,7 +1850,7 @@ class ClassA
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'new { a, b = 1 }')
   Initializers(2):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a')
@@ -1868,15 +1868,15 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
-        public void AnonymousTypeSymbols_PointerArrayField()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+    public void AnonymousTypeSymbols_PointerArrayField()
+    {
+        var source = """
 unsafe class C
 {
     static unsafe void Main()
@@ -1896,15 +1896,15 @@ unsafe class C
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.FailsPEVerify);
-        }
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.FailsPEVerify);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
-        public void AnonymousTypeSymbols_NestedPointerArrayField()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+    public void AnonymousTypeSymbols_NestedPointerArrayField()
+    {
+        var source = """
 unsafe class C<T>
 {
     static C<int*[]> M()
@@ -1914,14 +1914,14 @@ unsafe class C<T>
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics();
-        }
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
-        public void AnonymousTypeSymbols_PointerField()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+    public void AnonymousTypeSymbols_PointerField()
+    {
+        var source = """
 unsafe class C
 {
     static int* M(int* i)
@@ -1931,18 +1931,18 @@ unsafe class C
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (5,23): error CS0828: Cannot assign 'int*' to anonymous type property
-                //         var a = new { F = i };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("int*").WithLocation(5, 23)
-                );
-        }
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (5,23): error CS0828: Cannot assign 'int*' to anonymous type property
+            //         var a = new { F = i };
+            Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("int*").WithLocation(5, 23)
+            );
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
-        public void AnonymousTypeSymbols_FunctionPointerField()
-        {
-            var source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+    public void AnonymousTypeSymbols_FunctionPointerField()
+    {
+        var source = """
 unsafe class C
 {
     static delegate*<void> M(delegate*<void> i)
@@ -1952,209 +1952,208 @@ unsafe class C
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (5,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
-                //         var a = new { F = i };
-                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("delegate*<void>").WithLocation(5, 23)
-                );
-        }
-
-        #region "Utility methods"
-
-        private void AssertCannotConstruct(ISymbol type)
-        {
-            var namedType = type as INamedTypeSymbol;
-            Assert.NotNull(namedType);
-
-            var objType = namedType.BaseType;
-            Assert.NotNull(objType);
-            Assert.Equal("System.Object", objType.ToTestDisplayString());
-
-            ITypeSymbol[] args = new ITypeSymbol[namedType.Arity];
-            for (int i = 0; i < namedType.Arity; i++)
-            {
-                args[i] = objType;
-            }
-
-            Assert.Throws<InvalidOperationException>(() => namedType.Construct(args));
-        }
-
-        private CompilationUtils.SemanticInfoSummary GetAnonymousTypeInfoSummary(TestData data, int node, TextSpan typeSpan, params int[] fields)
-        {
-            var info = data.Model.GetSemanticInfoSummary(data.Nodes[node]);
-            var type = info.Type;
-
-            Assert.True(type.IsAnonymousType);
-            Assert.False(type.CanBeReferencedByName);
-
-            Assert.Equal("System.Object", type.BaseType.ToTestDisplayString());
-            Assert.Equal(0, type.Interfaces.Length);
-
-            Assert.Equal(1, type.Locations.Length);
-            Assert.Equal(typeSpan, type.Locations[0].SourceSpan);
-
-            foreach (int field in fields)
-            {
-                CheckFieldNameAndLocation(data, type, data.Nodes[field]);
-            }
-
-            return info;
-        }
-
-        private void CheckFieldNameAndLocation(TestData data, ITypeSymbol type, SyntaxNode identifier)
-        {
-            var anonymousType = (INamedTypeSymbol)type;
-
-            var current = identifier;
-            while (current.Span == identifier.Span && !current.IsKind(SyntaxKind.IdentifierName))
-            {
-                current = current.ChildNodes().Single();
-            }
-            var node = (IdentifierNameSyntax)current;
-            Assert.NotNull(node);
-
-            var span = node.Span;
-            var fieldName = node.ToString();
-
-            var property = anonymousType.GetMember<IPropertySymbol>(fieldName);
-            Assert.NotNull(property);
-            Assert.Equal(fieldName, property.Name);
-            Assert.Equal(1, property.Locations.Length);
-            Assert.Equal(span, property.Locations[0].SourceSpan);
-
-            IMethodSymbol getter = property.GetMethod;
-            Assert.NotNull(getter);
-            Assert.Equal("get_" + fieldName, getter.Name);
-        }
-
-        private struct TestData
-        {
-            public CSharpCompilation Compilation;
-            public SyntaxTree Tree;
-            public List<SyntaxNode> Nodes;
-            public SemanticModel Model;
-        }
-
-        private TestData Compile(string source, int expectedIntervals, params DiagnosticDescription[] diagnostics)
-        {
-            var intervals = ExtractTextIntervals(ref source);
-            Assert.Equal(expectedIntervals, intervals.Count);
-
-            var compilation = Compile(source);
-
-            compilation.VerifyDiagnostics(diagnostics);
-
-            var tree = compilation.SyntaxTrees[0];
-            var nodes = new List<SyntaxNode>();
-
-            foreach (var span in intervals)
-            {
-                var stack = new Stack<SyntaxNode>();
-                stack.Push(tree.GetCompilationUnitRoot());
-
-                while (stack.Count > 0)
-                {
-                    var node = stack.Pop();
-                    if (span.Contains(node.Span))
-                    {
-                        nodes.Add(node);
-                        break;
-                    }
-
-                    foreach (var child in node.ChildNodes())
-                    {
-                        stack.Push(child);
-                    }
-                }
-            }
-            Assert.Equal(expectedIntervals, nodes.Count);
-
-            return new TestData()
-            {
-                Compilation = compilation,
-                Tree = tree,
-                Model = compilation.GetSemanticModel(tree),
-                Nodes = nodes
-            };
-        }
-
-        private CSharpCompilation Compile(string source) =>
-            CreateCompilationWithMscorlib40(
-                source,
-                options: TestOptions.ReleaseDll,
-                parseOptions: TestOptions.Regular);
-
-        private static List<TextSpan> ExtractTextIntervals(ref string source)
-        {
-            const string startTag = "[#";
-            const string endTag = "#]";
-
-            List<TextSpan> intervals = new List<TextSpan>();
-
-            var all = (from s in FindAll(source, startTag)
-                       select new { start = true, offset = s }).Union(
-                                from s in FindAll(source, endTag)
-                                select new { start = false, offset = s }
-                      ).OrderBy(value => value.offset).ToList();
-
-            while (all.Count > 0)
-            {
-                int i = 1;
-                bool added = false;
-                while (i < all.Count)
-                {
-                    if (all[i - 1].start && !all[i].start)
-                    {
-                        intervals.Add(TextSpan.FromBounds(all[i - 1].offset, all[i].offset));
-                        all.RemoveAt(i);
-                        all.RemoveAt(i - 1);
-                        added = true;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                }
-                Assert.True(added);
-            }
-
-            source = source.Replace(startTag, "  ").Replace(endTag, "  ");
-
-            intervals.Sort((x, y) => x.Start.CompareTo(y.Start));
-            return intervals;
-        }
-
-        private static IEnumerable<int> FindAll(string source, string what)
-        {
-            int index = source.IndexOf(what, StringComparison.Ordinal);
-            while (index >= 0)
-            {
-                yield return index;
-                index = source.IndexOf(what, index + 1, StringComparison.Ordinal);
-            }
-        }
-
-        private int NumberOfNewKeywords(string source)
-        {
-            int cnt = 0;
-            foreach (var line in source.Split(new String[] { Environment.NewLine }, StringSplitOptions.None))
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    if (!line.Trim().StartsWith("//", StringComparison.Ordinal))
-                    {
-                        for (int index = line.IndexOf("new ", StringComparison.Ordinal); index >= 0;)
-                        {
-                            cnt++;
-                            index = line.IndexOf("new ", index + 1, StringComparison.Ordinal);
-                        }
-                    }
-                }
-            }
-            return cnt;
-        }
-
-        #endregion
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+            // (5,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
+            //         var a = new { F = i };
+            Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("delegate*<void>").WithLocation(5, 23)
+            );
     }
+
+    #region "Utility methods"
+
+    private void AssertCannotConstruct(ISymbol type)
+    {
+        var namedType = type as INamedTypeSymbol;
+        Assert.NotNull(namedType);
+
+        var objType = namedType.BaseType;
+        Assert.NotNull(objType);
+        Assert.Equal("System.Object", objType.ToTestDisplayString());
+
+        ITypeSymbol[] args = new ITypeSymbol[namedType.Arity];
+        for (int i = 0; i < namedType.Arity; i++)
+        {
+            args[i] = objType;
+        }
+
+        Assert.Throws<InvalidOperationException>(() => namedType.Construct(args));
+    }
+
+    private CompilationUtils.SemanticInfoSummary GetAnonymousTypeInfoSummary(TestData data, int node, TextSpan typeSpan, params int[] fields)
+    {
+        var info = data.Model.GetSemanticInfoSummary(data.Nodes[node]);
+        var type = info.Type;
+
+        Assert.True(type.IsAnonymousType);
+        Assert.False(type.CanBeReferencedByName);
+
+        Assert.Equal("System.Object", type.BaseType.ToTestDisplayString());
+        Assert.Equal(0, type.Interfaces.Length);
+
+        Assert.Equal(1, type.Locations.Length);
+        Assert.Equal(typeSpan, type.Locations[0].SourceSpan);
+
+        foreach (int field in fields)
+        {
+            CheckFieldNameAndLocation(data, type, data.Nodes[field]);
+        }
+
+        return info;
+    }
+
+    private void CheckFieldNameAndLocation(TestData data, ITypeSymbol type, SyntaxNode identifier)
+    {
+        var anonymousType = (INamedTypeSymbol)type;
+
+        var current = identifier;
+        while (current.Span == identifier.Span && !current.IsKind(SyntaxKind.IdentifierName))
+        {
+            current = current.ChildNodes().Single();
+        }
+        var node = (IdentifierNameSyntax)current;
+        Assert.NotNull(node);
+
+        var span = node.Span;
+        var fieldName = node.ToString();
+
+        var property = anonymousType.GetMember<IPropertySymbol>(fieldName);
+        Assert.NotNull(property);
+        Assert.Equal(fieldName, property.Name);
+        Assert.Equal(1, property.Locations.Length);
+        Assert.Equal(span, property.Locations[0].SourceSpan);
+
+        IMethodSymbol getter = property.GetMethod;
+        Assert.NotNull(getter);
+        Assert.Equal("get_" + fieldName, getter.Name);
+    }
+
+    private struct TestData
+    {
+        public CSharpCompilation Compilation;
+        public SyntaxTree Tree;
+        public List<SyntaxNode> Nodes;
+        public SemanticModel Model;
+    }
+
+    private TestData Compile(string source, int expectedIntervals, params DiagnosticDescription[] diagnostics)
+    {
+        var intervals = ExtractTextIntervals(ref source);
+        Assert.Equal(expectedIntervals, intervals.Count);
+
+        var compilation = Compile(source);
+
+        compilation.VerifyDiagnostics(diagnostics);
+
+        var tree = compilation.SyntaxTrees[0];
+        var nodes = new List<SyntaxNode>();
+
+        foreach (var span in intervals)
+        {
+            var stack = new Stack<SyntaxNode>();
+            stack.Push(tree.GetCompilationUnitRoot());
+
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                if (span.Contains(node.Span))
+                {
+                    nodes.Add(node);
+                    break;
+                }
+
+                foreach (var child in node.ChildNodes())
+                {
+                    stack.Push(child);
+                }
+            }
+        }
+        Assert.Equal(expectedIntervals, nodes.Count);
+
+        return new TestData()
+        {
+            Compilation = compilation,
+            Tree = tree,
+            Model = compilation.GetSemanticModel(tree),
+            Nodes = nodes
+        };
+    }
+
+    private CSharpCompilation Compile(string source) =>
+        CreateCompilationWithMscorlib40(
+            source,
+            options: TestOptions.ReleaseDll,
+            parseOptions: TestOptions.Regular);
+
+    private static List<TextSpan> ExtractTextIntervals(ref string source)
+    {
+        const string startTag = "[#";
+        const string endTag = "#]";
+
+        List<TextSpan> intervals = new List<TextSpan>();
+
+        var all = (from s in FindAll(source, startTag)
+                   select new { start = true, offset = s }).Union(
+                            from s in FindAll(source, endTag)
+                            select new { start = false, offset = s }
+                  ).OrderBy(value => value.offset).ToList();
+
+        while (all.Count > 0)
+        {
+            int i = 1;
+            bool added = false;
+            while (i < all.Count)
+            {
+                if (all[i - 1].start && !all[i].start)
+                {
+                    intervals.Add(TextSpan.FromBounds(all[i - 1].offset, all[i].offset));
+                    all.RemoveAt(i);
+                    all.RemoveAt(i - 1);
+                    added = true;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            Assert.True(added);
+        }
+
+        source = source.Replace(startTag, "  ").Replace(endTag, "  ");
+
+        intervals.Sort((x, y) => x.Start.CompareTo(y.Start));
+        return intervals;
+    }
+
+    private static IEnumerable<int> FindAll(string source, string what)
+    {
+        int index = source.IndexOf(what, StringComparison.Ordinal);
+        while (index >= 0)
+        {
+            yield return index;
+            index = source.IndexOf(what, index + 1, StringComparison.Ordinal);
+        }
+    }
+
+    private int NumberOfNewKeywords(string source)
+    {
+        int cnt = 0;
+        foreach (var line in source.Split(new String[] { Environment.NewLine }, StringSplitOptions.None))
+        {
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                if (!line.Trim().StartsWith("//", StringComparison.Ordinal))
+                {
+                    for (int index = line.IndexOf("new ", StringComparison.Ordinal); index >= 0;)
+                    {
+                        cnt++;
+                        index = line.IndexOf("new ", index + 1, StringComparison.Ordinal);
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+
+    #endregion
 }

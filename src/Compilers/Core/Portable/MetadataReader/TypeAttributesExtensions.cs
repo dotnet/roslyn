@@ -7,45 +7,44 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal static class TypeAttributesExtensions
 {
-    internal static class TypeAttributesExtensions
+    public static bool IsInterface(this TypeAttributes flags)
     {
-        public static bool IsInterface(this TypeAttributes flags)
+        return (flags & TypeAttributes.Interface) != 0;
+    }
+
+    public static bool IsWindowsRuntime(this TypeAttributes flags)
+    {
+        return (flags & TypeAttributes.WindowsRuntime) != 0;
+    }
+
+    public static bool IsSpecialName(this TypeAttributes flags)
+    {
+        return (flags & TypeAttributes.SpecialName) != 0;
+    }
+
+    /// <summary>
+    /// Extracts <see cref="CharSet"/> information from TypeDef flags.
+    /// Returns 0 if the value is invalid.
+    /// </summary>
+    internal static CharSet ToCharSet(this TypeAttributes flags)
+    {
+        switch (flags & TypeAttributes.StringFormatMask)
         {
-            return (flags & TypeAttributes.Interface) != 0;
-        }
+            case TypeAttributes.AutoClass:
+                return Cci.Constants.CharSet_Auto;
 
-        public static bool IsWindowsRuntime(this TypeAttributes flags)
-        {
-            return (flags & TypeAttributes.WindowsRuntime) != 0;
-        }
+            case TypeAttributes.AnsiClass:
+                return CharSet.Ansi;
 
-        public static bool IsSpecialName(this TypeAttributes flags)
-        {
-            return (flags & TypeAttributes.SpecialName) != 0;
-        }
+            case TypeAttributes.UnicodeClass:
+                return CharSet.Unicode;
 
-        /// <summary>
-        /// Extracts <see cref="CharSet"/> information from TypeDef flags.
-        /// Returns 0 if the value is invalid.
-        /// </summary>
-        internal static CharSet ToCharSet(this TypeAttributes flags)
-        {
-            switch (flags & TypeAttributes.StringFormatMask)
-            {
-                case TypeAttributes.AutoClass:
-                    return Cci.Constants.CharSet_Auto;
-
-                case TypeAttributes.AnsiClass:
-                    return CharSet.Ansi;
-
-                case TypeAttributes.UnicodeClass:
-                    return CharSet.Unicode;
-
-                default:
-                    return 0;
-            }
+            default:
+                return 0;
         }
     }
 }

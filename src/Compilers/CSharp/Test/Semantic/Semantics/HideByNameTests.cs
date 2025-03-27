@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class HideByNameTests : CSharpTestBase
-    {
-        #region Methods
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [WorkItem(545796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545796")]
-        [Fact]
-        public void MethodOverloadResolutionHidesByNameStatic()
-        {
-            var il = @"
+public class HideByNameTests : CSharpTestBase
+{
+    #region Methods
+
+    [WorkItem(545796, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545796")]
+    [Fact]
+    public void MethodOverloadResolutionHidesByNameStatic()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 class Program
 {
     static void Main()
@@ -68,16 +68,16 @@ class Program
     }
 }";
 
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,15): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         B.Goo("");
-                Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
-        }
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            // (6,15): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         B.Goo("");
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void MethodOverloadResolutionHidesByNameInstance()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void MethodOverloadResolutionHidesByNameInstance()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -115,7 +115,7 @@ class Program
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 class Program
 {
     static void Main()
@@ -124,16 +124,16 @@ class Program
     }
 }";
 
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,21): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         new B().Goo("");
-                Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
-        }
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            // (6,21): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         new B().Goo("");
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int"));
+    }
 
-        [Fact]
-        public void MethodOverloadResolutionHidesByNameOverride()
-        {
-            var il = @"
+    [Fact]
+    public void MethodOverloadResolutionHidesByNameOverride()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -172,7 +172,7 @@ class Program
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 public class C : B
 {
     public override void M(int i)
@@ -189,8 +189,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
-            CompileAndVerify(comp).VerifyIL("Program.Main", @"
+        var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
+        CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       23 (0x17)
   .maxstack  2
@@ -202,12 +202,12 @@ class Program
   IL_0011:  callvirt   ""void B.M(int)""
   IL_0016:  ret
 }");
-        }
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void MethodOverloadResolutionHidesByNameParams()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void MethodOverloadResolutionHidesByNameParams()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -250,7 +250,7 @@ class Program
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 class Program
 {
     static void Main()
@@ -259,16 +259,16 @@ class Program
     }
 }";
 
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,9): error CS1501: No overload for method 'M' takes 2 arguments
-                //         new B().M(1, 2); // This would work if B.M was not hide-by-name (since A.M is params)
-                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2"));
-        }
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            // (6,9): error CS1501: No overload for method 'M' takes 2 arguments
+            //         new B().M(1, 2); // This would work if B.M was not hide-by-name (since A.M is params)
+            Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2"));
+    }
 
-        [Fact]
-        public void MethodOverridingHidesByName()
-        {
-            var il = @"
+    [Fact]
+    public void MethodOverridingHidesByName()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -307,20 +307,20 @@ class Program
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 public class C : B
 {
     public override void M(int a) { }
 }";
 
-            // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
-        }
+        // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void MethodInterfaceImplementationHidesByName()
-        {
-            var il = @"
+    [Fact]
+    public void MethodInterfaceImplementationHidesByName()
+    {
+        var il = @"
 .class public auto ansi A
        extends [mscorlib]System.Object
 {
@@ -359,7 +359,7 @@ public class C : B
 
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 interface I
 {
     void M(int a);
@@ -369,18 +369,18 @@ public class C : B, I
 {
 }";
 
-            // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
-        }
+        // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
+    }
 
-        #endregion Methods
+    #endregion Methods
 
-        #region Indexers
+    #region Indexers
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void IndexerOverloadResolutionHidesByNameInstance()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void IndexerOverloadResolutionHidesByNameInstance()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit A
        extends [mscorlib]System.Object
 {
@@ -435,7 +435,7 @@ public class C : B, I
   }
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 class Program
 {
     static void Main()
@@ -444,16 +444,16 @@ class Program
     }
 }";
 
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,25): error CS1503: Argument 1: cannot convert from 'int' to 'string'
-                //         int x = new B()[0];
-                Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string"));
-        }
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            // (6,25): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            //         int x = new B()[0];
+            Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string"));
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void IndexerOverloadResolutionHidesByNameOverride()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void IndexerOverloadResolutionHidesByNameOverride()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit A
        extends [mscorlib]System.Object
 {
@@ -506,7 +506,7 @@ class Program
   }
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 public class C : B
 {
     public override int this[int x] { set { } }
@@ -521,8 +521,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
-            CompileAndVerify(comp).VerifyIL("Program.Main", @"
+        var comp = CreateCompilationWithILAndMscorlib40(csharp, il);
+        CompileAndVerify(comp).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
   .maxstack  3
@@ -536,12 +536,12 @@ class Program
   IL_0013:  callvirt   ""void B.this[int].set""
   IL_0018:  ret
 }");
-        }
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void IndexerOverloadResolutionHidesByNameParams()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void IndexerOverloadResolutionHidesByNameParams()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit A
        extends [mscorlib]System.Object
 {
@@ -598,7 +598,7 @@ class Program
   }
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 class Program
 {
     static void Main()
@@ -607,16 +607,16 @@ class Program
     }
 }";
 
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,17): error CS1501: No overload for method 'this' takes 2 arguments
-                //         int x = new B()[1, 2]; // This would work if B.Item was not hide-by-name (since A.Item is params)
-                Diagnostic(ErrorCode.ERR_BadArgCount, "new B()[1, 2]").WithArguments("this", "2"));
-        }
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            // (6,17): error CS1501: No overload for method 'this' takes 2 arguments
+            //         int x = new B()[1, 2]; // This would work if B.Item was not hide-by-name (since A.Item is params)
+            Diagnostic(ErrorCode.ERR_BadArgCount, "new B()[1, 2]").WithArguments("this", "2"));
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void IndexerOverridingHidesByName()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void IndexerOverridingHidesByName()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit A
        extends [mscorlib]System.Object
 {
@@ -669,20 +669,20 @@ class Program
   }
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 public class C : B
 {
     public override int this[int x] { set { } }
 }";
 
-            // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
-        }
+        // NOTE: unlike overload resolution, override resolution does not respect hide-by-name.
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
+    }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
-        public void IndexerInterfaceImplementationHidesByName()
-        {
-            var il = @"
+    [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+    public void IndexerInterfaceImplementationHidesByName()
+    {
+        var il = @"
 .class public auto ansi beforefieldinit A
        extends [mscorlib]System.Object
 {
@@ -735,7 +735,7 @@ public class C : B
   }
 } // end of class B";
 
-            var csharp = @"
+        var csharp = @"
 interface I
 {
     int this[int x] { set; }
@@ -745,16 +745,16 @@ public class C : B, I
 {
 }";
 
-            // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
-            CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
-        }
+        // NOTE: unlike overload resolution, implicit interface implementation resolution does not respect hide-by-name.
+        CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics();
+    }
 
-        #endregion Indexers
+    #endregion Indexers
 
-        [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
-        public void LocalHideFieldByName()
-        {
-            CreateCompilation(@"
+    [Fact, WorkItem(897971, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897971")]
+    public void LocalHideFieldByName()
+    {
+        CreateCompilation(@"
 using System;
 
 public class M
@@ -777,7 +777,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 using System;
 
 public class M
@@ -798,7 +798,7 @@ public class M
 }
 ").VerifyDiagnostics();
 
-            CreateCompilation(@"
+        CreateCompilation(@"
 using System;
 
 public class M
@@ -832,6 +832,5 @@ public class M
     }
 }
 ").VerifyDiagnostics();
-        }
     }
 }

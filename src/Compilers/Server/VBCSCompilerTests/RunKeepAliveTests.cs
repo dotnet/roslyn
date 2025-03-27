@@ -7,12 +7,11 @@
 using System;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
-{
-    internal class RunKeepAliveTests : ExecutionCondition
-    {
-        public override bool ShouldSkip => Environment.GetEnvironmentVariable("RunKeepAliveTests") == null;
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
 
-        public override string SkipReason { get; } = "RunKeepAliveTests environment variable not set";
-    }
+internal class RunKeepAliveTests : ExecutionCondition
+{
+    public override bool ShouldSkip => Environment.GetEnvironmentVariable("RunKeepAliveTests") == null;
+
+    public override string SkipReason { get; } = "RunKeepAliveTests environment variable not set";
 }

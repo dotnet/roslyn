@@ -16,68 +16,67 @@ using BenchmarkDotNet.Diagnosers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace IdeCoreBenchmarks
+namespace IdeCoreBenchmarks;
+
+[MemoryDiagnoser]
+[RyuJitX64Job]
+public class CSharpIdeAnalyzerBenchmarks
 {
-    [MemoryDiagnoser]
-    [RyuJitX64Job]
-    public class CSharpIdeAnalyzerBenchmarks
+    private readonly string _solutionPath;
+
+    private Options _options;
+    private MSBuildWorkspace _workspace;
+
+    private DiagnosticAnalyzerRunner _diagnosticAnalyzerRunner;
+
+    [Params("CSharpAddBracesDiagnosticAnalyzer")]
+    public string AnalyzerName { get; set; }
+
+    public CSharpIdeAnalyzerBenchmarks()
     {
-        private readonly string _solutionPath;
+        var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+        _solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
 
-        private Options _options;
-        private MSBuildWorkspace _workspace;
-
-        private DiagnosticAnalyzerRunner _diagnosticAnalyzerRunner;
-
-        [Params("CSharpAddBracesDiagnosticAnalyzer")]
-        public string AnalyzerName { get; set; }
-
-        public CSharpIdeAnalyzerBenchmarks()
+        if (!File.Exists(_solutionPath))
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
-
-            if (!File.Exists(_solutionPath))
-            {
-                throw new ArgumentException();
-            }
+            throw new ArgumentException();
         }
+    }
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            var analyzerAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Microsoft.CodeAnalysis.CSharp.Features.dll");
+    [GlobalSetup]
+    public void Setup()
+    {
+        var analyzerAssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Microsoft.CodeAnalysis.CSharp.Features.dll");
 
-            _options = new Options(
-                analyzerPath: analyzerAssemblyPath,
-                solutionPath: _solutionPath,
-                analyzerIds: ImmutableHashSet.Create(AnalyzerName),
-                refactoringNodes: ImmutableHashSet<string>.Empty,
-                runConcurrent: true,
-                reportSuppressedDiagnostics: true,
-                applyChanges: false,
-                useAll: false,
-                iterations: 1,
-                fullSolutionAnalysis: false,
-                incrementalAnalyzerNames: ImmutableArray<string>.Empty);
+        _options = new Options(
+            analyzerPath: analyzerAssemblyPath,
+            solutionPath: _solutionPath,
+            analyzerIds: ImmutableHashSet.Create(AnalyzerName),
+            refactoringNodes: ImmutableHashSet<string>.Empty,
+            runConcurrent: true,
+            reportSuppressedDiagnostics: true,
+            applyChanges: false,
+            useAll: false,
+            iterations: 1,
+            fullSolutionAnalysis: false,
+            incrementalAnalyzerNames: ImmutableArray<string>.Empty);
 
-            _workspace = AnalyzerRunnerHelper.CreateWorkspace();
-            _diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(_workspace, _options);
+        _workspace = AnalyzerRunnerHelper.CreateWorkspace();
+        _diagnosticAnalyzerRunner = new DiagnosticAnalyzerRunner(_workspace, _options);
 
-            _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
-        }
+        _ = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
+    }
 
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            _workspace?.Dispose();
-            _workspace = null;
-        }
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        _workspace?.Dispose();
+        _workspace = null;
+    }
 
-        [Benchmark]
-        public async Task RunAnalyzer()
-        {
-            await _diagnosticAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
-        }
+    [Benchmark]
+    public async Task RunAnalyzer()
+    {
+        await _diagnosticAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
     }
 }

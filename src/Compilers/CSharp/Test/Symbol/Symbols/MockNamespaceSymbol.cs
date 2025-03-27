@@ -10,97 +10,96 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
 {
-    internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
+    private NamespaceSymbol _container;
+    private readonly NamespaceExtent _extent;
+    private readonly IEnumerable<Symbol> _children;
+    private readonly string _name;
+
+    public MockNamespaceSymbol(string name, NamespaceExtent extent, IEnumerable<Symbol> children)
     {
-        private NamespaceSymbol _container;
-        private readonly NamespaceExtent _extent;
-        private readonly IEnumerable<Symbol> _children;
-        private readonly string _name;
+        _name = name;
+        _extent = extent;
+        _children = children;
+    }
 
-        public MockNamespaceSymbol(string name, NamespaceExtent extent, IEnumerable<Symbol> children)
+    public void SetContainer(Symbol container)
+    {
+        _container = (NamespaceSymbol)container;
+    }
+
+    public override string Name
+    {
+        get
         {
-            _name = name;
-            _extent = extent;
-            _children = children;
+            return _name;
         }
+    }
 
-        public void SetContainer(Symbol container)
+    internal override NamespaceExtent Extent
+    {
+        get
         {
-            _container = (NamespaceSymbol)container;
+            return _extent;
         }
+    }
 
-        public override string Name
+    public override ImmutableArray<Symbol> GetMembers()
+    {
+        return _children.AsImmutable();
+    }
+
+    public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
+    {
+        return _children.Where(ns => ns.Name.AsSpan().SequenceEqual(name.Span)).ToArray().AsImmutableOrNull();
+    }
+
+    public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
+    {
+        return (from c in _children
+                where c is NamedTypeSymbol
+                select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
+    }
+
+    public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
+    {
+        return (from c in _children
+                where c is NamedTypeSymbol && c.Name.AsSpan().SequenceEqual(name.Span)
+                select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
+    }
+
+    public override Symbol ContainingSymbol
+    {
+        get
         {
-            get
-            {
-                return _name;
-            }
+            return _container;
         }
+    }
 
-        internal override NamespaceExtent Extent
+    public override AssemblySymbol ContainingAssembly
+    {
+        get
         {
-            get
-            {
-                return _extent;
-            }
+            return _container.ContainingAssembly;
         }
+    }
 
-        public override ImmutableArray<Symbol> GetMembers()
+    public override ImmutableArray<Location> Locations
+    {
+        get
         {
-            return _children.AsImmutable();
+            return ImmutableArray.Create<Location>();
         }
+    }
 
-        public override ImmutableArray<Symbol> GetMembers(ReadOnlyMemory<char> name)
+    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    {
+        get
         {
-            return _children.Where(ns => ns.Name.AsSpan().SequenceEqual(name.Span)).ToArray().AsImmutableOrNull();
-        }
-
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
-        {
-            return (from c in _children
-                    where c is NamedTypeSymbol
-                    select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
-        }
-
-        public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
-        {
-            return (from c in _children
-                    where c is NamedTypeSymbol && c.Name.AsSpan().SequenceEqual(name.Span)
-                    select (NamedTypeSymbol)c).ToArray().AsImmutableOrNull();
-        }
-
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _container;
-            }
-        }
-
-        public override AssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return _container.ContainingAssembly;
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return ImmutableArray.Create<Location>();
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray.Create<SyntaxReference>();
-            }
+            return ImmutableArray.Create<SyntaxReference>();
         }
     }
 }

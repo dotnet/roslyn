@@ -20,98 +20,97 @@ using System.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities.CoreClr
+namespace Roslyn.Test.Utilities.CoreClr;
+
+internal sealed class TestExecutionLoadContext : AssemblyLoadContext
 {
-    internal sealed class TestExecutionLoadContext : AssemblyLoadContext
+    private readonly ImmutableDictionary<string, ModuleData> _dependencies;
+
+    public TestExecutionLoadContext(IList<ModuleData> dependencies)
     {
-        private readonly ImmutableDictionary<string, ModuleData> _dependencies;
+        _dependencies = dependencies.ToImmutableDictionary(d => d.FullName, StringComparer.Ordinal);
+    }
 
-        public TestExecutionLoadContext(IList<ModuleData> dependencies)
+    protected override Assembly Load(AssemblyName assemblyName)
+    {
+        var comparer = StringComparer.OrdinalIgnoreCase;
+        var comparison = StringComparison.OrdinalIgnoreCase;
+        if (assemblyName.Name.StartsWith("System.", comparison) ||
+            assemblyName.Name.StartsWith("Microsoft.", comparison) ||
+            comparer.Equals(assemblyName.Name, "mscorlib") ||
+            comparer.Equals(assemblyName.Name, "System") ||
+            comparer.Equals(assemblyName.Name, "netstandard"))
         {
-            _dependencies = dependencies.ToImmutableDictionary(d => d.FullName, StringComparer.Ordinal);
-        }
-
-        protected override Assembly Load(AssemblyName assemblyName)
-        {
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            var comparison = StringComparison.OrdinalIgnoreCase;
-            if (assemblyName.Name.StartsWith("System.", comparison) ||
-                assemblyName.Name.StartsWith("Microsoft.", comparison) ||
-                comparer.Equals(assemblyName.Name, "mscorlib") ||
-                comparer.Equals(assemblyName.Name, "System") ||
-                comparer.Equals(assemblyName.Name, "netstandard"))
-            {
-                return null;
-            }
-
-            if (_dependencies.TryGetValue(assemblyName.FullName, out var moduleData))
-            {
-                return LoadImageAsAssembly(moduleData.Image);
-            }
-
             return null;
         }
 
-        private Assembly LoadImageAsAssembly(ImmutableArray<byte> mainImage)
+        if (_dependencies.TryGetValue(assemblyName.FullName, out var moduleData))
         {
-            using (var assemblyStream = new MemoryStream(mainImage.ToArray()))
-            {
-                return LoadFromStream(assemblyStream);
-            }
+            return LoadImageAsAssembly(moduleData.Image);
         }
 
-        internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, string[] mainArgs, int? expectedOutputLength)
+        return null;
+    }
+
+    private Assembly LoadImageAsAssembly(ImmutableArray<byte> mainImage)
+    {
+        using (var assemblyStream = new MemoryStream(mainImage.ToArray()))
         {
-            var mainAssembly = LoadImageAsAssembly(mainImage);
-            var entryPoint = mainAssembly.EntryPoint;
-
-            AssertEx.NotNull(entryPoint, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
-
-            int exitCode = 0;
-            SharedConsole.CaptureOutput(() =>
-            {
-                var count = entryPoint.GetParameters().Length;
-                object[] args;
-                if (count == 0)
-                {
-                    args = Array.Empty<object>();
-                }
-                else if (count == 1)
-                {
-                    args = new[] { mainArgs ?? Array.Empty<string>() };
-                }
-                else
-                {
-                    throw new Exception("Unrecognized entry point");
-                }
-
-                exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
-            }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
-
-            var output = stdOut + stdErr;
-            return (exitCode, output);
+            return LoadFromStream(assemblyStream);
         }
+    }
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
+    internal (int ExitCode, string Output) Execute(ImmutableArray<byte> mainImage, string[] mainArgs, int? expectedOutputLength)
+    {
+        var mainAssembly = LoadImageAsAssembly(mainImage);
+        var entryPoint = mainAssembly.EntryPoint;
+
+        AssertEx.NotNull(entryPoint, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
+
+        int exitCode = 0;
+        SharedConsole.CaptureOutput(() =>
         {
-            try
+            var count = entryPoint.GetParameters().Length;
+            object[] args;
+            if (count == 0)
             {
-                var signatures = new SortedSet<string>();
-                foreach (var id in searchModules)
+                args = Array.Empty<object>();
+            }
+            else if (count == 1)
+            {
+                args = new[] { mainArgs ?? Array.Empty<string>() };
+            }
+            else
+            {
+                throw new Exception("Unrecognized entry point");
+            }
+
+            exitCode = entryPoint.Invoke(null, args) is int exit ? exit : 0;
+        }, expectedOutputLength ?? 0, out var stdOut, out var stdErr);
+
+        var output = stdOut + stdErr;
+        return (exitCode, output);
+    }
+
+    public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
+    {
+        try
+        {
+            var signatures = new SortedSet<string>();
+            foreach (var id in searchModules)
+            {
+                var name = new AssemblyName(id.FullName);
+                var assembly = LoadFromAssemblyName(name);
+                foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))
                 {
-                    var name = new AssemblyName(id.FullName);
-                    var assembly = LoadFromAssemblyName(name);
-                    foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))
-                    {
-                        signatures.Add(signature);
-                    }
+                    signatures.Add(signature);
                 }
-                return signatures;
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting signatures {fullyQualifiedTypeName}.{memberName}", ex);
-            }
+            return signatures;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error getting signatures {fullyQualifiedTypeName}.{memberName}", ex);
         }
     }
 }

@@ -13,15 +13,15 @@ using System.Threading.Tasks;
 using Xunit;
 using Roslyn.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics;
+
+public class PropertyAccessTests : CompilingTestBase
 {
-    public class PropertyAccessTests : CompilingTestBase
+    [Fact]
+    [WorkItem(1140706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140706")]
+    public void SetArrayLength()
     {
-        [Fact]
-        [WorkItem(1140706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140706")]
-        public void SetArrayLength()
-        {
-            var text =
+        var text =
 @"class Test
 {
     void M()
@@ -30,11 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         arr.Length = 0;
     }
 }";
-            var comp = CreateEmptyCompilation(
-                source: new[] { Parse(text) },
-                references: new[] { AacorlibRef });
+        var comp = CreateEmptyCompilation(
+            source: new[] { Parse(text) },
+            references: new[] { AacorlibRef });
 
-            comp.VerifyEmitDiagnostics();
-        }
+        comp.VerifyEmitDiagnostics();
     }
 }

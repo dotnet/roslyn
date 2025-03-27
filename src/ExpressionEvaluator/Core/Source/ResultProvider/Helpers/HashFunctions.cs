@@ -4,20 +4,19 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+/// <summary>
+/// Required by <see cref="CaseInsensitiveComparison"/>
+/// </summary>
+internal static class Hash
 {
-    /// <summary>
-    /// Required by <see cref="CaseInsensitiveComparison"/>
-    /// </summary>
-    internal static class Hash
+    internal const int FnvOffsetBias = unchecked((int)2166136261);
+
+    internal const int FnvPrime = 16777619;
+
+    internal static int CombineFNVHash(int hashCode, char ch)
     {
-        internal const int FnvOffsetBias = unchecked((int)2166136261);
-
-        internal const int FnvPrime = 16777619;
-
-        internal static int CombineFNVHash(int hashCode, char ch)
-        {
-            return unchecked((hashCode ^ ch) * Hash.FnvPrime);
-        }
+        return unchecked((hashCode ^ ch) * Hash.FnvPrime);
     }
 }

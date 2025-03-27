@@ -14,91 +14,90 @@ using OutputType = System.Collections.Immutable.ImmutableArray<(string, object)>
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<OutputType>
 {
-    internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<OutputType>
+    private readonly IIncrementalGeneratorNode<TInput> _source;
+
+    private readonly Action<HostOutputProductionContext, TInput, CancellationToken> _action;
+
+    public HostOutputNode(IIncrementalGeneratorNode<TInput> source, Action<HostOutputProductionContext, TInput, CancellationToken> action)
     {
-        private readonly IIncrementalGeneratorNode<TInput> _source;
+        _source = source;
+        _action = action;
+    }
 
-        private readonly Action<HostOutputProductionContext, TInput, CancellationToken> _action;
+    public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.Host;
 
-        public HostOutputNode(IIncrementalGeneratorNode<TInput> source, Action<HostOutputProductionContext, TInput, CancellationToken> action)
+    public NodeStateTable<OutputType> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<OutputType>? previousTable, CancellationToken cancellationToken)
+    {
+        string stepName = "HostOutput";
+        var sourceTable = graphState.GetLatestStateTableForNode(_source);
+        if (sourceTable.IsCached && previousTable is not null)
         {
-            _source = source;
-            _action = action;
+            if (graphState.DriverState.TrackIncrementalSteps)
+            {
+                return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<OutputType>.Default);
+            }
+            return previousTable;
         }
 
-        public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.Host;
-
-        public NodeStateTable<OutputType> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<OutputType>? previousTable, CancellationToken cancellationToken)
+        var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<OutputType>.Default);
+        foreach (var entry in sourceTable)
         {
-            string stepName = "HostOutput";
-            var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCached && previousTable is not null)
+            var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+            if (entry.State == EntryState.Removed)
             {
-                if (graphState.DriverState.TrackIncrementalSteps)
-                {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<OutputType>.Default);
-                }
-                return previousTable;
+                nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
             }
-
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<OutputType>.Default);
-            foreach (var entry in sourceTable)
+            else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
             {
-                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                if (entry.State == EntryState.Removed)
-                {
-                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
-                }
-                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
-                {
-                    ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
-                    HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
-                    var stopwatch = SharedStopwatch.StartNew();
-                    _action(context, entry.Item, cancellationToken);
-                    nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
-                }
+                ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
+                HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
+                var stopwatch = SharedStopwatch.StartNew();
+                _action(context, entry.Item, cancellationToken);
+                nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
             }
-
-            return nodeTable.ToImmutableAndFree();
         }
 
-        public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
-        {
-            // get our own state table
-            Debug.Assert(context.TableBuilder is not null);
-            var table = context.TableBuilder!.GetLatestStateTableForNode(this);
+        return nodeTable.ToImmutableAndFree();
+    }
 
-            // add each non-removed entry to the context
-            foreach (var (list, state, _, _) in table)
+    public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
+    {
+        // get our own state table
+        Debug.Assert(context.TableBuilder is not null);
+        var table = context.TableBuilder!.GetLatestStateTableForNode(this);
+
+        // add each non-removed entry to the context
+        foreach (var (list, state, _, _) in table)
+        {
+            if (state != EntryState.Removed)
             {
-                if (state != EntryState.Removed)
+                foreach (var (key, value) in list)
                 {
-                    foreach (var (key, value) in list)
+                    try
                     {
-                        try
-                        {
-                            context.HostOutputBuilder.Add(key, value);
-                        }
-                        catch (ArgumentException e)
-                        {
-                            throw new UserFunctionException(e);
-                        }
+                        context.HostOutputBuilder.Add(key, value);
+                    }
+                    catch (ArgumentException e)
+                    {
+                        throw new UserFunctionException(e);
                     }
                 }
             }
-
-            if (context.GeneratorRunStateBuilder.RecordingExecutedSteps)
-            {
-                context.GeneratorRunStateBuilder.RecordStepsFromOutputNodeUpdate(table);
-            }
         }
 
-        IIncrementalGeneratorNode<OutputType> IIncrementalGeneratorNode<OutputType>.WithComparer(IEqualityComparer<OutputType> comparer) => throw ExceptionUtilities.Unreachable();
-
-        public IIncrementalGeneratorNode<OutputType> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
-
-        void IIncrementalGeneratorNode<OutputType>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
+        if (context.GeneratorRunStateBuilder.RecordingExecutedSteps)
+        {
+            context.GeneratorRunStateBuilder.RecordStepsFromOutputNodeUpdate(table);
+        }
     }
+
+    IIncrementalGeneratorNode<OutputType> IIncrementalGeneratorNode<OutputType>.WithComparer(IEqualityComparer<OutputType> comparer) => throw ExceptionUtilities.Unreachable();
+
+    public IIncrementalGeneratorNode<OutputType> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
+
+    void IIncrementalGeneratorNode<OutputType>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
 }

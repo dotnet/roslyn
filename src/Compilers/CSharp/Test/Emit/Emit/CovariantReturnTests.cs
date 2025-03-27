@@ -11,27 +11,27 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+
+public class CovariantReturnTests : EmitMetadataTestBase
 {
-    public class CovariantReturnTests : EmitMetadataTestBase
+    private static MetadataReference _corelibraryWithCovariantReturnSupport;
+    private static MetadataReference CorelibraryWithCovariantReturnSupport
     {
-        private static MetadataReference _corelibraryWithCovariantReturnSupport;
-        private static MetadataReference CorelibraryWithCovariantReturnSupport
+        get
         {
-            get
+            if (_corelibraryWithCovariantReturnSupport == null)
             {
-                if (_corelibraryWithCovariantReturnSupport == null)
-                {
-                    _corelibraryWithCovariantReturnSupport = MakeCorelibraryWithCovariantReturnSupport();
-                }
-
-                return _corelibraryWithCovariantReturnSupport;
+                _corelibraryWithCovariantReturnSupport = MakeCorelibraryWithCovariantReturnSupport();
             }
-        }
 
-        private static MetadataReference MakeCorelibraryWithCovariantReturnSupport()
-        {
-            const string corLibraryCore = @"
+            return _corelibraryWithCovariantReturnSupport;
+        }
+    }
+
+    private static MetadataReference MakeCorelibraryWithCovariantReturnSupport()
+    {
+        const string corLibraryCore = @"
 namespace System
 {
     public class Array
@@ -212,7 +212,7 @@ namespace System
     }
 }
 ";
-            const string corlibWithCovariantSupport = corLibraryCore + @"
+        const string corlibWithCovariantSupport = corLibraryCore + @"
 namespace System.Runtime.CompilerServices
 {
     public static class RuntimeFeature
@@ -223,36 +223,36 @@ namespace System.Runtime.CompilerServices
     public sealed class PreserveBaseOverridesAttribute : Attribute { }
 }
 ";
-            var compilation = CreateEmptyCompilation(new string[] {
-                corlibWithCovariantSupport,
-                @"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]"
-            }, assemblyName: "mscorlib");
-            compilation.VerifyDiagnostics();
-            return compilation.EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
-        }
+        var compilation = CreateEmptyCompilation(new string[] {
+            corlibWithCovariantSupport,
+            @"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")]"
+        }, assemblyName: "mscorlib");
+        compilation.VerifyDiagnostics();
+        return compilation.EmitToImageReference(options: new CodeAnalysis.Emit.EmitOptions(runtimeMetadataVersion: "v5.1"));
+    }
 
-        private static CSharpCompilation CreateCovariantCompilation(
-            string source,
-            CSharpCompilationOptions options = null,
-            IEnumerable<MetadataReference> references = null,
-            string assemblyName = null)
-        {
-            Assert.NotNull(CorelibraryWithCovariantReturnSupport);
-            references = (references == null) ?
-                new[] { CorelibraryWithCovariantReturnSupport } :
-                references.ToArray().Prepend(CorelibraryWithCovariantReturnSupport);
-            return CreateEmptyCompilation(
-                source,
-                options: options,
-                parseOptions: TestOptions.WithCovariantReturns,
-                references: references,
-                assemblyName: assemblyName);
-        }
+    private static CSharpCompilation CreateCovariantCompilation(
+        string source,
+        CSharpCompilationOptions options = null,
+        IEnumerable<MetadataReference> references = null,
+        string assemblyName = null)
+    {
+        Assert.NotNull(CorelibraryWithCovariantReturnSupport);
+        references = (references == null) ?
+            new[] { CorelibraryWithCovariantReturnSupport } :
+            references.ToArray().Prepend(CorelibraryWithCovariantReturnSupport);
+        return CreateEmptyCompilation(
+            source,
+            options: options,
+            parseOptions: TestOptions.WithCovariantReturns,
+            references: references,
+            assemblyName: assemblyName);
+    }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
-        public void SimpleCovariantReturnEndToEndTest()
-        {
-            var source = @"
+    [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+    public void SimpleCovariantReturnEndToEndTest()
+    {
+        var source = @"
 using System;
 class Base
 {
@@ -275,18 +275,18 @@ class Program
     }
 }
 ";
-            var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
-            var expectedOutput =
+        var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
+        compilation.VerifyDiagnostics();
+        var expectedOutput =
 @"Derived.M
 Derived.M";
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
-        }
+        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+    }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
-        public void CovariantRuntimeHasRequiredMembers()
-        {
-            var source = @"
+    [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+    public void CovariantRuntimeHasRequiredMembers()
+    {
+        var source = @"
 using System;
 class Base
 {
@@ -310,16 +310,16 @@ class Program
     }
 }
 ";
-            var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
-            compilation.VerifyDiagnostics();
-            var expectedOutput = @"";
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
-        }
+        var compilation = CreateCovariantCompilation(source, options: TestOptions.DebugExe);
+        compilation.VerifyDiagnostics();
+        var expectedOutput = @"";
+        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+    }
 
-        [Fact]
-        public void VbOverrideOfCSharpCovariantReturn_01()
-        {
-            var cSharpSource = @"
+    [Fact]
+    public void VbOverrideOfCSharpCovariantReturn_01()
+    {
+        var cSharpSource = @"
 public class Base
 {
     public virtual object M() => null;
@@ -333,10 +333,10 @@ public abstract class Derived : Base
     public override string this[int i] => null;
 }
 ";
-            var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
-            var csharpReference = csharpCompilation.EmitToImageReference();
+        var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
+        var csharpReference = csharpCompilation.EmitToImageReference();
 
-            var vbSource = @"
+        var vbSource = @"
 Public Class Derived2 : Inherits Derived
     Public Overrides Function M() As Object
         Return Nothing
@@ -353,29 +353,29 @@ Public Class Derived2 : Inherits Derived
     End Property
 End Class
 ";
-            var ERR_InvalidOverrideDueToReturn2 =
-                typeof(VisualBasic.VisualBasicCompilation).Assembly.GetType("Microsoft.CodeAnalysis.VisualBasic.ERRID").GetField("ERR_InvalidOverrideDueToReturn2").GetValue(null);
-            CreateVisualBasicCompilation(vbSource, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
-                .VerifyDiagnostics(
-        //BC30437: 'Public Overrides Function M() As Object' cannot override 'Public Overridable Overloads Function M() As String' because they differ by their return types.
-        //Public Overrides Function M() As Object
-        //                      ~
-        Diagnostic(ERR_InvalidOverrideDueToReturn2, "M").WithArguments("Public Overrides Function M() As Object", "Public Overridable Overloads Function M() As String").WithLocation(3, 31),
-        //BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Public Overridable Overloads ReadOnly Property P As String' because they differ by their return types.
-        //Public Overrides ReadOnly Property P As Object
-        //                               ~
-        Diagnostic(ERR_InvalidOverrideDueToReturn2, "P").WithArguments("Public Overrides ReadOnly Property P As Object", "Public Overridable Overloads ReadOnly Property P As String").WithLocation(6, 40),
-        //BC30437: 'Public Overrides ReadOnly Default Property Item(i As Integer) As Object' cannot override 'Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String' because they differ by their return types.
-        //Public Overrides Default ReadOnly Property Item(i As Integer) As Object
-        //                                       ~~~~
-        Diagnostic(ERR_InvalidOverrideDueToReturn2, "Item").WithArguments("Public Overrides ReadOnly Default Property Item(i As Integer) As Object", "Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String").WithLocation(11, 48)
-                );
-        }
+        var ERR_InvalidOverrideDueToReturn2 =
+            typeof(VisualBasic.VisualBasicCompilation).Assembly.GetType("Microsoft.CodeAnalysis.VisualBasic.ERRID").GetField("ERR_InvalidOverrideDueToReturn2").GetValue(null);
+        CreateVisualBasicCompilation(vbSource, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
+            .VerifyDiagnostics(
+    //BC30437: 'Public Overrides Function M() As Object' cannot override 'Public Overridable Overloads Function M() As String' because they differ by their return types.
+    //Public Overrides Function M() As Object
+    //                      ~
+    Diagnostic(ERR_InvalidOverrideDueToReturn2, "M").WithArguments("Public Overrides Function M() As Object", "Public Overridable Overloads Function M() As String").WithLocation(3, 31),
+    //BC30437: 'Public Overrides ReadOnly Property P As Object' cannot override 'Public Overridable Overloads ReadOnly Property P As String' because they differ by their return types.
+    //Public Overrides ReadOnly Property P As Object
+    //                               ~
+    Diagnostic(ERR_InvalidOverrideDueToReturn2, "P").WithArguments("Public Overrides ReadOnly Property P As Object", "Public Overridable Overloads ReadOnly Property P As String").WithLocation(6, 40),
+    //BC30437: 'Public Overrides ReadOnly Default Property Item(i As Integer) As Object' cannot override 'Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String' because they differ by their return types.
+    //Public Overrides Default ReadOnly Property Item(i As Integer) As Object
+    //                                       ~~~~
+    Diagnostic(ERR_InvalidOverrideDueToReturn2, "Item").WithArguments("Public Overrides ReadOnly Default Property Item(i As Integer) As Object", "Public Overridable Overloads ReadOnly Default Property Item(i As Integer) As String").WithLocation(11, 48)
+            );
+    }
 
-        [Fact]
-        public void VbOverrideOfCSharpCovariantReturn_02()
-        {
-            var cSharpSource = @"
+    [Fact]
+    public void VbOverrideOfCSharpCovariantReturn_02()
+    {
+        var cSharpSource = @"
 public class Base
 {
     public virtual object M() => ""Base.M"";
@@ -389,10 +389,10 @@ public abstract class Derived : Base
     public override string this[int i] => ""Derived[]"";
 }
 ";
-            var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
-            var csharpReference = csharpCompilation.EmitToImageReference();
+        var csharpCompilation = CreateCovariantCompilation(cSharpSource).VerifyDiagnostics();
+        var csharpReference = csharpCompilation.EmitToImageReference();
 
-            var vbSource = @"
+        var vbSource = @"
 Imports System
 Public Class Derived2 : Inherits Derived
     Public Overrides Function M() As String
@@ -425,12 +425,12 @@ Public Class Derived2 : Inherits Derived
     End Sub
 End Class
 ";
-            var compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(OptimizationLevel.Release);
-            var vbCompilation = CreateVisualBasicCompilation(vbSource, compilationOptions: compilationOptions, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
-                .VerifyDiagnostics(
-                );
+        var compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptimizationLevel(OptimizationLevel.Release);
+        var vbCompilation = CreateVisualBasicCompilation(vbSource, compilationOptions: compilationOptions, referencedAssemblies: new[] { CorelibraryWithCovariantReturnSupport, csharpReference })
+            .VerifyDiagnostics(
+            );
 
-            var expectedOutput = !ExecutionConditionUtil.RuntimeSupportsCovariantReturnsOfClasses ? null : @"
+        var expectedOutput = !ExecutionConditionUtil.RuntimeSupportsCovariantReturnsOfClasses ? null : @"
 Derived2.M
 Derived2.P
 Derived2[]
@@ -440,8 +440,8 @@ Derived2[]
 Derived2.M
 Derived2.P
 Derived2[]";
-            CompileAndVerify(vbCompilation, verify: Verification.Skipped, expectedOutput: expectedOutput)
-                .VerifyIL("Derived2.Test", @"
+        CompileAndVerify(vbCompilation, verify: Verification.Skipped, expectedOutput: expectedOutput)
+            .VerifyIL("Derived2.Test", @"
 {
   // Code size      118 (0x76)
   .maxstack  2
@@ -481,54 +481,54 @@ Derived2[]";
   IL_0075:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
-        public void CheckPreserveBaseOverride_01()
-        {
-            var s0 = @"
+    [ConditionalFact(typeof(CovariantReturnRuntimeOnly))]
+    public void CheckPreserveBaseOverride_01()
+    {
+        var s0 = @"
 public class Base
 {
     public virtual object M() => ""Base.M"";
 }
 ";
-            var ref0 = CreateCovariantCompilation(
-                s0,
-                assemblyName: "ref0").VerifyEmitDiagnostics().EmitToImageReference();
+        var ref0 = CreateCovariantCompilation(
+            s0,
+            assemblyName: "ref0").VerifyEmitDiagnostics().EmitToImageReference();
 
-            var s1a = @"
+        var s1a = @"
 public class Mid : Base
 {
 }
 ";
-            var ref1a = CreateCovariantCompilation(
-                s1a,
-                references: new[] { ref0 },
-                assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
+        var ref1a = CreateCovariantCompilation(
+            s1a,
+            references: new[] { ref0 },
+            assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
 
-            var s1b = @"
+        var s1b = @"
 public class Mid : Base
 {
     public override string M() => ""Mid.M"";
 }
 ";
-            var ref1b = CreateCovariantCompilation(
-                s1b,
-                references: new[] { ref0 },
-                assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
+        var ref1b = CreateCovariantCompilation(
+            s1b,
+            references: new[] { ref0 },
+            assemblyName: "ref1").VerifyEmitDiagnostics().EmitToImageReference();
 
-            var s2 = @"
+        var s2 = @"
 public class Derived : Mid
 {
     public override string M() => ""Derived.M"";
 }
 ";
-            var ref2 = CreateCovariantCompilation(
-                s2,
-                references: new[] { ref0, ref1a },
-                assemblyName: "ref2").VerifyEmitDiagnostics().EmitToImageReference();
+        var ref2 = CreateCovariantCompilation(
+            s2,
+            references: new[] { ref0, ref1a },
+            assemblyName: "ref2").VerifyEmitDiagnostics().EmitToImageReference();
 
-            var program = @"
+        var program = @"
 using System;
 public class Program
 {
@@ -543,13 +543,12 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCovariantCompilation(program, options: TestOptions.DebugExe, references: new[] { ref0, ref1b, ref2 });
-            compilation.VerifyDiagnostics();
-            var expectedOutput =
+        var compilation = CreateCovariantCompilation(program, options: TestOptions.DebugExe, references: new[] { ref0, ref1b, ref2 });
+        compilation.VerifyDiagnostics();
+        var expectedOutput =
 @"Derived.M
 Derived.M
 Derived.M";
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
-        }
+        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
     }
 }

@@ -11,18 +11,17 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Clr
+namespace Microsoft.VisualStudio.Debugger.Clr;
+
+public readonly struct DkmILRange
 {
-    public readonly struct DkmILRange
+    public readonly uint StartOffset;
+
+    public readonly uint EndOffset;
+
+    public DkmILRange(uint StartOffset, uint EndOffset)
     {
-        public readonly uint StartOffset;
-
-        public readonly uint EndOffset;
-
-        public DkmILRange(uint StartOffset, uint EndOffset)
-        {
-            this.StartOffset = StartOffset;
-            this.EndOffset = EndOffset;
-        }
+        this.StartOffset = StartOffset;
+        this.EndOffset = EndOffset;
     }
 }

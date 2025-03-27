@@ -5,64 +5,63 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed class SynthesizedHotReloadExceptionConstructorSymbol : SynthesizedInstanceConstructor
 {
-    internal sealed class SynthesizedHotReloadExceptionConstructorSymbol : SynthesizedInstanceConstructor
+    private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+    internal SynthesizedHotReloadExceptionConstructorSymbol(NamedTypeSymbol containingType, TypeSymbol stringType, TypeSymbol intType) :
+        base(containingType)
     {
-        private readonly ImmutableArray<ParameterSymbol> _parameters;
+        _parameters =
+        [
+            SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(stringType), ordinal: 0, RefKind.None),
+            SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), ordinal: 1, RefKind.None)
+        ];
+    }
 
-        internal SynthesizedHotReloadExceptionConstructorSymbol(NamedTypeSymbol containingType, TypeSymbol stringType, TypeSymbol intType) :
-            base(containingType)
+    public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+    /// <summary>
+    /// Exception message.
+    /// </summary>
+    public ParameterSymbol MessageParameter => _parameters[0];
+
+    /// <summary>
+    /// Integer value of <see cref="HotReloadExceptionCode"/>.
+    /// </summary>
+    public ParameterSymbol CodeParameter => _parameters[1];
+
+    internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+    {
+        var containingType = (SynthesizedHotReloadExceptionSymbol)ContainingType;
+
+        var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+        factory.CurrentFunction = this;
+
+        var exceptionConstructor = (MethodSymbol?)factory.WellKnownMember(WellKnownMember.System_Exception__ctorString, isOptional: true);
+        if (exceptionConstructor is null)
         {
-            _parameters =
-            [
-                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(stringType), ordinal: 0, RefKind.None),
-                SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), ordinal: 1, RefKind.None)
-            ];
+            diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
+                Location.None,
+                CodeAnalysisResources.Constructor,
+                "System.Exception..ctor(string)");
+
+            factory.CloseMethod(factory.Block());
+            return;
         }
 
-        public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+        var block = factory.Block(
+            ImmutableArray.Create<BoundStatement>(
+                factory.ExpressionStatement(factory.Call(
+                    factory.This(),
+                    exceptionConstructor,
+                    factory.Parameter(MessageParameter))),
+                factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
+                factory.Return()
+            ));
 
-        /// <summary>
-        /// Exception message.
-        /// </summary>
-        public ParameterSymbol MessageParameter => _parameters[0];
-
-        /// <summary>
-        /// Integer value of <see cref="HotReloadExceptionCode"/>.
-        /// </summary>
-        public ParameterSymbol CodeParameter => _parameters[1];
-
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
-        {
-            var containingType = (SynthesizedHotReloadExceptionSymbol)ContainingType;
-
-            var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            factory.CurrentFunction = this;
-
-            var exceptionConstructor = (MethodSymbol?)factory.WellKnownMember(WellKnownMember.System_Exception__ctorString, isOptional: true);
-            if (exceptionConstructor is null)
-            {
-                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
-                    Location.None,
-                    CodeAnalysisResources.Constructor,
-                    "System.Exception..ctor(string)");
-
-                factory.CloseMethod(factory.Block());
-                return;
-            }
-
-            var block = factory.Block(
-                ImmutableArray.Create<BoundStatement>(
-                    factory.ExpressionStatement(factory.Call(
-                        factory.This(),
-                        exceptionConstructor,
-                        factory.Parameter(MessageParameter))),
-                    factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
-                    factory.Return()
-                ));
-
-            factory.CloseMethod(block);
-        }
+        factory.CloseMethod(block);
     }
 }

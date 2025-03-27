@@ -6,19 +6,18 @@
 
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis
-{
-    internal readonly struct EmbeddedResource
-    {
-        public readonly uint Offset;
-        public readonly ManifestResourceAttributes Attributes;
-        public readonly string Name;
+namespace Microsoft.CodeAnalysis;
 
-        internal EmbeddedResource(uint offset, ManifestResourceAttributes attributes, string name)
-        {
-            this.Offset = offset;
-            this.Attributes = attributes;
-            this.Name = name;
-        }
+internal readonly struct EmbeddedResource
+{
+    public readonly uint Offset;
+    public readonly ManifestResourceAttributes Attributes;
+    public readonly string Name;
+
+    internal EmbeddedResource(uint offset, ManifestResourceAttributes attributes, string name)
+    {
+        this.Offset = offset;
+        this.Attributes = attributes;
+        this.Name = name;
     }
 }

@@ -10,38 +10,37 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+[Serializable]
+public class EmitException : Exception
 {
-    [Serializable]
-    public class EmitException : Exception
+    [field: NonSerialized]
+    public IEnumerable<Diagnostic> Diagnostics { get; }
+
+    public EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
+        : base(GetMessageFromResult(diagnostics, directory))
     {
-        [field: NonSerialized]
-        public IEnumerable<Diagnostic> Diagnostics { get; }
-
-        public EmitException(IEnumerable<Diagnostic> diagnostics, string directory)
-            : base(GetMessageFromResult(diagnostics, directory))
-        {
-            this.Diagnostics = diagnostics;
-        }
-
-        protected EmitException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-        {
-            throw new NotImplementedException();
-        }
+        this.Diagnostics = diagnostics;
     }
 
-    [Serializable]
-    public class ExecutionException : Exception
+    protected EmitException(SerializationInfo serializationInfo, StreamingContext streamingContext)
     {
-        public ExecutionException(string expectedOutput, string actualOutput, string exePath)
-            : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
+        throw new NotImplementedException();
+    }
+}
 
-        public ExecutionException(Exception innerException, string exePath)
-            : base(GetMessageFromException(innerException, exePath), innerException) { }
+[Serializable]
+public class ExecutionException : Exception
+{
+    public ExecutionException(string expectedOutput, string actualOutput, string exePath)
+        : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }
 
-        protected ExecutionException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-        {
-            throw new NotImplementedException();
-        }
+    public ExecutionException(Exception innerException, string exePath)
+        : base(GetMessageFromException(innerException, exePath), innerException) { }
+
+    protected ExecutionException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+    {
+        throw new NotImplementedException();
     }
 }

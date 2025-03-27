@@ -5,17 +5,16 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class BoundFunctionPointerInvocation
 {
-    internal partial class BoundFunctionPointerInvocation
+    public FunctionPointerTypeSymbol FunctionPointer
     {
-        public FunctionPointerTypeSymbol FunctionPointer
+        get
         {
-            get
-            {
-                Debug.Assert(InvokedExpression.Type is FunctionPointerTypeSymbol);
-                return (FunctionPointerTypeSymbol)InvokedExpression.Type;
-            }
+            Debug.Assert(InvokedExpression.Type is FunctionPointerTypeSymbol);
+            return (FunctionPointerTypeSymbol)InvokedExpression.Type;
         }
     }
 }

@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
-{
-    public class ObjectAndCollectionInitializerTests : EmitMetadataTestBase
-    {
-        #region "Object Initializer Tests"
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
-        [Fact]
-        public void ObjectInitializerTest_ClassType()
-        {
-            var source = @"
+public class ObjectAndCollectionInitializerTests : EmitMetadataTestBase
+{
+    #region "Object Initializer Tests"
+
+    [Fact]
+    public void ObjectInitializerTest_ClassType()
+    {
+        var source = @"
 public class MemberInitializerTest
 {   
     public int x;
@@ -33,10 +33,10 @@ public class MemberInitializerTest
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       41 (0x29)
   .maxstack  3
@@ -54,12 +54,12 @@ public class MemberInitializerTest
   IL_0023:  call       ""void System.Console.WriteLine(int)""
   IL_0028:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_StructType()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_StructType()
+    {
+        var source = @"
 public struct MemberInitializerTest
 {   
     public int x;
@@ -74,10 +74,10 @@ public struct MemberInitializerTest
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       50 (0x32)
   .maxstack  2
@@ -101,12 +101,12 @@ public struct MemberInitializerTest
   IL_002c:  call       ""void System.Console.WriteLine(int)""
   IL_0031:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_TypeParameterType()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_TypeParameterType()
+    {
+        var source = @"
 public class Base
 {
     public Base() {}
@@ -129,10 +129,10 @@ public class MemberInitializerTest<T> where T: Base, new()
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest<T>.Goo", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest<T>.Goo", @"
 {
   // Code size       61 (0x3d)
   .maxstack  3
@@ -154,12 +154,12 @@ public class MemberInitializerTest<T> where T: Base, new()
   IL_0037:  call       ""void System.Console.WriteLine(int)""
   IL_003c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_TypeParameterType_InterfaceConstraint()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_TypeParameterType_InterfaceConstraint()
+    {
+        var source = @"
 using System;
 
 class MemberInitializerTest
@@ -187,9 +187,9 @@ struct S : I
     public byte X { get; set; }
 }
 ";
-            string expectedOutput = "1";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
+        string expectedOutput = "1";
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       36 (0x24)
   .maxstack  2
@@ -208,12 +208,12 @@ struct S : I
   IL_001e:  callvirt   ""byte I.X.get""
   IL_0023:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_NullableType()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_NullableType()
+    {
+        var source = @"
 using System;
 
 class MemberInitializerTest
@@ -240,9 +240,9 @@ struct S : I
 {
     public Decimal? X { get; set; }
 }";
-            string expectedOutput = "1.1";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
+        string expectedOutput = "1.1";
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Goo<T>", @"
 {
   // Code size       51 (0x33)
   .maxstack  6
@@ -267,12 +267,12 @@ struct S : I
   IL_002d:  callvirt   ""decimal? I.X.get""
   IL_0032:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_AssignWriteOnlyProperty()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_AssignWriteOnlyProperty()
+    {
+        var source = @"
 public class MemberInitializerTest
 {   
     public int x;
@@ -285,9 +285,9 @@ public class MemberInitializerTest
     }
 }
 ";
-            string expectedOutput = "1";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Main", @"
+        string expectedOutput = "1";
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       23 (0x17)
   .maxstack  3
@@ -299,12 +299,12 @@ public class MemberInitializerTest
   IL_0011:  call       ""void System.Console.WriteLine(int)""
   IL_0016:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_AssignMembersOfReadOnlyField()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_AssignMembersOfReadOnlyField()
+    {
+        var source = @"
 public class MemberInitializerTest
 {   
     public int x;
@@ -323,10 +323,10 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       61 (0x3d)
   .maxstack  3
@@ -348,12 +348,12 @@ public class Test
   IL_0037:  call       ""void System.Console.WriteLine(int)""
   IL_003c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_AssignFieldWithSameNameAsLocal()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_AssignFieldWithSameNameAsLocal()
+    {
+        var source = @"
 public class MemberInitializerTest
 {   
     public int x;
@@ -366,10 +366,10 @@ public class MemberInitializerTest
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  4
@@ -388,12 +388,12 @@ public class MemberInitializerTest
   IL_001b:  call       ""void System.Console.WriteLine(int)""
   IL_0020:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_AssignmentOrderingIsPreserved()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_AssignmentOrderingIsPreserved()
+    {
+        var source = @"
 public class MemberInitializerTest
 {
     public int x, y, z;
@@ -427,12 +427,12 @@ public class MemberInitializerTest
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 -1
 -1
 -1";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("MemberInitializerTest.Goo", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("MemberInitializerTest.Goo", @"
 {
   // Code size      108 (0x6c)
   .maxstack  3
@@ -482,12 +482,12 @@ public class MemberInitializerTest
   IL_0066:  call       ""void System.Console.WriteLine(int)""
   IL_006b:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_NestedObjectInitializerExpression()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_NestedObjectInitializerExpression()
+    {
+        var source = @"
 public class MemberInitializerTest
 {
     public int x;
@@ -510,12 +510,12 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       98 (0x62)
   .maxstack  5
@@ -550,12 +550,12 @@ public class Test
   IL_005c:  call       ""void System.Console.WriteLine(int)""
   IL_0061:  ret
 }");
-        }
+    }
 
-        [Fact()]
-        public void ObjectInitializerTest_NestedObjectInitializer_InitializerValue()
-        {
-            var source = @"
+    [Fact()]
+    public void ObjectInitializerTest_NestedObjectInitializer_InitializerValue()
+    {
+        var source = @"
 public class MemberInitializerTest
 {
     public int x;
@@ -578,12 +578,12 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       97 (0x61)
   .maxstack  3
@@ -617,12 +617,12 @@ public class Test
   IL_005b:  call       ""void System.Console.WriteLine(int)""
   IL_0060:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_NestedCollectionInitializerExpression()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_NestedCollectionInitializerExpression()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -657,7 +657,7 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 1
 2
@@ -665,8 +665,8 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      118 (0x76)
   .maxstack  5
@@ -705,12 +705,12 @@ public class Test
   IL_0070:  call       ""void Test.DisplayCollection<int>(System.Collections.Generic.IEnumerable<int>)""
   IL_0075:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_NestedCollectionInitializer_InitializerValue()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_NestedCollectionInitializer_InitializerValue()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -745,7 +745,7 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 1
 2
@@ -753,8 +753,8 @@ public class Test
 4
 3
 4";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      117 (0x75)
   .maxstack  3
@@ -792,13 +792,13 @@ public class Test
   IL_006f:  call       ""void Test.DisplayCollection<int>(System.Collections.Generic.IEnumerable<int>)""
   IL_0074:  ret
 }");
-        }
+    }
 
-        [WorkItem(2021, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
-        [Fact()]
-        public void ObjectInitializerFieldlikeEvent()
-        {
-            var source = @"
+    [WorkItem(2021, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/2021")]
+    [Fact()]
+    public void ObjectInitializerFieldlikeEvent()
+    {
+        var source = @"
 public delegate void D();
 
 public struct MemberInitializerTest
@@ -810,8 +810,8 @@ public struct MemberInitializerTest
         var i = new MemberInitializerTest() { z = null };
     }
 }";
-            var compVerifier = CompileAndVerify(source, expectedOutput: "");
-            compVerifier.VerifyIL("MemberInitializerTest.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: "");
+        compVerifier.VerifyIL("MemberInitializerTest.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  2
@@ -823,12 +823,12 @@ public struct MemberInitializerTest
   IL_000b:  stfld      ""D MemberInitializerTest.z""
   IL_0010:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ObjectInitializerTest_UseVariableBeingAssignedInObjectInitializer()
-        {
-            var source = @"
+    [Fact]
+    public void ObjectInitializerTest_UseVariableBeingAssignedInObjectInitializer()
+    {
+        var source = @"
 public class Test
 {   
     public int x, y;
@@ -846,10 +846,10 @@ public class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 0";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  3
@@ -872,12 +872,12 @@ public class Test
   IL_0030:  call       ""void System.Console.WriteLine(int)""
   IL_0035:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTest001()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTest001()
+    {
+        var source = @"
 using System.Collections.Generic;
 
 class Program
@@ -889,10 +889,10 @@ class Program
     }
 }
 ";
-            string expectedOutput = @"3";
+        string expectedOutput = @"3";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Program.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  4
@@ -907,12 +907,12 @@ class Program
   IL_0020:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001()
+    {
+        var source = @"
 using System;
  
 class A
@@ -940,7 +940,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 1
 1
 1
@@ -948,8 +948,8 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("A.Main()", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size       84 (0x54)
   .maxstack  3
@@ -996,12 +996,12 @@ class A
   IL_0053:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001param()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001param()
+    {
+        var source = @"
 using System;
  
 class A
@@ -1030,7 +1030,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 1
 1
 1
@@ -1038,8 +1038,8 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("A.Main()", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      111 (0x6f)
   .maxstack  5
@@ -1101,14 +1101,14 @@ class A
   IL_006e:  ret
 }
 ");
-            var comp = compVerifier.Compilation;
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Last();
-            Assert.Equal("new A {[x++] = { } }", node.ToString());
+        var comp = compVerifier.Compilation;
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Last();
+        Assert.Equal("new A {[x++] = { } }", node.ToString());
 
-            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-            ControlFlowGraphVerifier.VerifyGraph(comp, """
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+        ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1277,13 +1277,13 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 """,
-                graph, symbol);
-        }
+            graph, symbol);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001named()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001named()
+    {
+        var source = @"
 using System;
 
 class A
@@ -1312,7 +1312,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 2
 1
 2
@@ -1323,13 +1323,13 @@ class A
 -
 5";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001namedAsync()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001namedAsync()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1372,7 +1372,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 2
 1
 2
@@ -1383,14 +1383,14 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
-        }
+        var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001dyn()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001dyn()
+    {
+        var source = @"
 using System;
  
 class A
@@ -1418,7 +1418,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 1
 1
 1
@@ -1426,13 +1426,13 @@ class A
 -
 3";
 
-            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001namedDynamic()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001namedDynamic()
+    {
+        var source = @"
 using System;
 
 class A
@@ -1469,7 +1469,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 2
 1
 2
@@ -1480,14 +1480,14 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
-        }
+        var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001a()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001a()
+    {
+        var source = @"
 using System;
 
 struct A
@@ -1514,13 +1514,13 @@ struct A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 0
 2
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("A.Main()", @"
+        var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      194 (0xc2)
   .maxstack  4
@@ -1599,12 +1599,12 @@ struct A
   IL_00c1:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001a1()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001a1()
+    {
+        var source = @"
 using System;
 
 struct A
@@ -1642,7 +1642,7 @@ struct A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 get
 get
 get
@@ -1657,8 +1657,8 @@ get
 get
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("A.Main()", @"
+        var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      222 (0xde)
   .maxstack  3
@@ -1745,12 +1745,12 @@ get
   IL_00dd:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects001async()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects001async()
+    {
+        var source = @"
 using System;
 using System.Threading.Tasks;
 
@@ -1802,7 +1802,7 @@ struct A
 
 }
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 get
 get
 get
@@ -1817,14 +1817,14 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: expectedOutput);
-        }
+        var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTestSideeffects002()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTestSideeffects002()
+    {
+        var source = @"
 using System;
  
 class A
@@ -1861,7 +1861,7 @@ class A
 }
 
 ";
-            string expectedOutput = @"
+        string expectedOutput = @"
 15
 15
 15
@@ -1870,8 +1870,8 @@ class A
 273
 4";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("A.Main()", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("A.Main()", @"
 {
   // Code size      118 (0x76)
   .maxstack  5
@@ -1943,12 +1943,12 @@ class A
   IL_0075:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void DictionaryInitializerTest002()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTest002()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1983,15 +1983,15 @@ class Program
     }
 }
 ";
-            string expectedOutput = @"422";
+        string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
-        }
+        var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTest003()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTest003()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2039,15 +2039,15 @@ class Program
     }
 }
 ";
-            string expectedOutput = @"422";
+        string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
-        }
+        var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void DictionaryInitializerTest004()
-        {
-            var source = @"
+    [Fact]
+    public void DictionaryInitializerTest004()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -2095,15 +2095,15 @@ class Program
     }
 }
 ";
-            string expectedOutput = @"422";
+        string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
-        }
+        var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+    }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-        public void NestedIndexerInitializerArray()
-        {
-            var source = @"
+    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+    public void NestedIndexerInitializerArray()
+    {
+        var source = @"
 class C
 {
     int[] a = new int[2];
@@ -2116,7 +2116,7 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       61 (0x3d)
   .maxstack  4
@@ -2147,12 +2147,12 @@ class C
   IL_0037:  call       ""void System.Console.Write(string, object, object)""
   IL_003c:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-        public void NestedIndexerInitializerMDArray()
-        {
-            var source = @"
+    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+    public void NestedIndexerInitializerMDArray()
+    {
+        var source = @"
 class C
 {
     int[,] a = new int[2,2];
@@ -2165,7 +2165,7 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "1 2 3 4").VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: "1 2 3 4").VerifyIL("C.Main", @"
 {
   // Code size      163 (0xa3)
   .maxstack  7
@@ -2238,12 +2238,12 @@ class C
   IL_009d:  call       ""void System.Console.Write(string, params object[])""
   IL_00a2:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-        public void NestedIndexerInitializerJaggedArrayNestedInitializer()
-        {
-            var source = @"
+    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+    public void NestedIndexerInitializerJaggedArrayNestedInitializer()
+    {
+        var source = @"
 class C
 {
     int[][] a = new int[1][] { new int[2] };
@@ -2256,7 +2256,7 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       69 (0x45)
   .maxstack  4
@@ -2295,12 +2295,12 @@ class C
   IL_003f:  call       ""void System.Console.Write(string, object, object)""
   IL_0044:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
-        public void NestedIndexerInitializerArrayNestedObjectInitializer()
-        {
-            var source = @"
+    [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+    public void NestedIndexerInitializerArrayNestedObjectInitializer()
+    {
+        var source = @"
 class C
 {
     C[] a;
@@ -2321,7 +2321,7 @@ class C
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+        CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
   .maxstack  4
@@ -2357,16 +2357,16 @@ class C
   IL_004c:  call       ""void System.Console.Write(string, object, object)""
   IL_0051:  ret
 }");
-        }
+    }
 
-        #endregion
+    #endregion
 
-        #region "Collection Initializer Tests"
+    #region "Collection Initializer Tests"
 
-        [Fact]
-        public void CollectionInitializerTest_GenericList()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_GenericList()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2389,13 +2389,13 @@ class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4
 5";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       47 (0x2f)
   .maxstack  3
@@ -2419,12 +2419,12 @@ class Test
   IL_002d:  ldc.i4.0
   IL_002e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_GenericList_WithComplexElementInitializer()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_GenericList_WithComplexElementInitializer()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2447,13 +2447,13 @@ class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 4
 9
 3";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       53 (0x35)
   .maxstack  3
@@ -2482,12 +2482,12 @@ class Test
   IL_0033:  ldc.i4.0
   IL_0034:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_TypeParameter()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_TypeParameter()
+    {
+        var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -2529,13 +2529,13 @@ class Test
 	}
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4
 5";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("C<T>.M", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("C<T>.M", @"
 {
   // Code size      117 (0x75)
   .maxstack  3
@@ -2589,12 +2589,12 @@ class Test
 }
   IL_0074:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_ClassType()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_ClassType()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2633,13 +2633,13 @@ public class B : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 4
 9
 3";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       58 (0x3a)
   .maxstack  3
@@ -2669,12 +2669,12 @@ public class B : IEnumerable
   IL_0038:  ldc.i4.0
   IL_0039:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_StructType()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_StructType()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2719,13 +2719,13 @@ public struct B : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 4
 9
 3";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       62 (0x3e)
   .maxstack  2
@@ -2759,12 +2759,12 @@ public struct B : IEnumerable
   IL_003c:  ldc.i4.0
   IL_003d:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_MultipleAddOverloads()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_MultipleAddOverloads()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2816,13 +2816,13 @@ public class B : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 4
 9
 3";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       55 (0x37)
   .maxstack  3
@@ -2849,12 +2849,12 @@ public class B : IEnumerable
   IL_0035:  ldc.i4.0
   IL_0036:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_AddOverload_OptionalArgument()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_AddOverload_OptionalArgument()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2902,12 +2902,12 @@ public class D : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4.4";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       66 (0x42)
   .maxstack  4
@@ -2935,12 +2935,12 @@ public class D : IEnumerable
   IL_0040:  ldc.i4.0
   IL_0041:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_AddOverload_ParamsArrayArgument()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_InitializerTypeImplementsIEnumerable_AddOverload_ParamsArrayArgument()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -2991,7 +2991,7 @@ public class D : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4.4
@@ -2999,8 +2999,8 @@ public class D : IEnumerable
 6
 7.7
 8.8";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      184 (0xb8)
   .maxstack  5
@@ -3071,12 +3071,12 @@ public class D : IEnumerable
   IL_00b6:  ldc.i4.0
   IL_00b7:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_NestedCollectionInitializerExpression()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_NestedCollectionInitializerExpression()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -3102,7 +3102,7 @@ class Test
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 4
@@ -3112,8 +3112,8 @@ class Test
 8
 9
 10";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      106 (0x6a)
   .maxstack  5
@@ -3158,12 +3158,12 @@ class Test
   IL_0068:  ldc.i4.0
   IL_0069:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_NestedObjectAndCollectionInitializer()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_NestedObjectAndCollectionInitializer()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -3201,14 +3201,14 @@ public class B
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2
 3
 1
 2
 3";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       92 (0x5c)
   .maxstack  7
@@ -3245,12 +3245,12 @@ public class B
   IL_005a:  ldc.i4.0
   IL_005b:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_CtorAddsToCollection()
-        {
-            var source = @"
+    [Fact]
+    public void CollectionInitializerTest_CtorAddsToCollection()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -3298,10 +3298,10 @@ public class B : IEnumerable
     }
 }
 ";
-            string expectedOutput = @"1
+        string expectedOutput = @"1
 2";
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  3
@@ -3316,55 +3316,55 @@ public class B : IEnumerable
   IL_0018:  ldc.i4.0
   IL_0019:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void CollectionInitializerTest_NestedObjectAndCollectionInitializer_02()
-        {
-            // --------------------------------------------------------------------------------------------
-            // SPEC:    7.6.10.3 Collection initializers
-            // --------------------------------------------------------------------------------------------
-            //
-            // SPEC:    The following class represents a contact with a name and a list of phone numbers:
-            //
-            // SPEC:    public class Contact
-            // SPEC:    {
-            // SPEC:    	string name;
-            // SPEC:    	List<string> phoneNumbers = new List<string>();
-            // SPEC:    	public string Name { get { return name; } set { name = value; } }
-            // SPEC:    	public List<string> PhoneNumbers { get { return phoneNumbers; } }
-            // SPEC:    }
-            //
-            // SPEC:    A List<Contact> can be created and initialized as follows:
-            //
-            // SPEC:    var contacts = new List<Contact> {
-            // SPEC:    	new Contact {
-            // SPEC:    		Name = "Chris Smith",
-            // SPEC:    		PhoneNumbers = { "206-555-0101", "425-882-8080" }
-            // SPEC:    	},
-            // SPEC:    	new Contact {
-            // SPEC:    		Name = "Bob Harris",
-            // SPEC:    		PhoneNumbers = { "650-555-0199" }
-            // SPEC:    	}
-            // SPEC:    };
-            //
-            // SPEC:    which has the same effect as
-            //
-            // SPEC:    var __clist = new List<Contact>();
-            // SPEC:    Contact __c1 = new Contact();
-            // SPEC:    __c1.Name = "Chris Smith";
-            // SPEC:    __c1.PhoneNumbers.Add("206-555-0101");
-            // SPEC:    __c1.PhoneNumbers.Add("425-882-8080");
-            // SPEC:    __clist.Add(__c1);
-            // SPEC:    Contact __c2 = new Contact();
-            // SPEC:    __c2.Name = "Bob Harris";
-            // SPEC:    __c2.PhoneNumbers.Add("650-555-0199");
-            // SPEC:    __clist.Add(__c2);
-            // SPEC:    var contacts = __clist;
-            //
-            // SPEC:    where __clist, __c1 and __c2 are temporary variables that are otherwise invisible and inaccessible.
+    [Fact]
+    public void CollectionInitializerTest_NestedObjectAndCollectionInitializer_02()
+    {
+        // --------------------------------------------------------------------------------------------
+        // SPEC:    7.6.10.3 Collection initializers
+        // --------------------------------------------------------------------------------------------
+        //
+        // SPEC:    The following class represents a contact with a name and a list of phone numbers:
+        //
+        // SPEC:    public class Contact
+        // SPEC:    {
+        // SPEC:    	string name;
+        // SPEC:    	List<string> phoneNumbers = new List<string>();
+        // SPEC:    	public string Name { get { return name; } set { name = value; } }
+        // SPEC:    	public List<string> PhoneNumbers { get { return phoneNumbers; } }
+        // SPEC:    }
+        //
+        // SPEC:    A List<Contact> can be created and initialized as follows:
+        //
+        // SPEC:    var contacts = new List<Contact> {
+        // SPEC:    	new Contact {
+        // SPEC:    		Name = "Chris Smith",
+        // SPEC:    		PhoneNumbers = { "206-555-0101", "425-882-8080" }
+        // SPEC:    	},
+        // SPEC:    	new Contact {
+        // SPEC:    		Name = "Bob Harris",
+        // SPEC:    		PhoneNumbers = { "650-555-0199" }
+        // SPEC:    	}
+        // SPEC:    };
+        //
+        // SPEC:    which has the same effect as
+        //
+        // SPEC:    var __clist = new List<Contact>();
+        // SPEC:    Contact __c1 = new Contact();
+        // SPEC:    __c1.Name = "Chris Smith";
+        // SPEC:    __c1.PhoneNumbers.Add("206-555-0101");
+        // SPEC:    __c1.PhoneNumbers.Add("425-882-8080");
+        // SPEC:    __clist.Add(__c1);
+        // SPEC:    Contact __c2 = new Contact();
+        // SPEC:    __c2.Name = "Bob Harris";
+        // SPEC:    __c2.PhoneNumbers.Add("650-555-0199");
+        // SPEC:    __clist.Add(__c2);
+        // SPEC:    var contacts = __clist;
+        //
+        // SPEC:    where __clist, __c1 and __c2 are temporary variables that are otherwise invisible and inaccessible.
 
-            var source = @"
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Collections;
@@ -3414,7 +3414,7 @@ class Test
     }
 }
 ";
-            string expectedOutput = @"Name:Chris Smith
+        string expectedOutput = @"Name:Chris Smith
 PH:
 206-555-0101
 425-882-8080
@@ -3422,8 +3422,8 @@ Name:Bob Harris
 PH:
 650-555-0199";
 
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
-            compVerifier.VerifyIL("Test.Main", @"
+        var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+        compVerifier.VerifyIL("Test.Main", @"
 {
   // Code size      103 (0x67)
   .maxstack  5
@@ -3455,12 +3455,12 @@ PH:
   IL_0061:  call       ""void Test.DisplayContacts(System.Collections.Generic.IEnumerable<Contact>)""
   IL_0066:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void PartialAddMethods()
-        {
-            var source = @"
+    [Fact]
+    public void PartialAddMethods()
+    {
+        var source = @"
 using System;
 using System.Collections;
 
@@ -3480,7 +3480,7 @@ partial class C : IEnumerable
         Console.WriteLine(new C { 'a', 'b', 'c' }); // none removed
     }
 }";
-            CompileAndVerify(source).VerifyIL("C.Main", @"
+        CompileAndVerify(source).VerifyIL("C.Main", @"
 {
   // Code size       63 (0x3f)
   .maxstack  3
@@ -3505,12 +3505,12 @@ partial class C : IEnumerable
   IL_003e:  ret
 }
 ");
-        }
+    }
 
-        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
-        public void PointerIndexing_01()
-        {
-            var source = @"
+    [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
+    public void PointerIndexing_01()
+    {
+        var source = @"
 unsafe class C
 {
     int* X;
@@ -3531,13 +3531,13 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
-        }
+        CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
+    }
 
-        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
-        public void PointerIndexing_02()
-        {
-            var source = @"
+    [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
+    public void PointerIndexing_02()
+    {
+        var source = @"
 unsafe class C
 {
     int** X;
@@ -3578,19 +3578,19 @@ unsafe class C
         X = x;
     }
 }";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");
 
-            var comp = verifier.Compilation;
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Single();
-            Assert.Equal("new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } }", node.ToString());
+        var comp = verifier.Compilation;
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Single();
+        Assert.Equal("new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } }", node.ToString());
 
-            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
-            ControlFlowGraphVerifier.VerifyGraph(comp, """
+        var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+        ControlFlowGraphVerifier.VerifyGraph(comp, """
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3649,14 +3649,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 """,
-                graph, symbol);
-        }
+            graph, symbol);
+    }
 
-        [Fact]
-        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
-        public void CollectionInitializerBoxingConversion_01()
-        {
-            var source =
+    [Fact]
+    [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+    public void CollectionInitializerBoxingConversion_01()
+    {
+        var source =
 @"using System;
 using System.Collections;
 
@@ -3689,15 +3689,15 @@ static class Program
         _ = new S1() { S2 = { 3, 4 } };
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "1234");
-        }
+        var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "1234");
+    }
 
-        [Fact]
-        [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
-        public void CollectionInitializerBoxingConversion_02()
-        {
-            var source =
+    [Fact]
+    [WorkItem(38726, "https://github.com/dotnet/roslyn/issues/38726")]
+    public void CollectionInitializerBoxingConversion_02()
+    {
+        var source =
 @"using System;
 using System.Collections;
 
@@ -3728,10 +3728,9 @@ static class Program
         _ = F<S>();
     }
 }";
-            var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "12");
-        }
-
-        #endregion
+        var comp = CSharpTestBase.CreateCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "12");
     }
+
+    #endregion
 }

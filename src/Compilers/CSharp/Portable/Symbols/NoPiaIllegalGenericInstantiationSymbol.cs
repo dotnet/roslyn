@@ -10,74 +10,73 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// A NoPiaIllegalGenericInstantiationSymbol is a special kind of ErrorSymbol that represents a
+/// generic type instantiation that cannot cross assembly boundaries according to NoPia rules.
+/// </summary>
+internal class NoPiaIllegalGenericInstantiationSymbol : ErrorTypeSymbol
 {
-    /// <summary>
-    /// A NoPiaIllegalGenericInstantiationSymbol is a special kind of ErrorSymbol that represents a
-    /// generic type instantiation that cannot cross assembly boundaries according to NoPia rules.
-    /// </summary>
-    internal class NoPiaIllegalGenericInstantiationSymbol : ErrorTypeSymbol
+    private readonly ModuleSymbol _exposingModule;
+    private readonly NamedTypeSymbol _underlyingSymbol;
+
+    public NoPiaIllegalGenericInstantiationSymbol(ModuleSymbol exposingModule, NamedTypeSymbol underlyingSymbol)
     {
-        private readonly ModuleSymbol _exposingModule;
-        private readonly NamedTypeSymbol _underlyingSymbol;
+        _exposingModule = exposingModule;
+        _underlyingSymbol = underlyingSymbol;
+    }
 
-        public NoPiaIllegalGenericInstantiationSymbol(ModuleSymbol exposingModule, NamedTypeSymbol underlyingSymbol)
+    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    {
+        return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
+    }
+
+    internal override bool MangleName
+    {
+        get
         {
-            _exposingModule = exposingModule;
-            _underlyingSymbol = underlyingSymbol;
+            Debug.Assert(Arity == 0);
+            return false;
         }
+    }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    internal sealed override bool IsFileLocal => false;
+    internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
+    public NamedTypeSymbol UnderlyingSymbol
+    {
+        get
         {
-            return new NoPiaIllegalGenericInstantiationSymbol(_exposingModule, _underlyingSymbol);
+            return _underlyingSymbol;
         }
+    }
 
-        internal override bool MangleName
+    internal override DiagnosticInfo ErrorInfo
+    {
+        get
         {
-            get
+            if (_underlyingSymbol.IsErrorType())
             {
-                Debug.Assert(Arity == 0);
-                return false;
-            }
-        }
+                DiagnosticInfo? underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
 
-        internal sealed override bool IsFileLocal => false;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
-
-        public NamedTypeSymbol UnderlyingSymbol
-        {
-            get
-            {
-                return _underlyingSymbol;
-            }
-        }
-
-        internal override DiagnosticInfo ErrorInfo
-        {
-            get
-            {
-                if (_underlyingSymbol.IsErrorType())
+                if ((object?)underlyingInfo != null)
                 {
-                    DiagnosticInfo? underlyingInfo = ((ErrorTypeSymbol)_underlyingSymbol).ErrorInfo;
-
-                    if ((object?)underlyingInfo != null)
-                    {
-                        return underlyingInfo;
-                    }
+                    return underlyingInfo;
                 }
-
-                return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, _underlyingSymbol, _exposingModule.ContainingAssembly);
             }
-        }
 
-        public override int GetHashCode()
-        {
-            return RuntimeHelpers.GetHashCode(this);
+            return new CSDiagnosticInfo(ErrorCode.ERR_GenericsUsedAcrossAssemblies, _underlyingSymbol, _exposingModule.ContainingAssembly);
         }
+    }
 
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
-        {
-            return ReferenceEquals(this, t2);
-        }
+    public override int GetHashCode()
+    {
+        return RuntimeHelpers.GetHashCode(this);
+    }
+
+    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+    {
+        return ReferenceEquals(this, t2);
     }
 }

@@ -11,45 +11,44 @@
 
 using Microsoft.VisualStudio.Debugger.CallStack;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
+
+public class DkmFailedEvaluationResult : DkmEvaluationResult
 {
-    public class DkmFailedEvaluationResult : DkmEvaluationResult
+    public readonly string ErrorMessage;
+
+    private DkmFailedEvaluationResult(
+        DkmInspectionContext inspectionContext,
+        DkmStackWalkFrame stackFrame,
+        string name,
+        string fullName,
+        string errorMessage,
+        DkmEvaluationResultFlags flags,
+        string type,
+        DkmDataItem dataItem) :
+        base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
     {
-        public readonly string ErrorMessage;
+        this.ErrorMessage = errorMessage;
+    }
 
-        private DkmFailedEvaluationResult(
-            DkmInspectionContext inspectionContext,
-            DkmStackWalkFrame stackFrame,
-            string name,
-            string fullName,
-            string errorMessage,
-            DkmEvaluationResultFlags flags,
-            string type,
-            DkmDataItem dataItem) :
-            base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
-        {
-            this.ErrorMessage = errorMessage;
-        }
-
-        public static DkmFailedEvaluationResult Create(
-            DkmInspectionContext InspectionContext,
-            DkmStackWalkFrame StackFrame,
-            string Name,
-            string FullName,
-            string ErrorMessage,
-            DkmEvaluationResultFlags Flags,
-            string Type,
-            DkmDataItem DataItem)
-        {
-            return new DkmFailedEvaluationResult(
-                InspectionContext,
-                StackFrame,
-                Name,
-                FullName,
-                ErrorMessage,
-                Flags,
-                Type,
-                DataItem);
-        }
+    public static DkmFailedEvaluationResult Create(
+        DkmInspectionContext InspectionContext,
+        DkmStackWalkFrame StackFrame,
+        string Name,
+        string FullName,
+        string ErrorMessage,
+        DkmEvaluationResultFlags Flags,
+        string Type,
+        DkmDataItem DataItem)
+    {
+        return new DkmFailedEvaluationResult(
+            InspectionContext,
+            StackFrame,
+            Name,
+            FullName,
+            ErrorMessage,
+            Flags,
+            Type,
+            DataItem);
     }
 }

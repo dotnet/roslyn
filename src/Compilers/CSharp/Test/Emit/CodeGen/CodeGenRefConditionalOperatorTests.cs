@@ -10,15 +10,15 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+[CompilerTrait(CompilerFeature.RefConditionalOperator)]
+public class CodeGenRefConditionalOperatorTests : CSharpTestBase
 {
-    [CompilerTrait(CompilerFeature.RefConditionalOperator)]
-    public class CodeGenRefConditionalOperatorTests : CSharpTestBase
+    [Fact]
+    public void TestRefConditionalOperatorInRefReturn()
     {
-        [Fact]
-        public void TestRefConditionalOperatorInRefReturn()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     static void Main()
@@ -38,10 +38,10 @@ class C
     static ref int Test2(bool b) => ref b ? ref val1 : ref val2;
 
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "3344");
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "3344");
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Test1", @"
+        comp.VerifyIL("C.Test1", @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -54,7 +54,7 @@ class C
 }
 ");
 
-            comp.VerifyIL("C.Test2", @"
+        comp.VerifyIL("C.Test2", @"
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -67,12 +67,12 @@ class C
 }
 ");
 
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorInRefArgument()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorInRefArgument()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -90,10 +90,10 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Fails);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Fails);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -108,12 +108,12 @@ class C
   IL_001a:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorAsValue()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorAsValue()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -126,10 +126,10 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "44", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -142,12 +142,12 @@ class C
   IL_0014:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorAssignmentTarget()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorAssignmentTarget()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -162,10 +162,10 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "55", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "55", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  2
@@ -181,12 +181,12 @@ class C
   IL_001c:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorAssignmentTargetUsed()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorAssignmentTargetUsed()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -200,10 +200,10 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "5555", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "5555", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
   .maxstack  3
@@ -224,12 +224,12 @@ class C
   IL_0024:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorIncrement()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorIncrement()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -247,10 +247,10 @@ class C
     static ref int M1(ref int arg) => ref arg;
 
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "67", verify: Verification.Fails);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "67", verify: Verification.Fails);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       62 (0x3e)
   .maxstack  4
@@ -281,12 +281,12 @@ class C
   IL_003d:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorIncrementUsed()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorIncrementUsed()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -301,10 +301,10 @@ class C
     static int val1 = 33;
     static int val2 = 44;
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "446767", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "446767", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       68 (0x44)
   .maxstack  4
@@ -342,12 +342,12 @@ class C
   IL_0043:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorInRefAssignment()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorInRefAssignment()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -361,9 +361,9 @@ class C
         System.Console.WriteLine(local);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "1");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("C.Main", @"
+        var comp = CompileAndVerify(source, expectedOutput: "1");
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       20 (0x14)
   .maxstack  2
@@ -383,12 +383,12 @@ class C
   IL_0013:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOperatorElvis()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOperatorElvis()
+    {
+        var source = @"
 
 class Program
 {
@@ -435,12 +435,12 @@ class Program
         (!b? ref x: ref y)?.Dispose();
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"False
+        var comp = CompileAndVerify(source, expectedOutput: @"False
 True
 False
 True");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.Test<T>(ref T, ref T)", @"
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.Test<T>(ref T, ref T)", @"
 {
   // Code size      106 (0x6a)
   .maxstack  3
@@ -488,12 +488,12 @@ True");
   IL_0069:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalAsyncIncrement()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalAsyncIncrement()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -526,19 +526,19 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
-                //         (b? ref val1: ref val2) += await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
-                );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+            //         (b? ref val1: ref val2) += await One();
+            Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
+            );
+    }
 
-        [Fact]
-        public void TestRefConditionalAsyncAssign()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalAsyncAssign()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -571,19 +571,19 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
-                //         (b? ref val1: ref val2) = await One();
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+            //         (b? ref val1: ref val2) = await One();
+            Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b? ref val1: ref val2").WithLocation(16, 10)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalOneRef()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOneRef()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -598,22 +598,22 @@ class C
     static int val2 = 44;
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (8,43): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
-                //         System.Console.Write(b? val1: ref val2);
-                Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val2").WithLocation(8, 43),
-                // (9,37): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
-                //         System.Console.Write(b? ref val1: val2);
-                Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val1").WithLocation(9, 37)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (8,43): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
+            //         System.Console.Write(b? val1: ref val2);
+            Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val2").WithLocation(8, 43),
+            // (9,37): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
+            //         System.Console.Write(b? ref val1: val2);
+            Diagnostic(ErrorCode.ERR_RefConditionalNeedsTwoRefs, "val1").WithLocation(9, 37)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalRValue()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalRValue()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -629,23 +629,23 @@ class C
     static int val1 = 33;
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (8,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         (b? ref val1: ref 42) = 1;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(8, 27),
-                // (10,46): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         ref var local = ref b? ref val1: ref 42;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(10, 46)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (8,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+            //         (b? ref val1: ref 42) = 1;
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(8, 27),
+            // (10,46): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+            //         ref var local = ref b? ref val1: ref 42;
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(10, 46)
+           );
+    }
 
-        [Fact]
-        [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
-        public void TestRefConditional_71()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
+    public void TestRefConditional_71()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -663,19 +663,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
 
-            comp.VerifyEmitDiagnostics(
-                // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
-                //         ref int r = ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "b? ref local1: ref local2").WithArguments("ref conditional expression", "7.2").WithLocation(15, 25)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
+            //         ref int r = ref b? ref local1: ref local2;
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "b? ref local1: ref local2").WithArguments("ref conditional expression", "7.2").WithLocation(15, 25)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalUnsafeToReturn1()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalUnsafeToReturn1()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -693,19 +693,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (15,27): error CS8168: Cannot return local 'local1' by reference because it is not a ref local
-                //         return ref b? ref local1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (15,27): error CS8168: Cannot return local 'local1' by reference because it is not a ref local
+            //         return ref b? ref local1: ref local2;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "local1").WithArguments("local1").WithLocation(15, 27)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalUnsafeToReturn2()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalUnsafeToReturn2()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -724,19 +724,19 @@ class C
     static int val1 = 33;
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
-                //         return ref b? ref val1: ref local2;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
+            //         return ref b? ref val1: ref local2;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 37)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalUnsafeToReturn3()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalUnsafeToReturn3()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -760,19 +760,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
-                //         return ref (b? ref val1: ref local2).x;
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
+            //         return ref (b? ref val1: ref local2).x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "local2").WithArguments("local2").WithLocation(14, 38)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalUnsafeToReturn4()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalUnsafeToReturn4()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -797,19 +797,19 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref temp;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
+            //         return ref temp;
+            Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "temp").WithArguments("temp").WithLocation(15, 20)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalSafeToReturn1()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalSafeToReturn1()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -834,10 +834,10 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Test", @"
+        comp.VerifyIL("C.Test", @"
 {
   // Code size       21 (0x15)
   .maxstack  1
@@ -850,12 +850,12 @@ class C
   IL_0014:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalSafeToReturn2()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalSafeToReturn2()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -878,10 +878,10 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Test", @"
+        comp.VerifyIL("C.Test", @"
 {
   // Code size       11 (0xb)
   .maxstack  1
@@ -890,12 +890,12 @@ class C
   IL_000a:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalSafeToReturn3()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalSafeToReturn3()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -909,10 +909,10 @@ class C
     static int val2;
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "1", verify: Verification.Passes);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main()", @"
+        comp.VerifyIL("C.Main()", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -925,12 +925,12 @@ class C
   IL_001a:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalDifferentTypes1()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalDifferentTypes1()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -944,19 +944,19 @@ class C
     static short val2 = 44;
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (8,47): error CS8327: The expression must be of type 'int' to match the alternative ref value
-                //         System.Console.Write(b? ref val1: ref val2);
-                Diagnostic(ErrorCode.ERR_RefConditionalDifferentTypes, "val2").WithArguments("int").WithLocation(8, 47)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (8,47): error CS8327: The expression must be of type 'int' to match the alternative ref value
+            //         System.Console.Write(b? ref val1: ref val2);
+            Diagnostic(ErrorCode.ERR_RefConditionalDifferentTypes, "val2").WithArguments("int").WithLocation(8, 47)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalDifferentTypes2()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalDifferentTypes2()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -969,19 +969,19 @@ class C
     static System.Func<int> val1 = null;
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (8,47): error CS8156: An expression cannot be used in this context because it may not be returned by reference
-                //         System.Console.Write(b? ref val1: ref ()=>1);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "()=>1").WithLocation(8, 47)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (8,47): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+            //         System.Console.Write(b? ref val1: ref ()=>1);
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "()=>1").WithLocation(8, 47)
+           );
+    }
 
-        [Fact]
-        public void TestRefConditionalDifferentTypes3()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalDifferentTypes3()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -997,10 +997,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1");
-            comp.VerifyDiagnostics();
+        var comp = CompileAndVerify(source, expectedOutput: "1");
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.Main", @"
+        comp.VerifyIL("C.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  1
@@ -1014,12 +1014,12 @@ class C
   IL_0019:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalHomelessBranches()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalHomelessBranches()
+    {
+        var source = @"
     class Program
     {
         static void Main(string[] args)
@@ -1061,11 +1061,11 @@ class C
     }
 ";
 
-            // PEVerify: Cannot change initonly field outside its .ctor.
-            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { Net40.References.System, ValueTupleRef, Net40.References.SystemCore }, expectedOutput: "00", verify: Verification.FailsPEVerify);
-            comp.VerifyDiagnostics();
+        // PEVerify: Cannot change initonly field outside its .ctor.
+        var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { Net40.References.System, ValueTupleRef, Net40.References.SystemCore }, expectedOutput: "00", verify: Verification.FailsPEVerify);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("Program.Main", @"
+        comp.VerifyIL("Program.Main", @"
 {
   // Code size       99 (0x63)
   .maxstack  1
@@ -1107,12 +1107,12 @@ class C
   IL_0062:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalOneHomelessBranch()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalOneHomelessBranch()
+    {
+        var source = @"
     class Program
     {
         static void Main(string[] args)
@@ -1149,11 +1149,11 @@ class C
         }
     }
 ";
-            // PEVerify: Cannot change initonly field outside its .ctor.
-            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
-            comp.VerifyDiagnostics();
+        // PEVerify: Cannot change initonly field outside its .ctor.
+        var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.FailsPEVerify);
+        comp.VerifyDiagnostics();
 
-            comp.VerifyIL("Program.Test", @"
+        comp.VerifyIL("Program.Test", @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -1174,12 +1174,12 @@ class C
 }
 ");
 
-        }
+    }
 
-        [Fact]
-        public void TestRefConditionalDifferentTypes4()
-        {
-            var source = @"
+    [Fact]
+    public void TestRefConditionalDifferentTypes4()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -1195,19 +1195,19 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.ReleaseExe);
+        var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.ReleaseExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (9,32): error CS1061: '(int Alice, int)' does not contain a definition for 'Bob' and no extension method 'Bob' accepting a first argument of type '(int Alice, int)' could be found (are you missing a using directive or an assembly reference?)
-                //         System.Console.Write(x.Bob);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bob").WithArguments("(int Alice, int)", "Bob").WithLocation(9, 32)
-               );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (9,32): error CS1061: '(int Alice, int)' does not contain a definition for 'Bob' and no extension method 'Bob' accepting a first argument of type '(int Alice, int)' could be found (are you missing a using directive or an assembly reference?)
+            //         System.Console.Write(x.Bob);
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Bob").WithArguments("(int Alice, int)", "Bob").WithLocation(9, 32)
+           );
+    }
 
-        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
-        public void TestRefOnPointerIndirection_ThroughTernary_01()
-        {
-            var code = @"
+    [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+    public void TestRefOnPointerIndirection_ThroughTernary_01()
+    {
+        var code = @"
 using System;
 
 unsafe
@@ -1218,7 +1218,7 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
+        verify(TestOptions.UnsafeReleaseExe, Verification.Passes, @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -1237,7 +1237,7 @@ unsafe
 }
 ");
 
-            verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
+        verify(TestOptions.UnsafeDebugExe, Verification.Fails, @"
 {
   // Code size       26 (0x1a)
   .maxstack  1
@@ -1262,19 +1262,19 @@ unsafe
 }
 ");
 
-            void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
-            {
-                var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
-                verifier.VerifyDiagnostics();
-                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
-            }
-        }
-
-        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
-        public void TestRefOnPointerIndirection_ThroughTernary_02()
+        void verify(CSharpCompilationOptions options, Verification verify, string expectedIL)
         {
-            var code = @"
+            var comp = CreateCompilation(code, options: options);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run", verify: verify);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+    }
+
+    [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+    public void TestRefOnPointerIndirection_ThroughTernary_02()
+    {
+        var code = @"
 using System;
 
 unsafe
@@ -1293,7 +1293,7 @@ unsafe
 }
 ";
 
-            verify(TestOptions.UnsafeReleaseExe, @"
+        verify(TestOptions.UnsafeReleaseExe, @"
 {
   // Code size       28 (0x1c)
   .maxstack  1
@@ -1316,7 +1316,7 @@ unsafe
 }
 ");
 
-            verify(TestOptions.UnsafeDebugExe, @"
+        verify(TestOptions.UnsafeDebugExe, @"
 {
   // Code size       38 (0x26)
   .maxstack  1
@@ -1349,20 +1349,20 @@ unsafe
 }
 ");
 
-            void verify(CSharpCompilationOptions options, string expectedIL)
-            {
-                var comp = CreateCompilation(code, options: options);
-                var verifier = CompileAndVerify(comp, expectedOutput: "0run", verify: Verification.Fails);
-                verifier.VerifyDiagnostics();
-                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
-            }
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_01()
+        void verify(CSharpCompilationOptions options, string expectedIL)
         {
-            var source = @"
+            var comp = CreateCompilation(code, options: options);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0run", verify: Verification.Fails);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+        }
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_01()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -1401,10 +1401,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
+        var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
+        CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
 
-            comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      187 (0xbb)
@@ -1489,13 +1489,13 @@ class C
   IL_00ba:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_02()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_02()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -1536,10 +1536,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
+        var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
+        CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
 
-            comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      209 (0xd1)
@@ -1634,13 +1634,13 @@ class C
   IL_00d0:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_03()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_03()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -1681,10 +1681,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
+        var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
+        CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
 
-            comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      209 (0xd1)
@@ -1779,13 +1779,13 @@ class C
   IL_00d0:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_04()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_04()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -1834,10 +1834,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
+        var comp = CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.ReleaseExe);
+        CompileAndVerify(source, expectedOutput: "0123-1230", options: TestOptions.DebugExe);
 
-            comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      439 (0x1b7)
@@ -2015,13 +2015,13 @@ class C
   IL_01b6:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_05()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_05()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -2057,10 +2057,10 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "124-123", options: TestOptions.ReleaseExe);
-            CompileAndVerify(source, expectedOutput: "124-123", options: TestOptions.DebugExe);
+        var comp = CompileAndVerify(source, expectedOutput: "124-123", options: TestOptions.ReleaseExe);
+        CompileAndVerify(source, expectedOutput: "124-123", options: TestOptions.DebugExe);
 
-            comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
+        comp.VerifyIL("C.<Test>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
   // Code size      453 (0x1c5)
@@ -2241,13 +2241,13 @@ class C
   IL_01c4:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_06()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_06()
+    {
+        var source = @"
 using System.Threading.Tasks;
 
 class C
@@ -2290,23 +2290,23 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+        var comp = CreateCompilation(source);
 
-            comp.VerifyEmitDiagnostics(
-                // (27,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
-                //         Test(ref b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F, await GetC(new C()));
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F").WithLocation(27, 18),
-                // (28,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
-                //         Test(ref b ? ref c1.F : ref c2.F, await GetC(new C()));
-                Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref c1.F : ref c2.F").WithLocation(28, 18)
-                );
-        }
+        comp.VerifyEmitDiagnostics(
+            // (27,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+            //         Test(ref b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F, await GetC(new C()));
+            Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref (await GetC(c1)).F : ref (await GetC(c2)).F").WithLocation(27, 18),
+            // (28,18): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
+            //         Test(ref b ? ref c1.F : ref c2.F, await GetC(new C()));
+            Diagnostic(ErrorCode.ERR_RefConditionalAndAwait, "b ? ref c1.F : ref c2.F").WithLocation(28, 18)
+            );
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void AwaitInRefConditional_07()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void AwaitInRefConditional_07()
+    {
+        var source = @"
 using System.Threading.Tasks;
 using System;
 
@@ -2367,7 +2367,7 @@ class C
     }
 }
 ";
-            var expectedOutput = @"
+        var expectedOutput = @"
 a2 1
 a2 2
 5
@@ -2380,15 +2380,15 @@ a2 2
 1
 5
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void SpillingInRefConditional_01()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void SpillingInRefConditional_01()
+    {
+        var source = @"
 using System;
 
 class C
@@ -2414,20 +2414,20 @@ class C
     }
 }
 ";
-            var expectedOutput = @"
+        var expectedOutput = @"
 5
 1
 5
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
-        public void SpillingInRefConditional_02()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74115")]
+    public void SpillingInRefConditional_02()
+    {
+        var source = @"
 using System;
 
 class C
@@ -2463,15 +2463,14 @@ class C
     }
 }
 ";
-            var expectedOutput = @"
+        var expectedOutput = @"
 a2 1
 a2 2
 5
 1
 5
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
-            CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.ReleaseExe, verify: Verification.FailsPEVerify);
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null, options: TestOptions.DebugExe, verify: Verification.FailsPEVerify);
     }
 }

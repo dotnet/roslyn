@@ -4,35 +4,33 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal enum PatternLookupResult
 {
-    internal enum PatternLookupResult
-    {
-        /// <summary>
-        /// The Lookup was successful
-        /// </summary>
-        Success,
+    /// <summary>
+    /// The Lookup was successful
+    /// </summary>
+    Success,
 
-        /// <summary>
-        /// A member was found, but it was not a method
-        /// </summary>
-        NotAMethod,
+    /// <summary>
+    /// A member was found, but it was not a method
+    /// </summary>
+    NotAMethod,
 
-        /// <summary>
-        /// A member was found, but it was not callable
-        /// </summary>
-        NotCallable,
+    /// <summary>
+    /// A member was found, but it was not callable
+    /// </summary>
+    NotCallable,
 
-        /// <summary>
-        /// The lookup failed to find anything
-        /// </summary>
-        NoResults,
+    /// <summary>
+    /// The lookup failed to find anything
+    /// </summary>
+    NoResults,
 
-        /// <summary>
-        /// One or more errors occurred while performing the lookup
-        /// </summary>
-        ResultHasErrors
-    }
-
+    /// <summary>
+    /// One or more errors occurred while performing the lookup
+    /// </summary>
+    ResultHasErrors
 }
 

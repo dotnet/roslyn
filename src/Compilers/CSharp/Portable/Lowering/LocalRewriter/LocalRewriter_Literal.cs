@@ -10,153 +10,152 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class LocalRewriter
 {
-    internal partial class LocalRewriter
+    public override BoundNode VisitLiteral(BoundLiteral node)
     {
-        public override BoundNode VisitLiteral(BoundLiteral node)
+        Debug.Assert(node.ConstantValueOpt is { });
+        return MakeLiteral(node.Syntax, node.ConstantValueOpt, node.Type, oldNodeOpt: node);
+    }
+
+    private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol? type, BoundLiteral? oldNodeOpt = null)
+    {
+        Debug.Assert(constantValue != null);
+
+        if (constantValue.IsDecimal)
         {
-            Debug.Assert(node.ConstantValueOpt is { });
-            return MakeLiteral(node.Syntax, node.ConstantValueOpt, node.Type, oldNodeOpt: node);
+            //  Rewrite decimal literal
+            Debug.Assert(type is { SpecialType: SpecialType.System_Decimal });
+            return MakeDecimalLiteral(syntax, constantValue);
         }
-
-        private BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol? type, BoundLiteral? oldNodeOpt = null)
+        else if (constantValue.IsDateTime)
         {
-            Debug.Assert(constantValue != null);
-
-            if (constantValue.IsDecimal)
-            {
-                //  Rewrite decimal literal
-                Debug.Assert(type is { SpecialType: SpecialType.System_Decimal });
-                return MakeDecimalLiteral(syntax, constantValue);
-            }
-            else if (constantValue.IsDateTime)
-            {
-                // C# does not support DateTime constants but VB does; we might have obtained a 
-                // DateTime constant by calling a method with an optional parameter with a DateTime
-                // for its default value.
-                Debug.Assert(type is { SpecialType: SpecialType.System_DateTime });
-                return MakeDateTimeLiteral(syntax, constantValue);
-            }
-            else if (oldNodeOpt != null)
-            {
-                return oldNodeOpt.Update(constantValue, type);
-            }
-            else
-            {
-                return new BoundLiteral(syntax, constantValue, type, hasErrors: constantValue.IsBad);
-            }
+            // C# does not support DateTime constants but VB does; we might have obtained a 
+            // DateTime constant by calling a method with an optional parameter with a DateTime
+            // for its default value.
+            Debug.Assert(type is { SpecialType: SpecialType.System_DateTime });
+            return MakeDateTimeLiteral(syntax, constantValue);
         }
-
-        private BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue)
+        else if (oldNodeOpt != null)
         {
-            Debug.Assert(constantValue != null);
-            Debug.Assert(constantValue.IsDecimal);
+            return oldNodeOpt.Update(constantValue, type);
+        }
+        else
+        {
+            return new BoundLiteral(syntax, constantValue, type, hasErrors: constantValue.IsBad);
+        }
+    }
 
-            var value = constantValue.DecimalValue;
-            bool isNegative;
-            byte scale;
-            uint low, mid, high;
-            value.GetBits(out isNegative, out scale, out low, out mid, out high);
+    private BoundExpression MakeDecimalLiteral(SyntaxNode syntax, ConstantValue constantValue)
+    {
+        Debug.Assert(constantValue != null);
+        Debug.Assert(constantValue.IsDecimal);
 
-            var arguments = new ArrayBuilder<BoundExpression>();
-            SpecialMember member;
+        var value = constantValue.DecimalValue;
+        bool isNegative;
+        byte scale;
+        uint low, mid, high;
+        value.GetBits(out isNegative, out scale, out low, out mid, out high);
 
-            // check if we can call a simpler constructor, or use a predefined constant
-            if (scale == 0 && int.MinValue <= value && value <= int.MaxValue)
+        var arguments = new ArrayBuilder<BoundExpression>();
+        SpecialMember member;
+
+        // check if we can call a simpler constructor, or use a predefined constant
+        if (scale == 0 && int.MinValue <= value && value <= int.MaxValue)
+        {
+            // If we are building static constructor of System.Decimal, accessing static fields 
+            // would be bad.
+            var curMethod = _factory.CurrentFunction;
+            Debug.Assert(curMethod is { });
+            if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
+               curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
+               !_inExpressionLambda)
             {
-                // If we are building static constructor of System.Decimal, accessing static fields 
-                // would be bad.
-                var curMethod = _factory.CurrentFunction;
-                Debug.Assert(curMethod is { });
-                if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
-                   curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
-                   !_inExpressionLambda)
+                Symbol? useField = null;
+
+                if (value == decimal.Zero)
                 {
-                    Symbol? useField = null;
-
-                    if (value == decimal.Zero)
-                    {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
-                    }
-                    else if (value == decimal.One)
-                    {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
-                    }
-                    else if (value == decimal.MinusOne)
-                    {
-                        useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
-                    }
-
-                    if (useField is { HasUseSiteError: false, ContainingType: { HasUseSiteError: false } })
-                    {
-                        var fieldSymbol = (FieldSymbol)useField;
-                        return new BoundFieldAccess(syntax, null, fieldSymbol, constantValue);
-                    }
+                    useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__Zero);
+                }
+                else if (value == decimal.One)
+                {
+                    useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__One);
+                }
+                else if (value == decimal.MinusOne)
+                {
+                    useField = _compilation.GetSpecialTypeMember(SpecialMember.System_Decimal__MinusOne);
                 }
 
-                //new decimal(int);
-                member = SpecialMember.System_Decimal__CtorInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
-            }
-            else if (scale == 0 && uint.MinValue <= value && value <= uint.MaxValue)
-            {
-                //new decimal(uint);
-                member = SpecialMember.System_Decimal__CtorUInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
-            }
-            else if (scale == 0 && long.MinValue <= value && value <= long.MaxValue)
-            {
-                //new decimal(long);
-                member = SpecialMember.System_Decimal__CtorInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
-            }
-            else if (scale == 0 && ulong.MinValue <= value && value <= ulong.MaxValue)
-            {
-                //new decimal(ulong);
-                member = SpecialMember.System_Decimal__CtorUInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
-            }
-            else
-            {
-                //new decimal(int low, int mid, int high, bool isNegative, byte scale);
-                member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
+                if (useField is { HasUseSiteError: false, ContainingType: { HasUseSiteError: false } })
+                {
+                    var fieldSymbol = (FieldSymbol)useField;
+                    return new BoundFieldAccess(syntax, null, fieldSymbol, constantValue);
+                }
             }
 
-            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
-            Debug.Assert((object)ctor != null);
-            Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
-
-            return new BoundObjectCreationExpression(
-                syntax, ctor, arguments.ToImmutableAndFree(),
-                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
-                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
-                constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
+            //new decimal(int);
+            member = SpecialMember.System_Decimal__CtorInt32;
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
         }
-
-        private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
+        else if (scale == 0 && uint.MinValue <= value && value <= uint.MaxValue)
         {
-            Debug.Assert(constantValue != null);
-            Debug.Assert(constantValue.IsDateTime);
-
-            var arguments = new ArrayBuilder<BoundExpression>();
-            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
-
-            var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
-            Debug.Assert((object)ctor != null);
-            Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_DateTime);
-
-            // This is not a constant from C#'s perspective, so do not mark it as one.
-            return new BoundObjectCreationExpression(
-                syntax, ctor, arguments.ToImmutableAndFree(),
-                argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
-                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
-                constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);
+            //new decimal(uint);
+            member = SpecialMember.System_Decimal__CtorUInt32;
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
         }
+        else if (scale == 0 && long.MinValue <= value && value <= long.MaxValue)
+        {
+            //new decimal(long);
+            member = SpecialMember.System_Decimal__CtorInt64;
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
+        }
+        else if (scale == 0 && ulong.MinValue <= value && value <= ulong.MaxValue)
+        {
+            //new decimal(ulong);
+            member = SpecialMember.System_Decimal__CtorUInt64;
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
+        }
+        else
+        {
+            //new decimal(int low, int mid, int high, bool isNegative, byte scale);
+            member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
+            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
+        }
+
+        var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
+        Debug.Assert((object)ctor != null);
+        Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
+
+        return new BoundObjectCreationExpression(
+            syntax, ctor, arguments.ToImmutableAndFree(),
+            argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+            argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+            constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
+    }
+
+    private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
+    {
+        Debug.Assert(constantValue != null);
+        Debug.Assert(constantValue.IsDateTime);
+
+        var arguments = new ArrayBuilder<BoundExpression>();
+        arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
+
+        var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
+        Debug.Assert((object)ctor != null);
+        Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_DateTime);
+
+        // This is not a constant from C#'s perspective, so do not mark it as one.
+        return new BoundObjectCreationExpression(
+            syntax, ctor, arguments.ToImmutableAndFree(),
+            argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+            argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+            constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);
     }
 }

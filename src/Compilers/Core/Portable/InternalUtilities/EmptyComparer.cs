@@ -5,27 +5,26 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+/// <summary>
+/// Very cheap trivial comparer that never matches the keys,
+/// should only be used in empty dictionaries.
+/// </summary>
+internal sealed class EmptyComparer : IEqualityComparer<object>
 {
-    /// <summary>
-    /// Very cheap trivial comparer that never matches the keys,
-    /// should only be used in empty dictionaries.
-    /// </summary>
-    internal sealed class EmptyComparer : IEqualityComparer<object>
+    public static readonly EmptyComparer Instance = new EmptyComparer();
+
+    private EmptyComparer()
     {
-        public static readonly EmptyComparer Instance = new EmptyComparer();
+    }
 
-        private EmptyComparer()
-        {
-        }
+    bool IEqualityComparer<object>.Equals(object? a, object? b)
+        => throw ExceptionUtilities.Unreachable();
 
-        bool IEqualityComparer<object>.Equals(object? a, object? b)
-            => throw ExceptionUtilities.Unreachable();
-
-        int IEqualityComparer<object>.GetHashCode(object s)
-        {
-            // dictionary will call this often
-            return 0;
-        }
+    int IEqualityComparer<object>.GetHashCode(object s)
+    {
+        // dictionary will call this often
+        return 0;
     }
 }

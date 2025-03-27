@@ -15,17 +15,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
-    {
-        public static IEnumerable<MetadataReference> GetReferencesWithoutInteropServices() =>
-            TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestBeginInvoke()
-        {
-            string source = @"
+public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
+{
+    public static IEnumerable<MetadataReference> GetReferencesWithoutInteropServices() =>
+        TargetFrameworkUtil.GetReferencesWithout(TargetFramework.Net50, "System.Runtime.InteropServices.dll");
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestBeginInvoke()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -69,9 +69,9 @@ class Program
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            // Begin/EndInvoke are not currently supported.
-            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+        var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        // Begin/EndInvoke are not currently supported.
+        CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  5
@@ -87,12 +87,12 @@ class Program
   IL_001e:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestEndInvoke()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestEndInvoke()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -135,9 +135,9 @@ class Program
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            // Begin/EndInvoke are not currently supported.
-            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+        var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        // Begin/EndInvoke are not currently supported.
+        CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  3
@@ -153,12 +153,12 @@ class Program
   IL_001a:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestEndInvoke2()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestEndInvoke2()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -200,21 +200,21 @@ class Program
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
-                // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
-                //         d.EndInvoke(result: null);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s1", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11)
-                );
-        }
+        var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (29,22): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
+            // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+            //         d.EndInvoke(result: null);
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s1", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestEndInvoke3()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestEndInvoke3()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 namespace System.Runtime.InteropServices
@@ -256,23 +256,23 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (28,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(28, 33),
-                // (28,63): error CS1741: A ref or out parameter cannot have a default value
-                //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
-                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(28, 63),
-                // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
-                //         d.EndInvoke(result: null);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11));
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (28,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(28, 33),
+            // (28,63): error CS1741: A ref or out parameter cannot have a default value
+            //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
+            Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(28, 63),
+            // (38,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+            //         d.EndInvoke(result: null);
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11));
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestEndInvoke4()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestEndInvoke4()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -315,20 +315,20 @@ class Program
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
-                // (39,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
-                //         d.EndInvoke(result: null);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(39, 11));
-        }
+        var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (29,33): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
+            // (39,11): error CS7036: There is no argument given that corresponds to the required parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+            //         d.EndInvoke(result: null);
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(39, 11));
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestBeginInvoke_ReferringToCallbackParameter()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestBeginInvoke_ReferringToCallbackParameter()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -372,12 +372,12 @@ class Program
 }
 ";
 
-            var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation).VerifyDiagnostics(
-                // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
-                //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
-                ).VerifyIL("Program.Main", @"
+        var compilation = CreateEmptyCompilation(source, GetReferencesWithoutInteropServices(), options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation).VerifyDiagnostics(
+            // (29,33): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
+            //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
+            ).VerifyIL("Program.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  5
@@ -393,13 +393,13 @@ class Program
   IL_001e:  ret
 }
 ");
-        }
+    }
 
-        #region CallerArgumentExpression - Invocations
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute()
-        {
-            string source = @"
+    #region CallerArgumentExpression - Invocations
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -417,14 +417,14 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -456,14 +456,14 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -495,14 +495,14 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -523,16 +523,16 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_Pragmas()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_Pragmas()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -562,8 +562,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"123 +
             #pragma warning disable IDE0002
             #nullable disable
@@ -572,12 +572,12 @@ class Program
             #nullable restore
                5
 ").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_ImplicitAndExplicitConstructorBaseCalls()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_ImplicitAndExplicitConstructorBaseCalls()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -623,8 +623,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"Base class: 1+4
 
 Base class: ppp
@@ -633,12 +633,12 @@ Derived1 class: 2+ 5
 Base class: <default-arg-base>
 Derived2 class: 3 +  6
 ").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -656,14 +656,14 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -676,25 +676,25 @@ public static class FromFirstAssembly
     }
 }
 ";
-            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular9);
-            comp1.VerifyDiagnostics();
-            var ref1 = comp1.EmitToImageReference();
+        var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular9);
+        comp1.VerifyDiagnostics();
+        var ref1 = comp1.EmitToImageReference();
 
-            var source2 = @"
+        var source2 = @"
 public static class Program
 {
     public static void Main() => FromFirstAssembly.Log(2 + 2, 3 + 1);
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -713,14 +713,14 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -739,14 +739,14 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -764,18 +764,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
-                // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
-                //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
+            // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+            //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithMemberNameAttributes()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithMemberNameAttributes()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -793,18 +793,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
-                // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
+            // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithMemberNameAttributes2()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithMemberNameAttributes2()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -822,18 +822,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
-                // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
+            // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWitLineNumberAttributes()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWitLineNumberAttributes()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -851,24 +851,24 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
-                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         Log(default(int));
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
-                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
-                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        compilation.VerifyDiagnostics(
+            // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         Log(default(int));
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+            // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+            // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithLineNumberAttributes2()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithLineNumberAttributes2()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -886,24 +886,24 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         Log(default(int));
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
-                // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
-                // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         Log(default(int));
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "Log(default(int))").WithArguments("int", "string").WithLocation(9, 9),
+            // (12,29): warning CS8960: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29),
+            // (12,59): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] string arg = "<default>")
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(12, 59)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWitLineNumberAttributes3()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWitLineNumberAttributes3()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -921,18 +921,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
-                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        compilation.VerifyDiagnostics(
+            // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithLineNumberAttributes4()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithLineNumberAttributes4()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -950,18 +950,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (12,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+            //     static void Log(int p, [CallerArgumentExpression(p)] [CallerLineNumber] int arg = 0)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentNonOptionalParameter()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentNonOptionalParameter()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -979,21 +979,21 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
-                //         Log(default(int));
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
-                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
+            //         Log(default(int));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+            // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentNonOptionalParameter2()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentNonOptionalParameter2()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1011,21 +1011,21 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
-                //         Log(default(int));
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
-                // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        compilation.VerifyDiagnostics(
+            // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Program.Log(int, string)'
+            //         Log(default(int));
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Log").WithArguments("arg", "Program.Log(int, string)").WithLocation(9, 9),
+            // (12,29): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //     static void Log(int p, [CallerArgumentExpression(p)] string arg)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(12, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithOverride()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithOverride()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1060,17 +1060,17 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"5 + 4
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"5 + 4
 default
 default
 5 + 5").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithUserDefinedConversionFromString()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithUserDefinedConversionFromString()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1095,18 +1095,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (19,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'C'
-                //     static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "C").WithLocation(19, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (19,29): error CS8959: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'C'
+            //     static void Log(int p, [CallerArgumentExpression(p)] C arg = null)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "C").WithLocation(19, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithExtensionGetEnumerator()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithExtensionGetEnumerator()
+    {
+        string source = @"
 using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -1134,14 +1134,14 @@ class Program
 
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "x").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "x").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithExtensionDeconstruct()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithExtensionDeconstruct()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1174,24 +1174,24 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (29,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'first'.
-                //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "first").WithArguments("first").WithLocation(29, 14),
-                // (29,21): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'last'.
-                //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "last").WithArguments("last").WithLocation(29, 21),
-                // (29,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
-                //         var (first, last) = p;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (29,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'first'.
+            //         var (first, last) = p;
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "first").WithArguments("first").WithLocation(29, 14),
+            // (29,21): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'last'.
+            //         var (first, last) = p;
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "last").WithArguments("last").WithLocation(29, 21),
+            // (29,29): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'Person', with 2 out parameters and a void return type.
+            //         var (first, last) = p;
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "p").WithArguments("Person", "2").WithLocation(29, 29)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithOptionalTargetParameter()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithOptionalTargetParameter()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1212,18 +1212,18 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
 callerTargetExp").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1247,8 +1247,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
@@ -1259,12 +1259,12 @@ target default value
 arg default value
 caller target value
 callerTargetExp").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1287,20 +1287,20 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsCallerMember()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsCallerMember()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1318,15 +1318,15 @@ public static class C
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: @"<Main>$
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: @"<Main>$
 <default-arg-expression>").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsSelfReferential()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsSelfReferential()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1343,19 +1343,19 @@ public static class C
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: @"<default>
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (11,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
-                //         [CallerArgumentExpression("p")] string p = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
-                );
-        }
+            // (11,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+            //         [CallerArgumentExpression("p")] string p = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsSelfReferential_Metadata()
-        {
-            string il = @".class private auto ansi '<Module>'
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsSelfReferential_Metadata()
+    {
+        string il = @".class private auto ansi '<Module>'
 {
 } // end of class <Module>
 
@@ -1385,20 +1385,20 @@ value").VerifyDiagnostics(
 
 } // end of class C
 ";
-            string source = @"
+        string source = @"
 C.M();
 C.M(""value"");
 ";
 
-            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: @"<default>
+        var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestInterpolatedStringHandler()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestInterpolatedStringHandler()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -1441,17 +1441,17 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "1 + /**/ 1").VerifyDiagnostics();
-        }
-        #endregion
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "1 + /**/ 1").VerifyDiagnostics();
+    }
+    #endregion
 
-        #region CallerArgumentExpression - Attribute constructor
+    #region CallerArgumentExpression - Attribute constructor
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_Attribute()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_Attribute()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1475,14 +1475,14 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1509,16 +1509,16 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
                5").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_SwapArguments_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_SwapArguments_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1542,14 +1542,14 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -1562,11 +1562,11 @@ public class MyAttribute : Attribute
     }
 }
 ";
-            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
-            comp1.VerifyDiagnostics();
-            var ref1 = comp1.EmitToImageReference();
+        var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+        comp1.VerifyDiagnostics();
+        var ref1 = comp1.EmitToImageReference();
 
-            var source2 = @"
+        var source2 = @"
 using System.Reflection;
 
 [My(2 + 2, 3 + 1)]
@@ -1579,14 +1579,14 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1610,18 +1610,18 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
-                // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
-                //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 25)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
+            // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+            //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 25)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentWithMemberNameAttributes_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentWithMemberNameAttributes_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1645,18 +1645,18 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
-                // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
-                //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32)
-                );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
+            // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
+            //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithOptionalTargetParameter_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithOptionalTargetParameter_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1685,18 +1685,18 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
 callerTargetExp").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithMultipleOptionalAttribute_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithMultipleOptionalAttribute_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1727,8 +1727,8 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
@@ -1739,12 +1739,12 @@ target default value
 arg default value
 caller target value
 callerTargetExp").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1773,20 +1773,20 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsCallerMember_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsCallerMember_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1812,15 +1812,15 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: @"<default-caller-name>
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: @"<default-caller-name>
 <default-arg-expression>").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferringToItself_AttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsReferringToItself_AttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1846,19 +1846,19 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: @"<default>
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-                // (10,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
-                //         [CallerArgumentExpression("p")] string p = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
-                );
-        }
+            // (10,10): warning CS8965: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+            //         [CallerArgumentExpression("p")] string p = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
+            );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferringToItself_AttributeConstructor_Metadata()
-        {
-            string il = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionIsReferringToItself_AttributeConstructor_Metadata()
+    {
+        string il = @"
 .class private auto ansi '<Module>'
 {
 } // end of class <Module>
@@ -1896,7 +1896,7 @@ value").VerifyDiagnostics(
 
 } // end of class MyAttribute
 ";
-            string source = @"
+        string source = @"
 using System.Reflection;
 
 [My]
@@ -1910,15 +1910,15 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: @"<default>
+        var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1938,19 +1938,19 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
-            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
-            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
-            Assert.Equal(2, attributeArguments.Length);
-            Assert.Equal("Hello", attributeArguments[0].Value);
-            Assert.Equal("\"Hello\"", attributeArguments[1].Value);
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
+        var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+        var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+        Assert.Equal(2, attributeArguments.Length);
+        Assert.Equal("Hello", attributeArguments[0].Value);
+        Assert.Equal("\"Hello\"", attributeArguments[1].Value);
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_NamedArgument()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_NamedArgument()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -1970,19 +1970,19 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
-            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
-            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
-            Assert.Equal(2, attributeArguments.Length);
-            Assert.Equal("Hello", attributeArguments[0].Value);
-            Assert.Equal("\"Hello\"", attributeArguments[1].Value);
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
+        var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+        var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+        Assert.Equal(2, attributeArguments.Length);
+        Assert.Equal("Hello", attributeArguments[0].Value);
+        Assert.Equal("\"Hello\"", attributeArguments[1].Value);
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsSameOrder()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsSameOrder()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2002,20 +2002,20 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
-            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
-            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
-            Assert.Equal(3, attributeArguments.Length);
-            Assert.Equal("Hello", attributeArguments[0].Value);
-            Assert.Equal("World", attributeArguments[1].Value);
-            Assert.Equal("\"Hello\"", attributeArguments[2].Value);
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
+        var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+        var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+        Assert.Equal(3, attributeArguments.Length);
+        Assert.Equal("Hello", attributeArguments[0].Value);
+        Assert.Equal("World", attributeArguments[1].Value);
+        Assert.Equal("\"Hello\"", attributeArguments[2].Value);
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsOutOfOrder()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_NamedArgumentsOutOfOrder()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2035,20 +2035,20 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
-            var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
-            var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
-            Assert.Equal(3, attributeArguments.Length);
-            Assert.Equal("Hello", attributeArguments[0].Value);
-            Assert.Equal("World", attributeArguments[1].Value);
-            Assert.Equal("\"Hello\"", attributeArguments[2].Value);
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
+        var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
+        var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
+        Assert.Equal(3, attributeArguments.Length);
+        Assert.Equal("Hello", attributeArguments[0].Value);
+        Assert.Equal("World", attributeArguments[1].Value);
+        Assert.Equal("\"Hello\"", attributeArguments[2].Value);
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_Complex()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_Complex()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2074,8 +2074,8 @@ public class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput:
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
@@ -2083,12 +2083,12 @@ param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_NamedAndOptionalParameters()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2118,15 +2118,15 @@ class Program
         _ = new MyAttribute(0+0, c: 1+1);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
 '0', '2', '2', '0+0', '', '1+1'").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_OptionalAndFieldInitializer()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_OptionalAndFieldInitializer()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2150,14 +2150,14 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionInAttributeConstructor_LangVersion9()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpressionInAttributeConstructor_LangVersion9()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2178,14 +2178,14 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: "'3', '1+2'").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: "'3', '1+2'").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpression_ImplicitConversionFromStringExists()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpression_ImplicitConversionFromStringExists()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2206,14 +2206,14 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists()
+    {
+        string source = @"
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -2234,18 +2234,18 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            compilation.VerifyDiagnostics(
-                // (8,36): error CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(8, 36)
-            );
-        }
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        compilation.VerifyDiagnostics(
+            // (8,36): error CS8913: CallerArgumentExpressionAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+            //     public MyAttribute(int a = 1, [CallerArgumentExpression("a")] int expr_a = 0)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerArgumentExpressionParam, "CallerArgumentExpression").WithArguments("string", "int").WithLocation(8, 36)
+        );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists_Metadata()
-        {
-            string il = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestArgumentExpression_ImplicitConversionFromStringDoesNotExists_Metadata()
+    {
+        string il = @"
 .class public auto ansi beforefieldinit MyAttribute
     extends [mscorlib]System.Attribute
 {
@@ -2283,7 +2283,7 @@ class Program
 } // end of class MyAttribute
 ";
 
-            string source = @"
+        string source = @"
 using System.Reflection;
 
 [My(1+2)]
@@ -2294,20 +2294,20 @@ class Program
         typeof(Program).GetCustomAttribute(typeof(MyAttribute));
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
-            var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
-            Assert.Equal(2, arguments.Length);
-            Assert.Equal(3, arguments[0].Value);
-            Assert.Equal(0, arguments[1].Value);
-        }
-        #endregion
+        var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
+        var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
+        Assert.Equal(2, arguments.Length);
+        Assert.Equal(3, arguments[0].Value);
+        Assert.Equal(0, arguments[1].Value);
+    }
+    #endregion
 
-        #region CallerArgumentExpression - Test various symbols
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestIndexers()
-        {
-            string source = @"
+    #region CallerArgumentExpression - Test various symbols
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestIndexers()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2328,15 +2328,15 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"2, 1+  1
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"2, 1+  1
 4, explicit-value").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestDelegate()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestDelegate()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2364,17 +2364,17 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
 s4: ""s1-arg""").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestDelegate2()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestDelegate2()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2402,17 +2402,17 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
 s4: _").VerifyDiagnostics();
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestDelegate3()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestDelegate3()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2439,8 +2439,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  4
@@ -2458,12 +2458,12 @@ class Program
   IL_001c:  ret
 }
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestDelegate4()
-        {
-            string source = @"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void TestDelegate4()
+    {
+        string source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2490,8 +2490,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net50, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
+        CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  4
@@ -2509,13 +2509,13 @@ class Program
   IL_001c:  ret
 }
 ");
-        }
-        #endregion
+    }
+    #endregion
 
-        [Fact]
-        public void TestCallerInfoAttributesWithSaneDefaultValues()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerInfoAttributesWithSaneDefaultValues()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class Test {
@@ -2526,13 +2526,13 @@ class Test {
     static void LogCallerMemberName([CallerMemberName] string memberName = """") { }
 }";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void TestBadCallerInfoAttributesWithoutDefaultValues()
-        {
-            string source = @"
+    [Fact]
+    public void TestBadCallerInfoAttributesWithoutDefaultValues()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class Test {
@@ -2543,24 +2543,24 @@ class Test {
     static void LogCallerMemberName([CallerMemberName] string memberName) { }
 }";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (5,38): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
-                //     static void LogCallerLineNumber([CallerLineNumber] int lineNumber) { }
-                Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, @"CallerLineNumber").WithLocation(5, 38),
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (5,38): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
+            //     static void LogCallerLineNumber([CallerLineNumber] int lineNumber) { }
+            Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, @"CallerLineNumber").WithLocation(5, 38),
 
-                // (7,36): error CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
-                //     static void LogCallerFilePath([CallerFilePath] string filePath) { }
-                Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, @"CallerFilePath").WithLocation(7, 36),
+            // (7,36): error CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
+            //     static void LogCallerFilePath([CallerFilePath] string filePath) { }
+            Diagnostic(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, @"CallerFilePath").WithLocation(7, 36),
 
-                // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
-                //     static void LogCallerMemberName([CallerMemberName] string memberName) { }
-                Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, @"CallerMemberName").WithLocation(9, 38));
-        }
+            // (9,38): error CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
+            //     static void LogCallerMemberName([CallerMemberName] string memberName) { }
+            Diagnostic(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, @"CallerMemberName").WithLocation(9, 38));
+    }
 
-        [Fact]
-        public void TestConversionForCallerLineNumber()
-        {
-            string source = @"
+    [Fact]
+    public void TestConversionForCallerLineNumber()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
@@ -2642,7 +2642,7 @@ class Test {
     }
 }";
 
-            string expected = @"
+        string expected = @"
 line: 50
 line: 51
 line: 52
@@ -2674,14 +2674,14 @@ line: 77
 line: 78
 line: 79
 ";
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestDelegateInvoke()
-        {
-            string source = @"
+    [Fact]
+    public void TestDelegateInvoke()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
@@ -2702,20 +2702,20 @@ class Test {
     }
 }";
 
-            string expected = @"
+        string expected = @"
 line: -1
 line: -1
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestConversionForCallerInfoAttributes()
-        {
-            string source = @"
+    [Fact]
+    public void TestConversionForCallerInfoAttributes()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
@@ -2744,7 +2744,7 @@ class Test {
     }
 }";
 
-            string expected = @"
+        string expected = @"
 line: 22
 line: 23
 line: 24
@@ -2752,14 +2752,14 @@ line: 25
 line: 26
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestBadConversionForCallerInfoAttributes()
-        {
-            string source = @"
+    [Fact]
+    public void TestBadConversionForCallerInfoAttributes()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class Test {
@@ -2782,30 +2782,30 @@ class Test {
     static void LogCallerMemberName5([CallerMemberName] int? memberName = 0) { }
 }";
 
-            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(5, 39).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(6, 39).WithArguments("int", "char"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(7, 39).WithArguments("int", "bool"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(8, 39).WithArguments("int", "short"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(9, 39).WithArguments("int", "ushort"),
+        CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(5, 39).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(6, 39).WithArguments("int", "char"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(7, 39).WithArguments("int", "bool"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(8, 39).WithArguments("int", "short"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(9, 39).WithArguments("int", "ushort"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(11, 37).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(12, 37).WithArguments("string", "long"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(13, 37).WithArguments("string", "double"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(14, 37).WithArguments("string", "float"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(15, 37).WithArguments("string", "int?"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(11, 37).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(12, 37).WithArguments("string", "long"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(13, 37).WithArguments("string", "double"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(14, 37).WithArguments("string", "float"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(15, 37).WithArguments("string", "int?"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(17, 39).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(18, 39).WithArguments("string", "long"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(19, 39).WithArguments("string", "double"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(20, 39).WithArguments("string", "float"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(21, 39).WithArguments("string", "int?"));
-        }
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(17, 39).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(18, 39).WithArguments("string", "long"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(19, 39).WithArguments("string", "double"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(20, 39).WithArguments("string", "float"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(21, 39).WithArguments("string", "int?"));
+    }
 
-        [Fact]
-        public void TestCallerLineNumber()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumber()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -2836,21 +2836,21 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 message: something happened
 line: 17
 message: something happened
 line: 21
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumber_LocalFunctionAttribute()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumber_LocalFunctionAttribute()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -2881,21 +2881,21 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 message: something happened
 line: 9
 message: something happened
 line: 13
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberImplicitCall()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberImplicitCall()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -2919,18 +2919,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberConstructorCall()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberConstructorCall()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -2950,18 +2950,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberCustomAttributeConstructorCall()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberCustomAttributeConstructorCall()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System;
@@ -3034,7 +3034,7 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 message: this is a message
 line: 25
 message: this is a message
@@ -3043,14 +3043,14 @@ line: 47
 line: 55
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberMemberCall()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberMemberCall()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3070,18 +3070,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestBadCallerLineNumberMetadata()
-        {
-            var iLSource = @"
+    [Fact]
+    public void TestBadCallerLineNumberMetadata()
+    {
+        var iLSource = @"
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
 {
@@ -3147,7 +3147,7 @@ line: 17
 } // end of class Test
 ";
 
-            var source = @"
+        var source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3160,21 +3160,21 @@ class Driver {
 }
 ";
 
-            var expected = @"
+        var expected = @"
 line: 7
 line: 42
 line: hello
 ";
 
-            MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        MetadataReference libReference = CompileIL(iLSource);
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberDuplicateAttribute()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberDuplicateAttribute()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 partial class D
@@ -3193,15 +3193,15 @@ partial class D
     }
 }";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "CallerLineNumber").WithArguments("CallerLineNumber"),
-                Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_DuplicateAttribute, "CallerLineNumber").WithArguments("CallerLineNumber"),
+            Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
+    }
 
-        [Fact, WorkItem(531044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531044")]
-        public void TestUnconsumedCallerInfoAttributes()
-        {
-            string source = @"
+    [Fact, WorkItem(531044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531044")]
+    public void TestUnconsumedCallerInfoAttributes()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 partial class D
@@ -3221,35 +3221,35 @@ partial class D
     }
 }";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (12,10): warning CS4024: The CallerLineNumberAttribute applied to parameter 'line' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //         [CallerLineNumber] int line,
-                Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("line"),
-                // (13,10): warning CS4026: The CallerMemberNameAttribute applied to parameter 'member' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //         [CallerMemberName] string member,
-                Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("member"),
-                // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //         [CallerFilePath] string path) { }
-                Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (12,10): warning CS4024: The CallerLineNumberAttribute applied to parameter 'line' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerLineNumber] int line,
+            Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("line"),
+            // (13,10): warning CS4026: The CallerMemberNameAttribute applied to parameter 'member' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerMemberName] string member,
+            Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("member"),
+            // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //         [CallerFilePath] string path) { }
+            Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
 
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: verify);
+        CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: verify);
 
-            void verify(ModuleSymbol module)
-            {
-                // https://github.com/dotnet/roslyn/issues/73482
-                // These are ignored in source but they still get written out to metadata.
-                // This means if the method is accessible from another compilation, then the attribute will be respected there, but not in the declaring compilation.
-                var goo = module.GlobalNamespace.GetMember<MethodSymbol>("D.Goo");
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], goo.Parameters[0].GetAttributes().SelectAsArray(attr => attr.ToString()));
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], goo.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
-                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], goo.Parameters[2].GetAttributes().SelectAsArray(attr => attr.ToString()));
-            }
-        }
-
-        [Fact]
-        public void TestCallerLineNumberViaDelegate()
+        void verify(ModuleSymbol module)
         {
-            string source = @"
+            // https://github.com/dotnet/roslyn/issues/73482
+            // These are ignored in source but they still get written out to metadata.
+            // This means if the method is accessible from another compilation, then the attribute will be respected there, but not in the declaring compilation.
+            var goo = module.GlobalNamespace.GetMember<MethodSymbol>("D.Goo");
+            AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], goo.Parameters[0].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], goo.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], goo.Parameters[2].GetAttributes().SelectAsArray(attr => attr.ToString()));
+        }
+    }
+
+    [Fact]
+    public void TestCallerLineNumberViaDelegate()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3270,19 +3270,19 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 line: 16
 line: 18
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestBadConversionCallerInfoMultipleAttributes()
-        {
-            string source = @"
+    [Fact]
+    public void TestBadConversionCallerInfoMultipleAttributes()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3320,49 +3320,49 @@ class Test
     public static void Log23([CallerMemberName, CallerLineNumber] int x = 1) { Console.WriteLine(""line: "" + x); }
     public static void Log24([CallerLineNumber, CallerMemberName] int x = 1) { Console.WriteLine(""line: "" + x); }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(7, 48).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(7, 64).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(8, 48).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(8, 66).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(9, 30).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(9, 66).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(10, 30).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(10, 48).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(11, 30).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(11, 46).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(12, 30).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(12, 64).WithArguments("string", "int"),
+        CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(7, 48).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(7, 64).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(8, 48).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(8, 66).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(9, 30).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(9, 66).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(10, 30).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(10, 48).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(11, 30).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(11, 46).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(12, 30).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(12, 64).WithArguments("string", "int"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(14, 30).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(15, 30).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(16, 48).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(17, 65).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(18, 65).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(19, 47).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(14, 30).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(15, 30).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(16, 48).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(17, 65).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(18, 65).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(19, 47).WithArguments("int", "string"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(24, 31).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(25, 47).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(24, 31).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(25, 47).WithArguments("int", "string"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(27, 49).WithArguments("int", "string"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(28, 31).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(27, 49).WithArguments("int", "string"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(28, 31).WithArguments("int", "string"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(30, 31).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(30, 47).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(31, 31).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(31, 49).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(30, 31).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(30, 47).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(31, 31).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(31, 49).WithArguments("string", "int"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(33, 49).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(34, 31).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(33, 49).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(34, 31).WithArguments("string", "int"),
 
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(36, 31).WithArguments("string", "int"),
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(37, 49).WithArguments("string", "int"));
-        }
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(36, 31).WithArguments("string", "int"),
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(37, 49).WithArguments("string", "int"));
+    }
 
-        [Fact]
-        public void TestCallerInfoMultipleAttributes()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerInfoMultipleAttributes()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3378,23 +3378,23 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 C:\file.cs
 C:\file.cs
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { Parse(source, @"C:\file.cs") },
-                new[] { SystemRef },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { Parse(source, @"C:\file.cs") },
+            new[] { SystemRef },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerAttributeBash()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerAttributeBash()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System.Reflection;
 using System;
@@ -3421,18 +3421,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 line: 15
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerLineNumberUnconsumedBadType()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerLineNumberUnconsumedBadType()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 partial class D
@@ -3451,16 +3451,16 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef });
-            compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef });
+        compilation.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
+    }
 
-        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
-        [Fact]
-        public void TestCallerMemberNameUnconsumedBadType()
-        {
-            string source = @"
+    [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
+    [Fact]
+    public void TestCallerMemberNameUnconsumedBadType()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3482,21 +3482,21 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
 
-            compilation.VerifyEmitDiagnostics(
-                // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     partial void Goo([CallerMemberName] string x)
-                Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("x").WithLocation(12, 23));
+        compilation.VerifyEmitDiagnostics(
+            // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+            //     partial void Goo([CallerMemberName] string x)
+            Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("x").WithLocation(12, 23));
 
-            CompileAndVerify(compilation, expectedOutput: "");
-        }
+        CompileAndVerify(compilation, expectedOutput: "");
+    }
 
-        [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
-        [Fact]
-        public void TestCallerMemberNameUnconsumedBadType02()
-        {
-            string source = @"
+    [WorkItem(689618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689618")]
+    [Fact]
+    public void TestCallerMemberNameUnconsumedBadType02()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3518,15 +3518,15 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            compilation.VerifyEmitDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "Main");
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        compilation.VerifyEmitDiagnostics();
+        CompileAndVerify(compilation, expectedOutput: "Main");
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Lambda()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Lambda()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3556,18 +3556,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: LambdaCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_LocalFunction()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_LocalFunction()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3599,18 +3599,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_LocalFunctionAttribute_01()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_LocalFunctionAttribute_01()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3638,21 +3638,21 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilation(
-                source,
-                options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilation(
+            source,
+            options: TestOptions.ReleaseExe,
+            parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_LocalFunctionAttribute_02()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_LocalFunctionAttribute_02()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3684,21 +3684,21 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilation(
-                source,
-                options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilation(
+            source,
+            options: TestOptions.ReleaseExe,
+            parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_LocalFunctionAttribute_03()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_LocalFunctionAttribute_03()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3733,21 +3733,21 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilation(
-                source,
-                options: TestOptions.ReleaseExe,
-                parseOptions: TestOptions.Regular9);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilation(
+            source,
+            options: TestOptions.ReleaseExe,
+            parseOptions: TestOptions.Regular9);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Operator()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Operator()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3775,18 +3775,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: op_Increment
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Property()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Property()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3822,19 +3822,19 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: IsTrue
 name: IsTrue
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_CustomAttribute()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_CustomAttribute()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3861,18 +3861,18 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Generic()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Generic()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3898,22 +3898,22 @@ class A
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: Compare
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                source,
-                new[] { SystemRef },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            source,
+            new[] { SystemRef },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_ExplicitInterfaceInstantiation()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_ExplicitInterfaceInstantiation()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -3958,19 +3958,19 @@ class A
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: Add
 name: HasThing
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Event()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Event()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4000,19 +4000,19 @@ class A
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: ThingHappened
 name: ThingHappened
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [ConditionalFact(typeof(DesktopOnly))]
-        public void TestCallerMemberName_ConstructorDestructor()
-        {
-            string source = @"
+    [ConditionalFact(typeof(DesktopOnly))]
+    public void TestCallerMemberName_ConstructorDestructor()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4051,20 +4051,20 @@ class A
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: .cctor
 name: .ctor
 name: Finalize
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberName_Indexer()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberName_Indexer()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4124,21 +4124,21 @@ class A
     }
 }";
 
-            var expected = @"
+        var expected = @"
 name: TheIndexer
 name: TheIndexer
 name: Item
 name: Item
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerFilePath1()
-        {
-            string source1 = @"
+    [Fact]
+    public void TestCallerFilePath1()
+    {
+        string source1 = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4159,33 +4159,33 @@ partial class A
         Main4();
     }
 }";
-            string source2 = @"partial class A { static void Main2() { Log(); } }";
-            string source3 = @"partial class A { static void Main3() { Log(); } }";
-            string source4 = @"partial class A { static void Main4() { Log(); } }";
+        string source2 = @"partial class A { static void Main2() { Log(); } }";
+        string source3 = @"partial class A { static void Main3() { Log(); } }";
+        string source4 = @"partial class A { static void Main4() { Log(); } }";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[]
-                {
-                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path: @"       ", encoding: Encoding.UTF8),
-                },
-                new[] { SystemRef },
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
+        var compilation = CreateCompilationWithMscorlib461(
+            new[]
+            {
+                SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source4, path: @"       ", encoding: Encoding.UTF8),
+            },
+            new[] { SystemRef },
+            TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
 
-            CompileAndVerify(compilation, expectedOutput: @"
+        CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
 2: 'a\b\..\c\d'
 3: '*'
 4: '       '
 ");
-        }
+    }
 
-        [Fact]
-        public void TestCallerFilePath_LocalFunctionAttribute()
-        {
-            string source1 = @"
+    [Fact]
+    public void TestCallerFilePath_LocalFunctionAttribute()
+    {
+        string source1 = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4205,23 +4205,23 @@ partial class A
     }
 }";
 
-            var compilation = CreateCompilation(
-                new[]
-                {
-                    SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular9, path: @"C:\filename", encoding: Encoding.UTF8)
-                },
-                options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
+        var compilation = CreateCompilation(
+            new[]
+            {
+                SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Regular9, path: @"C:\filename", encoding: Encoding.UTF8)
+            },
+            options: TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default));
 
-            CompileAndVerify(compilation, expectedOutput: @"
+        CompileAndVerify(compilation, expectedOutput: @"
 1: 'C:\filename'
 2: 'C:\filename'
 ");
-        }
+    }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
-        public void TestCallerFilePath2()
-        {
-            string source1 = @"
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionHasNewLineDependency)]
+    public void TestCallerFilePath2()
+    {
+        string source1 = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4243,51 +4243,51 @@ partial class A
         Main5();
     }
 }";
-            string source2 = @"partial class A { static void Main2() { Log(); } }";
-            string source3 = @"
+        string source2 = @"partial class A { static void Main2() { Log(); } }";
+        string source3 = @"
 #line hidden
 partial class A { static void Main3() { Log(); } }
 ";
 
-            string source4 = @"
+        string source4 = @"
 #line 30 ""abc""
 partial class A { static void Main4() { Log(); } }
 ";
-            string source5 = @"
+        string source5 = @"
 #line 30 ""     ""
 partial class A { static void Main5() { Log(); } }
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[]
-                {
-                    SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d.cs", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source4, path: @"C:\x.cs", encoding: Encoding.UTF8),
-                    SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs", encoding: Encoding.UTF8),
-                },
-                new[] { SystemRef },
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
+        var compilation = CreateCompilationWithMscorlib461(
+            new[]
+            {
+                SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source2, path: @"a\b\..\c\d.cs", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source3, path: @"*", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source4, path: @"C:\x.cs", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(source5, path: @"C:\x.cs", encoding: Encoding.UTF8),
+            },
+            new[] { SystemRef },
+            TestOptions.ReleaseExe.WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\A\B")));
 
-            // On CoreClr the '*' is a legal path character
-            // https://github.com/dotnet/docs/issues/4483
-            var expectedStarPath = ExecutionConditionUtil.IsCoreClr
-                ? @"C:\A\B\*"
-                : "*";
-            CompileAndVerify(compilation, expectedOutput: $@"
+        // On CoreClr the '*' is a legal path character
+        // https://github.com/dotnet/docs/issues/4483
+        var expectedStarPath = ExecutionConditionUtil.IsCoreClr
+            ? @"C:\A\B\*"
+            : "*";
+        CompileAndVerify(compilation, expectedOutput: $@"
 1: 'C:\filename'
 2: 'C:\A\B\a\c\d.cs'
 3: '{expectedStarPath}'
 4: 'C:\abc'
 5: '     '
 ");
-        }
+    }
 
-        [Fact]
-        public void TestAssemblyAttribute()
-        {
-            string source = @"
+    [Fact]
+    public void TestAssemblyAttribute()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 using System.Reflection;
@@ -4328,19 +4328,19 @@ namespace MyNamespace
     }
 }";
 
-            var expected = @"
+        var expected = @"
 member: MyMethod
 member: 
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestCallerMemberNameConversion()
-        {
-            string source = @"
+    [Fact]
+    public void TestCallerMemberNameConversion()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 using System;
 using System.Reflection;
@@ -4372,18 +4372,18 @@ namespace MyNamespace
     }
 }";
 
-            var expected = @"
+        var expected = @"
 member: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestRecursiveAttribute()
-        {
-            string source = @"
+    [Fact]
+    public void TestRecursiveAttribute()
+    {
+        string source = @"
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -4398,22 +4398,22 @@ class Test
     public static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "");
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "");
 
-            var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
-            Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
-            var attr = ctor.Parameters.Single().GetAttributes().Single();
-            Assert.Equal(ctor, attr.AttributeConstructor);
-            Assert.Equal(1, attr.CommonConstructorArguments.Length);
-            // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
-            Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
-        }
+        var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
+        Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
+        var attr = ctor.Parameters.Single().GetAttributes().Single();
+        Assert.Equal(ctor, attr.AttributeConstructor);
+        Assert.Equal(1, attr.CommonConstructorArguments.Length);
+        // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
+        Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
+    }
 
-        [Fact]
-        public void TestRecursiveAttribute2()
-        {
-            string source = @"
+    [Fact]
+    public void TestRecursiveAttribute2()
+    {
+        string source = @"
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -4428,22 +4428,22 @@ class Test
     public static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "");
+        var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "");
 
-            var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
-            Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
-            var attr = ctor.Parameters.Single().GetAttributes()[0];
-            Assert.Equal(ctor, attr.AttributeConstructor);
-            Assert.Equal(1, attr.CommonConstructorArguments.Length);
-            // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
-            Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
-        }
+        var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
+        Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
+        var attr = ctor.Parameters.Single().GetAttributes()[0];
+        Assert.Equal(ctor, attr.AttributeConstructor);
+        Assert.Equal(1, attr.CommonConstructorArguments.Length);
+        // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
+        Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
+    }
 
-        [Fact]
-        public void TestRecursiveAttributeMetadata()
-        {
-            var iLSource = @"
+    [Fact]
+    public void TestRecursiveAttributeMetadata()
+    {
+        var iLSource = @"
 .class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Attribute
 {
@@ -4465,7 +4465,7 @@ class Test
 } // end of class Goo
 ";
 
-            var source = @"
+        var source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4478,17 +4478,17 @@ class Driver {
 }
 ";
 
-            var expected = @"";
+        var expected = @"";
 
-            MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        MetadataReference libReference = CompileIL(iLSource);
+        var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestMemberNameLookup()
-        {
-            var source = @"
+    [Fact]
+    public void TestMemberNameLookup()
+    {
+        var source = @"
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System;
@@ -4514,16 +4514,16 @@ class Driver
 }
 ";
 
-            var expected = @"Bar";
+        var expected = @"Bar";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        public void TestDuplicateCallerInfoMetadata()
-        {
-            var iLSource = @"
+    [Fact]
+    public void TestDuplicateCallerInfoMetadata()
+    {
+        var iLSource = @"
 .class public auto ansi beforefieldinit Goo
        extends [mscorlib]System.Object
 {
@@ -4610,7 +4610,7 @@ class Driver
 } // end of class Goo
 ";
 
-            var source = @"
+        var source = @"
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4623,26 +4623,26 @@ class Driver {
 }
 ";
 
-            var expected = @"
+        var expected = @"
 name: 7
 name: 
 name: C:\file.cs
 ";
 
-            MetadataReference libReference = CompileIL(iLSource);
+        MetadataReference libReference = CompileIL(iLSource);
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { Parse(source, @"C:\file.cs") },
-                new[] { libReference },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { Parse(source, @"C:\file.cs") },
+            new[] { libReference },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(546977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546977")]
-        public void Bug_17433()
-        {
-            var source = @"using System.Reflection;
+    [Fact, WorkItem(546977, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546977")]
+    public void Bug_17433()
+    {
+        var source = @"using System.Reflection;
 using System.Runtime.CompilerServices;
 using System;
 
@@ -4664,16 +4664,16 @@ class Driver
 }
 ";
 
-            var expected = @"13";
+        var expected = @"13";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
-        public void Repro_17443()
-        {
-            var source = @"
+    [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
+    public void Repro_17443()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4713,18 +4713,18 @@ a.LineNumber, a.MemberName ?? ""<null>"");
 }
 ";
 
-            var expected = @"
+        var expected = @"
 CallerInfoAttributed: (, 22, Property1)
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
-        public void CallerMemberNameAttributedAttributeOnNonMethodMembers()
-        {
-            var source = @"
+    [Fact, WorkItem(531036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531036")]
+    public void CallerMemberNameAttributedAttributeOnNonMethodMembers()
+    {
+        var source = @"
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System;
@@ -4778,7 +4778,7 @@ class Driver
 }
 ";
 
-            var expected = @"
+        var expected = @"
 <none>
 <none>
 MyProperty
@@ -4787,14 +4787,14 @@ Item
 MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
-        public void Repro_17449()
-        {
-            var source = @"
+    [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
+    public void Repro_17449()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4816,18 +4816,18 @@ class Program
 }
 ";
 
-            var expected = @"
+        var expected = @"
 13
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
-        public void TestBadAttributeParameterTypeWithCallerLineNumber()
-        {
-            var source = @"
+    [Fact, WorkItem(531040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531040")]
+    public void TestBadAttributeParameterTypeWithCallerLineNumber()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4858,19 +4858,19 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (21,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'int?', which is not a valid attribute parameter type
-                // [LineNumber2NullableInt, LineNumber2ValueType]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2NullableInt").WithArguments("lineNumber", "int?"),
-                // (21,26): error CS0181: Attribute constructor parameter 'lineNumber' has type 'System.ValueType', which is not a valid attribute parameter type
-                // [LineNumber2NullableInt, LineNumber2ValueType]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (21,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'int?', which is not a valid attribute parameter type
+            // [LineNumber2NullableInt, LineNumber2ValueType]
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2NullableInt").WithArguments("lineNumber", "int?"),
+            // (21,26): error CS0181: Attribute constructor parameter 'lineNumber' has type 'System.ValueType', which is not a valid attribute parameter type
+            // [LineNumber2NullableInt, LineNumber2ValueType]
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2ValueType").WithArguments("lineNumber", "System.ValueType"));
+    }
 
-        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
-        public void Repro_17457()
-        {
-            var source = @"
+    [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
+    public void Repro_17457()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 public class LineNumber2LongAttribute : Attribute
@@ -4898,19 +4898,19 @@ class Test
 }
 ";
 
-            var expected = @"
+        var expected = @"
 18
 19
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
-        public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()
-        {
-            var source = @"
+    [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
+    public void InvalidDecimalInCustomAttributeParameterWithCallerLineNumber()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4932,16 +4932,16 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (13,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'decimal', which is not a valid attribute parameter type
-                // [LineNumber2DecimalAttribute]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2DecimalAttribute").WithArguments("lineNumber", "decimal"));
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (13,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'decimal', which is not a valid attribute parameter type
+            // [LineNumber2DecimalAttribute]
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2DecimalAttribute").WithArguments("lineNumber", "decimal"));
+    }
 
-        [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
-        public void AllLegalConversionForCallerLineNumber()
-        {
-            var source = @"
+    [Fact, WorkItem(531043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531043")]
+    public void AllLegalConversionForCallerLineNumber()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5011,7 +5011,7 @@ class Test
     }
 }";
 
-            var expected = @"
+        var expected = @"
 61
 61
 61
@@ -5021,14 +5021,14 @@ class Test
 61
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531046")]
-        public void TestUserDefinedImplicitConversion()
-        {
-            var source = @"
+    [Fact, WorkItem(531046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531046")]
+    public void TestUserDefinedImplicitConversion()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5060,19 +5060,19 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (19,38): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'Test'
-                //     public bool M1(string expected, [CallerLineNumber] Test line = null)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "Test"),
-                // (25,38): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'Test'
-                //     public bool M2(string expected, [CallerMemberName] Test line = null)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "Test"));
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (19,38): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'Test'
+            //     public bool M1(string expected, [CallerLineNumber] Test line = null)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "Test"),
+            // (25,38): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'Test'
+            //     public bool M2(string expected, [CallerMemberName] Test line = null)
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "Test"));
+    }
 
-        [Fact, WorkItem(546980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546980")]
-        public void TestBaseCtorInvocation()
-        {
-            var source = @"
+    [Fact, WorkItem(546980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546980")]
+    public void TestBaseCtorInvocation()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -5146,7 +5146,7 @@ class Program
 }
 ";
 
-            var expected = @"
+        var expected = @"
 name : .ctor
 line : 20
 path : C:\filename
@@ -5167,18 +5167,18 @@ query line : 66
 query path : C:\filename
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
-                new[] { SystemCoreRef },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+            new[] { SystemCoreRef },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
-        public void WarnOnCallerInfoCollision()
-        {
-            var source = @"
+    [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
+    public void WarnOnCallerInfoCollision()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5207,7 +5207,7 @@ class Test
 }
 ";
 
-            var expected = @"
+        var expected = @"
 C:\filename
 C:\filename
 20
@@ -5218,61 +5218,61 @@ C:\filename
 25
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename", encoding: Encoding.UTF8) },
-                options: TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename", encoding: Encoding.UTF8) },
+            options: TestOptions.ReleaseExe);
 
-            compilation.VerifyDiagnostics(
-                // C:\filename(7,21): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
-                //     static void M1([CallerMemberName,CallerFilePath] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"),
-                // C:\filename(8,36): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
-                //     static void M2([CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"),
-                // C:\filename(9,38): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M3([CallerLineNumber,CallerFilePath,CallerMemberName] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
-                // C:\filename(9,53): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M3([CallerLineNumber,CallerFilePath,CallerMemberName] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(10,38): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M4([CallerLineNumber,CallerMemberName,CallerFilePath] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(10,55): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M4([CallerLineNumber,CallerMemberName,CallerFilePath] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
-                // C:\filename(11,21): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M5([CallerFilePath,CallerLineNumber,CallerMemberName] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
-                // C:\filename(11,53): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M5([CallerFilePath,CallerLineNumber,CallerMemberName] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(12,21): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M6([CallerMemberName,CallerLineNumber,CallerFilePath] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(12,55): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M6([CallerMemberName,CallerLineNumber,CallerFilePath] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
-                // C:\filename(13,21): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M7([CallerFilePath,CallerMemberName,CallerLineNumber] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
-                // C:\filename(13,36): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M7([CallerFilePath,CallerMemberName,CallerLineNumber] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(14,21): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M8([CallerMemberName,CallerFilePath,CallerLineNumber] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
-                // C:\filename(14,38): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M8([CallerMemberName,CallerFilePath,CallerLineNumber] object o = null) { Console.WriteLine(o); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"));
+        compilation.VerifyDiagnostics(
+            // C:\filename(7,21): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
+            //     static void M1([CallerMemberName,CallerFilePath] string s = null) { Console.WriteLine(s); }
+            Diagnostic(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"),
+            // C:\filename(8,36): warning CS7072: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerFilePathAttribute.
+            //     static void M2([CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
+            Diagnostic(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"),
+            // C:\filename(9,38): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M3([CallerLineNumber,CallerFilePath,CallerMemberName] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
+            // C:\filename(9,53): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M3([CallerLineNumber,CallerFilePath,CallerMemberName] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(10,38): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M4([CallerLineNumber,CallerMemberName,CallerFilePath] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(10,55): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M4([CallerLineNumber,CallerMemberName,CallerFilePath] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
+            // C:\filename(11,21): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M5([CallerFilePath,CallerLineNumber,CallerMemberName] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
+            // C:\filename(11,53): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M5([CallerFilePath,CallerLineNumber,CallerMemberName] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(12,21): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M6([CallerMemberName,CallerLineNumber,CallerFilePath] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(12,55): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M6([CallerMemberName,CallerLineNumber,CallerFilePath] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
+            // C:\filename(13,21): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M7([CallerFilePath,CallerMemberName,CallerLineNumber] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"),
+            // C:\filename(13,36): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M7([CallerFilePath,CallerMemberName,CallerLineNumber] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(14,21): warning CS7073: The CallerMemberNameAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M8([CallerMemberName,CallerFilePath,CallerLineNumber] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("o"),
+            // C:\filename(14,38): warning CS7074: The CallerFilePathAttribute applied to parameter 'o' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M8([CallerMemberName,CallerFilePath,CallerLineNumber] object o = null) { Console.WriteLine(o); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("o"));
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
-        public void WarnOnCallerInfoCollisionWithBadType()
-        {
-            var source = @"
+    [Fact, WorkItem(531034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531034")]
+    public void WarnOnCallerInfoCollisionWithBadType()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5289,32 +5289,32 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
-                // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int").WithLocation(7, 38),
-                // C:\filename(7,53): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
-                //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(7, 53),
-                // C:\filename(8,21): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
-                //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(8, 21),
-                // C:\filename(8,38): warning CS7082: The CallerFilePathAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("s").WithLocation(8, 38),
-                // C:\filename(8,53): warning CS7081: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
-                //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s").WithLocation(8, 53),
-                // C:\filename(13,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         M2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("int", "string").WithLocation(13, 9));
-        }
+        var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
+            // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+            //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int").WithLocation(7, 38),
+            // C:\filename(7,53): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+            //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(7, 53),
+            // C:\filename(8,21): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
+            //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
+            Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(8, 21),
+            // C:\filename(8,38): warning CS7082: The CallerFilePathAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("s").WithLocation(8, 38),
+            // C:\filename(8,53): warning CS7081: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
+            //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
+            Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s").WithLocation(8, 53),
+            // C:\filename(13,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         M2();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("int", "string").WithLocation(13, 9));
+    }
 
-        [WorkItem(604367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604367")]
-        [Fact]
-        public void TestCallerInfoInQuery()
-        {
-            string source =
+    [WorkItem(604367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604367")]
+    [Fact]
+    public void TestCallerInfoInQuery()
+    {
+        string source =
 @"using System;
 using System.Runtime.CompilerServices;
 
@@ -5380,17 +5380,17 @@ class Test
     public static string GetFilePath([CallerFilePath]string filePath = null) { return filePath; }
 }";
 
-            string expected = @"PASS";
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        string expected = @"PASS";
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
-        [WorkItem(152, "CodePlex")]
-        [Fact]
-        public void Bug949118_1()
-        {
-            string source =
+    [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
+    [WorkItem(152, "CodePlex")]
+    [Fact]
+    public void Bug949118_1()
+    {
+        string source =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Globalization;
@@ -5415,18 +5415,18 @@ public class Goo
 }
 ";
 
-            string expected = @"F1
+        string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
-        [WorkItem(152, "CodePlex")]
-        [Fact]
-        public void Bug949118_2()
-        {
-            string source =
+    [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
+    [WorkItem(152, "CodePlex")]
+    [Fact]
+    public void Bug949118_2()
+    {
+        string source =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Globalization;
@@ -5451,18 +5451,18 @@ public class Goo
 }
 ";
 
-            string expected = @"F1
+        string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
-        [WorkItem(152, "CodePlex")]
-        [Fact]
-        public void Bug949118_3()
-        {
-            string source =
+    [WorkItem(949118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949118")]
+    [WorkItem(152, "CodePlex")]
+    [Fact]
+    public void Bug949118_3()
+    {
+        string source =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Globalization;
@@ -5491,22 +5491,22 @@ public class Goo : I1
 }
 ";
 
-            string expected = @"F2";
-            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        string expected = @"F2";
+        var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        /// <summary>
-        /// DELIBERATE SPEC VIOLATION: The C# spec currently requires to provide caller information only in explicit invocations and query expressions.
-        /// We also provide caller information to an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer
-        /// to match the native compiler behavior and user requests. 
-        /// </summary>
-        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
-        [WorkItem(171, "CodePlex")]
-        [Fact]
-        public void Bug991476_1()
-        {
-            const string source =
+    /// <summary>
+    /// DELIBERATE SPEC VIOLATION: The C# spec currently requires to provide caller information only in explicit invocations and query expressions.
+    /// We also provide caller information to an invocation of an <c>Add</c> method generated for an element-initializer in a collection-initializer
+    /// to match the native compiler behavior and user requests. 
+    /// </summary>
+    [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
+    [WorkItem(171, "CodePlex")]
+    [Fact]
+    public void Bug991476_1()
+    {
+        const string source =
 @"using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5546,24 +5546,24 @@ class Program
     }
 }";
 
-            const string expected = @"Caller file path: C:\filename
+        const string expected = @"Caller file path: C:\filename
 C:\filename
 Caller file path: C:\filename
 C:\filename";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
-                new[] { SystemCoreRef },
-                TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+            new[] { SystemCoreRef },
+            TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
-        [WorkItem(171, "CodePlex")]
-        [Fact]
-        public void Bug991476_2()
-        {
-            const string source =
+    [WorkItem(991476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991476")]
+    [WorkItem(171, "CodePlex")]
+    [Fact]
+    public void Bug991476_2()
+    {
+        const string source =
 @"using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
@@ -5605,24 +5605,24 @@ static class E
     }
 }";
 
-            const string expected = @"11
+        const string expected = @"11
 12
 17
 Main
 21";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
-                new[] { SystemCoreRef },
-                TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
+            new[] { SystemCoreRef },
+            TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
-        [Fact]
-        public void Bug1006447_1()
-        {
-            const string vbSource =
+    [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
+    [Fact]
+    public void Bug1006447_1()
+    {
+        const string vbSource =
 @"Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -5648,9 +5648,9 @@ Public Class A
     End Property
 End Class";
 
-            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+        var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
 
-            const string csSource =
+        const string csSource =
 @"using System;
 
 class C
@@ -5666,24 +5666,24 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib461(
-                new[] { SyntaxFactory.ParseSyntaxTree(csSource, path: @"C:\filename", encoding: Encoding.UTF8) },
-                new[] { SystemCoreRef, vbReference },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            new[] { SyntaxFactory.ParseSyntaxTree(csSource, path: @"C:\filename", encoding: Encoding.UTF8) },
+            new[] { SystemCoreRef, vbReference },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput:
+        CompileAndVerify(compilation, expectedOutput:
 @"Set X(""C:\filename"")
 Set X(""C:\filename"")
 Set X(""C:\filename"")
 Get X(""C:\filename"")
 ");
-        }
+    }
 
-        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
-        [Fact]
-        public void Bug1006447_2()
-        {
-            const string source =
+    [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
+    [Fact]
+    public void Bug1006447_2()
+    {
+        const string source =
 @"using System;
 using System.Runtime.CompilerServices;
 
@@ -5703,20 +5703,20 @@ class C
     }
 }";
 
-            const string expected = "Main";
+        const string expected = "Main";
 
-            var compilation = CreateCompilationWithMscorlib461(
-                source,
-                new[] { SystemCoreRef },
-                TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        var compilation = CreateCompilationWithMscorlib461(
+            source,
+            new[] { SystemCoreRef },
+            TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
-        [Fact]
-        public void Bug1006447_3()
-        {
-            const string vbSource =
+    [WorkItem(1006447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006447")]
+    [Fact]
+    public void Bug1006447_3()
+    {
+        const string vbSource =
 @"Imports System
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
@@ -5738,9 +5738,9 @@ Public Class A
     End Property
 End Class";
 
-            var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+        var vbReference = BasicCompilationUtils.CompileToMetadata(vbSource, references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
 
-            const string csSource =
+        const string csSource =
 @"using System;
 
 class Program
@@ -5751,24 +5751,24 @@ class Program
         Console.WriteLine(from y in x select y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib461(
-                csSource,
-                new[] { SystemCoreRef, vbReference },
-                TestOptions.ReleaseExe);
+        var compilation = CreateCompilationWithMscorlib461(
+            csSource,
+            new[] { SystemCoreRef, vbReference },
+            TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput:
+        CompileAndVerify(compilation, expectedOutput:
 @"Get Select(""Main"")
 ABC
 ");
-        }
+    }
 
-        [Theory]
-        [InlineData("out")]
-        [InlineData("ref")]
-        [InlineData("in")]
-        public void CallerArgumentExpression_OnRefParameter01(string refType)
-        {
-            var comp = CreateCompilation(@$"
+    [Theory]
+    [InlineData("out")]
+    [InlineData("ref")]
+    [InlineData("in")]
+    public void CallerArgumentExpression_OnRefParameter01(string refType)
+    {
+        var comp = CreateCompilation(@$"
 using System.Runtime.CompilerServices;
 #pragma warning disable CS8321
 
@@ -5778,19 +5778,19 @@ void M(int i, [CallerArgumentExpression(""i"")] {refType} string s)
 }}
 ", targetFramework: TargetFramework.NetCoreApp);
 
-            comp.VerifyDiagnostics(
-                // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                // void M(int i, [CallerArgumentExpression("i")] ref string s)
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16)
-            );
-        }
+        comp.VerifyDiagnostics(
+            // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            // void M(int i, [CallerArgumentExpression("i")] ref string s)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16)
+        );
+    }
 
-        [Theory]
-        [InlineData("out")]
-        [InlineData("ref")]
-        public void CallerArgumentExpression_OnRefParameter02(string refType)
-        {
-            var comp = CreateCompilation(@$"
+    [Theory]
+    [InlineData("out")]
+    [InlineData("ref")]
+    public void CallerArgumentExpression_OnRefParameter02(string refType)
+    {
+        var comp = CreateCompilation(@$"
 using System.Runtime.CompilerServices;
 #pragma warning disable CS8321
 
@@ -5800,20 +5800,20 @@ void M(int i, [CallerArgumentExpression(""i"")] {refType} string s = null)
 }}
 ", targetFramework: TargetFramework.NetCoreApp);
 
-            comp.VerifyDiagnostics(
-                // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                // void M(int i, [CallerArgumentExpression("i")] out string s = null)
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16),
-                // (5,47): error CS1741: A ref or out parameter cannot have a default value
-                // void M(int i, [CallerArgumentExpression("i")] out string s = null)
-                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, refType).WithLocation(5, 47)
-            );
-        }
+        comp.VerifyDiagnostics(
+            // (5,16): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            // void M(int i, [CallerArgumentExpression("i")] out string s = null)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 16),
+            // (5,47): error CS1741: A ref or out parameter cannot have a default value
+            // void M(int i, [CallerArgumentExpression("i")] out string s = null)
+            Diagnostic(ErrorCode.ERR_RefOutDefaultValue, refType).WithLocation(5, 47)
+        );
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void CallerArgumentExpression_OnRefParameter03()
-        {
-            var comp = CreateCompilation(@"
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void CallerArgumentExpression_OnRefParameter03()
+    {
+        var comp = CreateCompilation(@"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5825,13 +5825,13 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
 }
 ", targetFramework: TargetFramework.NetCoreApp);
 
-            CompileAndVerify(comp, expectedOutput: "1 + 1").VerifyDiagnostics();
-        }
+        CompileAndVerify(comp, expectedOutput: "1 + 1").VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void CallerArgumentExpression_Cycle()
-        {
-            string source =
+    [Fact]
+    public void CallerArgumentExpression_Cycle()
+    {
+        string source =
 @"namespace System.Runtime.CompilerServices
 {
     public sealed class CallerArgumentExpressionAttribute : Attribute
@@ -5843,112 +5843,111 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
         public string ParameterName { get; }
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
-                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 51));
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+            //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
+            Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 51));
+    }
 
-        [Fact]
-        public void CallerMemberName_SetterValueParam()
-        {
-            // There is no way in C# to call a setter without passing an argument for the value, so the CallerMemberName effectively does nothing.
-            var source = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
+    [Fact]
+    public void CallerMemberName_SetterValueParam()
+    {
+        // There is no way in C# to call a setter without passing an argument for the value, so the CallerMemberName effectively does nothing.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
 
-                public partial class C
-                {
-                    public static void Main()
-                    {
-                        var c = new C();
-                        c[1] = "1";
-                    }
-
-                    public string this[int x]
-                    {
-                        [param: Optional, DefaultParameterValue("0")]
-                        [param: CallerMemberName]
-                        set
-                        {
-                            Console.Write(value);
-                        }
-                    }
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
-            verifier.VerifyDiagnostics();
-
-            var source1 = """
-                class D
-                {
-                    void M()
-                    {
-                        var c = new C();
-                        c.set_Item(1);
-                    }
-                }
-                """;
-            var comp1 = CreateCompilation(source1, references: [verifier.Compilation.EmitToImageReference()]);
-            comp1.VerifyEmitDiagnostics(
-                // (6,11): error CS0571: 'C.this[int].set': cannot explicitly call operator or accessor
-                //         c.set_Item(1);
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("C.this[int].set").WithLocation(6, 11));
-        }
-
-        [Fact]
-        public void CallerArgumentExpression_SetterValueParam()
-        {
-            var source = """
-                using System;
-                using System.Runtime.CompilerServices;
-
-                namespace System.Runtime.CompilerServices
-                {
-                    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
-                    public sealed class CallerArgumentExpressionAttribute : Attribute
-                    {
-                        public CallerArgumentExpressionAttribute(string parameterName)
-                        {
-                            ParameterName = parameterName;
-                        }
-                        public string ParameterName { get; }
-                    }
-                }
-
-                partial class C
-                {
-                    public static void Main()
-                    {
-                        var c = new C();
-                        c[1] = GetNumber();
-                    }
-
-                    public static int GetNumber() => 1;
-
-                    public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
-                    {
-                        set
-                        {
-                            Console.Write(argumentExpression);
-                        }
-                    }
-                }
-                """;
-            var verifier = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verify);
-            verifier.VerifyDiagnostics(
-                // (27,29): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect. It is applied with an invalid parameter name.
-                //     public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("argumentExpression").WithLocation(27, 29));
-
-            void verify(ModuleSymbol module)
+            public partial class C
             {
-                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
-                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("value")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                public static void Main()
+                {
+                    var c = new C();
+                    c[1] = "1";
+                }
+
+                public string this[int x]
+                {
+                    [param: Optional, DefaultParameterValue("0")]
+                    [param: CallerMemberName]
+                    set
+                    {
+                        Console.Write(value);
+                    }
+                }
             }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+
+        var source1 = """
+            class D
+            {
+                void M()
+                {
+                    var c = new C();
+                    c.set_Item(1);
+                }
+            }
+            """;
+        var comp1 = CreateCompilation(source1, references: [verifier.Compilation.EmitToImageReference()]);
+        comp1.VerifyEmitDiagnostics(
+            // (6,11): error CS0571: 'C.this[int].set': cannot explicitly call operator or accessor
+            //         c.set_Item(1);
+            Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("C.this[int].set").WithLocation(6, 11));
+    }
+
+    [Fact]
+    public void CallerArgumentExpression_SetterValueParam()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                public sealed class CallerArgumentExpressionAttribute : Attribute
+                {
+                    public CallerArgumentExpressionAttribute(string parameterName)
+                    {
+                        ParameterName = parameterName;
+                    }
+                    public string ParameterName { get; }
+                }
+            }
+
+            partial class C
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c[1] = GetNumber();
+                }
+
+                public static int GetNumber() => 1;
+
+                public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+                {
+                    set
+                    {
+                        Console.Write(argumentExpression);
+                    }
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verify);
+        verifier.VerifyDiagnostics(
+            // (27,29): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect. It is applied with an invalid parameter name.
+            //     public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("argumentExpression").WithLocation(27, 29));
+
+        void verify(ModuleSymbol module)
+        {
+            var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+            AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("value")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
         }
     }
 }

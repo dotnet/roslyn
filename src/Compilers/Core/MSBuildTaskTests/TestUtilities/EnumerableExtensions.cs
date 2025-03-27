@@ -5,17 +5,16 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
+namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
+
+public static class EnumerableExtensions
 {
-    public static class EnumerableExtensions
+    public static IEnumerable<S> SelectWithIndex<T, S>(this IEnumerable<T> items, Func<T, int, S> selector)
     {
-        public static IEnumerable<S> SelectWithIndex<T, S>(this IEnumerable<T> items, Func<T, int, S> selector)
+        int i = 0;
+        foreach (var item in items)
         {
-            int i = 0;
-            foreach (var item in items)
-            {
-                yield return selector(item, i++);
-            }
+            yield return selector(item, i++);
         }
     }
 }

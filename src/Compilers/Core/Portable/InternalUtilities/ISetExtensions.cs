@@ -5,52 +5,51 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class ISetExtensions
 {
-    internal static class ISetExtensions
+    public static bool AddAll<T>(this ISet<T> set, IEnumerable<T> values)
     {
-        public static bool AddAll<T>(this ISet<T> set, IEnumerable<T> values)
+        var result = false;
+        foreach (var v in values)
         {
-            var result = false;
-            foreach (var v in values)
-            {
-                result |= set.Add(v);
-            }
-
-            return result;
+            result |= set.Add(v);
         }
 
-        public static bool AddAll<T>(this ISet<T> set, ImmutableArray<T> values)
-        {
-            var result = false;
-            foreach (var v in values)
-            {
-                result |= set.Add(v);
-            }
+        return result;
+    }
 
-            return result;
+    public static bool AddAll<T>(this ISet<T> set, ImmutableArray<T> values)
+    {
+        var result = false;
+        foreach (var v in values)
+        {
+            result |= set.Add(v);
         }
 
-        public static bool RemoveAll<T>(this ISet<T> set, IEnumerable<T> values)
-        {
-            var result = false;
-            foreach (var v in values)
-            {
-                result |= set.Remove(v);
-            }
+        return result;
+    }
 
-            return result;
+    public static bool RemoveAll<T>(this ISet<T> set, IEnumerable<T> values)
+    {
+        var result = false;
+        foreach (var v in values)
+        {
+            result |= set.Remove(v);
         }
 
-        public static bool RemoveAll<T>(this ISet<T> set, ImmutableArray<T> values)
-        {
-            var result = false;
-            foreach (var v in values)
-            {
-                result |= set.Remove(v);
-            }
+        return result;
+    }
 
-            return result;
+    public static bool RemoveAll<T>(this ISet<T> set, ImmutableArray<T> values)
+    {
+        var result = false;
+        foreach (var v in values)
+        {
+            result |= set.Remove(v);
         }
+
+        return result;
     }
 }

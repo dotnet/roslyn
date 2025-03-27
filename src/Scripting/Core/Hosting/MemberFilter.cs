@@ -7,11 +7,10 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting;
+
+internal class MemberFilter
 {
-    internal class MemberFilter
-    {
-        public virtual bool Include(StackFrame frame) => Include(frame.GetMethod());
-        public virtual bool Include(MemberInfo member) => true;
-    }
+    public virtual bool Include(StackFrame frame) => Include(frame.GetMethod());
+    public virtual bool Include(MemberInfo member) => true;
 }

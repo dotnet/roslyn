@@ -11,94 +11,93 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Emit
+namespace Microsoft.CodeAnalysis.Emit;
+
+internal readonly struct AnonymousTypeKeyField : IEquatable<AnonymousTypeKeyField>
 {
-    internal readonly struct AnonymousTypeKeyField : IEquatable<AnonymousTypeKeyField>
+    /// <summary>
+    /// Name of the anonymous type field.
+    /// </summary>
+    internal readonly string Name;
+
+    /// <summary>
+    /// True if the anonymous type field was marked as 'Key' in VB.
+    /// </summary>
+    internal readonly bool IsKey;
+
+    /// <summary>
+    /// <see cref="Name"/> is case insensitive.
+    /// </summary>
+    internal readonly bool IgnoreCase;
+
+    public AnonymousTypeKeyField(string name, bool isKey, bool ignoreCase)
     {
-        /// <summary>
-        /// Name of the anonymous type field.
-        /// </summary>
-        internal readonly string Name;
+        Debug.Assert(name != null);
 
-        /// <summary>
-        /// True if the anonymous type field was marked as 'Key' in VB.
-        /// </summary>
-        internal readonly bool IsKey;
-
-        /// <summary>
-        /// <see cref="Name"/> is case insensitive.
-        /// </summary>
-        internal readonly bool IgnoreCase;
-
-        public AnonymousTypeKeyField(string name, bool isKey, bool ignoreCase)
-        {
-            Debug.Assert(name != null);
-
-            Name = name;
-            IsKey = isKey;
-            IgnoreCase = ignoreCase;
-        }
-
-        public bool Equals(AnonymousTypeKeyField other)
-        {
-            return IsKey == other.IsKey &&
-                   IgnoreCase == other.IgnoreCase &&
-                   (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Equals(Name, other.Name);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals((AnonymousTypeKeyField)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(IsKey,
-                   Hash.Combine(IgnoreCase,
-                   (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).GetHashCode(Name)));
-        }
+        Name = name;
+        IsKey = isKey;
+        IgnoreCase = ignoreCase;
     }
 
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal readonly struct AnonymousTypeKey : IEquatable<AnonymousTypeKey>
+    public bool Equals(AnonymousTypeKeyField other)
     {
-        internal readonly bool IsDelegate;
-        internal readonly ImmutableArray<AnonymousTypeKeyField> Fields;
+        return IsKey == other.IsKey &&
+               IgnoreCase == other.IgnoreCase &&
+               (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Equals(Name, other.Name);
+    }
 
-        internal AnonymousTypeKey(ImmutableArray<AnonymousTypeKeyField> fields, bool isDelegate = false)
-        {
-            this.IsDelegate = isDelegate;
-            this.Fields = fields;
-        }
+    public override bool Equals(object obj)
+    {
+        return Equals((AnonymousTypeKeyField)obj);
+    }
 
-        public bool Equals(AnonymousTypeKey other)
-        {
-            return (this.IsDelegate == other.IsDelegate) && this.Fields.SequenceEqual(other.Fields);
-        }
+    public override int GetHashCode()
+    {
+        return Hash.Combine(IsKey,
+               Hash.Combine(IgnoreCase,
+               (IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).GetHashCode(Name)));
+    }
+}
 
-        public override bool Equals(object obj)
-        {
-            return this.Equals((AnonymousTypeKey)obj);
-        }
+[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+internal readonly struct AnonymousTypeKey : IEquatable<AnonymousTypeKey>
+{
+    internal readonly bool IsDelegate;
+    internal readonly ImmutableArray<AnonymousTypeKeyField> Fields;
 
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.IsDelegate.GetHashCode(), Hash.CombineValues(this.Fields));
-        }
+    internal AnonymousTypeKey(ImmutableArray<AnonymousTypeKeyField> fields, bool isDelegate = false)
+    {
+        this.IsDelegate = isDelegate;
+        this.Fields = fields;
+    }
 
-        private string GetDebuggerDisplay()
+    public bool Equals(AnonymousTypeKey other)
+    {
+        return (this.IsDelegate == other.IsDelegate) && this.Fields.SequenceEqual(other.Fields);
+    }
+
+    public override bool Equals(object obj)
+    {
+        return this.Equals((AnonymousTypeKey)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return Hash.Combine(this.IsDelegate.GetHashCode(), Hash.CombineValues(this.Fields));
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        var pooledBuilder = PooledStringBuilder.GetInstance();
+        var builder = pooledBuilder.Builder;
+        for (int i = 0; i < this.Fields.Length; i++)
         {
-            var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
-            for (int i = 0; i < this.Fields.Length; i++)
+            if (i > 0)
             {
-                if (i > 0)
-                {
-                    builder.Append('|');
-                }
-                builder.Append(this.Fields[i].Name);
+                builder.Append('|');
             }
-            return pooledBuilder.ToStringAndFree();
+            builder.Append(this.Fields[i].Name);
         }
+        return pooledBuilder.ToStringAndFree();
     }
 }

@@ -12,18 +12,17 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+public sealed class CompilerTraitDiscoverer : ITraitDiscoverer
 {
-    public sealed class CompilerTraitDiscoverer : ITraitDiscoverer
+    public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
     {
-        public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
+        var array = (CompilerFeature[])traitAttribute.GetConstructorArguments().Single();
+        foreach (var feature in array)
         {
-            var array = (CompilerFeature[])traitAttribute.GetConstructorArguments().Single();
-            foreach (var feature in array)
-            {
-                var value = feature.ToString();
-                yield return new KeyValuePair<string, string>("Compiler", value);
-            }
+            var value = feature.ToString();
+            yield return new KeyValuePair<string, string>("Compiler", value);
         }
     }
 }

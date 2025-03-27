@@ -5,71 +5,70 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This binder provides a context for binding within a specific compilation unit, but outside of top-level statements.
+/// It ensures that locals are in scope, however it is not responsible
+/// for creating the symbols. That task is actually owned by <see cref="SimpleProgramBinder"/> and
+/// this binder simply delegates to it when appropriate. That ensures that the same set of symbols is 
+/// shared across all compilation units.
+/// </summary>
+internal sealed class SimpleProgramUnitBinder : LocalScopeBinder
 {
-    /// <summary>
-    /// This binder provides a context for binding within a specific compilation unit, but outside of top-level statements.
-    /// It ensures that locals are in scope, however it is not responsible
-    /// for creating the symbols. That task is actually owned by <see cref="SimpleProgramBinder"/> and
-    /// this binder simply delegates to it when appropriate. That ensures that the same set of symbols is 
-    /// shared across all compilation units.
-    /// </summary>
-    internal sealed class SimpleProgramUnitBinder : LocalScopeBinder
+    private readonly SimpleProgramBinder _scope;
+    public SimpleProgramUnitBinder(Binder enclosing, SimpleProgramBinder scope)
+        : base(enclosing, enclosing.Flags)
     {
-        private readonly SimpleProgramBinder _scope;
-        public SimpleProgramUnitBinder(Binder enclosing, SimpleProgramBinder scope)
-            : base(enclosing, enclosing.Flags)
-        {
-            _scope = scope;
-        }
+        _scope = scope;
+    }
 
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            return _scope.Locals;
-        }
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        return _scope.Locals;
+    }
 
-        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
-        {
-            return _scope.LocalFunctions;
-        }
+    protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+    {
+        return _scope.LocalFunctions;
+    }
 
-        internal override bool IsLocalFunctionsScopeBinder
+    internal override bool IsLocalFunctionsScopeBinder
+    {
+        get
         {
-            get
-            {
-                return _scope.IsLocalFunctionsScopeBinder;
-            }
+            return _scope.IsLocalFunctionsScopeBinder;
         }
+    }
 
-        protected override ImmutableArray<LabelSymbol> BuildLabels()
-        {
-            return ImmutableArray<LabelSymbol>.Empty;
-        }
+    protected override ImmutableArray<LabelSymbol> BuildLabels()
+    {
+        return ImmutableArray<LabelSymbol>.Empty;
+    }
 
-        internal override bool IsLabelsScopeBinder
+    internal override bool IsLabelsScopeBinder
+    {
+        get
         {
-            get
-            {
-                return false;
-            }
+            return false;
         }
+    }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            return _scope.GetDeclaredLocalsForScope(scopeDesignator);
-        }
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        return _scope.GetDeclaredLocalsForScope(scopeDesignator);
+    }
 
-        internal override SyntaxNode? ScopeDesignator
+    internal override SyntaxNode? ScopeDesignator
+    {
+        get
         {
-            get
-            {
-                return _scope.ScopeDesignator;
-            }
+            return _scope.ScopeDesignator;
         }
+    }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            return _scope.GetDeclaredLocalFunctionsForScope(scopeDesignator);
-        }
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        return _scope.GetDeclaredLocalFunctionsForScope(scopeDesignator);
     }
 }

@@ -5,78 +5,77 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Interactive
+namespace Microsoft.CodeAnalysis.UnitTests.Interactive;
+
+internal sealed class SynchronizedStringWriter : StringWriter
 {
-    internal sealed class SynchronizedStringWriter : StringWriter
+    public readonly object SyncRoot = new object();
+
+    public override void Write(char value)
     {
-        public readonly object SyncRoot = new object();
-
-        public override void Write(char value)
+        lock (SyncRoot)
         {
-            lock (SyncRoot)
-            {
-                base.Write(value);
-            }
+            base.Write(value);
         }
+    }
 
-        public override void Write(string? value)
+    public override void Write(string? value)
+    {
+        lock (SyncRoot)
         {
-            lock (SyncRoot)
-            {
-                base.Write(value);
-            }
+            base.Write(value);
         }
+    }
 
-        public override void Write(char[] buffer, int index, int count)
+    public override void Write(char[] buffer, int index, int count)
+    {
+        lock (SyncRoot)
         {
-            lock (SyncRoot)
-            {
-                base.Write(buffer, index, count);
-            }
+            base.Write(buffer, index, count);
         }
+    }
 
-        public override string ToString()
+    public override string ToString()
+    {
+        lock (SyncRoot)
         {
-            lock (SyncRoot)
-            {
-                return base.ToString();
-            }
+            return base.ToString();
         }
+    }
 
-        public string? Prefix(string mark, ref int start)
+    public string? Prefix(string mark, ref int start)
+    {
+        Debug.Assert(!string.IsNullOrEmpty(mark));
+
+        lock (SyncRoot)
         {
-            Debug.Assert(!string.IsNullOrEmpty(mark));
+            var builder = GetStringBuilder();
 
-            lock (SyncRoot)
+            for (int i = start, n = builder.Length - mark.Length; i <= n; i++)
             {
-                var builder = GetStringBuilder();
-
-                for (int i = start, n = builder.Length - mark.Length; i <= n; i++)
+                int j = 0;
+                while (j < mark.Length && builder[i + j] == mark[j])
                 {
-                    int j = 0;
-                    while (j < mark.Length && builder[i + j] == mark[j])
-                    {
-                        j++;
-                    }
-
-                    if (j == mark.Length)
-                    {
-                        var result = builder.ToString(start, i - start);
-                        start = i + j;
-                        return result;
-                    }
+                    j++;
                 }
 
-                return null;
+                if (j == mark.Length)
+                {
+                    var result = builder.ToString(start, i - start);
+                    start = i + j;
+                    return result;
+                }
             }
-        }
 
-        public void Clear()
+            return null;
+        }
+    }
+
+    public void Clear()
+    {
+        lock (SyncRoot)
         {
-            lock (SyncRoot)
-            {
-                GetStringBuilder().Clear();
-            }
+            GetStringBuilder().Clear();
         }
     }
 }

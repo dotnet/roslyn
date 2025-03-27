@@ -4,88 +4,87 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// A distinct scope that may expose extension methods. For a particular Binder,  there
+/// are two possible scopes: one for the namespace, and another for any using statements
+/// in the namespace. The namespace scope is searched before the using scope.
+/// </summary>
+internal readonly struct ExtensionMethodScope
 {
-    /// <summary>
-    /// A distinct scope that may expose extension methods. For a particular Binder,  there
-    /// are two possible scopes: one for the namespace, and another for any using statements
-    /// in the namespace. The namespace scope is searched before the using scope.
-    /// </summary>
-    internal readonly struct ExtensionMethodScope
-    {
-        public readonly Binder Binder;
+    public readonly Binder Binder;
 
-        public ExtensionMethodScope(Binder binder)
-        {
-            this.Binder = binder;
-        }
+    public ExtensionMethodScope(Binder binder)
+    {
+        this.Binder = binder;
+    }
+}
+
+/// <summary>
+/// An enumerable collection of extension method scopes in search
+/// order, from the given Binder, out through containing Binders.
+/// </summary>
+internal readonly struct ExtensionMethodScopes
+{
+    private readonly Binder _binder;
+
+    public ExtensionMethodScopes(Binder binder)
+    {
+        _binder = binder;
     }
 
-    /// <summary>
-    /// An enumerable collection of extension method scopes in search
-    /// order, from the given Binder, out through containing Binders.
-    /// </summary>
-    internal readonly struct ExtensionMethodScopes
+    public ExtensionMethodScopeEnumerator GetEnumerator()
     {
-        private readonly Binder _binder;
+        return new ExtensionMethodScopeEnumerator(_binder);
+    }
+}
 
-        public ExtensionMethodScopes(Binder binder)
-        {
-            _binder = binder;
-        }
+/// <summary>
+/// An enumerator over ExtensionMethodScopes.
+/// </summary>
+internal struct ExtensionMethodScopeEnumerator
+{
+    private readonly Binder _binder;
+    private ExtensionMethodScope _current;
 
-        public ExtensionMethodScopeEnumerator GetEnumerator()
-        {
-            return new ExtensionMethodScopeEnumerator(_binder);
-        }
+    public ExtensionMethodScopeEnumerator(Binder binder)
+    {
+        _binder = binder;
+        _current = new ExtensionMethodScope();
     }
 
-    /// <summary>
-    /// An enumerator over ExtensionMethodScopes.
-    /// </summary>
-    internal struct ExtensionMethodScopeEnumerator
+    public ExtensionMethodScope Current
     {
-        private readonly Binder _binder;
-        private ExtensionMethodScope _current;
+        get { return _current; }
+    }
 
-        public ExtensionMethodScopeEnumerator(Binder binder)
+    public bool MoveNext()
+    {
+        if (_current.Binder == null)
         {
-            _binder = binder;
-            _current = new ExtensionMethodScope();
+            _current = GetNextScope(_binder);
+        }
+        else
+        {
+            var binder = _current.Binder;
+            // Return a scope for the next Binder that supports extension methods.
+            _current = GetNextScope(binder.Next);
         }
 
-        public ExtensionMethodScope Current
-        {
-            get { return _current; }
-        }
+        return (_current.Binder != null);
+    }
 
-        public bool MoveNext()
+    private static ExtensionMethodScope GetNextScope(Binder binder)
+    {
+        for (var scope = binder; scope != null; scope = scope.Next)
         {
-            if (_current.Binder == null)
+            if (scope.SupportsExtensionMethods)
             {
-                _current = GetNextScope(_binder);
+                return new ExtensionMethodScope(scope);
             }
-            else
-            {
-                var binder = _current.Binder;
-                // Return a scope for the next Binder that supports extension methods.
-                _current = GetNextScope(binder.Next);
-            }
-
-            return (_current.Binder != null);
         }
 
-        private static ExtensionMethodScope GetNextScope(Binder binder)
-        {
-            for (var scope = binder; scope != null; scope = scope.Next)
-            {
-                if (scope.SupportsExtensionMethods)
-                {
-                    return new ExtensionMethodScope(scope);
-                }
-            }
-
-            return new ExtensionMethodScope();
-        }
+        return new ExtensionMethodScope();
     }
 }

@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal enum LambdaConversionResult
 {
-    internal enum LambdaConversionResult
-    {
-        Success,
-        BadTargetType,
-        BadParameterCount,
-        MissingSignatureWithOutParameter,
-        MismatchedReturnType,
-        MismatchedParameterType,
-        MismatchedParameterRefKind,
-        StaticTypeInImplicitlyTypedLambda,
-        ExpressionTreeMustHaveDelegateTypeArgument,
-        ExpressionTreeFromAnonymousMethod,
-        BindingFailed
-    }
+    Success,
+    BadTargetType,
+    BadParameterCount,
+    MissingSignatureWithOutParameter,
+    MismatchedReturnType,
+    MismatchedParameterType,
+    MismatchedParameterRefKind,
+    StaticTypeInImplicitlyTypedLambda,
+    ExpressionTreeMustHaveDelegateTypeArgument,
+    ExpressionTreeFromAnonymousMethod,
+    BindingFailed
 }

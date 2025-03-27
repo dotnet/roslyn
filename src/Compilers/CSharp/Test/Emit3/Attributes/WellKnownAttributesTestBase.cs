@@ -22,85 +22,84 @@ using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public abstract class WellKnownAttributesTestBase : EmitMetadataTestBase
 {
-    public abstract class WellKnownAttributesTestBase : EmitMetadataTestBase
+    internal NamespaceSymbol Get_System_Runtime_InteropServices_NamespaceSymbol(ModuleSymbol m)
     {
-        internal NamespaceSymbol Get_System_Runtime_InteropServices_NamespaceSymbol(ModuleSymbol m)
+        NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
+        return Get_System_Runtime_InteropServices_NamespaceSymbol(sysNS);
+    }
+
+    internal NamespaceSymbol Get_System_Runtime_InteropServices_WindowsRuntime_NamespaceSymbol(ModuleSymbol m)
+    {
+        NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
+        return interopNS.GetMember<NamespaceSymbol>("WindowsRuntime");
+    }
+
+    internal NamespaceSymbol Get_System_Runtime_InteropServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
+    {
+        var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
+        return runtimeNS.GetMember<NamespaceSymbol>("InteropServices");
+    }
+
+    internal NamespaceSymbol Get_System_Runtime_CompilerServices_NamespaceSymbol(ModuleSymbol m)
+    {
+        NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
+        return Get_System_Runtime_CompilerServices_NamespaceSymbol(sysNS);
+    }
+
+    internal NamespaceSymbol Get_System_Runtime_CompilerServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
+    {
+        var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
+        return runtimeNS.GetMember<NamespaceSymbol>("CompilerServices");
+    }
+
+    internal NamespaceSymbol Get_System_Diagnostics_NamespaceSymbol(ModuleSymbol m)
+    {
+        NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
+        return sysNS.GetMember<NamespaceSymbol>("Diagnostics");
+    }
+
+    internal NamespaceSymbol Get_System_Security_NamespaceSymbol(ModuleSymbol m)
+    {
+        NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
+        return sysNS.GetMember<NamespaceSymbol>("Security");
+    }
+
+    internal NamespaceSymbol Get_System_NamespaceSymbol(ModuleSymbol m)
+    {
+        var assembly = m.ContainingSymbol;
+        SourceAssemblySymbol sourceAssembly = assembly as SourceAssemblySymbol;
+        if (sourceAssembly != null)
         {
-            NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
-            return Get_System_Runtime_InteropServices_NamespaceSymbol(sysNS);
+            return sourceAssembly.DeclaringCompilation.GlobalNamespace.GetMember<NamespaceSymbol>("System");
         }
-
-        internal NamespaceSymbol Get_System_Runtime_InteropServices_WindowsRuntime_NamespaceSymbol(ModuleSymbol m)
+        else
         {
-            NamespaceSymbol interopNS = Get_System_Runtime_InteropServices_NamespaceSymbol(m);
-            return interopNS.GetMember<NamespaceSymbol>("WindowsRuntime");
+            var peAssembly = (PEAssemblySymbol)assembly;
+            return peAssembly.CorLibrary.GlobalNamespace.GetMember<NamespaceSymbol>("System");
         }
+    }
 
-        internal NamespaceSymbol Get_System_Runtime_InteropServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
+    internal static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
+    {
+        Assert.Equal(expected, parameter.IsParams);
+        Assert.Equal(expected, parameter.IsParamsArray);
+        Assert.False(parameter.IsParamsCollection);
+
+        var peParameter = (PEParameterSymbol)parameter;
+        var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
+        var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
+
+        if (expected)
         {
-            var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
-            return runtimeNS.GetMember<NamespaceSymbol>("InteropServices");
+            Assert.Equal(1, paramArrayAttributes.Count());
         }
-
-        internal NamespaceSymbol Get_System_Runtime_CompilerServices_NamespaceSymbol(ModuleSymbol m)
+        else
         {
-            NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
-            return Get_System_Runtime_CompilerServices_NamespaceSymbol(sysNS);
-        }
-
-        internal NamespaceSymbol Get_System_Runtime_CompilerServices_NamespaceSymbol(NamespaceSymbol systemNamespace)
-        {
-            var runtimeNS = systemNamespace.GetMember<NamespaceSymbol>("Runtime");
-            return runtimeNS.GetMember<NamespaceSymbol>("CompilerServices");
-        }
-
-        internal NamespaceSymbol Get_System_Diagnostics_NamespaceSymbol(ModuleSymbol m)
-        {
-            NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
-            return sysNS.GetMember<NamespaceSymbol>("Diagnostics");
-        }
-
-        internal NamespaceSymbol Get_System_Security_NamespaceSymbol(ModuleSymbol m)
-        {
-            NamespaceSymbol sysNS = Get_System_NamespaceSymbol(m);
-            return sysNS.GetMember<NamespaceSymbol>("Security");
-        }
-
-        internal NamespaceSymbol Get_System_NamespaceSymbol(ModuleSymbol m)
-        {
-            var assembly = m.ContainingSymbol;
-            SourceAssemblySymbol sourceAssembly = assembly as SourceAssemblySymbol;
-            if (sourceAssembly != null)
-            {
-                return sourceAssembly.DeclaringCompilation.GlobalNamespace.GetMember<NamespaceSymbol>("System");
-            }
-            else
-            {
-                var peAssembly = (PEAssemblySymbol)assembly;
-                return peAssembly.CorLibrary.GlobalNamespace.GetMember<NamespaceSymbol>("System");
-            }
-        }
-
-        internal static void VerifyParamArrayAttribute(ParameterSymbol parameter, bool expected = true)
-        {
-            Assert.Equal(expected, parameter.IsParams);
-            Assert.Equal(expected, parameter.IsParamsArray);
-            Assert.False(parameter.IsParamsCollection);
-
-            var peParameter = (PEParameterSymbol)parameter;
-            var allAttributes = ((PEModuleSymbol)parameter.ContainingModule).GetCustomAttributesForToken(peParameter.Handle);
-            var paramArrayAttributes = allAttributes.Where(a => a.AttributeClass.ToTestDisplayString() == "System.ParamArrayAttribute");
-
-            if (expected)
-            {
-                Assert.Equal(1, paramArrayAttributes.Count());
-            }
-            else
-            {
-                Assert.Empty(paramArrayAttributes);
-            }
+            Assert.Empty(paramArrayAttributes);
         }
     }
 }

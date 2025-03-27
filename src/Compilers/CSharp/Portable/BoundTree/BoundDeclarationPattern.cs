@@ -4,15 +4,14 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class BoundDeclarationPattern
 {
-    internal partial class BoundDeclarationPattern
+    private partial void Validate()
     {
-        private partial void Validate()
-        {
-            Debug.Assert(DeclaredType is null ?
-                         NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) :
-                         NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
-        }
+        Debug.Assert(DeclaredType is null ?
+                     NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) :
+                     NarrowedType.Equals(DeclaredType.Type, TypeCompareKind.AllIgnoreOptions));
     }
 }

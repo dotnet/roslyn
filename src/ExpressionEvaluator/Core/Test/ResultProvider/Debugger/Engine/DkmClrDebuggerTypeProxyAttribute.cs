@@ -11,16 +11,15 @@
 
 using Microsoft.VisualStudio.Debugger.Clr;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
-{
-    public class DkmClrDebuggerTypeProxyAttribute : DkmClrEvalAttribute
-    {
-        internal DkmClrDebuggerTypeProxyAttribute(DkmClrType proxyType) :
-            base(null)
-        {
-            this.ProxyType = proxyType;
-        }
+namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
-        public readonly DkmClrType ProxyType;
+public class DkmClrDebuggerTypeProxyAttribute : DkmClrEvalAttribute
+{
+    internal DkmClrDebuggerTypeProxyAttribute(DkmClrType proxyType) :
+        base(null)
+    {
+        this.ProxyType = proxyType;
     }
+
+    public readonly DkmClrType ProxyType;
 }

@@ -8,26 +8,25 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+
+internal sealed class CSharpCompileResult : CompileResult
 {
-    internal sealed class CSharpCompileResult : CompileResult
+    private readonly MethodSymbol _method;
+
+    internal CSharpCompileResult(
+        byte[] assembly,
+        MethodSymbol method,
+        ReadOnlyCollection<string>? formatSpecifiers)
+        : base(assembly, method.ContainingType.MetadataName, method.MetadataName, formatSpecifiers)
     {
-        private readonly MethodSymbol _method;
+        Debug.Assert(method is EEMethodSymbol); // Expected but not required.
+        _method = method;
+    }
 
-        internal CSharpCompileResult(
-            byte[] assembly,
-            MethodSymbol method,
-            ReadOnlyCollection<string>? formatSpecifiers)
-            : base(assembly, method.ContainingType.MetadataName, method.MetadataName, formatSpecifiers)
-        {
-            Debug.Assert(method is EEMethodSymbol); // Expected but not required.
-            _method = method;
-        }
-
-        public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload)
-        {
-            payload = _method.GetCustomTypeInfoPayload();
-            return (payload == null) ? default : CustomTypeInfo.PayloadTypeId;
-        }
+    public override Guid GetCustomTypeInfo(out ReadOnlyCollection<byte>? payload)
+    {
+        payload = _method.GetCustomTypeInfoPayload();
+        return (payload == null) ? default : CustomTypeInfo.PayloadTypeId;
     }
 }

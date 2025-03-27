@@ -4,35 +4,34 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal class SyntaxNodeLocationComparer : IComparer<SyntaxNode>
 {
-    internal class SyntaxNodeLocationComparer : IComparer<SyntaxNode>
+    private readonly Compilation _compilation;
+
+    public SyntaxNodeLocationComparer(Compilation compilation)
     {
-        private readonly Compilation _compilation;
-
-        public SyntaxNodeLocationComparer(Compilation compilation)
+        _compilation = compilation;
+    }
+    public int Compare(SyntaxNode? x, SyntaxNode? y)
+    {
+        if (x is null)
         {
-            _compilation = compilation;
+            if (y is null)
+            {
+                return 0;
+            }
+
+            return -1;
         }
-        public int Compare(SyntaxNode? x, SyntaxNode? y)
+        else if (y is null)
         {
-            if (x is null)
-            {
-                if (y is null)
-                {
-                    return 0;
-                }
-
-                return -1;
-            }
-            else if (y is null)
-            {
-                return 1;
-            }
-            else
-            {
-                return _compilation.CompareSourceLocations(x, y);
-            }
+            return 1;
+        }
+        else
+        {
+            return _compilation.CompareSourceLocations(x, y);
         }
     }
 }

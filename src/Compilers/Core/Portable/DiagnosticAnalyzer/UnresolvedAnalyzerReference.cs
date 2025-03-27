@@ -5,60 +5,59 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// Represents an analyzer reference that can't be resolved.
+/// </summary>
+/// <remarks>
+/// For error reporting only, can't be used to reference an analyzer assembly.
+/// </remarks>
+public sealed class UnresolvedAnalyzerReference : AnalyzerReference
 {
-    /// <summary>
-    /// Represents an analyzer reference that can't be resolved.
-    /// </summary>
-    /// <remarks>
-    /// For error reporting only, can't be used to reference an analyzer assembly.
-    /// </remarks>
-    public sealed class UnresolvedAnalyzerReference : AnalyzerReference
+    private readonly string _unresolvedPath;
+
+    public UnresolvedAnalyzerReference(string unresolvedPath)
     {
-        private readonly string _unresolvedPath;
-
-        public UnresolvedAnalyzerReference(string unresolvedPath)
+        if (unresolvedPath == null)
         {
-            if (unresolvedPath == null)
-            {
-                throw new ArgumentNullException(nameof(unresolvedPath));
-            }
-
-            _unresolvedPath = unresolvedPath;
+            throw new ArgumentNullException(nameof(unresolvedPath));
         }
 
-        public override string Display
-        {
-            get
-            {
-                return CodeAnalysisResources.Unresolved + FullPath;
-            }
-        }
+        _unresolvedPath = unresolvedPath;
+    }
 
-        public override string FullPath
+    public override string Display
+    {
+        get
         {
-            get
-            {
-                return _unresolvedPath;
-            }
+            return CodeAnalysisResources.Unresolved + FullPath;
         }
+    }
 
-        public override object Id
+    public override string FullPath
+    {
+        get
         {
-            get
-            {
-                return _unresolvedPath;
-            }
+            return _unresolvedPath;
         }
+    }
 
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+    public override object Id
+    {
+        get
         {
-            return ImmutableArray<DiagnosticAnalyzer>.Empty;
+            return _unresolvedPath;
         }
+    }
 
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-        {
-            return ImmutableArray<DiagnosticAnalyzer>.Empty;
-        }
+    public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+    {
+        return ImmutableArray<DiagnosticAnalyzer>.Empty;
+    }
+
+    public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
+    {
+        return ImmutableArray<DiagnosticAnalyzer>.Empty;
     }
 }

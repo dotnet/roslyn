@@ -8,75 +8,74 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
+
+internal sealed class EETypeNameDecoder : TypeNameDecoder<PEModuleSymbol, TypeSymbol>
 {
-    internal sealed class EETypeNameDecoder : TypeNameDecoder<PEModuleSymbol, TypeSymbol>
+    private readonly CSharpCompilation _compilation;
+
+    internal EETypeNameDecoder(CSharpCompilation compilation, PEModuleSymbol moduleSymbol) :
+        base(SymbolFactory.Instance, moduleSymbol)
     {
-        private readonly CSharpCompilation _compilation;
+        _compilation = compilation;
+    }
 
-        internal EETypeNameDecoder(CSharpCompilation compilation, PEModuleSymbol moduleSymbol) :
-            base(SymbolFactory.Instance, moduleSymbol)
+    protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
+    {
+        // Find assembly matching identity.
+        int index = Module.GetReferencedAssemblies().IndexOf(identity);
+        if (index >= 0)
         {
-            _compilation = compilation;
+            return index;
         }
-
-        protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
+        if (identity.IsWindowsComponent())
         {
-            // Find assembly matching identity.
-            int index = Module.GetReferencedAssemblies().IndexOf(identity);
+            // Find placeholder Windows.winmd assembly (created
+            // in MetadataUtilities.MakeAssemblyReferences).
+            var assemblies = Module.GetReferencedAssemblySymbols();
+            index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), arg: (object?)null);
             if (index >= 0)
             {
-                return index;
-            }
-            if (identity.IsWindowsComponent())
-            {
-                // Find placeholder Windows.winmd assembly (created
-                // in MetadataUtilities.MakeAssemblyReferences).
-                var assemblies = Module.GetReferencedAssemblySymbols();
-                index = assemblies.IndexOf((assembly, unused) => assembly.Identity.IsWindowsRuntime(), arg: (object?)null);
-                if (index >= 0)
+                // Find module in Windows.winmd matching identity.
+                var modules = assemblies[index].Modules;
+                var moduleIndex = modules.IndexOf((m, id) => id.Equals(GetComponentAssemblyIdentity(m)), identity);
+                if (moduleIndex >= 0)
                 {
-                    // Find module in Windows.winmd matching identity.
-                    var modules = assemblies[index].Modules;
-                    var moduleIndex = modules.IndexOf((m, id) => id.Equals(GetComponentAssemblyIdentity(m)), identity);
-                    if (moduleIndex >= 0)
-                    {
-                        return index;
-                    }
+                    return index;
                 }
             }
-            return -1;
         }
-
-        protected override bool IsContainingAssembly(AssemblyIdentity identity)
-        {
-            return false;
-        }
-
-        protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
-        {
-            return container.LookupMetadataType(ref emittedName) ??
-                       new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
-        }
-
-        protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
-        {
-            var assembly = Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
-            // GetReferencedAssemblySymbol should not return null since referencedAssemblyIndex
-            // was obtained from GetIndexOfReferencedAssembly above.
-            return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
-        }
-
-        protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
-        {
-            return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
-        }
-
-        private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)
-        {
-            return ((PEModuleSymbol)module).Module.ReadAssemblyIdentityOrThrow();
-        }
-
-        private ModuleSymbol Module => _compilation.Assembly.Modules.Single();
+        return -1;
     }
+
+    protected override bool IsContainingAssembly(AssemblyIdentity identity)
+    {
+        return false;
+    }
+
+    protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
+    {
+        return container.LookupMetadataType(ref emittedName) ??
+                   new MissingMetadataTypeSymbol.Nested((NamedTypeSymbol)container, ref emittedName);
+    }
+
+    protected override TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName)
+    {
+        var assembly = Module.GetReferencedAssemblySymbol(referencedAssemblyIndex);
+        // GetReferencedAssemblySymbol should not return null since referencedAssemblyIndex
+        // was obtained from GetIndexOfReferencedAssembly above.
+        return assembly.LookupDeclaredOrForwardedTopLevelMetadataType(ref emittedName, visitedAssemblies: null);
+    }
+
+    protected override TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType)
+    {
+        return moduleSymbol.LookupTopLevelMetadataTypeWithNoPiaLocalTypeUnification(ref emittedName, out isNoPiaLocalType);
+    }
+
+    private static AssemblyIdentity GetComponentAssemblyIdentity(ModuleSymbol module)
+    {
+        return ((PEModuleSymbol)module).Module.ReadAssemblyIdentityOrThrow();
+    }
+
+    private ModuleSymbol Module => _compilation.Assembly.Modules.Single();
 }

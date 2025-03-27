@@ -4,20 +4,19 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal static class ProcessExtensions
 {
-    internal static class ProcessExtensions
+    internal static bool IsAlive(this Process process)
     {
-        internal static bool IsAlive(this Process process)
+        try
         {
-            try
-            {
-                return !process.HasExited;
-            }
-            catch
-            {
-                return false;
-            }
+            return !process.HasExited;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

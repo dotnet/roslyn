@@ -4,28 +4,27 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Roslyn.Test.Utilities
-{
-    internal sealed partial class SourceWithMarkedNodes
-    {
-        internal readonly struct MarkedSpan
-        {
-            public readonly TextSpan MarkedSyntax;
-            public readonly TextSpan MatchedSpan;
-            public readonly string TagName;
-            public readonly int SyntaxKind;
-            public readonly int Id;
-            public readonly int ParentId;
+namespace Roslyn.Test.Utilities;
 
-            public MarkedSpan(TextSpan markedSyntax, TextSpan matchedSpan, string tagName, int syntaxKind, int id, int parentId)
-            {
-                MarkedSyntax = markedSyntax;
-                MatchedSpan = matchedSpan;
-                TagName = tagName;
-                SyntaxKind = syntaxKind;
-                Id = id;
-                ParentId = parentId;
-            }
+internal sealed partial class SourceWithMarkedNodes
+{
+    internal readonly struct MarkedSpan
+    {
+        public readonly TextSpan MarkedSyntax;
+        public readonly TextSpan MatchedSpan;
+        public readonly string TagName;
+        public readonly int SyntaxKind;
+        public readonly int Id;
+        public readonly int ParentId;
+
+        public MarkedSpan(TextSpan markedSyntax, TextSpan matchedSpan, string tagName, int syntaxKind, int id, int parentId)
+        {
+            MarkedSyntax = markedSyntax;
+            MatchedSpan = matchedSpan;
+            TagName = tagName;
+            SyntaxKind = syntaxKind;
+            Id = id;
+            ParentId = parentId;
         }
     }
 }

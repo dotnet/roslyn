@@ -6,21 +6,20 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal readonly struct NamespaceOrTypeAndUsingDirective
 {
-    internal readonly struct NamespaceOrTypeAndUsingDirective
+    public readonly NamespaceOrTypeSymbol NamespaceOrType;
+    public readonly SyntaxReference? UsingDirectiveReference;
+    public readonly ImmutableArray<AssemblySymbol> Dependencies;
+
+    public NamespaceOrTypeAndUsingDirective(NamespaceOrTypeSymbol namespaceOrType, UsingDirectiveSyntax? usingDirective, ImmutableArray<AssemblySymbol> dependencies)
     {
-        public readonly NamespaceOrTypeSymbol NamespaceOrType;
-        public readonly SyntaxReference? UsingDirectiveReference;
-        public readonly ImmutableArray<AssemblySymbol> Dependencies;
-
-        public NamespaceOrTypeAndUsingDirective(NamespaceOrTypeSymbol namespaceOrType, UsingDirectiveSyntax? usingDirective, ImmutableArray<AssemblySymbol> dependencies)
-        {
-            this.NamespaceOrType = namespaceOrType;
-            this.UsingDirectiveReference = usingDirective?.GetReference();
-            this.Dependencies = dependencies.NullToEmpty();
-        }
-
-        public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
+        this.NamespaceOrType = namespaceOrType;
+        this.UsingDirectiveReference = usingDirective?.GetReference();
+        this.Dependencies = dependencies.NullToEmpty();
     }
+
+    public UsingDirectiveSyntax? UsingDirective => (UsingDirectiveSyntax?)UsingDirectiveReference?.GetSyntax();
 }

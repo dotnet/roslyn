@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class PartialTypeDocumentationCommentTests : CSharpTestBase
-    {
-        private readonly CSharpCompilation _compilation;
-        private readonly NamedTypeSymbol _gooClass;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        public PartialTypeDocumentationCommentTests()
-        {
-            var tree1 = Parse(
-                @"
+public class PartialTypeDocumentationCommentTests : CSharpTestBase
+{
+    private readonly CSharpCompilation _compilation;
+    private readonly NamedTypeSymbol _gooClass;
+
+    public PartialTypeDocumentationCommentTests()
+    {
+        var tree1 = Parse(
+            @"
 /// <summary>Summary on first file's Goo.</summary>
 partial class Goo
 {
@@ -34,8 +34,8 @@ partial class Goo
     partial void ImplementedMethod();
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            var tree2 = Parse(
-                @"
+        var tree2 = Parse(
+            @"
 /// <summary>Summary on second file's Goo.</summary>
 partial class Goo
 {
@@ -46,56 +46,55 @@ partial class Goo
     partial void ImplementedMethod() { }
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            _compilation = CreateCompilation(new[] { tree1, tree2 });
+        _compilation = CreateCompilation(new[] { tree1, tree2 });
 
-            _gooClass = _compilation.GlobalNamespace.GetTypeMembers("Goo").Single();
-        }
+        _gooClass = _compilation.GlobalNamespace.GetTypeMembers("Goo").Single();
+    }
 
-        [Fact]
-        public void TestSummaryOfType()
-        {
-            Assert.Equal(
+    [Fact]
+    public void TestSummaryOfType()
+    {
+        Assert.Equal(
 @"<member name=""T:Goo"">
     <summary>Summary on first file's Goo.</summary>
     <summary>Summary on second file's Goo.</summary>
 </member>
 ", _gooClass.GetDocumentationCommentXml());
-        }
+    }
 
-        [Fact]
-        public void TestSummaryOfMethodWithNoImplementation()
-        {
-            var method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
-            Assert.Equal(
+    [Fact]
+    public void TestSummaryOfMethodWithNoImplementation()
+    {
+        var method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
+        Assert.Equal(
 @"<member name=""M:Goo.MethodWithNoImplementation"">
     <summary>Summary on MethodWithNoImplementation.</summary>
 </member>
 ", method.GetDocumentationCommentXml());
-        }
+    }
 
-        [Fact]
-        public void TestImplementedMethodWithNoSummaryOnImpl()
-        {
-            // This is an interesting behavior; as long as there is any XML at all on the implementation, it overrides
-            // any XML on the latent declaration. Since we don't have a summary on this implementation, this should be
-            // null!
-            var method = _gooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
-            Assert.Equal(
+    [Fact]
+    public void TestImplementedMethodWithNoSummaryOnImpl()
+    {
+        // This is an interesting behavior; as long as there is any XML at all on the implementation, it overrides
+        // any XML on the latent declaration. Since we don't have a summary on this implementation, this should be
+        // null!
+        var method = _gooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
+        Assert.Equal(
 @"<member name=""M:Goo.ImplementedMethodWithNoSummaryOnImpl"">
     <remarks>Goo.</remarks>
 </member>
 ", method.GetDocumentationCommentXml());
-        }
+    }
 
-        [Fact]
-        public void TestImplementedMethod()
-        {
-            var method = _gooClass.GetMembers("ImplementedMethod").Single();
-            Assert.Equal(
+    [Fact]
+    public void TestImplementedMethod()
+    {
+        var method = _gooClass.GetMembers("ImplementedMethod").Single();
+        Assert.Equal(
 @"<member name=""M:Goo.ImplementedMethod"">
     <summary>Implemented method.</summary>
 </member>
 ", method.GetDocumentationCommentXml());
-        }
     }
 }

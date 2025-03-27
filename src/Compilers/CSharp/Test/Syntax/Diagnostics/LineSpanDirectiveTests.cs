@@ -13,20 +13,20 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class LineSpanDirectiveTests : CSharpTestBase
 {
-    public class LineSpanDirectiveTests : CSharpTestBase
+    [Fact]
+    public void LineSpanDirective_SingleLine()
     {
-        [Fact]
-        public void LineSpanDirective_SingleLine()
-        {
-            string sourceA =
+        string sourceA =
 @"         A1(); A2(); A3(); //123
 //4567890
 ".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"class Program
 {
     static void Main()
@@ -38,41 +38,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(3,7) -> : (0,0)-(3,7)",
-                "(5,0)-(9,0),14 -> a.cs: (0,15)-(0,26)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
-
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"B1();", @"[|A2(); A3();|]"),
-                (@"A2();", @"[|A2();|]"),
-                (@"A3();", @"[|A3();|]"),
-                (@"B4();", @"[|//123|]"),
-                (@"B5();", @"[|0|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
-
-        [Fact]
-        public void LineSpanDirective_MultiLine()
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
         {
-            string sourceA =
+            "(0,0)-(3,7) -> : (0,0)-(3,7)",
+            "(5,0)-(9,0),14 -> a.cs: (0,15)-(0,26)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"B1();", @"[|A2(); A3();|]"),
+            (@"A2();", @"[|A2();|]"),
+            (@"A3();", @"[|A3();|]"),
+            (@"B4();", @"[|//123|]"),
+            (@"B5();", @"[|0|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
+
+    [Fact]
+    public void LineSpanDirective_MultiLine()
+    {
+        string sourceA =
 @"         A1(); A2(); A3(); //123
 //4567890
 //ABCDEF
 ".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"class Program
 {
     static void Main()
@@ -84,37 +84,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(3,7) -> : (0,0)-(3,7)",
-                "(5,0)-(9,0),14 -> a.cs: (0,15)-(4,26)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
+        {
+            "(0,0)-(3,7) -> : (0,0)-(3,7)",
+            "(5,0)-(9,0),14 -> a.cs: (0,15)-(4,26)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"B1();", @"[|A2(); A3(); //123
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"B1();", @"[|A2(); A3(); //123
 //4567890
 //ABCDEF
 |]".NormalizeLineEndings()),
-                (@"A2();", @"[|A2();|]"),
-                (@"A3();", @"[|A3();|]"),
-                (@"B4();", @"[|//123|]"),
-                (@"B5();", @"[|0|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
+            (@"A2();", @"[|A2();|]"),
+            (@"A3();", @"[|A3();|]"),
+            (@"B4();", @"[|//123|]"),
+            (@"B5();", @"[|0|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
 
-        [Fact]
-        public void InvalidSpans()
-        {
-            string source =
+    [Fact]
+    public void InvalidSpans()
+    {
+        string source =
 @"class Program
 {
     static void Main()
@@ -131,41 +131,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     static void F() { }
 }".NormalizeLineEndings();
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilation(tree);
-            comp.VerifyDiagnostics(
-                // (9,18): error CS8939: The #line directive end position must be greater than or equal to the start position
-                // #line (10, 20) - (9, 20) "C"
-                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(9, 20)").WithLocation(9, 18),
-                // A(11,18): error CS8939: The #line directive end position must be greater than or equal to the start position
-                // #line (10, 20) - (10, 19) "B"
-                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(10, 19)").WithLocation(11, 18));
+        var tree = SyntaxFactory.ParseSyntaxTree(source);
+        var comp = CreateCompilation(tree);
+        comp.VerifyDiagnostics(
+            // (9,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+            // #line (10, 20) - (9, 20) "C"
+            Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(9, 20)").WithLocation(9, 18),
+            // A(11,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+            // #line (10, 20) - (10, 19) "B"
+            Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(10, 19)").WithLocation(11, 18));
 
-            var actualLineMappings = GetLineMappings(tree);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(3,7) -> : (0,0)-(3,7)",
-                "(5,0)-(5,14) -> A: (9,19)-(9,20)",
-                "(7,0)-(7,14) -> : (7,0)-(7,14)",
-                "(9,0)-(9,14) -> : (9,0)-(9,14)",
-                "(11,0)-(14,1) -> D: (9,19)-(10,19)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
-        }
-
-        // 1. First and subsequent spans
-        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
-        [Fact]
-        public void LineSpanDirective_Example1()
+        var actualLineMappings = GetLineMappings(tree);
+        var expectedLineMappings = new[]
         {
-            string sourceA =
+            "(0,0)-(3,7) -> : (0,0)-(3,7)",
+            "(5,0)-(5,14) -> A: (9,19)-(9,20)",
+            "(7,0)-(7,14) -> : (7,0)-(7,14)",
+            "(9,0)-(9,14) -> : (9,0)-(9,14)",
+            "(11,0)-(14,1) -> D: (9,19)-(10,19)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
+    }
+
+    // 1. First and subsequent spans
+    [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+    [Fact]
+    public void LineSpanDirective_Example1()
+    {
+        string sourceA =
 @"         A();B(
 );C();
     D();
 ".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"class Program
 {
  static void Main() {
@@ -180,43 +180,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
  static void D() { }
 }".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(2,23) -> : (0,0)-(2,23)",
-                "(4,0)-(12,1),2 -> a: (0,9)-(0,15)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
-
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"A();", @"[|A();|]"),
-                (@"B(              // 4...", @"[|B(
-);|]".NormalizeLineEndings()),
-                (@"C();", @"[|C();|]"),
-                (@"D();", @"[|D();|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
-
-        // 2. Character offset
-        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
-        [Fact]
-        public void LineSpanDirective_Example2()
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
         {
-            string sourceA =
+            "(0,0)-(2,23) -> : (0,0)-(2,23)",
+            "(4,0)-(12,1),2 -> a: (0,9)-(0,15)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"A();", @"[|A();|]"),
+            (@"B(              // 4...", @"[|B(
+);|]".NormalizeLineEndings()),
+            (@"C();", @"[|C();|]"),
+            (@"D();", @"[|D();|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
+
+    // 2. Character offset
+    [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+    [Fact]
+    public void LineSpanDirective_Example2()
+    {
+        string sourceA =
 @"@page ""/""
 @F(() => 1+1,
    () => 2+2
 )".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"#line hidden
 class Page
 {
@@ -230,62 +230,62 @@ void Render()
 }
 }".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(1,0)-(4,3) -> : (0,0)-(0,0)",
-                "(6,0)-(8,40),15 -> page.razor: (1,1)-(3,1)",
-                "(10,0)-(11,1) -> : (0,0)-(0,0)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
+        {
+            "(1,0)-(4,3) -> : (0,0)-(0,0)",
+            "(6,0)-(8,40),15 -> page.razor: (1,1)-(3,1)",
+            "(10,0)-(11,1) -> : (0,0)-(0,0)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var textB = SourceText.From(sourceB);
-            var actualVisibility = textB.Lines.Select(line => treeB.GetLineVisibility(line.Start)).ToImmutableArray();
-            var expectedVisibility = new[]
-            {
-                LineVisibility.BeforeFirstLineDirective,
-                LineVisibility.Hidden,
-                LineVisibility.Hidden,
-                LineVisibility.Hidden,
-                LineVisibility.Hidden,
-                LineVisibility.Hidden,
-                LineVisibility.Visible,
-                LineVisibility.Visible,
-                LineVisibility.Visible,
-                LineVisibility.Visible,
-                LineVisibility.Hidden,
-                LineVisibility.Hidden,
-            };
-            AssertEx.Equal(expectedVisibility, actualVisibility);
+        var textB = SourceText.From(sourceB);
+        var actualVisibility = textB.Lines.Select(line => treeB.GetLineVisibility(line.Start)).ToImmutableArray();
+        var expectedVisibility = new[]
+        {
+            LineVisibility.BeforeFirstLineDirective,
+            LineVisibility.Hidden,
+            LineVisibility.Hidden,
+            LineVisibility.Hidden,
+            LineVisibility.Hidden,
+            LineVisibility.Hidden,
+            LineVisibility.Visible,
+            LineVisibility.Visible,
+            LineVisibility.Visible,
+            LineVisibility.Visible,
+            LineVisibility.Hidden,
+            LineVisibility.Hidden,
+        };
+        AssertEx.Equal(expectedVisibility, actualVisibility);
 
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"_builder.Add(F(() => 1+1,       // 5...", @"[|F(() => 1+1,
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"_builder.Add(F(() => 1+1,       // 5...", @"[|F(() => 1+1,
    () => 2+2
 )|]".NormalizeLineEndings()),
-                (@"1+1", @"[|1+1|]"),
-                (@"2+2", @"[|2+2|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
+            (@"1+1", @"[|1+1|]"),
+            (@"2+2", @"[|2+2|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
 
-        // 3. Razor: Single-line span
-        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
-        [Fact]
-        public void LineSpanDirective_Example3()
-        {
-            string sourceA =
+    // 3. Razor: Single-line span
+    [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+    [Fact]
+    public void LineSpanDirective_Example3()
+    {
+        string sourceA =
 @"@page ""/""
 Time: @DateTime.Now
 ".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"#line hidden
 class Page
 {
@@ -298,43 +298,43 @@ void Render()
 }
 }".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(1,0)-(5,26) -> : (0,0)-(0,0)",
-                "(7,0)-(7,31),15 -> page.razor: (1,7)-(1,19)",
-                "(9,0)-(10,1) -> : (0,0)-(0,0)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
-
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"_builder.Add(""Time:"");", @"[||]"),
-                (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
-
-        // 4. Razor: Multi-line span
-        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
-        [Fact]
-        public void LineSpanDirective_Example4()
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
         {
-            string sourceA =
+            "(1,0)-(5,26) -> : (0,0)-(0,0)",
+            "(7,0)-(7,31),15 -> page.razor: (1,7)-(1,19)",
+            "(9,0)-(10,1) -> : (0,0)-(0,0)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"_builder.Add(""Time:"");", @"[||]"),
+            (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
+
+    // 4. Razor: Multi-line span
+    [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+    [Fact]
+    public void LineSpanDirective_Example4()
+    {
+        string sourceA =
 @"@page ""/""
 @JsonToHtml(@""
 {
   """"key1"""": """"value1"""",
   """"key2"""": """"value2""""
 }"")".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"#line hidden
 class Page
 {
@@ -350,45 +350,45 @@ void Render()
 }
 }".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(1,0)-(4,3) -> : (0,0)-(0,0)",
-                "(6,0)-(10,7),15 -> page.razor: (1,1)-(5,3)",
-                "(12,0)-(13,1) -> : (0,0)-(0,0)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
+        {
+            "(1,0)-(4,3) -> : (0,0)-(0,0)",
+            "(6,0)-(10,7),15 -> page.razor: (1,1)-(5,3)",
+            "(12,0)-(13,1) -> : (0,0)-(0,0)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"_builder.Add(JsonToHtml(@""...", @"[|JsonToHtml(@""
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"_builder.Add(JsonToHtml(@""...", @"[|JsonToHtml(@""
 {
   """"key1"""": """"value1"""",
   """"key2"""": """"value2""""
 }"")|]".NormalizeLineEndings()),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
 
-        // 5i. Razor: block constructs
-        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
-        [Fact]
-        public void LineSpanDirective_Example5i()
-        {
-            string sourceA =
+    // 5i. Razor: block constructs
+    [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+    [Fact]
+    public void LineSpanDirective_Example5i()
+    {
+        string sourceA =
 @"@Html.Helper(() =>
 {
     <p>Hello World</p>
     @DateTime.Now
 })".NormalizeLineEndings();
-            var textA = SourceText.From(sourceA);
+        var textA = SourceText.From(sourceA);
 
-            string sourceB =
+        string sourceB =
 @"using System;
 class Page
 {
@@ -408,106 +408,106 @@ class Page
     }
 }".NormalizeLineEndings();
 
-            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "a.razor.g.cs");
-            treeB.GetDiagnostics().Verify();
+        var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "a.razor.g.cs");
+        treeB.GetDiagnostics().Verify();
 
-            var actualLineMappings = GetLineMappings(treeB);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(5,7) -> : (0,0)-(5,7)",
-                "(7,0)-(7,40),21 -> a.razor: (0,1)-(4,2)",
-                "(9,0)-(9,11) -> a.razor: (1,0)-(1,11)",
-                "(11,0)-(11,41),25 -> a.razor: (3,5)-(3,17)",
-                "(13,0)-(13,12) -> a.razor: (4,0)-(4,12)",
-                "(15,0)-(17,1) -> : (0,0)-(0,0)",
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        var actualLineMappings = GetLineMappings(treeB);
+        var expectedLineMappings = new[]
+        {
+            "(0,0)-(5,7) -> : (0,0)-(5,7)",
+            "(7,0)-(7,40),21 -> a.razor: (0,1)-(4,2)",
+            "(9,0)-(9,11) -> a.razor: (1,0)-(1,11)",
+            "(11,0)-(11,41),25 -> a.razor: (3,5)-(3,17)",
+            "(13,0)-(13,12) -> a.razor: (4,0)-(4,12)",
+            "(15,0)-(17,1) -> : (0,0)-(0,0)",
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = GetStatementsAndExpressionBodies(treeB);
-            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
-            var expectedTextSpans = new[]
-            {
-                (@"_builder.Add(Html.Helper(() =>...", @"[|Html.Helper(() =>
+        var statements = GetStatementsAndExpressionBodies(treeB);
+        var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+        var expectedTextSpans = new[]
+        {
+            (@"_builder.Add(Html.Helper(() =>...", @"[|Html.Helper(() =>
 {
     <p>Hello World</p>
     @DateTime.Now
 })|]".NormalizeLineEndings()),
-                (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
-            };
-            AssertEx.Equal(expectedTextSpans, actualTextSpans);
-        }
+            (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
+        };
+        AssertEx.Equal(expectedTextSpans, actualTextSpans);
+    }
 
-        private static ImmutableArray<SyntaxNode> GetStatementsAndExpressionBodies(SyntaxTree tree)
+    private static ImmutableArray<SyntaxNode> GetStatementsAndExpressionBodies(SyntaxTree tree)
+    {
+        var builder = ArrayBuilder<SyntaxNode>.GetInstance();
+        foreach (var syntax in tree.GetRoot().DescendantNodesAndSelf())
         {
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance();
-            foreach (var syntax in tree.GetRoot().DescendantNodesAndSelf())
+            switch (syntax)
             {
-                switch (syntax)
-                {
-                    case ExpressionStatementSyntax:
-                        builder.Add(syntax);
-                        break;
-                    case ParenthesizedLambdaExpressionSyntax lambda:
-                        builder.AddIfNotNull(lambda.ExpressionBody);
-                        break;
-                    case SimpleLambdaExpressionSyntax lambda:
-                        builder.AddIfNotNull(lambda.ExpressionBody);
-                        break;
-                }
-            }
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<string> GetLineMappings(SyntaxTree tree)
-        {
-            var directives = tree.GetRoot().DescendantNodesAndSelf(descendIntoTrivia: true).OfType<DirectiveTriviaSyntax>();
-            foreach (var directive in directives)
-            {
-                Assert.NotEqual(SyntaxKind.None, directive.DirectiveNameToken.Kind());
-            }
-            return tree.GetLineMappings().Select(mapping => mapping.ToString()!).ToImmutableArray();
-        }
-
-        private static (string, string) GetTextMapping(SourceText mappedText, SyntaxTree unmappedText, SyntaxNode syntax)
-        {
-            return (getDescription(syntax), getMapping(mappedText, unmappedText, syntax));
-
-            static string getDescription(SyntaxNode syntax)
-            {
-                var description = syntax.ToString();
-                int index = description.IndexOfAny(new[] { '\r', '\n' });
-                return index < 0 ?
-                    description :
-                    description.Substring(0, index) + "...";
-            }
-
-            static string getMapping(SourceText mappedText, SyntaxTree unmappedText, SyntaxNode syntax)
-            {
-                var mappedLineAndPositionSpan = unmappedText.GetMappedLineSpanAndVisibility(syntax.Span, out _);
-                var span = getTextSpan(mappedText.Lines, mappedLineAndPositionSpan.Span);
-                return $"[|{mappedText.GetSubText(span)}|]";
-            }
-
-            static TextSpan getTextSpan(TextLineCollection lines, LinePositionSpan span)
-            {
-                return TextSpan.FromBounds(getTextPosition(lines, span.Start), getTextPosition(lines, span.End));
-            }
-
-            static int getTextPosition(TextLineCollection lines, LinePosition position)
-            {
-                if (position.Line < lines.Count)
-                {
-                    var line = lines[position.Line];
-                    return Math.Min(line.Start + position.Character, line.End);
-                }
-                return (lines.Count == 0) ? 0 : lines[^1].End;
+                case ExpressionStatementSyntax:
+                    builder.Add(syntax);
+                    break;
+                case ParenthesizedLambdaExpressionSyntax lambda:
+                    builder.AddIfNotNull(lambda.ExpressionBody);
+                    break;
+                case SimpleLambdaExpressionSyntax lambda:
+                    builder.AddIfNotNull(lambda.ExpressionBody);
+                    break;
             }
         }
+        return builder.ToImmutableAndFree();
+    }
 
-        [Fact]
-        public void Diagnostics_01()
+    private static ImmutableArray<string> GetLineMappings(SyntaxTree tree)
+    {
+        var directives = tree.GetRoot().DescendantNodesAndSelf(descendIntoTrivia: true).OfType<DirectiveTriviaSyntax>();
+        foreach (var directive in directives)
         {
-            var source =
+            Assert.NotEqual(SyntaxKind.None, directive.DirectiveNameToken.Kind());
+        }
+        return tree.GetLineMappings().Select(mapping => mapping.ToString()!).ToImmutableArray();
+    }
+
+    private static (string, string) GetTextMapping(SourceText mappedText, SyntaxTree unmappedText, SyntaxNode syntax)
+    {
+        return (getDescription(syntax), getMapping(mappedText, unmappedText, syntax));
+
+        static string getDescription(SyntaxNode syntax)
+        {
+            var description = syntax.ToString();
+            int index = description.IndexOfAny(new[] { '\r', '\n' });
+            return index < 0 ?
+                description :
+                description.Substring(0, index) + "...";
+        }
+
+        static string getMapping(SourceText mappedText, SyntaxTree unmappedText, SyntaxNode syntax)
+        {
+            var mappedLineAndPositionSpan = unmappedText.GetMappedLineSpanAndVisibility(syntax.Span, out _);
+            var span = getTextSpan(mappedText.Lines, mappedLineAndPositionSpan.Span);
+            return $"[|{mappedText.GetSubText(span)}|]";
+        }
+
+        static TextSpan getTextSpan(TextLineCollection lines, LinePositionSpan span)
+        {
+            return TextSpan.FromBounds(getTextPosition(lines, span.Start), getTextPosition(lines, span.End));
+        }
+
+        static int getTextPosition(TextLineCollection lines, LinePosition position)
+        {
+            if (position.Line < lines.Count)
+            {
+                var line = lines[position.Line];
+                return Math.Min(line.Start + position.Character, line.End);
+            }
+            return (lines.Count == 0) ? 0 : lines[^1].End;
+        }
+    }
+
+    [Fact]
+    public void Diagnostics_01()
+    {
+        var source =
 @"class Program
 {
     static void Main()
@@ -520,23 +520,23 @@ class Page
         C();
     }
 }".NormalizeLineEndings();
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // b.txt(1,9): error CS0103: The name 'C' does not exist in the current context
-                //         C();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(1, 9),
-                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
-                //         A();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
-                // (8,9): error CS0103: The name 'B' does not exist in the current context
-                //         B();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(8, 9));
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // b.txt(1,9): error CS0103: The name 'C' does not exist in the current context
+            //         C();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(1, 9),
+            // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+            //         A();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+            // (8,9): error CS0103: The name 'B' does not exist in the current context
+            //         B();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(8, 9));
+    }
 
-        [Fact]
-        public void Diagnostics_02()
-        {
-            var source =
+    [Fact]
+    public void Diagnostics_02()
+    {
+        var source =
 @"class Program
 {
     static void Main()
@@ -550,40 +550,40 @@ class Page
     }
 }".NormalizeLineEndings();
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (5,24): error CS8938: The #line directive value is missing or out of range
-                // #line (100, 1) - (100, ) 1 "a.txt"
-                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ")").WithLocation(5, 24),
-                // (6,9): error CS0103: The name 'A' does not exist in the current context
-                //         A();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 9),
-                // (10,9): error CS0103: The name 'C' does not exist in the current context
-                //         C();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(10, 9),
-                // b.txt(200,7): error CS0103: The name 'B' does not exist in the current context
-                //         B();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(200, 7),
-                // b.txt(201,29): error CS1578: Quoted file name, single-line comment or end-of-line expected
-                // #line (300, 1) - (300, 100) x "c.txt"
-                Diagnostic(ErrorCode.ERR_MissingPPFile, "x").WithLocation(201, 29));
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (5,24): error CS8938: The #line directive value is missing or out of range
+            // #line (100, 1) - (100, ) 1 "a.txt"
+            Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ")").WithLocation(5, 24),
+            // (6,9): error CS0103: The name 'A' does not exist in the current context
+            //         A();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(6, 9),
+            // (10,9): error CS0103: The name 'C' does not exist in the current context
+            //         C();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(10, 9),
+            // b.txt(200,7): error CS0103: The name 'B' does not exist in the current context
+            //         B();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "B").WithArguments("B").WithLocation(200, 7),
+            // b.txt(201,29): error CS1578: Quoted file name, single-line comment or end-of-line expected
+            // #line (300, 1) - (300, 100) x "c.txt"
+            Diagnostic(ErrorCode.ERR_MissingPPFile, "x").WithLocation(201, 29));
 
-            var tree = comp.SyntaxTrees[0];
-            var actualLineMappings = GetLineMappings(tree);
-            var expectedLineMappings = new[]
-            {
-                "(0,0)-(3,7) -> : (0,0)-(3,7)",
-                "(5,0)-(5,14) -> : (5,0)-(5,14)",
-                "(7,0)-(7,14),2 -> b.txt: (199,0)-(199,100)",
-                "(9,0)-(11,1) -> : (9,0)-(11,1)"
-            };
-            AssertEx.Equal(expectedLineMappings, actualLineMappings);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
-        public void Diagnostics_03()
+        var tree = comp.SyntaxTrees[0];
+        var actualLineMappings = GetLineMappings(tree);
+        var expectedLineMappings = new[]
         {
-            var source =
+            "(0,0)-(3,7) -> : (0,0)-(3,7)",
+            "(5,0)-(5,14) -> : (5,0)-(5,14)",
+            "(7,0)-(7,14),2 -> b.txt: (199,0)-(199,100)",
+            "(9,0)-(11,1) -> : (9,0)-(11,1)"
+        };
+        AssertEx.Equal(expectedLineMappings, actualLineMappings);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
+    public void Diagnostics_03()
+    {
+        var source =
 @"class Program
 {
     static void Main()
@@ -596,23 +596,23 @@ A(); // 1
   A(); // 3
     }
 }".NormalizeLineEndings();
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
-                // A(); // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
-                // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
-                //         A(); // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
-                // (3,3): error CS0103: The name 'A' does not exist in the current context
-                //   A(); // 3
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3));
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+            // A(); // 1
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+            // a.txt(3,3): error CS0103: The name 'A' does not exist in the current context
+            //         A(); // 2
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3),
+            // (3,3): error CS0103: The name 'A' does not exist in the current context
+            //   A(); // 3
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "A").WithArguments("A").WithLocation(3, 3));
+    }
 
-        [Fact]
-        public void SequencePoints()
-        {
-            var source =
+    [Fact]
+    public void SequencePoints()
+    {
+        var source =
 @"class Program
 {
     static void Main()
@@ -631,8 +631,8 @@ A(); // 1
     static void C() { }
     static void D() { }
 }".NormalizeLineEndings();
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
-            verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL:
+        var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+        verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL:
 @"{
   // Code size       26 (0x1a)
   .maxstack  0
@@ -647,7 +647,7 @@ A(); // 1
   IL_0018:  nop
  -IL_0019:  ret
 }");
-            verifier.VerifyPdb("Program.Main", expectedPdb:
+        verifier.VerifyPdb("Program.Main", expectedPdb:
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -673,6 +673,5 @@ A(); // 1
   </methods>
 </symbols>
 ");
-        }
     }
 }

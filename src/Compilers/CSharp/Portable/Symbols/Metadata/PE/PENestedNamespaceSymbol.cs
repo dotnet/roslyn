@@ -11,136 +11,135 @@ using System.Threading;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+
+/// <summary>
+/// The class to represent all, but Global, namespaces imported from a PE/module.
+/// Namespaces that differ only by casing in name are not merged.
+/// </summary>
+/// <remarks></remarks>
+internal sealed class PENestedNamespaceSymbol
+    : PENamespaceSymbol
 {
     /// <summary>
-    /// The class to represent all, but Global, namespaces imported from a PE/module.
-    /// Namespaces that differ only by casing in name are not merged.
+    /// The parent namespace. There is always one, Global namespace contains all
+    /// top level namespaces. 
     /// </summary>
     /// <remarks></remarks>
-    internal sealed class PENestedNamespaceSymbol
-        : PENamespaceSymbol
+    private readonly PENamespaceSymbol _containingNamespaceSymbol;
+
+    /// <summary>
+    /// The name of the namespace.
+    /// </summary>
+    /// <remarks></remarks>
+    private readonly string _name;
+
+    /// <summary>
+    /// The sequence of groups of TypeDef row ids for types contained within the namespace, 
+    /// recursively including those from nested namespaces. The row ids are grouped by the 
+    /// fully-qualified namespace name case-sensitively. There could be multiple groups 
+    /// for each fully-qualified namespace name. The groups are sorted by their 
+    /// key in case-sensitive manner. Empty string is used as namespace name for types 
+    /// immediately contained within Global namespace. Therefore, all types in this namespace, if any, 
+    /// will be in several first IGroupings.
+    /// 
+    /// This member is initialized by constructor and is cleared in EnsureAllMembersLoaded 
+    /// as soon as symbols for children are created.
+    /// </summary>
+    /// <remarks></remarks>
+    private IEnumerable<IGrouping<string, TypeDefinitionHandle>> _typesByNS;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    /// <param name="name">
+    /// Name of the namespace, must be not empty.
+    /// </param>
+    /// <param name="containingNamespace">
+    /// Containing namespace.
+    /// </param>
+    /// <param name="typesByNS">
+    /// The sequence of groups of TypeDef row ids for types contained within the namespace, 
+    /// recursively including those from nested namespaces. The row ids are grouped by the 
+    /// fully-qualified namespace name case-sensitively. There could be multiple groups 
+    /// for each fully-qualified namespace name. The groups are sorted by their 
+    /// key in case-sensitive manner. Empty string is used as namespace name for types 
+    /// immediately contained within Global namespace. Therefore, all types in this namespace, if any, 
+    /// will be in several first IGroupings.
+    /// </param>
+    internal PENestedNamespaceSymbol(
+        string name,
+        PENamespaceSymbol containingNamespace,
+        IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS)
     {
-        /// <summary>
-        /// The parent namespace. There is always one, Global namespace contains all
-        /// top level namespaces. 
-        /// </summary>
-        /// <remarks></remarks>
-        private readonly PENamespaceSymbol _containingNamespaceSymbol;
+        Debug.Assert(name != null);
+        Debug.Assert((object)containingNamespace != null);
+        Debug.Assert(typesByNS != null);
 
-        /// <summary>
-        /// The name of the namespace.
-        /// </summary>
-        /// <remarks></remarks>
-        private readonly string _name;
+        _containingNamespaceSymbol = containingNamespace;
+        _name = name;
+        _typesByNS = typesByNS;
+    }
 
-        /// <summary>
-        /// The sequence of groups of TypeDef row ids for types contained within the namespace, 
-        /// recursively including those from nested namespaces. The row ids are grouped by the 
-        /// fully-qualified namespace name case-sensitively. There could be multiple groups 
-        /// for each fully-qualified namespace name. The groups are sorted by their 
-        /// key in case-sensitive manner. Empty string is used as namespace name for types 
-        /// immediately contained within Global namespace. Therefore, all types in this namespace, if any, 
-        /// will be in several first IGroupings.
-        /// 
-        /// This member is initialized by constructor and is cleared in EnsureAllMembersLoaded 
-        /// as soon as symbols for children are created.
-        /// </summary>
-        /// <remarks></remarks>
-        private IEnumerable<IGrouping<string, TypeDefinitionHandle>> _typesByNS;
+    public override Symbol ContainingSymbol
+    {
+        get { return _containingNamespaceSymbol; }
+    }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="name">
-        /// Name of the namespace, must be not empty.
-        /// </param>
-        /// <param name="containingNamespace">
-        /// Containing namespace.
-        /// </param>
-        /// <param name="typesByNS">
-        /// The sequence of groups of TypeDef row ids for types contained within the namespace, 
-        /// recursively including those from nested namespaces. The row ids are grouped by the 
-        /// fully-qualified namespace name case-sensitively. There could be multiple groups 
-        /// for each fully-qualified namespace name. The groups are sorted by their 
-        /// key in case-sensitive manner. Empty string is used as namespace name for types 
-        /// immediately contained within Global namespace. Therefore, all types in this namespace, if any, 
-        /// will be in several first IGroupings.
-        /// </param>
-        internal PENestedNamespaceSymbol(
-            string name,
-            PENamespaceSymbol containingNamespace,
-            IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS)
+    internal override PEModuleSymbol ContainingPEModule
+    {
+        get { return _containingNamespaceSymbol.ContainingPEModule; }
+    }
+
+    public override string Name
+    {
+        get
         {
-            Debug.Assert(name != null);
-            Debug.Assert((object)containingNamespace != null);
-            Debug.Assert(typesByNS != null);
-
-            _containingNamespaceSymbol = containingNamespace;
-            _name = name;
-            _typesByNS = typesByNS;
+            return _name;
         }
+    }
 
-        public override Symbol ContainingSymbol
+    public override bool IsGlobalNamespace
+    {
+        get
         {
-            get { return _containingNamespaceSymbol; }
+            return false;
         }
+    }
 
-        internal override PEModuleSymbol ContainingPEModule
+    public override AssemblySymbol ContainingAssembly
+    {
+        get
         {
-            get { return _containingNamespaceSymbol.ContainingPEModule; }
+            return ContainingPEModule.ContainingAssembly;
         }
+    }
 
-        public override string Name
+    internal override ModuleSymbol ContainingModule
+    {
+        get
         {
-            get
-            {
-                return _name;
-            }
+            return _containingNamespaceSymbol.ContainingPEModule;
         }
+    }
 
-        public override bool IsGlobalNamespace
+    protected override void EnsureAllMembersLoaded()
+    {
+        var typesByNS = Volatile.Read(ref _typesByNS);
+
+        if (typesByNS == null)
         {
-            get
-            {
-                return false;
-            }
+            Debug.Assert(lazyNamespaces != null && lazyTypes != null);
         }
-
-        public override AssemblySymbol ContainingAssembly
+        else
         {
-            get
-            {
-                return ContainingPEModule.ContainingAssembly;
-            }
+            LoadAllMembers(typesByNS);
+            Interlocked.Exchange(ref _typesByNS, null);
         }
+    }
 
-        internal override ModuleSymbol ContainingModule
-        {
-            get
-            {
-                return _containingNamespaceSymbol.ContainingPEModule;
-            }
-        }
-
-        protected override void EnsureAllMembersLoaded()
-        {
-            var typesByNS = Volatile.Read(ref _typesByNS);
-
-            if (typesByNS == null)
-            {
-                Debug.Assert(lazyNamespaces != null && lazyTypes != null);
-            }
-            else
-            {
-                LoadAllMembers(typesByNS);
-                Interlocked.Exchange(ref _typesByNS, null);
-            }
-        }
-
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-        {
-            get { return null; }
-        }
+    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+    {
+        get { return null; }
     }
 }

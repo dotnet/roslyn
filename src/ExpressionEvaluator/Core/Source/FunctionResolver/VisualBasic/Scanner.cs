@@ -8,136 +8,135 @@ using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator;
+
+internal sealed partial class MemberSignatureParser
 {
-    internal sealed partial class MemberSignatureParser
+    private enum TokenKind
     {
-        private enum TokenKind
-        {
-            OpenParen = '(',
-            CloseParen = ')',
-            Dot = '.',
-            Comma = ',',
-            QuestionMark = '?',
+        OpenParen = '(',
+        CloseParen = ')',
+        Dot = '.',
+        Comma = ',',
+        QuestionMark = '?',
 
-            Start = char.MaxValue + 1,
-            End,
-            Identifier,
-            Keyword,
+        Start = char.MaxValue + 1,
+        End,
+        Identifier,
+        Keyword,
+    }
+
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    private readonly struct Token
+    {
+        internal readonly TokenKind Kind;
+        internal readonly string Text;
+        internal readonly SyntaxKind KeywordKind;
+
+        internal Token(TokenKind kind, string text = null, SyntaxKind keywordKind = SyntaxKind.None)
+        {
+            Kind = kind;
+            Text = text;
+            KeywordKind = keywordKind;
         }
 
-        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        private readonly struct Token
+        private string GetDebuggerDisplay()
         {
-            internal readonly TokenKind Kind;
-            internal readonly string Text;
-            internal readonly SyntaxKind KeywordKind;
+            return (Text == null)
+                ? Kind.ToString()
+                : $"{Kind}: \"{Text}\"";
+        }
+    }
 
-            internal Token(TokenKind kind, string text = null, SyntaxKind keywordKind = SyntaxKind.None)
-            {
-                Kind = kind;
-                Text = text;
-                KeywordKind = keywordKind;
-            }
+    private sealed class Scanner
+    {
+        private readonly string _text;
+        private int _offset;
+        private Token _currentToken;
 
-            private string GetDebuggerDisplay()
+        internal Scanner(string text)
+        {
+            _text = text;
+            _offset = 0;
+            _currentToken = default(Token);
+        }
+
+        internal Token CurrentToken
+        {
+            get
             {
-                return (Text == null)
-                    ? Kind.ToString()
-                    : $"{Kind}: \"{Text}\"";
+                if (_currentToken.Kind == TokenKind.Start)
+                {
+                    throw new InvalidOperationException();
+                }
+                return _currentToken;
             }
         }
 
-        private sealed class Scanner
+        internal void MoveNext()
         {
-            private readonly string _text;
-            private int _offset;
-            private Token _currentToken;
+            _currentToken = Scan();
+        }
 
-            internal Scanner(string text)
+        private Token Scan()
+        {
+            int length = _text.Length;
+            while (_offset < length && char.IsWhiteSpace(_text[_offset]))
             {
-                _text = text;
-                _offset = 0;
-                _currentToken = default(Token);
+                _offset++;
             }
 
-            internal Token CurrentToken
+            if (_offset == length)
             {
-                get
-                {
-                    if (_currentToken.Kind == TokenKind.Start)
-                    {
-                        throw new InvalidOperationException();
-                    }
-                    return _currentToken;
-                }
+                return new Token(TokenKind.End);
             }
 
-            internal void MoveNext()
+            int n = ScanIdentifier();
+            if (n > 0)
             {
-                _currentToken = Scan();
+                var text = _text.Substring(_offset, n);
+                _offset += n;
+                if (Keywords.Contains(text))
+                {
+                    var keywordKind = SyntaxKind.None;
+                    KeywordKinds.TryGetValue(text, out keywordKind);
+                    return new Token(TokenKind.Keyword, text, keywordKind);
+                }
+                return new Token(TokenKind.Identifier, text);
             }
 
-            private Token Scan()
+            var c = _text[_offset++];
+            if (c == '[')
             {
-                int length = _text.Length;
-                while (_offset < length && char.IsWhiteSpace(_text[_offset]))
+                n = ScanIdentifier();
+                if (n > 0 && _offset + n < length && _text[_offset + n] == ']')
                 {
-                    _offset++;
-                }
-
-                if (_offset == length)
-                {
-                    return new Token(TokenKind.End);
-                }
-
-                int n = ScanIdentifier();
-                if (n > 0)
-                {
+                    // A verbatim identifier. Treat the '[' and ']' as part
+                    // of the token, but not part of the text.
                     var text = _text.Substring(_offset, n);
-                    _offset += n;
-                    if (Keywords.Contains(text))
-                    {
-                        var keywordKind = SyntaxKind.None;
-                        KeywordKinds.TryGetValue(text, out keywordKind);
-                        return new Token(TokenKind.Keyword, text, keywordKind);
-                    }
+                    _offset += n + 1;
                     return new Token(TokenKind.Identifier, text);
                 }
-
-                var c = _text[_offset++];
-                if (c == '[')
-                {
-                    n = ScanIdentifier();
-                    if (n > 0 && _offset + n < length && _text[_offset + n] == ']')
-                    {
-                        // A verbatim identifier. Treat the '[' and ']' as part
-                        // of the token, but not part of the text.
-                        var text = _text.Substring(_offset, n);
-                        _offset += n + 1;
-                        return new Token(TokenKind.Identifier, text);
-                    }
-                }
-
-                return new Token((TokenKind)c);
             }
 
-            // Returns the number of characters in the
-            // identifier starting at the current offset.
-            private int ScanIdentifier()
+            return new Token((TokenKind)c);
+        }
+
+        // Returns the number of characters in the
+        // identifier starting at the current offset.
+        private int ScanIdentifier()
+        {
+            int length = _text.Length - _offset;
+            if (length > 0 && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
             {
-                int length = _text.Length - _offset;
-                if (length > 0 && UnicodeCharacterUtilities.IsIdentifierStartCharacter(_text[_offset]))
+                int n = 1;
+                while (n < length && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset + n]))
                 {
-                    int n = 1;
-                    while (n < length && UnicodeCharacterUtilities.IsIdentifierPartCharacter(_text[_offset + n]))
-                    {
-                        n++;
-                    }
-                    return n;
+                    n++;
                 }
-                return 0;
+                return n;
             }
+            return 0;
         }
     }
 }

@@ -11,13 +11,12 @@
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
-namespace Microsoft.VisualStudio.Debugger
+namespace Microsoft.VisualStudio.Debugger;
+
+public class DkmEngineSettings
 {
-    public class DkmEngineSettings
+    public DkmLanguage GetLanguage(DkmCompilerId compilerId)
     {
-        public DkmLanguage GetLanguage(DkmCompilerId compilerId)
-        {
-            return new DkmLanguage(compilerId);
-        }
+        return new DkmLanguage(compilerId);
     }
 }

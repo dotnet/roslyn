@@ -2,37 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method, MethodSymbol interfaceMethod);
+
+internal sealed class SynthesizedReadOnlyListMethod : SynthesizedImplementationMethod
 {
-    internal delegate BoundStatement GenerateMethodBodyDelegate(SyntheticBoundNodeFactory factory, MethodSymbol method, MethodSymbol interfaceMethod);
+    private readonly GenerateMethodBodyDelegate _generateMethodBody;
 
-    internal sealed class SynthesizedReadOnlyListMethod : SynthesizedImplementationMethod
+    internal SynthesizedReadOnlyListMethod(NamedTypeSymbol containingType, MethodSymbol interfaceMethod, GenerateMethodBodyDelegate generateMethodBody) :
+        base(interfaceMethod, containingType)
     {
-        private readonly GenerateMethodBodyDelegate _generateMethodBody;
+        _generateMethodBody = generateMethodBody;
+    }
 
-        internal SynthesizedReadOnlyListMethod(NamedTypeSymbol containingType, MethodSymbol interfaceMethod, GenerateMethodBodyDelegate generateMethodBody) :
-            base(interfaceMethod, containingType)
+    internal override bool SynthesizesLoweredBoundBody => true;
+
+    internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+    {
+        SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+        f.CurrentFunction = this;
+
+        try
         {
-            _generateMethodBody = generateMethodBody;
+            var body = _generateMethodBody(f, this, _interfaceMethod);
+            f.CloseMethod(body);
         }
-
-        internal override bool SynthesizesLoweredBoundBody => true;
-
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
         {
-            SyntheticBoundNodeFactory f = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            f.CurrentFunction = this;
-
-            try
-            {
-                var body = _generateMethodBody(f, this, _interfaceMethod);
-                f.CloseMethod(body);
-            }
-            catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
-            {
-                diagnostics.Add(ex.Diagnostic);
-                f.CloseMethod(f.ThrowNull());
-            }
+            diagnostics.Add(ex.Diagnostic);
+            f.CloseMethod(f.ThrowNull());
         }
     }
 }

@@ -6,14 +6,13 @@ using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
+
+internal interface IRazorCSharpInterceptionMiddleLayer
 {
-    internal interface IRazorCSharpInterceptionMiddleLayer
-    {
-        bool CanHandle(string methodName);
+    bool CanHandle(string methodName);
 
-        Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
+    Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
 
-        Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
-    }
+    Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
 }

@@ -9,64 +9,63 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting;
+
+/// <summary>
+/// Defines global members that common REPL (Read Eval Print Loop) hosts make available in 
+/// the interactive session.
+/// </summary>
+/// <remarks>
+/// It is recommended for hosts to expose the members defined by this class and implement 
+/// the same semantics, so that they can run scripts written against standard hosts. 
+/// 
+/// Specialized hosts that target niche scenarios might choose to not provide this functionality.
+/// </remarks>
+public class InteractiveScriptGlobals
 {
+    private readonly TextWriter _outputWriter;
+    private readonly ObjectFormatter _objectFormatter;
+
     /// <summary>
-    /// Defines global members that common REPL (Read Eval Print Loop) hosts make available in 
-    /// the interactive session.
+    /// Arguments given to the script.
     /// </summary>
-    /// <remarks>
-    /// It is recommended for hosts to expose the members defined by this class and implement 
-    /// the same semantics, so that they can run scripts written against standard hosts. 
-    /// 
-    /// Specialized hosts that target niche scenarios might choose to not provide this functionality.
-    /// </remarks>
-    public class InteractiveScriptGlobals
+    public IList<string> Args { get; }
+
+    /// <summary>
+    /// Pretty-prints an object.
+    /// </summary>
+    public void Print(object value)
     {
-        private readonly TextWriter _outputWriter;
-        private readonly ObjectFormatter _objectFormatter;
+        _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
+    }
 
-        /// <summary>
-        /// Arguments given to the script.
-        /// </summary>
-        public IList<string> Args { get; }
+    public IList<string> ReferencePaths { get; }
+    public IList<string> SourcePaths { get; }
 
-        /// <summary>
-        /// Pretty-prints an object.
-        /// </summary>
-        public void Print(object value)
+    public PrintOptions PrintOptions { get; }
+
+    public InteractiveScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
+    {
+        if (outputWriter == null)
         {
-            _outputWriter.WriteLine(_objectFormatter.FormatObject(value, PrintOptions));
+            throw new ArgumentNullException(nameof(outputWriter));
         }
 
-        public IList<string> ReferencePaths { get; }
-        public IList<string> SourcePaths { get; }
-
-        public PrintOptions PrintOptions { get; }
-
-        public InteractiveScriptGlobals(TextWriter outputWriter, ObjectFormatter objectFormatter)
+        if (objectFormatter == null)
         {
-            if (outputWriter == null)
-            {
-                throw new ArgumentNullException(nameof(outputWriter));
-            }
-
-            if (objectFormatter == null)
-            {
-                throw new ArgumentNullException(nameof(objectFormatter));
-            }
-
-            Debug.Assert(outputWriter != null);
-            Debug.Assert(objectFormatter != null);
-
-            ReferencePaths = new SearchPaths();
-            SourcePaths = new SearchPaths();
-            Args = new List<string>();
-
-            PrintOptions = new PrintOptions();
-
-            _outputWriter = outputWriter;
-            _objectFormatter = objectFormatter;
+            throw new ArgumentNullException(nameof(objectFormatter));
         }
+
+        Debug.Assert(outputWriter != null);
+        Debug.Assert(objectFormatter != null);
+
+        ReferencePaths = new SearchPaths();
+        SourcePaths = new SearchPaths();
+        Args = new List<string>();
+
+        PrintOptions = new PrintOptions();
+
+        _outputWriter = outputWriter;
+        _objectFormatter = objectFormatter;
     }
 }

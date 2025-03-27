@@ -6,17 +6,16 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
-{
-    internal sealed class RequestSignature
-    {
-        internal RequestSignature(Name memberName, ImmutableArray<ParameterSignature> parameters)
-        {
-            MemberName = memberName;
-            Parameters = parameters;
-        }
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-        internal readonly Name MemberName;
-        internal readonly ImmutableArray<ParameterSignature> Parameters; // default if not specified
+internal sealed class RequestSignature
+{
+    internal RequestSignature(Name memberName, ImmutableArray<ParameterSignature> parameters)
+    {
+        MemberName = memberName;
+        Parameters = parameters;
     }
+
+    internal readonly Name MemberName;
+    internal readonly ImmutableArray<ParameterSignature> Parameters; // default if not specified
 }

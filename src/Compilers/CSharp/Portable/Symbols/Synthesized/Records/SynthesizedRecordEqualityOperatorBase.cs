@@ -11,80 +11,79 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
+///
+/// For record class:
+/// public static bool operator==(R? left, R? right)
+///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
+/// public static bool operator !=(R? left, R? right)
+///      => !(left == right);
+///
+/// For record struct:
+/// public static bool operator==(R left, R right)
+///      => left.Equals(right);
+/// public static bool operator !=(R left, R right)
+///      => !(left == right);
+///
+///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
+///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
+/// </summary>
+internal abstract class SynthesizedRecordEqualityOperatorBase : SourceUserDefinedOperatorSymbolBase
 {
-    /// <summary>
-    /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
-    ///
-    /// For record class:
-    /// public static bool operator==(R? left, R? right)
-    ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
-    /// public static bool operator !=(R? left, R? right)
-    ///      => !(left == right);
-    ///
-    /// For record struct:
-    /// public static bool operator==(R left, R right)
-    ///      => left.Equals(right);
-    /// public static bool operator !=(R left, R right)
-    ///      => !(left == right);
-    ///
-    ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
-    ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
-    /// </summary>
-    internal abstract class SynthesizedRecordEqualityOperatorBase : SourceUserDefinedOperatorSymbolBase
+    private readonly int _memberOffset;
+
+    protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
+        : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
+               DeclarationModifiers.Public | DeclarationModifiers.Static, hasAnyBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
     {
-        private readonly int _memberOffset;
+        Debug.Assert(name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName);
+        _memberOffset = memberOffset;
+    }
 
-        protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
-                   DeclarationModifiers.Public | DeclarationModifiers.Static, hasAnyBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
-        {
-            Debug.Assert(name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName);
-            _memberOffset = memberOffset;
-        }
+    public sealed override bool IsImplicitlyDeclared => true;
 
-        public sealed override bool IsImplicitlyDeclared => true;
+    protected sealed override Location ReturnTypeLocation => GetFirstLocation();
 
-        protected sealed override Location ReturnTypeLocation => GetFirstLocation();
+    internal sealed override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        internal sealed override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
+    protected sealed override SourceMemberMethodSymbol? BoundAttributesSource => null;
 
-        protected sealed override SourceMemberMethodSymbol? BoundAttributesSource => null;
+    internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
 
-        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations() => OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
+    public sealed override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => null;
 
-        public sealed override string? GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default) => null;
+    internal sealed override bool GenerateDebugInfo => false;
 
-        internal sealed override bool GenerateDebugInfo => false;
+    internal sealed override bool SynthesizesLoweredBoundBody => true;
+    internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+    internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
 
-        internal sealed override bool SynthesizesLoweredBoundBody => true;
-        internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
+    protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+    {
+        var compilation = DeclaringCompilation;
+        var location = ReturnTypeLocation;
+        var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
+        return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
+                Parameters: ImmutableArray.Create<ParameterSymbol>(
+                                new SourceSimpleParameterSymbol(owner: this,
+                                                                TypeWithAnnotations.Create(ContainingType, annotation),
+                                                                ordinal: 0, RefKind.None, "left", Locations),
+                                new SourceSimpleParameterSymbol(owner: this,
+                                                                TypeWithAnnotations.Create(ContainingType, annotation),
+                                                                ordinal: 1, RefKind.None, "right", Locations)));
+    }
 
-        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
-        {
-            var compilation = DeclaringCompilation;
-            var location = ReturnTypeLocation;
-            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
-            return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
-                    Parameters: ImmutableArray.Create<ParameterSymbol>(
-                                    new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, "left", Locations),
-                                    new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 1, RefKind.None, "right", Locations)));
-        }
+    protected override int GetParameterCountFromSyntax() => 2;
 
-        protected override int GetParameterCountFromSyntax() => 2;
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            Debug.Assert(IsImplicitlyDeclared);
-            var compilation = this.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-        }
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        Debug.Assert(IsImplicitlyDeclared);
+        var compilation = this.DeclaringCompilation;
+        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
     }
 }

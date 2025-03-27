@@ -7,154 +7,153 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Contains helper methods for switch statement label constants
+/// </summary>
+internal static class SwitchConstantValueHelper
 {
-    /// <summary>
-    /// Contains helper methods for switch statement label constants
-    /// </summary>
-    internal static class SwitchConstantValueHelper
+    public static bool IsValidSwitchCaseLabelConstant(ConstantValue constant)
     {
-        public static bool IsValidSwitchCaseLabelConstant(ConstantValue constant)
+        switch (constant.Discriminator)
         {
-            switch (constant.Discriminator)
-            {
-                case ConstantValueTypeDiscriminator.Null:
-                case ConstantValueTypeDiscriminator.SByte:
-                case ConstantValueTypeDiscriminator.Byte:
-                case ConstantValueTypeDiscriminator.Int16:
-                case ConstantValueTypeDiscriminator.UInt16:
-                case ConstantValueTypeDiscriminator.Int32:
-                case ConstantValueTypeDiscriminator.UInt32:
-                case ConstantValueTypeDiscriminator.Int64:
-                case ConstantValueTypeDiscriminator.UInt64:
-                case ConstantValueTypeDiscriminator.Char:
-                case ConstantValueTypeDiscriminator.Boolean:
-                case ConstantValueTypeDiscriminator.String:
-                    return true;
+            case ConstantValueTypeDiscriminator.Null:
+            case ConstantValueTypeDiscriminator.SByte:
+            case ConstantValueTypeDiscriminator.Byte:
+            case ConstantValueTypeDiscriminator.Int16:
+            case ConstantValueTypeDiscriminator.UInt16:
+            case ConstantValueTypeDiscriminator.Int32:
+            case ConstantValueTypeDiscriminator.UInt32:
+            case ConstantValueTypeDiscriminator.Int64:
+            case ConstantValueTypeDiscriminator.UInt64:
+            case ConstantValueTypeDiscriminator.Char:
+            case ConstantValueTypeDiscriminator.Boolean:
+            case ConstantValueTypeDiscriminator.String:
+                return true;
 
-                default:
-                    return false;
-            }
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Method used to compare ConstantValues for switch statement case labels
+    /// </summary>
+    /// <param name="first"></param>
+    /// <param name="second"></param>
+    /// <returns>A value that indicates the relative order of the objects being compared. The return value has these meanings:
+    /// Less than zero:     first instance precedes second in the sort order.
+    /// Zero:               first instance occurs in the same position in the sort order as second.
+    /// Greater than zero:  first instance follows second in the sort order.
+    /// </returns>
+    public static int CompareSwitchCaseLabelConstants(ConstantValue first, ConstantValue second)
+    {
+        RoslynDebug.Assert(first != null);
+        RoslynDebug.Assert(second != null);
+
+        RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(first));
+        RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(second));
+
+        if (first.IsNull)
+        {
+            // first instance has ConstantValue Null.
+            // If second instance ConstantValue is Null, both instances are equal.
+            // Else, second instance is greater.
+            return second.IsNull ? 0 : -1;
+        }
+        else if (second.IsNull)
+        {
+            // second instance has ConstantValue Null and first instance has non-null ConstantValue.
+            // first instance is greater.
+            return 1;
         }
 
-        /// <summary>
-        /// Method used to compare ConstantValues for switch statement case labels
-        /// </summary>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        /// <returns>A value that indicates the relative order of the objects being compared. The return value has these meanings:
-        /// Less than zero:     first instance precedes second in the sort order.
-        /// Zero:               first instance occurs in the same position in the sort order as second.
-        /// Greater than zero:  first instance follows second in the sort order.
-        /// </returns>
-        public static int CompareSwitchCaseLabelConstants(ConstantValue first, ConstantValue second)
+        switch (first.Discriminator)
         {
-            RoslynDebug.Assert(first != null);
-            RoslynDebug.Assert(second != null);
+            case ConstantValueTypeDiscriminator.SByte:
+            case ConstantValueTypeDiscriminator.Int16:
+            case ConstantValueTypeDiscriminator.Int32:
+            case ConstantValueTypeDiscriminator.Int64:
+                return first.Int64Value.CompareTo(second.Int64Value);
 
-            RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(first));
-            RoslynDebug.Assert(IsValidSwitchCaseLabelConstant(second));
+            case ConstantValueTypeDiscriminator.Boolean:
+            case ConstantValueTypeDiscriminator.Byte:
+            case ConstantValueTypeDiscriminator.UInt16:
+            case ConstantValueTypeDiscriminator.UInt32:
+            case ConstantValueTypeDiscriminator.UInt64:
+            case ConstantValueTypeDiscriminator.Char:
+                return first.UInt64Value.CompareTo(second.UInt64Value);
 
-            if (first.IsNull)
+            case ConstantValueTypeDiscriminator.String:
+                Debug.Assert(second.IsString);
+                return string.CompareOrdinal(first.StringValue, second.StringValue);
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(first.Discriminator);
+        }
+    }
+
+    public class SwitchLabelsComparer : EqualityComparer<object>
+    {
+        public override bool Equals(object? first, object? second)
+        {
+            RoslynDebug.Assert(first != null && second != null);
+
+            var firstConstant = first as ConstantValue;
+            if (firstConstant != null)
             {
-                // first instance has ConstantValue Null.
-                // If second instance ConstantValue is Null, both instances are equal.
-                // Else, second instance is greater.
-                return second.IsNull ? 0 : -1;
+                var secondConstant = second as ConstantValue;
+                if (secondConstant != null)
+                {
+                    if (!IsValidSwitchCaseLabelConstant(firstConstant)
+                        || !IsValidSwitchCaseLabelConstant(secondConstant))
+                    {
+                        // We don't care about invalid case labels with duplicate value as
+                        // we will generate diagnostics for invalid case label.
+                        return firstConstant.Equals(secondConstant);
+                    }
+
+                    return CompareSwitchCaseLabelConstants(firstConstant, secondConstant) == 0;
+                }
             }
-            else if (second.IsNull)
+
+            var firstString = first as string;
+            if (firstString != null)
             {
-                // second instance has ConstantValue Null and first instance has non-null ConstantValue.
-                // first instance is greater.
-                return 1;
+                return string.Equals(firstString, second as string, System.StringComparison.Ordinal);
             }
 
-            switch (first.Discriminator)
-            {
-                case ConstantValueTypeDiscriminator.SByte:
-                case ConstantValueTypeDiscriminator.Int16:
-                case ConstantValueTypeDiscriminator.Int32:
-                case ConstantValueTypeDiscriminator.Int64:
-                    return first.Int64Value.CompareTo(second.Int64Value);
-
-                case ConstantValueTypeDiscriminator.Boolean:
-                case ConstantValueTypeDiscriminator.Byte:
-                case ConstantValueTypeDiscriminator.UInt16:
-                case ConstantValueTypeDiscriminator.UInt32:
-                case ConstantValueTypeDiscriminator.UInt64:
-                case ConstantValueTypeDiscriminator.Char:
-                    return first.UInt64Value.CompareTo(second.UInt64Value);
-
-                case ConstantValueTypeDiscriminator.String:
-                    Debug.Assert(second.IsString);
-                    return string.CompareOrdinal(first.StringValue, second.StringValue);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(first.Discriminator);
-            }
+            return first.Equals(second);
         }
 
-        public class SwitchLabelsComparer : EqualityComparer<object>
+        public override int GetHashCode(object obj)
         {
-            public override bool Equals(object? first, object? second)
+            var constant = obj as ConstantValue;
+            if (constant != null)
             {
-                RoslynDebug.Assert(first != null && second != null);
-
-                var firstConstant = first as ConstantValue;
-                if (firstConstant != null)
+                switch (constant.Discriminator)
                 {
-                    var secondConstant = second as ConstantValue;
-                    if (secondConstant != null)
-                    {
-                        if (!IsValidSwitchCaseLabelConstant(firstConstant)
-                            || !IsValidSwitchCaseLabelConstant(secondConstant))
-                        {
-                            // We don't care about invalid case labels with duplicate value as
-                            // we will generate diagnostics for invalid case label.
-                            return firstConstant.Equals(secondConstant);
-                        }
+                    case ConstantValueTypeDiscriminator.SByte:
+                    case ConstantValueTypeDiscriminator.Int16:
+                    case ConstantValueTypeDiscriminator.Int32:
+                    case ConstantValueTypeDiscriminator.Int64:
+                        return constant.Int64Value.GetHashCode();
 
-                        return CompareSwitchCaseLabelConstants(firstConstant, secondConstant) == 0;
-                    }
+                    case ConstantValueTypeDiscriminator.Boolean:
+                    case ConstantValueTypeDiscriminator.Byte:
+                    case ConstantValueTypeDiscriminator.UInt16:
+                    case ConstantValueTypeDiscriminator.UInt32:
+                    case ConstantValueTypeDiscriminator.UInt64:
+                    case ConstantValueTypeDiscriminator.Char:
+                        return constant.UInt64Value.GetHashCode();
+
+                    case ConstantValueTypeDiscriminator.String:
+                        return constant.RopeValue!.GetHashCode();
                 }
-
-                var firstString = first as string;
-                if (firstString != null)
-                {
-                    return string.Equals(firstString, second as string, System.StringComparison.Ordinal);
-                }
-
-                return first.Equals(second);
             }
 
-            public override int GetHashCode(object obj)
-            {
-                var constant = obj as ConstantValue;
-                if (constant != null)
-                {
-                    switch (constant.Discriminator)
-                    {
-                        case ConstantValueTypeDiscriminator.SByte:
-                        case ConstantValueTypeDiscriminator.Int16:
-                        case ConstantValueTypeDiscriminator.Int32:
-                        case ConstantValueTypeDiscriminator.Int64:
-                            return constant.Int64Value.GetHashCode();
-
-                        case ConstantValueTypeDiscriminator.Boolean:
-                        case ConstantValueTypeDiscriminator.Byte:
-                        case ConstantValueTypeDiscriminator.UInt16:
-                        case ConstantValueTypeDiscriminator.UInt32:
-                        case ConstantValueTypeDiscriminator.UInt64:
-                        case ConstantValueTypeDiscriminator.Char:
-                            return constant.UInt64Value.GetHashCode();
-
-                        case ConstantValueTypeDiscriminator.String:
-                            return constant.RopeValue!.GetHashCode();
-                    }
-                }
-
-                return obj.GetHashCode();
-            }
+            return obj.GetHashCode();
         }
     }
 }

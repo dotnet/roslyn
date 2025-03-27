@@ -6,77 +6,76 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal partial class SpecializedCollections
 {
-    internal partial class SpecializedCollections
+    private partial class Empty
     {
-        private partial class Empty
-        {
-            internal class Dictionary<TKey, TValue>
+        internal class Dictionary<TKey, TValue>
 #nullable disable
-                // Note: if the interfaces we implement weren't oblivious, then we'd warn about the `[MaybeNullWhen(false)] out TValue value` parameter below
-                // We can remove this once `IDictionary` is annotated with `[MaybeNullWhen(false)]`
-                : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+            // Note: if the interfaces we implement weren't oblivious, then we'd warn about the `[MaybeNullWhen(false)] out TValue value` parameter below
+            // We can remove this once `IDictionary` is annotated with `[MaybeNullWhen(false)]`
+            : Collection<KeyValuePair<TKey, TValue>>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
 #nullable enable
-                where TKey : notnull
+            where TKey : notnull
+        {
+            public static new readonly Dictionary<TKey, TValue> Instance = new();
+
+            private Dictionary()
             {
-                public static new readonly Dictionary<TKey, TValue> Instance = new();
+            }
 
-                private Dictionary()
+            public void Add(TKey key, TValue value)
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool ContainsKey(TKey key)
+            {
+                return false;
+            }
+
+            public ICollection<TKey> Keys
+            {
+                get
                 {
+                    return Collection<TKey>.Instance;
                 }
+            }
 
-                public void Add(TKey key, TValue value)
+            IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
+            IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
+
+            public bool Remove(TKey key)
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
+            {
+                value = default!;
+                return false;
+            }
+
+            public ICollection<TValue> Values
+            {
+                get
+                {
+                    return Collection<TValue>.Instance;
+                }
+            }
+
+            public TValue this[TKey key]
+            {
+                get
                 {
                     throw new NotSupportedException();
                 }
 
-                public bool ContainsKey(TKey key)
-                {
-                    return false;
-                }
-
-                public ICollection<TKey> Keys
-                {
-                    get
-                    {
-                        return Collection<TKey>.Instance;
-                    }
-                }
-
-                IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
-                IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
-
-                public bool Remove(TKey key)
+                set
                 {
                     throw new NotSupportedException();
-                }
-
-                public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
-                {
-                    value = default!;
-                    return false;
-                }
-
-                public ICollection<TValue> Values
-                {
-                    get
-                    {
-                        return Collection<TValue>.Instance;
-                    }
-                }
-
-                public TValue this[TKey key]
-                {
-                    get
-                    {
-                        throw new NotSupportedException();
-                    }
-
-                    set
-                    {
-                        throw new NotSupportedException();
-                    }
                 }
             }
         }

@@ -6,52 +6,51 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal static partial class BoundStatementExtensions
 {
-    internal static partial class BoundStatementExtensions
+    [Conditional("DEBUG")]
+    internal static void AssertIsLabeledStatement(this BoundStatement node)
     {
-        [Conditional("DEBUG")]
-        internal static void AssertIsLabeledStatement(this BoundStatement node)
+        switch (node.Kind)
         {
-            switch (node.Kind)
-            {
-                case BoundKind.LabelStatement:
-                case BoundKind.LabeledStatement:
-                case BoundKind.SwitchSection:
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
-            }
+            case BoundKind.LabelStatement:
+            case BoundKind.LabeledStatement:
+            case BoundKind.SwitchSection:
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(node.Kind);
         }
+    }
 
-        [Conditional("DEBUG")]
-        internal static void AssertIsLabeledStatementWithLabel(this BoundStatement node, LabelSymbol label)
+    [Conditional("DEBUG")]
+    internal static void AssertIsLabeledStatementWithLabel(this BoundStatement node, LabelSymbol label)
+    {
+        Debug.Assert(node != null);
+
+        switch (node.Kind)
         {
-            Debug.Assert(node != null);
+            case BoundKind.LabelStatement:
+                Debug.Assert(((BoundLabelStatement)node).Label == label);
+                break;
 
-            switch (node.Kind)
-            {
-                case BoundKind.LabelStatement:
-                    Debug.Assert(((BoundLabelStatement)node).Label == label);
-                    break;
+            case BoundKind.LabeledStatement:
+                Debug.Assert(((BoundLabeledStatement)node).Label == label);
+                break;
 
-                case BoundKind.LabeledStatement:
-                    Debug.Assert(((BoundLabeledStatement)node).Label == label);
-                    break;
-
-                case BoundKind.SwitchSection:
-                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
+            case BoundKind.SwitchSection:
+                foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
+                {
+                    if (boundSwitchLabel.Label == label)
                     {
-                        if (boundSwitchLabel.Label == label)
-                        {
-                            return;
-                        }
+                        return;
                     }
-                    throw ExceptionUtilities.Unreachable();
+                }
+                throw ExceptionUtilities.Unreachable();
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
-            }
+            default:
+                throw ExceptionUtilities.UnexpectedValue(node.Kind);
         }
     }
 }

@@ -12,31 +12,30 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections
+namespace Microsoft.CodeAnalysis.UnitTests.Collections;
+
+public partial class ImmutableSegmentedDictionaryTest : ImmutableDictionaryTestBase
 {
-    public partial class ImmutableSegmentedDictionaryTest : ImmutableDictionaryTestBase
+    [Fact]
+    public override void EmptyTest()
     {
-        [Fact]
-        public override void EmptyTest()
-        {
-            base.EmptyTest();
-            EmptyTestHelperHash(Empty<int, bool>(), 5);
-        }
+        base.EmptyTest();
+        EmptyTestHelperHash(Empty<int, bool>(), 5);
+    }
 
-        [Fact]
-        public void EnumeratorWithHashCollisionsTest()
-        {
-            var emptyMap = Empty<int, GenericParameterHelper>(new BadHasher<int>());
-            EnumeratorTestHelper(emptyMap);
-        }
+    [Fact]
+    public void EnumeratorWithHashCollisionsTest()
+    {
+        var emptyMap = Empty<int, GenericParameterHelper>(new BadHasher<int>());
+        EnumeratorTestHelper(emptyMap);
+    }
 
-        private static void EmptyTestHelperHash<TKey, TValue>(IImmutableDictionary<TKey, TValue> empty, TKey someKey)
-            where TKey : notnull
-        {
-            // Intentionally not used
-            _ = someKey;
+    private static void EmptyTestHelperHash<TKey, TValue>(IImmutableDictionary<TKey, TValue> empty, TKey someKey)
+        where TKey : notnull
+    {
+        // Intentionally not used
+        _ = someKey;
 
-            Assert.Same(EqualityComparer<TKey>.Default, empty.GetKeyComparer());
-        }
+        Assert.Same(EqualityComparer<TKey>.Default, empty.GetKeyComparer());
     }
 }

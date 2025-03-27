@@ -8,58 +8,57 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit
+namespace Microsoft.CodeAnalysis.CSharp.Emit;
+
+internal abstract class TypeMemberReference : Cci.ITypeMemberReference
 {
-    internal abstract class TypeMemberReference : Cci.ITypeMemberReference
+    protected abstract Symbol UnderlyingSymbol { get; }
+
+    public virtual Cci.ITypeReference GetContainingType(EmitContext context)
     {
-        protected abstract Symbol UnderlyingSymbol { get; }
+        PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
+        return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
+    }
 
-        public virtual Cci.ITypeReference GetContainingType(EmitContext context)
+    string Cci.INamedEntity.Name
+    {
+        get
         {
-            PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(UnderlyingSymbol.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
+            return UnderlyingSymbol.MetadataName;
         }
+    }
 
-        string Cci.INamedEntity.Name
-        {
-            get
-            {
-                return UnderlyingSymbol.MetadataName;
-            }
-        }
+    /// <remarks>
+    /// Used only for testing.
+    /// </remarks>
+    public override string ToString()
+    {
+        return UnderlyingSymbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+    }
 
-        /// <remarks>
-        /// Used only for testing.
-        /// </remarks>
-        public override string ToString()
-        {
-            return UnderlyingSymbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
-        }
+    IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
+    {
+        return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
+    }
 
-        IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
-        {
-            return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-        }
+    public abstract void Dispatch(Cci.MetadataVisitor visitor);
 
-        public abstract void Dispatch(Cci.MetadataVisitor visitor);
+    Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+    {
+        return null;
+    }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
-        {
-            return null;
-        }
+    CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => UnderlyingSymbol;
 
-        CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => UnderlyingSymbol;
+    public sealed override bool Equals(object obj)
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
+    public sealed override int GetHashCode()
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
     }
 }

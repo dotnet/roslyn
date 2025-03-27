@@ -12,19 +12,19 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
-{
-    public partial class CodeGenOptimizedNullableOperatorTests : CSharpTestBase
-    {
-        [Fact]
-        public void TestNullableBoxingConversionsAlwaysNull()
-        {
-            // The native compiler does not optimize this case; Roslyn does. We know
-            // that the result of boxing default(int?) to object is the same as casting
-            // literal null to object, so we do not need to allocate space on the stack 
-            // for the nullable int, initialize it, and then box that to a null ref.
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
-            string[] sources = {
+public partial class CodeGenOptimizedNullableOperatorTests : CSharpTestBase
+{
+    [Fact]
+    public void TestNullableBoxingConversionsAlwaysNull()
+    {
+        // The native compiler does not optimize this case; Roslyn does. We know
+        // that the result of boxing default(int?) to object is the same as casting
+        // literal null to object, so we do not need to allocate space on the stack 
+        // for the nullable int, initialize it, and then box that to a null ref.
+
+        string[] sources = {
 @"class Program
 {
     static void Main()
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }
 "};
 
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldnull
@@ -61,23 +61,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_0006:  ret
 }";
 
-            foreach (string source in sources)
-            {
-                var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-                comp.VerifyDiagnostics();
-                comp.VerifyIL("Program.Main", expectedIL);
-            }
-        }
-
-        [Fact]
-        public void TestNullableBoxingConversionNeverNull()
+        foreach (string source in sources)
         {
-            // The native compiler does not optimize this case; Roslyn does. We know
-            // that the result of boxing default(int?) to object is the same as casting
-            // literal null to object, so we do not need to allocate space on the stack 
-            // for the nullable int, initialize it, and then box that to a null ref.
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", expectedIL);
+        }
+    }
 
-            string[] sources = {
+    [Fact]
+    public void TestNullableBoxingConversionNeverNull()
+    {
+        // The native compiler does not optimize this case; Roslyn does. We know
+        // that the result of boxing default(int?) to object is the same as casting
+        // literal null to object, so we do not need to allocate space on the stack 
+        // for the nullable int, initialize it, and then box that to a null ref.
+
+        string[] sources = {
 @"class Program
 {
     static void Main()
@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 }
 "};
 
-            string expectedOutput = "123";
-            string expectedIL = @"{
+        string expectedOutput = "123";
+        string expectedIL = @"{
   // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldc.i4.s   123
@@ -106,21 +106,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   IL_000c:  ret
 }";
 
-            foreach (string source in sources)
-            {
-                var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-                comp.VerifyDiagnostics();
-                comp.VerifyIL("Program.Main", expectedIL);
-            }
-        }
-
-        [Fact]
-        public void TestNullableConversionAlwaysNull()
+        foreach (string source in sources)
         {
-            // A built-in nullable conversion whose argument is known to always be null
-            // can simply be optimized away to be the null result.
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Program.Main", expectedIL);
+        }
+    }
 
-            string source = @"
+    [Fact]
+    public void TestNullableConversionAlwaysNull()
+    {
+        // A built-in nullable conversion whose argument is known to always be null
+        // can simply be optimized away to be the null result.
+
+        string source = @"
 class Program
 {
     static long? M()
@@ -130,8 +130,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (long? V_0)
@@ -141,20 +141,20 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableConversionNeverNull()
-        {
-            // A built-in nullable conversion whose argument is known to be non-null
-            // can be generated by converting the value to the underlying target type,
-            // and then converting that to nullable, without generating the nullable source
-            // or checking to see if it has a value.
+    [Fact]
+    public void TestNullableConversionNeverNull()
+    {
+        // A built-in nullable conversion whose argument is known to be non-null
+        // can be generated by converting the value to the underlying target type,
+        // and then converting that to nullable, without generating the nullable source
+        // or checking to see if it has a value.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static long? M(int x)
@@ -164,8 +164,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -174,18 +174,18 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestLiftedUserDefinedConversionAlwaysNull()
-        {
-            // A user-defined nullable conversion whose argument is known to always be null
-            // can simply be optimized away to be the null result.
+    [Fact]
+    public void TestLiftedUserDefinedConversionAlwaysNull()
+    {
+        // A user-defined nullable conversion whose argument is known to always be null
+        // can simply be optimized away to be the null result.
 
-            string source = @"
+        string source = @"
 struct S
 {
     public static implicit operator S(int x) { return new S(); }
@@ -199,8 +199,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (S? V_0)
@@ -210,18 +210,18 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestLiftedUserDefinedConversionNeverNull()
-        {
-            // A user-defined nullable conversion whose argument is known to never be null
-            // can have the nullable ctor, temporary store and value test optimized away.
+    [Fact]
+    public void TestLiftedUserDefinedConversionNeverNull()
+    {
+        // A user-defined nullable conversion whose argument is known to never be null
+        // can have the nullable ctor, temporary store and value test optimized away.
 
-            string source = @"
+        string source = @"
 struct S
 {
     public static implicit operator S(int x) { return new S(); }
@@ -253,8 +253,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -262,7 +262,7 @@ class Program
   IL_0006:  newobj     ""S?..ctor(S)""
   IL_000b:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size        7 (0x7)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -270,7 +270,7 @@ class Program
   IL_0006:  ret
 }";
 
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -279,20 +279,20 @@ class Program
   IL_000b:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+    }
 
-        [Fact]
-        public void TestNullableUnaryOpsAlwaysNull()
-        {
-            // A unary operator whose argument is known to always be null
-            // can simply be optimized away to be the null result.
+    [Fact]
+    public void TestNullableUnaryOpsAlwaysNull()
+    {
+        // A unary operator whose argument is known to always be null
+        // can simply be optimized away to be the null result.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int? M()
@@ -302,8 +302,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (int? V_0)
@@ -313,32 +313,32 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
 // (6,16): warning CS0458: The result of the expression is always 'null' of type 'int?'
 //         return ~(new int?());
 Diagnostic(ErrorCode.WRN_AlwaysNull, "~(new int?())").WithArguments("int?"));
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableUnaryOpsAlwaysNullChained()
-        {
-            // A unary operator whose argument is known to always be null
-            // can simply be optimized away to be the null result. These
-            // optimizations should "chain" naturally. Here we combine
-            // a built-in conversion, two unary operations, and a boxing.
-            // The net result should simply be a null reference.
-            //
-            // The native compiler does not handle these "chained" optimizations,
-            // interestingly enough; the native compiler will optimize away only the
-            // innermost one; it is then not treated as "always null" and is checked
-            // for nullity unnecessarily.
-            //
-            // Fortunately, the warning logic does not do a deep analysis; it only
-            // reports a single warning.
+    [Fact]
+    public void TestNullableUnaryOpsAlwaysNullChained()
+    {
+        // A unary operator whose argument is known to always be null
+        // can simply be optimized away to be the null result. These
+        // optimizations should "chain" naturally. Here we combine
+        // a built-in conversion, two unary operations, and a boxing.
+        // The net result should simply be a null reference.
+        //
+        // The native compiler does not handle these "chained" optimizations,
+        // interestingly enough; the native compiler will optimize away only the
+        // innermost one; it is then not treated as "always null" and is checked
+        // for nullity unnecessarily.
+        //
+        // Fortunately, the warning logic does not do a deep analysis; it only
+        // reports a single warning.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static object M()
@@ -348,29 +348,29 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldnull
   IL_0001:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
-    // (6,17): warning CS0458: The result of the expression is always 'null' of type 'int?'
-    //         return ~-(new short?());
-    Diagnostic(ErrorCode.WRN_AlwaysNull, "-(new short?())").WithArguments("int?"));
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
+// (6,17): warning CS0458: The result of the expression is always 'null' of type 'int?'
+//         return ~-(new short?());
+Diagnostic(ErrorCode.WRN_AlwaysNull, "-(new short?())").WithArguments("int?"));
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableUnaryOpsNeverNull()
-        {
-            // A unary operator whose argument is known to never be null
-            // can be optimized to avoid the null check.
+    [Fact]
+    public void TestNullableUnaryOpsNeverNull()
+    {
+        // A unary operator whose argument is known to never be null
+        // can be optimized to avoid the null check.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int N() { return 123; }
@@ -382,8 +382,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  call       ""int Program.N()""
@@ -392,21 +392,21 @@ class Program
   IL_000b:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableUnaryOpsNeverNullChained()
-        {
-            // A unary operator whose argument is known to never be null
-            // can simply be optimized away to be the null result. These
-            // optimizations should "chain" naturally. Here we combine
-            // two unary operations and a boxing. As you can see, we eliminate
-            // all the null checks and the "new S?" ctor.
+    [Fact]
+    public void TestNullableUnaryOpsNeverNullChained()
+    {
+        // A unary operator whose argument is known to never be null
+        // can simply be optimized away to be the null result. These
+        // optimizations should "chain" naturally. Here we combine
+        // two unary operations and a boxing. As you can see, we eliminate
+        // all the null checks and the "new S?" ctor.
 
-            string source = @"
+        string source = @"
 struct S
 {
   public static S operator +(S s) { return s; }
@@ -423,8 +423,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -434,47 +434,47 @@ class Program
   IL_0010:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestLiftedUnaryOpOnTopOfLifted()
-        {
-            // Here's an optimization that the dev10 compiler does not do. If we have a 
-            // lifted unary operator "on top" of another lifted operation, then the unary
-            // operation can be "distributed" to both branches of the underlying lifted operation.
-            //
-            // For example, suppose we have
-            //
-            // return -(N1() + N2());
-            //
-            // Where N1() and N2() return int?. The dev10 compiler does this in two steps: first it 
-            // computes the int? result of the addition, and then it does a fully lifted negation:
-            //
-            // int? t1 = N1();
-            // int? t2 = N2();
-            // int? t3 = t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?();
-            // return t3.HasValue ? new int?(-t3.Value)) : new int?();
-            //
-            // But t3 is completely unnecessary here. We could realize this as:
-            //
-            // return -(t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?())
-            //
-            // which is the same as distributing the conversion to the consequence and alternative:
-            //
-            // return (t1.HasValue && t2.HasValue ? - new int?(t1.Value + t2.Value) ): - ( new int?() ) )
-            // 
-            // and now we can optimize the consequence and alternative down to
-            //
-            // return (t1.HasValue && t2.HasValue ? new int?(-(t1.Value + t2.Value) ): new int?() )
-            //
-            // And the int? t3 disappears entirely. 
-            //
-            // This optimization has the nice property that it composes well with itself, as we'll see.
+    [Fact]
+    public void TestLiftedUnaryOpOnTopOfLifted()
+    {
+        // Here's an optimization that the dev10 compiler does not do. If we have a 
+        // lifted unary operator "on top" of another lifted operation, then the unary
+        // operation can be "distributed" to both branches of the underlying lifted operation.
+        //
+        // For example, suppose we have
+        //
+        // return -(N1() + N2());
+        //
+        // Where N1() and N2() return int?. The dev10 compiler does this in two steps: first it 
+        // computes the int? result of the addition, and then it does a fully lifted negation:
+        //
+        // int? t1 = N1();
+        // int? t2 = N2();
+        // int? t3 = t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?();
+        // return t3.HasValue ? new int?(-t3.Value)) : new int?();
+        //
+        // But t3 is completely unnecessary here. We could realize this as:
+        //
+        // return -(t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?())
+        //
+        // which is the same as distributing the conversion to the consequence and alternative:
+        //
+        // return (t1.HasValue && t2.HasValue ? - new int?(t1.Value + t2.Value) ): - ( new int?() ) )
+        // 
+        // and now we can optimize the consequence and alternative down to
+        //
+        // return (t1.HasValue && t2.HasValue ? new int?(-(t1.Value + t2.Value) ): new int?() )
+        //
+        // And the int? t3 disappears entirely. 
+        //
+        // This optimization has the nice property that it composes well with itself, as we'll see.
 
-            string source = @"
+        string source = @"
 struct S
 {
   public static S operator -(S s) { return s; }
@@ -501,9 +501,9 @@ class Program
 }
 
 ";
-            string expectedOutput = "";
+        string expectedOutput = "";
 
-            string expectedIL1 = @"{
+        string expectedIL1 = @"{
   // Code size       61 (0x3d)
   .maxstack  2
   .locals init (int? V_0,
@@ -533,7 +533,7 @@ class Program
   IL_003c:  ret
 }
 ";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       74 (0x4a)
   .maxstack  2
   .locals init (S? V_0,
@@ -563,44 +563,44 @@ class Program
   IL_0044:  newobj     ""S?..ctor(S)""
   IL_0049:  ret
 }";
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+    }
 
-        [Fact]
-        public void TestLiftedBinaryOpWithConstantOnTopOfLifted()
-        {
-            // If we have a lifted binary operation "on top" of a lifted operation,
-            // and the right side of the outer operation is a constant, then we
-            // can eliminate several temporaries.
-            //
-            // For example, suppose we have
-            //
-            // return N1() * N2() + 1;
-            //
-            // Where N1() and N2() return int?. We could do this the obvious way:
-            //
-            // int? n1 = N1();
-            // int? n2 = N2();
-            // int? r = n1.HasValue && n2.HasValue ? new int?(n1.Value * n2.Value) : new int?();
-            // int v = 1;
-            // return r.HasValue ? new int?(r.Value + v)) : new int?();
-            //
-            // But r and v are both unnecessary. We could instead realize this as:
-            //
-            // int? n1 = N1();
-            // int? n2 = N2();
-            // return n1.HasValue && n2.HasValue ? new int?(n1.Value * n2.Value + 1) : new int?();
-            //
-            // We want to do this optimization in particular because it makes codegen for i++
-            // and i+=1 better.
-            //
-            // The dev10 compiler does this optimization *only* on i++ and not on expressions
-            // like N1() * N2() + 1 or sh+=1;
+    [Fact]
+    public void TestLiftedBinaryOpWithConstantOnTopOfLifted()
+    {
+        // If we have a lifted binary operation "on top" of a lifted operation,
+        // and the right side of the outer operation is a constant, then we
+        // can eliminate several temporaries.
+        //
+        // For example, suppose we have
+        //
+        // return N1() * N2() + 1;
+        //
+        // Where N1() and N2() return int?. We could do this the obvious way:
+        //
+        // int? n1 = N1();
+        // int? n2 = N2();
+        // int? r = n1.HasValue && n2.HasValue ? new int?(n1.Value * n2.Value) : new int?();
+        // int v = 1;
+        // return r.HasValue ? new int?(r.Value + v)) : new int?();
+        //
+        // But r and v are both unnecessary. We could instead realize this as:
+        //
+        // int? n1 = N1();
+        // int? n2 = N2();
+        // return n1.HasValue && n2.HasValue ? new int?(n1.Value * n2.Value + 1) : new int?();
+        //
+        // We want to do this optimization in particular because it makes codegen for i++
+        // and i+=1 better.
+        //
+        // The dev10 compiler does this optimization *only* on i++ and not on expressions
+        // like N1() * N2() + 1 or sh+=1;
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int? N1() { return 1; }
@@ -630,9 +630,9 @@ class Program
     static void Main() { }
 }
 ";
-            string expectedOutput = "";
+        string expectedOutput = "";
 
-            string expectedIL1 = @"{
+        string expectedIL1 = @"{
   // Code size       62 (0x3e)
   .maxstack  2
   .locals init (int? V_0,
@@ -663,7 +663,7 @@ class Program
   IL_003d:  ret
 }";
 
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       48 (0x30)
   .maxstack  3
   .locals init (short? V_0,
@@ -687,7 +687,7 @@ class Program
   IL_002a:  stsfld     ""short? Program.sh""
   IL_002f:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size       48 (0x30)
   .maxstack  2
   .locals init (short? V_0,
@@ -711,7 +711,7 @@ class Program
   IL_002a:  stsfld     ""short? Program.sh""
   IL_002f:  ret
 }";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size       48 (0x30)
   .maxstack  2
   .locals init (short? V_0,
@@ -736,333 +736,333 @@ class Program
   IL_002f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
-        public void LiftedBinaryOp_OneNonNull_Custom()
-        {
-            var source = """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+    public void LiftedBinaryOp_OneNonNull_Custom()
+    {
+        var source = """
+            using System;
 
-                C.M(DateTime.MaxValue);
-                C.M(default(DateTime));
-                C.M(new DateTime(42));
-                C.M(null);
+            C.M(DateTime.MaxValue);
+            C.M(default(DateTime));
+            C.M(new DateTime(42));
+            C.M(null);
 
-                class C
+            class C
+            {
+                static void Write(bool b) => Console.Write(b ? 1 : 0);
+                public static void M(DateTime? d)
                 {
-                    static void Write(bool b) => Console.Write(b ? 1 : 0);
-                    public static void M(DateTime? d)
-                    {
-                        M1(d);
-                        M2(d);
-                        M3(d);
-                        Console.Write(' ');
-                    }
-                    static void M1(DateTime? d)
-                    {
-                        Write(d == DateTime.MaxValue);
-                    }
-                    static void M2(DateTime? d)
-                    {
-                        Write(d != DateTime.MaxValue);
-                    }
-                    static void M3(DateTime? d)
-                    {
-                        Write(DateTime.MaxValue != d);
-                    }
+                    M1(d);
+                    M2(d);
+                    M3(d);
+                    Console.Write(' ');
                 }
-                """;
-            var expectedOutput = "100 011 011 011";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+                static void M1(DateTime? d)
                 {
-                  // Code size       39 (0x27)
-                  .maxstack  2
-                  .locals init (System.DateTime? V_0,
-                                System.DateTime V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldsfld     "System.DateTime System.DateTime.MaxValue"
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  call       "bool System.DateTime?.HasValue.get"
-                  IL_000f:  brtrue.s   IL_0014
-                  IL_0011:  ldc.i4.0
-                  IL_0012:  br.s       IL_0021
-                  IL_0014:  ldloca.s   V_0
-                  IL_0016:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_001b:  ldloc.1
-                  IL_001c:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_0021:  call       "void C.Write(bool)"
-                  IL_0026:  ret
+                    Write(d == DateTime.MaxValue);
                 }
-                """);
-            verifier.VerifyIL("C.M3", """
+                static void M2(DateTime? d)
                 {
-                  // Code size       39 (0x27)
-                  .maxstack  2
-                  .locals init (System.DateTime V_0,
-                                System.DateTime? V_1)
-                  IL_0000:  ldsfld     "System.DateTime System.DateTime.MaxValue"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldarg.0
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloca.s   V_1
-                  IL_000a:  call       "bool System.DateTime?.HasValue.get"
-                  IL_000f:  brtrue.s   IL_0014
-                  IL_0011:  ldc.i4.1
-                  IL_0012:  br.s       IL_0021
-                  IL_0014:  ldloc.0
-                  IL_0015:  ldloca.s   V_1
-                  IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_001c:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
-                  IL_0021:  call       "void C.Write(bool)"
-                  IL_0026:  ret
+                    Write(d != DateTime.MaxValue);
                 }
-                """);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+                static void M3(DateTime? d)
                 {
-                  // Code size       41 (0x29)
-                  .maxstack  2
-                  .locals init (System.DateTime? V_0,
-                                System.DateTime V_1)
-                  IL_0000:  nop
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldsfld     "System.DateTime System.DateTime.MaxValue"
-                  IL_0008:  stloc.1
-                  IL_0009:  ldloca.s   V_0
-                  IL_000b:  call       "bool System.DateTime?.HasValue.get"
-                  IL_0010:  brtrue.s   IL_0015
-                  IL_0012:  ldc.i4.0
-                  IL_0013:  br.s       IL_0022
-                  IL_0015:  ldloca.s   V_0
-                  IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_001c:  ldloc.1
-                  IL_001d:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_0022:  call       "void C.Write(bool)"
-                  IL_0027:  nop
-                  IL_0028:  ret
+                    Write(DateTime.MaxValue != d);
                 }
-                """);
-            verifier.VerifyIL("C.M3", """
-                {
-                  // Code size       41 (0x29)
-                  .maxstack  2
-                  .locals init (System.DateTime V_0,
-                                System.DateTime? V_1)
-                  IL_0000:  nop
-                  IL_0001:  ldsfld     "System.DateTime System.DateTime.MaxValue"
-                  IL_0006:  stloc.0
-                  IL_0007:  ldarg.0
-                  IL_0008:  stloc.1
-                  IL_0009:  ldloca.s   V_1
-                  IL_000b:  call       "bool System.DateTime?.HasValue.get"
-                  IL_0010:  brtrue.s   IL_0015
-                  IL_0012:  ldc.i4.1
-                  IL_0013:  br.s       IL_0022
-                  IL_0015:  ldloc.0
-                  IL_0016:  ldloca.s   V_1
-                  IL_0018:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_001d:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
-                  IL_0022:  call       "void C.Write(bool)"
-                  IL_0027:  nop
-                  IL_0028:  ret
-                }
-                """);
-        }
+            }
+            """;
+        var expectedOutput = "100 011 011 011";
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  2
+              .locals init (System.DateTime? V_0,
+                            System.DateTime V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+              IL_0007:  stloc.1
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  call       "bool System.DateTime?.HasValue.get"
+              IL_000f:  brtrue.s   IL_0014
+              IL_0011:  ldc.i4.0
+              IL_0012:  br.s       IL_0021
+              IL_0014:  ldloca.s   V_0
+              IL_0016:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_001b:  ldloc.1
+              IL_001c:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+              IL_0021:  call       "void C.Write(bool)"
+              IL_0026:  ret
+            }
+            """);
+        verifier.VerifyIL("C.M3", """
+            {
+              // Code size       39 (0x27)
+              .maxstack  2
+              .locals init (System.DateTime V_0,
+                            System.DateTime? V_1)
+              IL_0000:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+              IL_0005:  stloc.0
+              IL_0006:  ldarg.0
+              IL_0007:  stloc.1
+              IL_0008:  ldloca.s   V_1
+              IL_000a:  call       "bool System.DateTime?.HasValue.get"
+              IL_000f:  brtrue.s   IL_0014
+              IL_0011:  ldc.i4.1
+              IL_0012:  br.s       IL_0021
+              IL_0014:  ldloc.0
+              IL_0015:  ldloca.s   V_1
+              IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_001c:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
+              IL_0021:  call       "void C.Write(bool)"
+              IL_0026:  ret
+            }
+            """);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  2
+              .locals init (System.DateTime? V_0,
+                            System.DateTime V_1)
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  stloc.0
+              IL_0003:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+              IL_0008:  stloc.1
+              IL_0009:  ldloca.s   V_0
+              IL_000b:  call       "bool System.DateTime?.HasValue.get"
+              IL_0010:  brtrue.s   IL_0015
+              IL_0012:  ldc.i4.0
+              IL_0013:  br.s       IL_0022
+              IL_0015:  ldloca.s   V_0
+              IL_0017:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_001c:  ldloc.1
+              IL_001d:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+              IL_0022:  call       "void C.Write(bool)"
+              IL_0027:  nop
+              IL_0028:  ret
+            }
+            """);
+        verifier.VerifyIL("C.M3", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  2
+              .locals init (System.DateTime V_0,
+                            System.DateTime? V_1)
+              IL_0000:  nop
+              IL_0001:  ldsfld     "System.DateTime System.DateTime.MaxValue"
+              IL_0006:  stloc.0
+              IL_0007:  ldarg.0
+              IL_0008:  stloc.1
+              IL_0009:  ldloca.s   V_1
+              IL_000b:  call       "bool System.DateTime?.HasValue.get"
+              IL_0010:  brtrue.s   IL_0015
+              IL_0012:  ldc.i4.1
+              IL_0013:  br.s       IL_0022
+              IL_0015:  ldloc.0
+              IL_0016:  ldloca.s   V_1
+              IL_0018:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_001d:  call       "bool System.DateTime.op_Inequality(System.DateTime, System.DateTime)"
+              IL_0022:  call       "void C.Write(bool)"
+              IL_0027:  nop
+              IL_0028:  ret
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
-        public void LiftedBinaryOp_OneNonNull_BuiltIn()
-        {
-            var source = """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+    public void LiftedBinaryOp_OneNonNull_BuiltIn()
+    {
+        var source = """
+            using System;
 
-                C.M(int.MaxValue);
-                C.M(int.MinValue);
-                C.M(0);
-                C.M(42);
-                C.M(null);
+            C.M(int.MaxValue);
+            C.M(int.MinValue);
+            C.M(0);
+            C.M(42);
+            C.M(null);
 
-                class C
+            class C
+            {
+                static void Write(bool b) => Console.Write(b ? 1 : 0);
+                public static void M(int? x)
                 {
-                    static void Write(bool b) => Console.Write(b ? 1 : 0);
-                    public static void M(int? x)
-                    {
-                        M1(x);
-                        M2(x);
-                        M3(x);
-                        Console.Write(' ');
-                    }
-                    static void M1(int? x)
-                    {
-                        Write(x == int.MaxValue);
-                    }
-                    static void M2(int? x)
-                    {
-                        Write(x != int.MaxValue);
-                    }
-                    static void M3(int? x)
-                    {
-                        Write(int.MaxValue != x);
-                    }
+                    M1(x);
+                    M2(x);
+                    M3(x);
+                    Console.Write(' ');
                 }
-                """;
-            var expectedOutput = "100 011 011 011 011";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+                static void M1(int? x)
                 {
-                  // Code size       20 (0x14)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "int int?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4     0x7fffffff
-                  IL_000c:  ceq
-                  IL_000e:  call       "void C.Write(bool)"
-                  IL_0013:  ret
+                    Write(x == int.MaxValue);
                 }
-                """);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+                static void M2(int? x)
                 {
-                  // Code size       22 (0x16)
-                  .maxstack  2
-                  IL_0000:  nop
-                  IL_0001:  ldarga.s   V_0
-                  IL_0003:  call       "int int?.GetValueOrDefault()"
-                  IL_0008:  ldc.i4     0x7fffffff
-                  IL_000d:  ceq
-                  IL_000f:  call       "void C.Write(bool)"
-                  IL_0014:  nop
-                  IL_0015:  ret
+                    Write(x != int.MaxValue);
                 }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
-        public void LiftedBinaryOp_BothUnknown_Custom()
-        {
-            var source = """
-                using System;
-
-                C.M(DateTime.MaxValue, null);
-                C.M(null, DateTime.MinValue);
-                C.M(new DateTime(42), null);
-                C.M(null, null);
-
-                class C
+                static void M3(int? x)
                 {
-                    static void Write(bool b) => Console.Write(b ? 1 : 0);
-                    public static void M(DateTime? d1, DateTime? d2)
-                    {
-                        M1(d1, d2);
-                        M2(d1, d2);
-                        Console.Write(' ');
-                    }
-                    static void M1(DateTime? d1, DateTime? d2)
-                    {
-                        Write(d1 == d2);
-                    }
-                    static void M2(DateTime? d1, DateTime? d2)
-                    {
-                        Write(d1 != d2);
-                    }
+                    Write(int.MaxValue != x);
                 }
-                """;
-            var expectedOutput = "01 01 01 10";
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+            }
+            """;
+        var expectedOutput = "100 011 011 011 011";
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "int int?.GetValueOrDefault()"
+              IL_0007:  ldc.i4     0x7fffffff
+              IL_000c:  ceq
+              IL_000e:  call       "void C.Write(bool)"
+              IL_0013:  ret
+            }
+            """);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       22 (0x16)
+              .maxstack  2
+              IL_0000:  nop
+              IL_0001:  ldarga.s   V_0
+              IL_0003:  call       "int int?.GetValueOrDefault()"
+              IL_0008:  ldc.i4     0x7fffffff
+              IL_000d:  ceq
+              IL_000f:  call       "void C.Write(bool)"
+              IL_0014:  nop
+              IL_0015:  ret
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56875")]
+    public void LiftedBinaryOp_BothUnknown_Custom()
+    {
+        var source = """
+            using System;
+
+            C.M(DateTime.MaxValue, null);
+            C.M(null, DateTime.MinValue);
+            C.M(new DateTime(42), null);
+            C.M(null, null);
+
+            class C
+            {
+                static void Write(bool b) => Console.Write(b ? 1 : 0);
+                public static void M(DateTime? d1, DateTime? d2)
                 {
-                  // Code size       60 (0x3c)
-                  .maxstack  2
-                  .locals init (System.DateTime? V_0,
-                                System.DateTime? V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldarg.1
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "bool System.DateTime?.HasValue.get"
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  call       "bool System.DateTime?.HasValue.get"
-                  IL_0012:  beq.s      IL_0017
-                  IL_0014:  ldc.i4.0
-                  IL_0015:  br.s       IL_0036
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  call       "bool System.DateTime?.HasValue.get"
-                  IL_001e:  brtrue.s   IL_0023
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  br.s       IL_0036
-                  IL_0023:  ldloca.s   V_0
-                  IL_0025:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_002a:  ldloca.s   V_1
-                  IL_002c:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_0031:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_0036:  call       "void C.Write(bool)"
-                  IL_003b:  ret
+                    M1(d1, d2);
+                    M2(d1, d2);
+                    Console.Write(' ');
                 }
-                """);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M1", """
+                static void M1(DateTime? d1, DateTime? d2)
                 {
-                  // Code size       62 (0x3e)
-                  .maxstack  2
-                  .locals init (System.DateTime? V_0,
-                                System.DateTime? V_1)
-                  IL_0000:  nop
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldarg.1
-                  IL_0004:  stloc.1
-                  IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "bool System.DateTime?.HasValue.get"
-                  IL_000c:  ldloca.s   V_1
-                  IL_000e:  call       "bool System.DateTime?.HasValue.get"
-                  IL_0013:  beq.s      IL_0018
-                  IL_0015:  ldc.i4.0
-                  IL_0016:  br.s       IL_0037
-                  IL_0018:  ldloca.s   V_0
-                  IL_001a:  call       "bool System.DateTime?.HasValue.get"
-                  IL_001f:  brtrue.s   IL_0024
-                  IL_0021:  ldc.i4.1
-                  IL_0022:  br.s       IL_0037
-                  IL_0024:  ldloca.s   V_0
-                  IL_0026:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_002b:  ldloca.s   V_1
-                  IL_002d:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
-                  IL_0032:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
-                  IL_0037:  call       "void C.Write(bool)"
-                  IL_003c:  nop
-                  IL_003d:  ret
+                    Write(d1 == d2);
                 }
-                """);
-        }
+                static void M2(DateTime? d1, DateTime? d2)
+                {
+                    Write(d1 != d2);
+                }
+            }
+            """;
+        var expectedOutput = "01 01 01 10";
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       60 (0x3c)
+              .maxstack  2
+              .locals init (System.DateTime? V_0,
+                            System.DateTime? V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldarg.1
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "bool System.DateTime?.HasValue.get"
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  call       "bool System.DateTime?.HasValue.get"
+              IL_0012:  beq.s      IL_0017
+              IL_0014:  ldc.i4.0
+              IL_0015:  br.s       IL_0036
+              IL_0017:  ldloca.s   V_0
+              IL_0019:  call       "bool System.DateTime?.HasValue.get"
+              IL_001e:  brtrue.s   IL_0023
+              IL_0020:  ldc.i4.1
+              IL_0021:  br.s       IL_0036
+              IL_0023:  ldloca.s   V_0
+              IL_0025:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_002a:  ldloca.s   V_1
+              IL_002c:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_0031:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+              IL_0036:  call       "void C.Write(bool)"
+              IL_003b:  ret
+            }
+            """);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       62 (0x3e)
+              .maxstack  2
+              .locals init (System.DateTime? V_0,
+                            System.DateTime? V_1)
+              IL_0000:  nop
+              IL_0001:  ldarg.0
+              IL_0002:  stloc.0
+              IL_0003:  ldarg.1
+              IL_0004:  stloc.1
+              IL_0005:  ldloca.s   V_0
+              IL_0007:  call       "bool System.DateTime?.HasValue.get"
+              IL_000c:  ldloca.s   V_1
+              IL_000e:  call       "bool System.DateTime?.HasValue.get"
+              IL_0013:  beq.s      IL_0018
+              IL_0015:  ldc.i4.0
+              IL_0016:  br.s       IL_0037
+              IL_0018:  ldloca.s   V_0
+              IL_001a:  call       "bool System.DateTime?.HasValue.get"
+              IL_001f:  brtrue.s   IL_0024
+              IL_0021:  ldc.i4.1
+              IL_0022:  br.s       IL_0037
+              IL_0024:  ldloca.s   V_0
+              IL_0026:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_002b:  ldloca.s   V_1
+              IL_002d:  call       "System.DateTime System.DateTime?.GetValueOrDefault()"
+              IL_0032:  call       "bool System.DateTime.op_Equality(System.DateTime, System.DateTime)"
+              IL_0037:  call       "void C.Write(bool)"
+              IL_003c:  nop
+              IL_003d:  ret
+            }
+            """);
+    }
 
-        [Fact]
-        public void TestNullableComparisonOpsBothAlwaysNull()
-        {
-            // An ==, !=, <, >, <= or >= operation where both operands
-            // are null is always true for equality, and always false otherwise.
+    [Fact]
+    public void TestNullableComparisonOpsBothAlwaysNull()
+    {
+        // An ==, !=, <, >, <= or >= operation where both operands
+        // are null is always true for equality, and always false otherwise.
 
-            // Note that the native compiler has a bug; it does not produce the warning
-            // "comparing null with S? always produces false" -- it incorrectly warns
-            // that it produces a null of type bool? !  Roslyn does not reproduce this bug.
+        // Note that the native compiler has a bug; it does not produce the warning
+        // "comparing null with S? always produces false" -- it incorrectly warns
+        // that it produces a null of type bool? !  Roslyn does not reproduce this bug.
 
-            string source = @"
+        string source = @"
 struct S // User-defined relational ops
 {
   public static bool operator ==(S x, S y) { return true; }
@@ -1114,44 +1114,44 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedILTrue = @"{
+        string expectedOutput = "";
+        string expectedILTrue = @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.1
   IL_0001:  ret
 }";
-            string expectedILFalse = @"{
+        string expectedILFalse = @"{
   // Code size        2 (0x2)
   .maxstack  1
   IL_0000:  ldc.i4.0
   IL_0001:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
 // (25,16): warning CS0464: Comparing with null of type 'decimal?' always produces 'false'
 //         return ((int?)null) < new decimal?();
 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?()").WithArguments("decimal?"),
 // (37,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
 //         return ((S?)null) < new S?();
 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?()").WithArguments("S?"));
-            comp.VerifyIL("Program.M1", expectedILTrue);
-            comp.VerifyIL("Program.M2", expectedILFalse);
-            comp.VerifyIL("Program.M3", expectedILFalse);
-            comp.VerifyIL("Program.M4", expectedILTrue);
-            comp.VerifyIL("Program.M5", expectedILFalse);
-            comp.VerifyIL("Program.M6", expectedILFalse);
-            comp.VerifyIL("Program.M7", expectedILTrue);
-            comp.VerifyIL("Program.M8", expectedILFalse);
-        }
+        comp.VerifyIL("Program.M1", expectedILTrue);
+        comp.VerifyIL("Program.M2", expectedILFalse);
+        comp.VerifyIL("Program.M3", expectedILFalse);
+        comp.VerifyIL("Program.M4", expectedILTrue);
+        comp.VerifyIL("Program.M5", expectedILFalse);
+        comp.VerifyIL("Program.M6", expectedILFalse);
+        comp.VerifyIL("Program.M7", expectedILTrue);
+        comp.VerifyIL("Program.M8", expectedILFalse);
+    }
 
-        [Fact]
-        public void TestNullableComparisonNonNullWithLiteralNull()
-        {
-            // We can optimize this away to simply evaluating N() for its side effects
-            // and returning false.
-            string source = @"
+    [Fact]
+    public void TestNullableComparisonNonNullWithLiteralNull()
+    {
+        // We can optimize this away to simply evaluating N() for its side effects
+        // and returning false.
+        string source = @"
 struct S {}
 class Program
 {
@@ -1163,8 +1163,8 @@ class Program
     static void Main() {M();}
 }
 ";
-            string expectedOutput = "123";
-            string expectedIL = @"{
+        string expectedOutput = "123";
+        string expectedIL = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""S Program.N()""
@@ -1173,17 +1173,17 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyIL("Program.M", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyIL("Program.M", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableComparisonOpsBothNeverNull()
-        {
-            // An ==, !=, <, >, <= or >= operation where both operands
-            // are not null simply drops the lifting logic entirely.
+    [Fact]
+    public void TestNullableComparisonOpsBothNeverNull()
+    {
+        // An ==, !=, <, >, <= or >= operation where both operands
+        // are not null simply drops the lifting logic entirely.
 
-            string source = @"
+        string source = @"
 struct S // User-defined relational ops
 {
   public static bool operator ==(S x, S y) { return true; }
@@ -1235,8 +1235,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       13 (0xd)
   .maxstack  2
   IL_0000:  call       ""int Program.N1()""
@@ -1244,7 +1244,7 @@ class Program
   IL_000a:  ceq
   IL_000c:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  call       ""double Program.N3()""
@@ -1255,7 +1255,7 @@ class Program
   IL_000e:  ceq
   IL_0010:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size       21 (0x15)
   .maxstack  2
   IL_0000:  call       ""int Program.N1()""
@@ -1265,7 +1265,7 @@ class Program
   IL_0014:  ret
 }
 ";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  call       ""S Program.N5()""
@@ -1273,7 +1273,7 @@ class Program
   IL_000a:  call       ""bool S.op_Equality(S, S)""
   IL_000f:  ret
 }";
-            string expectedIL5 = @"{
+        string expectedIL5 = @"{
   // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  call       ""S Program.N5()""
@@ -1281,7 +1281,7 @@ class Program
   IL_000a:  call       ""bool S.op_Inequality(S, S)""
   IL_000f:  ret
 }";
-            string expectedIL6 = @"{
+        string expectedIL6 = @"{
   // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  call       ""S Program.N5()""
@@ -1290,32 +1290,32 @@ class Program
   IL_000f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-            comp.VerifyIL("Program.M5", expectedIL5);
-            comp.VerifyIL("Program.M6", expectedIL6);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+        comp.VerifyIL("Program.M5", expectedIL5);
+        comp.VerifyIL("Program.M6", expectedIL6);
+    }
 
-        [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
-        public void TestNullableComparisonOpsOneNullOneNonNull()
-        {
-            // An ==, !=, <, >, <= or >= operation where one operand is null and the
-            // other is non-null is always false except for inequality, which is true.
-            // We can skip the lifting and just generate the side effect.
+    [Fact, WorkItem(663, "https://github.com/dotnet/roslyn/issues/663")]
+    public void TestNullableComparisonOpsOneNullOneNonNull()
+    {
+        // An ==, !=, <, >, <= or >= operation where one operand is null and the
+        // other is non-null is always false except for inequality, which is true.
+        // We can skip the lifting and just generate the side effect.
 
-            // Note that Roslyn produces considerably more warnings here than the
-            // native compiler; the native compiler only produces warnings for
-            // "((int?)null) < new decimal?(N3())" and "((S?)null) < new S?(N4())".
-            // For compatibility Roslyn reports the same diagnostics by default,
-            // but in "strict" mode (which will be part of the "warning waves" once
-            // we do that) Roslyn will report warnings for
-            // new S() == null and new S() != null.
+        // Note that Roslyn produces considerably more warnings here than the
+        // native compiler; the native compiler only produces warnings for
+        // "((int?)null) < new decimal?(N3())" and "((S?)null) < new S?(N4())".
+        // For compatibility Roslyn reports the same diagnostics by default,
+        // but in "strict" mode (which will be part of the "warning waves" once
+        // we do that) Roslyn will report warnings for
+        // new S() == null and new S() != null.
 
-            string source = @"
+        string source = @"
 struct S // User-defined relational ops
 {
   public static bool operator ==(S x, S y) { return true; }
@@ -1360,8 +1360,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""int Program.N1()""
@@ -1369,7 +1369,7 @@ class Program
   IL_0006:  ldc.i4.0
   IL_0007:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""short Program.N2()""
@@ -1377,7 +1377,7 @@ class Program
   IL_0006:  ldc.i4.1
   IL_0007:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""decimal Program.N3()""
@@ -1385,7 +1385,7 @@ class Program
   IL_0006:  ldc.i4.0
   IL_0007:  ret
 }";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""S Program.N4()""
@@ -1393,7 +1393,7 @@ class Program
   IL_0006:  ldc.i4.0
   IL_0007:  ret
 }";
-            string expectedIL5 = @"{
+        string expectedIL5 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""S Program.N4()""
@@ -1401,65 +1401,65 @@ class Program
   IL_0006:  ldc.i4.1
   IL_0007:  ret
 }";
-            string expectedIL6 = expectedIL4;
+        string expectedIL6 = expectedIL4;
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(
-                // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
-                //         return new int?(N1()) == new short?();
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
-                // (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
-                //         return default(double?) != new short?(N2());
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?").WithLocation(25, 16),
-                // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
-                //         return ((int?)null) < new decimal?(N3());
-                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?").WithLocation(29, 16),
-                // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
-                //         return ((S?)null) < new S?(N4());
-                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
-                );
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
-                // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
-                //         return new int?(N1()) == new short?();
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
-                // (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
-                //         return default(double?) != new short?(N2());
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?").WithLocation(25, 16),
-                // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
-                //         return ((int?)null) < new decimal?(N3());
-                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?").WithLocation(29, 16),
-                // (33,16): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'
-                //         return new S?() == new S?(N4());
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "new S?() == new S?(N4())").WithArguments("false", "S", "S?").WithLocation(33, 16),
-                // (37,16): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'S?'
-                //         return default(S?) != new S?(N4());
-                Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(S?) != new S?(N4())").WithArguments("true", "S", "S?").WithLocation(37, 16),
-                // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
-                //         return ((S?)null) < new S?(N4());
-                Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
-                );
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-            comp.VerifyIL("Program.M5", expectedIL5);
-            comp.VerifyIL("Program.M6", expectedIL6);
-        }
+        CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(
+            // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
+            //         return new int?(N1()) == new short?();
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
+            // (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
+            //         return default(double?) != new short?(N2());
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?").WithLocation(25, 16),
+            // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
+            //         return ((int?)null) < new decimal?(N3());
+            Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?").WithLocation(29, 16),
+            // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
+            //         return ((S?)null) < new S?(N4());
+            Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
+            );
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
+            // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
+            //         return new int?(N1()) == new short?();
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
+            // (25,16): warning CS0472: The result of the expression is always 'true' since a value of type 'double' is never equal to 'null' of type 'double?'
+            //         return default(double?) != new short?(N2());
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "default(double?) != new short?(N2())").WithArguments("true", "double", "double?").WithLocation(25, 16),
+            // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
+            //         return ((int?)null) < new decimal?(N3());
+            Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < new decimal?(N3())").WithArguments("int?").WithLocation(29, 16),
+            // (33,16): warning CS8073: The result of the expression is always 'false' since a value of type 'S' is never equal to 'null' of type 'S?'
+            //         return new S?() == new S?(N4());
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "new S?() == new S?(N4())").WithArguments("false", "S", "S?").WithLocation(33, 16),
+            // (37,16): warning CS8073: The result of the expression is always 'true' since a value of type 'S' is never equal to 'null' of type 'S?'
+            //         return default(S?) != new S?(N4());
+            Diagnostic(ErrorCode.WRN_NubExprIsConstBool2, "default(S?) != new S?(N4())").WithArguments("true", "S", "S?").WithLocation(37, 16),
+            // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
+            //         return ((S?)null) < new S?(N4());
+            Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
+            );
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+        comp.VerifyIL("Program.M5", expectedIL5);
+        comp.VerifyIL("Program.M6", expectedIL6);
+    }
 
-        [Fact]
-        public void TestNullableComparisonOpsOneNullOneUnknown()
-        {
-            // An <, >, <= or >= operation where one operand is null and the
-            // other is unknown is always false; we can skip the lifting and
-            // generate the side effect.
-            // 
-            // An == or != operation where one operand is null and the other is 
-            // unknown turns into a call to HasValue.
-            //
-            // As mentioned above, the native compiler gets one of the warnings wrong;
-            // Roslyn gets it right.
+    [Fact]
+    public void TestNullableComparisonOpsOneNullOneUnknown()
+    {
+        // An <, >, <= or >= operation where one operand is null and the
+        // other is unknown is always false; we can skip the lifting and
+        // generate the side effect.
+        // 
+        // An == or != operation where one operand is null and the other is 
+        // unknown turns into a call to HasValue.
+        //
+        // As mentioned above, the native compiler gets one of the warnings wrong;
+        // Roslyn gets it right.
 
-            string source = @"
+        string source = @"
 struct S // User-defined relational ops
 {
   public static bool operator ==(S x, S y) { return true; }
@@ -1504,8 +1504,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       17 (0x11)
   .maxstack  2
   .locals init (int? V_0)
@@ -1517,18 +1517,18 @@ class Program
   IL_000e:  ceq
   IL_0010:  ret
 }";
-            // TODO: Roslyn and the native compiler both produce this sub-optimal code for
-            // TODO: "default(double?) != N2()". We are essentially generating:
-            // TODO:
-            // TODO: short? temp1 = N2();
-            // TODO: double? temp2 = temp1.HasValue ? new double?((double)temp1.GetValueOrDefault()) : new double?();
-            // TODO: return temp2.HasValue;
-            // TODO:
-            // TODO: We could be instead simply generating
-            // TODO:
-            // TODO: return N2().HasValue();
+        // TODO: Roslyn and the native compiler both produce this sub-optimal code for
+        // TODO: "default(double?) != N2()". We are essentially generating:
+        // TODO:
+        // TODO: short? temp1 = N2();
+        // TODO: double? temp2 = temp1.HasValue ? new double?((double)temp1.GetValueOrDefault()) : new double?();
+        // TODO: return temp2.HasValue;
+        // TODO:
+        // TODO: We could be instead simply generating
+        // TODO:
+        // TODO: return N2().HasValue();
 
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       48 (0x30)
   .maxstack  1
   .locals init (short? V_0,
@@ -1551,7 +1551,7 @@ class Program
   IL_002a:  call       ""bool double?.HasValue.get""
   IL_002f:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""decimal? Program.N3()""
@@ -1559,7 +1559,7 @@ class Program
   IL_0006:  ldc.i4.0
   IL_0007:  ret
 }";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size       17 (0x11)
   .maxstack  2
   .locals init (S? V_0)
@@ -1571,7 +1571,7 @@ class Program
   IL_000e:  ceq
   IL_0010:  ret
 }";
-            string expectedIL5 = @"{
+        string expectedIL5 = @"{
   // Code size       14 (0xe)
   .maxstack  1
   .locals init (S? V_0)
@@ -1581,7 +1581,7 @@ class Program
   IL_0008:  call       ""bool S?.HasValue.get""
   IL_000d:  ret
 }";
-            string expectedIL6 = @"{
+        string expectedIL6 = @"{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  call       ""S? Program.N4()""
@@ -1590,44 +1590,44 @@ class Program
   IL_0007:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
 // (29,16): warning CS0464: Comparing with null of type 'int?' always produces 'false'
 //         return ((int?)null) < N3();
 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((int?)null) < N3()").WithArguments("int?"),
 // (41,16): warning CS0464: Comparing with null of type 'S?' always produces 'false'
 //         return ((S?)null) < N4();
 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < N4()").WithArguments("S?")
-            );
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-            comp.VerifyIL("Program.M5", expectedIL5);
-            comp.VerifyIL("Program.M6", expectedIL6);
-        }
+        );
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+        comp.VerifyIL("Program.M5", expectedIL5);
+        comp.VerifyIL("Program.M6", expectedIL6);
+    }
 
-        [Fact]
-        public void TestNullableComparisonOpsOneNonNullOneUnknown()
-        {
-            // When we have a lifted comparison where we know that one side
-            // is definitely not null, but know nothing about the other, then
-            // we make a slight modification to the code generation. For example,
-            // suppose X() and Y() return int?. For "return X() < Y();" we would generate:
-            // int? x = X(); 
-            // int? y = Y();
-            // return x.GetValueOrDefault() < y.GetValueOrDefault() ? x.HasValue & y.HasValue : false;
-            // 
-            // But suppose Z() returns int. For X() < Z(), rather than converting Z() to int? and doing the
-            // same codegen as before, we simplify the codegen to:
-            //
-            // int? x = X(); 
-            // int z = Z();
-            // return x.GetValueOrDefault() < z ? x.HasValue : false;
-            //
-            // We apply this same pattern to all lifted comparison operators.
+    [Fact]
+    public void TestNullableComparisonOpsOneNonNullOneUnknown()
+    {
+        // When we have a lifted comparison where we know that one side
+        // is definitely not null, but know nothing about the other, then
+        // we make a slight modification to the code generation. For example,
+        // suppose X() and Y() return int?. For "return X() < Y();" we would generate:
+        // int? x = X(); 
+        // int? y = Y();
+        // return x.GetValueOrDefault() < y.GetValueOrDefault() ? x.HasValue & y.HasValue : false;
+        // 
+        // But suppose Z() returns int. For X() < Z(), rather than converting Z() to int? and doing the
+        // same codegen as before, we simplify the codegen to:
+        //
+        // int? x = X(); 
+        // int z = Z();
+        // return x.GetValueOrDefault() < z ? x.HasValue : false;
+        //
+        // We apply this same pattern to all lifted comparison operators.
 
-            string source = @"
+        string source = @"
 struct S // User-defined relational ops
 {
     public static bool operator ==(S x, S y) { return true; }
@@ -1675,8 +1675,8 @@ class Program
 }
 
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       31 (0x1f)
   .maxstack  2
   .locals init (int? V_0,
@@ -1695,9 +1695,9 @@ class Program
   IL_001e:  ret
 }";
 
-            // TODO: We do a worse job than the native compiler here. Find out why.
+        // TODO: We do a worse job than the native compiler here. Find out why.
 
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       72 (0x48)
   .maxstack  2
   .locals init (decimal? V_0,
@@ -1729,7 +1729,7 @@ class Program
   IL_0046:  and
   IL_0047:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size       37 (0x25)
   .maxstack  2
   .locals init (S V_0,
@@ -1749,7 +1749,7 @@ class Program
   IL_001f:  call       ""bool S.op_Equality(S, S)""
   IL_0024:  ret
 }";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size       37 (0x25)
   .maxstack  2
   .locals init (S V_0,
@@ -1769,7 +1769,7 @@ class Program
   IL_001f:  call       ""bool S.op_Inequality(S, S)""
   IL_0024:  ret
 }";
-            string expectedIL5 = @"{
+        string expectedIL5 = @"{
   // Code size       37 (0x25)
   .maxstack  2
   .locals init (S V_0,
@@ -1790,52 +1790,52 @@ class Program
   IL_0024:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-            comp.VerifyIL("Program.M5", expectedIL5);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+        comp.VerifyIL("Program.M5", expectedIL5);
+    }
 
-        [Fact]
-        public void TestLiftedConversionOnTopOfLifted()
-        {
-            // Here's an optimization that the dev10 compiler does not do except in some special cases.
-            // If we have a lifted conversion "on top" of another lifted operation, then the lifted
-            // conversion can be "distributed" to both branches of the underlying lifted operation.
-            //
-            // For example, suppose we have
-            //
-            // return (double?)(N1() + N2());
-            //
-            // Where N1 and N2 return int?. The dev10 compiler does this in two steps: first it 
-            // computes the int? result of the addition, and then it converts that int? to double?
-            // with a lifted conversion. Basically, it generates:
-            //
-            // int? t1 = N1();
-            // int? t2 = N2();
-            // int? t3 = t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?();
-            // double? t4 = t3.HasValue ? new double?((double)t3.Value)) : new double?();
-            //
-            // But t3 is completely unnecessary here. We observe that the lifted conversion:
-            //
-            // (double?) (t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?())
-            //
-            // Is the same as distributing the conversion to the consequence and alternative:
-            //
-            // (t1.HasValue && t2.HasValue ? (double?)( new int?(t1.Value + t2.Value) ): (double?) ( new int?() ) )
-            // 
-            // And now we can optimize the consequence and alternative down to
-            //
-            // (t1.HasValue && t2.HasValue ? new double?((double)(t1.Value + t2.Value) ): new double?() )
-            //
-            // And the int? t3 disappears entirely. 
-            //
-            // This optimization has the nice property that it composes well with itself. 
+    [Fact]
+    public void TestLiftedConversionOnTopOfLifted()
+    {
+        // Here's an optimization that the dev10 compiler does not do except in some special cases.
+        // If we have a lifted conversion "on top" of another lifted operation, then the lifted
+        // conversion can be "distributed" to both branches of the underlying lifted operation.
+        //
+        // For example, suppose we have
+        //
+        // return (double?)(N1() + N2());
+        //
+        // Where N1 and N2 return int?. The dev10 compiler does this in two steps: first it 
+        // computes the int? result of the addition, and then it converts that int? to double?
+        // with a lifted conversion. Basically, it generates:
+        //
+        // int? t1 = N1();
+        // int? t2 = N2();
+        // int? t3 = t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?();
+        // double? t4 = t3.HasValue ? new double?((double)t3.Value)) : new double?();
+        //
+        // But t3 is completely unnecessary here. We observe that the lifted conversion:
+        //
+        // (double?) (t1.HasValue && t2.HasValue ? new int?(t1.Value + t2.Value) : new int?())
+        //
+        // Is the same as distributing the conversion to the consequence and alternative:
+        //
+        // (t1.HasValue && t2.HasValue ? (double?)( new int?(t1.Value + t2.Value) ): (double?) ( new int?() ) )
+        // 
+        // And now we can optimize the consequence and alternative down to
+        //
+        // (t1.HasValue && t2.HasValue ? new double?((double)(t1.Value + t2.Value) ): new double?() )
+        //
+        // And the int? t3 disappears entirely. 
+        //
+        // This optimization has the nice property that it composes well with itself. 
 
-            string source = @"
+        string source = @"
 struct S
 {
   public static S operator -(S s) { return s; }
@@ -1864,9 +1864,9 @@ class Program
 }
 
 ";
-            string expectedOutput = "";
+        string expectedOutput = "";
 
-            string expectedIL1 = @"{
+        string expectedIL1 = @"{
   // Code size       61 (0x3d)
   .maxstack  2
   .locals init (int? V_0,
@@ -1895,7 +1895,7 @@ class Program
   IL_0037:  newobj     ""long?..ctor(long)""
   IL_003c:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       48 (0x30)
   .maxstack  1
   .locals init (S? V_0,
@@ -1916,18 +1916,18 @@ class Program
   IL_002a:  newobj     ""int?..ctor(int)""
   IL_002f:  ret
 }";
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+    }
 
-        [Fact]
-        public void TestNullableBoolBinOpsBothAlwaysNull()
-        {
-            // x & y and x | y are null if both operands are null.
+    [Fact]
+    public void TestNullableBoolBinOpsBothAlwaysNull()
+    {
+        // x & y and x | y are null if both operands are null.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static bool? M1()
@@ -1941,8 +1941,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (bool? V_0)
@@ -1952,30 +1952,30 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL);
-            comp.VerifyIL("Program.M2", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL);
+        comp.VerifyIL("Program.M2", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableBoolBinOpsBothNotNull()
-        {
-            // x & y and x | y can be reduced to their non-lifted forms
-            // if both operands are known to be non-null. 
-            //
-            // Roslyn does a slightly better job than the native compiler here.
-            // The native compiler effectively generates code as though you'd written:
-            //
-            // bool temp1 = N();
-            // bool? temp2 = new bool?(N() & N());
-            // return temp1 ? new bool?(true) : temp2;
-            //
-            // Whereas Roslyn simply generates code as though you'd written:
-            //
-            // return new bool?(N() | N() & N())
+    [Fact]
+    public void TestNullableBoolBinOpsBothNotNull()
+    {
+        // x & y and x | y can be reduced to their non-lifted forms
+        // if both operands are known to be non-null. 
+        //
+        // Roslyn does a slightly better job than the native compiler here.
+        // The native compiler effectively generates code as though you'd written:
+        //
+        // bool temp1 = N();
+        // bool? temp2 = new bool?(N() & N());
+        // return temp1 ? new bool?(true) : temp2;
+        //
+        // Whereas Roslyn simply generates code as though you'd written:
+        //
+        // return new bool?(N() | N() & N())
 
-            string source = @"
+        string source = @"
 class Program
 {
     static bool N() { return true; }
@@ -1986,8 +1986,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       23 (0x17)
   .maxstack  3
   IL_0000:  call       ""bool Program.N()""
@@ -1999,18 +1999,18 @@ class Program
   IL_0016:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableBoolBinOpsOneNull()
-        {
-            // codegen for x & y and x | y can be simplified if one operand is known to be null, 
-            // and simplified even further if the other operand is known to be non-null.
+    [Fact]
+    public void TestNullableBoolBinOpsOneNull()
+    {
+        // codegen for x & y and x | y can be simplified if one operand is known to be null, 
+        // and simplified even further if the other operand is known to be non-null.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static bool? N() { return false; }
@@ -2059,8 +2059,8 @@ class Program
 }
 
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init (bool? V_0,
@@ -2077,8 +2077,8 @@ class Program
   IL_0019:  ldloc.1
   IL_001a:  ret
 }";
-            string expectedIL2 = expectedIL1;
-            string expectedIL3 = @"{
+        string expectedIL2 = expectedIL1;
+        string expectedIL3 = @"{
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init (bool? V_0,
@@ -2095,8 +2095,8 @@ class Program
   IL_0019:  ldloc.0
   IL_001a:  ret
 }";
-            string expectedIL4 = expectedIL3;
-            string expectedIL5 = @"{
+        string expectedIL4 = expectedIL3;
+        string expectedIL5 = @"{
   // Code size       24 (0x18)
   .maxstack  1
   .locals init (bool? V_0)
@@ -2110,8 +2110,8 @@ class Program
   IL_0016:  ldloc.0
   IL_0017:  ret
 }";
-            string expectedIL6 = expectedIL5;
-            string expectedIL7 = @"{
+        string expectedIL6 = expectedIL5;
+        string expectedIL7 = @"{
   // Code size       24 (0x18)
   .maxstack  1
   .locals init (bool? V_0)
@@ -2126,28 +2126,28 @@ class Program
   IL_0017:  ret
 }
 ";
-            string expectedIL8 = expectedIL7;
+        string expectedIL8 = expectedIL7;
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-            comp.VerifyIL("Program.M5", expectedIL5);
-            comp.VerifyIL("Program.M6", expectedIL6);
-            comp.VerifyIL("Program.M7", expectedIL7);
-            comp.VerifyIL("Program.M8", expectedIL8);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+        comp.VerifyIL("Program.M5", expectedIL5);
+        comp.VerifyIL("Program.M6", expectedIL6);
+        comp.VerifyIL("Program.M7", expectedIL7);
+        comp.VerifyIL("Program.M8", expectedIL8);
+    }
 
-        [Fact]
-        public void TestNullableBoolBinOpsOneNonNull()
-        {
-            // Codegen for x & y and x | y can be simplified if one operand is known to be non null.
-            // Note that we have already considered the case where one operand is null and the 
-            // other is non null, in the test case above.
+    [Fact]
+    public void TestNullableBoolBinOpsOneNonNull()
+    {
+        // Codegen for x & y and x | y can be simplified if one operand is known to be non null.
+        // Note that we have already considered the case where one operand is null and the 
+        // other is non null, in the test case above.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static bool? N() { return false; }
@@ -2172,8 +2172,8 @@ class Program
 }
 
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       22 (0x16)
   .maxstack  2
   .locals init (bool? V_0)
@@ -2187,7 +2187,7 @@ class Program
   IL_0014:  ldloc.0
   IL_0015:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       22 (0x16)
   .maxstack  1
   .locals init (bool? V_0)
@@ -2201,7 +2201,7 @@ class Program
   IL_0014:  ldloc.0
   IL_0015:  ret
 }";
-            string expectedIL3 = @"{
+        string expectedIL3 = @"{
   // Code size       22 (0x16)
   .maxstack  2
   .locals init (bool? V_0)
@@ -2215,7 +2215,7 @@ class Program
   IL_0010:  newobj     ""bool?..ctor(bool)""
   IL_0015:  ret
 }";
-            string expectedIL4 = @"{
+        string expectedIL4 = @"{
   // Code size       22 (0x16)
   .maxstack  1
   .locals init (bool? V_0)
@@ -2230,21 +2230,21 @@ class Program
   IL_0015:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-            comp.VerifyIL("Program.M3", expectedIL3);
-            comp.VerifyIL("Program.M4", expectedIL4);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+        comp.VerifyIL("Program.M3", expectedIL3);
+        comp.VerifyIL("Program.M4", expectedIL4);
+    }
 
-        [Fact]
-        public void TestNullableBinOpsBothAlwaysNull()
-        {
-            // x op y is null if both ops are null for the binary operators
-            // * / % + - << >> and for non-bool & ^ | 
+    [Fact]
+    public void TestNullableBinOpsBothAlwaysNull()
+    {
+        // x op y is null if both ops are null for the binary operators
+        // * / % + - << >> and for non-bool & ^ | 
 
-            string source = @"
+        string source = @"
 class Program
 {
     static long? M1()
@@ -2258,8 +2258,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (long? V_0)
@@ -2268,7 +2268,7 @@ class Program
   IL_0008:  ldloc.0
   IL_0009:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       10 (0xa)
   .maxstack  1
   .locals init (decimal? V_0)
@@ -2278,27 +2278,27 @@ class Program
   IL_0009:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
 // (6,16): warning CS0458: The result of the expression is always 'null' of type 'long?'
 //         return new int?() + new long?();
 Diagnostic(ErrorCode.WRN_AlwaysNull, "new int?() + new long?()").WithArguments("long?"),
 // (10,16): warning CS0458: The result of the expression is always 'null' of type 'decimal?'
 //         return (short?)null * default(decimal?);
 Diagnostic(ErrorCode.WRN_AlwaysNull, "(short?)null * default(decimal?)").WithArguments("decimal?"));
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-        }
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+    }
 
-        [Fact]
-        public void TestNullableBinOpsBothNonNull()
-        {
-            // Lifted x op y is generated as non-lifted if both operands are known to be non-null
-            // for operators * / % + - << >> and for non-bool & ^ | 
-            //
-            // Roslyn does a far better job of this optimization than the native compiler.
+    [Fact]
+    public void TestNullableBinOpsBothNonNull()
+    {
+        // Lifted x op y is generated as non-lifted if both operands are known to be non-null
+        // for operators * / % + - << >> and for non-bool & ^ | 
+        //
+        // Roslyn does a far better job of this optimization than the native compiler.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int N() { return 1; }
@@ -2320,8 +2320,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL = @"{
+        string expectedOutput = "";
+        string expectedIL = @"{
   // Code size       77 (0x4d)
   .maxstack  3
   IL_0000:  call       ""int Program.N()""
@@ -2353,18 +2353,18 @@ class Program
   IL_004c:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL);
+    }
 
-        [Fact]
-        public void TestNullableBinOpsOneNull()
-        {
-            // If we have null + N() or null + new int?(B()) 
-            // then we simply generate M() as a side effect and result in null.
+    [Fact]
+    public void TestNullableBinOpsOneNull()
+    {
+        // If we have null + N() or null + new int?(B()) 
+        // then we simply generate M() as a side effect and result in null.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int? N() { return 1; }
@@ -2381,8 +2381,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       16 (0x10)
   .maxstack  1
   .locals init (int? V_0)
@@ -2393,7 +2393,7 @@ class Program
   IL_000e:  ldloc.0
   IL_000f:  ret
 }";
-            string expectedIL2 = @"{
+        string expectedIL2 = @"{
   // Code size       16 (0x10)
   .maxstack  1
   .locals init (int? V_0)
@@ -2405,25 +2405,25 @@ class Program
   IL_000f:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics(
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics(
 // (9,16): warning CS0458: The result of the expression is always 'null' of type 'int?'
 //         return new int?() + N();
 Diagnostic(ErrorCode.WRN_AlwaysNull, "new int?() + N()").WithArguments("int?"),
 // (13,16): warning CS0458: The result of the expression is always 'null' of type 'int?'
 //         return new int?(B()) * default(int?);
 Diagnostic(ErrorCode.WRN_AlwaysNull, "new int?(B()) * default(int?)").WithArguments("int?"));
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-        }
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+    }
 
-        [Fact]
-        public void TestNullableBinOpsOneNonNull()
-        {
-            // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
-            // on that side.
+    [Fact]
+    public void TestNullableBinOpsOneNonNull()
+    {
+        // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
+        // on that side.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static int B() { return 1; }
@@ -2439,8 +2439,8 @@ class Program
     static void Main() {}
 }
 ";
-            string expectedOutput = "";
-            string expectedIL1 = @"{
+        string expectedOutput = "";
+        string expectedIL1 = @"{
   // Code size       46 (0x2e)
   .maxstack  2
   .locals init (int V_0,
@@ -2465,12 +2465,12 @@ class Program
   IL_002d:  ret
 }";
 
-            // TODO: Roslyn does a slightly worse job here than the native compiler does.
-            // TODO: The native compiler knows that the constant need not be stored in a temporary.
-            // TODO: We will clean this up in a later checkin.
-            // TODO: When we do so, add tests for ++ -- +=, etc.
+        // TODO: Roslyn does a slightly worse job here than the native compiler does.
+        // TODO: The native compiler knows that the constant need not be stored in a temporary.
+        // TODO: We will clean this up in a later checkin.
+        // TODO: When we do so, add tests for ++ -- +=, etc.
 
-            string expectedIL2 = @"
+        string expectedIL2 = @"
 {
   // Code size       40 (0x28)
   .maxstack  2
@@ -2493,19 +2493,19 @@ class Program
   IL_0027:  ret
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Program.M1", expectedIL1);
-            comp.VerifyIL("Program.M2", expectedIL2);
-        }
+        var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Program.M1", expectedIL1);
+        comp.VerifyIL("Program.M2", expectedIL2);
+    }
 
-        [Fact]
-        public void TestNullableBinOpsOneZero()
-        {
-            // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
-            // on that side.
+    [Fact]
+    public void TestNullableBinOpsOneZero()
+    {
+        // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
+        // on that side.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static void Main() 
@@ -2523,7 +2523,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 42
 42
 -42
@@ -2532,8 +2532,8 @@ class Program
 0
 42
 42")
-                .VerifyIL("Program.Main",
- @"
+            .VerifyIL("Program.Main",
+@"
 {
   // Code size      349 (0x15d)
   .maxstack  3
@@ -2654,15 +2654,15 @@ class Program
   IL_0157:  call       ""void System.Console.WriteLine(object)""
   IL_015c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestNullableBinOpsOneZero1()
-        {
-            // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
-            // on that side.
+    [Fact]
+    public void TestNullableBinOpsOneZero1()
+    {
+        // If one side of the nullable binop is non-null then we skip calling HasValue and GetValueOrDefault
+        // on that side.
 
-            string source = @"
+        string source = @"
 class Program
 {
     static void Main() 
@@ -2679,7 +2679,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 42
 42
 -42
@@ -2688,8 +2688,8 @@ class Program
 0
 42
 42")
-                .VerifyIL("Program.Main",
- @"
+            .VerifyIL("Program.Main",
+@"
 {
   // Code size       97 (0x61)
   .maxstack  2
@@ -2721,2400 +2721,2399 @@ class Program
   IL_005b:  call       ""void System.Console.WriteLine(object)""
   IL_0060:  ret
 }");
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_ET([CombinatorialValues("x == true", "true == x")] string code)
-        {
-            var source = $$"""
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => {{code}};
-                }
-                """;
-            var output = "100";
-            var il = """
-                {
-                  // Code size        8 (0x8)
-                  .maxstack  1
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
-                  IL_0007:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_EF1()
-        {
-            var source = """
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => x == false;
-                }
-                """;
-            var output = "010";
-            var il = """
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (bool? V_0,
-                                bool V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "bool bool?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  ceq
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "bool bool?.HasValue.get"
-                  IL_0015:  and
-                  IL_0016:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_EF2()
-        {
-            var source = """
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => false == x;
-                }
-                """;
-            var output = "010";
-            var il = """
-                {
-                  // Code size       21 (0x15)
-                  .maxstack  2
-                  .locals init (bool? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldloca.s   V_0
-                  IL_0005:  call       "bool bool?.GetValueOrDefault()"
-                  IL_000a:  ceq
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "bool bool?.HasValue.get"
-                  IL_0013:  and
-                  IL_0014:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_NT([CombinatorialValues("x != true", "true != x")] string code)
-        {
-            var source = $$"""
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => {{code}};
-                }
-                """;
-            var output = "011";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_NF1()
-        {
-            var source = """
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => x != false;
-                }
-                """;
-            var output = "101";
-            var il = """
-                {
-                  // Code size       26 (0x1a)
-                  .maxstack  2
-                  .locals init (bool? V_0,
-                                bool V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "bool bool?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  ceq
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "bool bool?.HasValue.get"
-                  IL_0015:  and
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  ceq
-                  IL_0019:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_NF2()
-        {
-            var source = """
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => false != x;
-                }
-                """;
-            var output = "101";
-            var il = """
-                {
-                  // Code size       24 (0x18)
-                  .maxstack  2
-                  .locals init (bool? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldloca.s   V_0
-                  IL_0005:  call       "bool bool?.GetValueOrDefault()"
-                  IL_000a:  ceq
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "bool bool?.HasValue.get"
-                  IL_0013:  and
-                  IL_0014:  ldc.i4.0
-                  IL_0015:  ceq
-                  IL_0017:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_EN([CombinatorialValues("x == null", "null == x")] string code)
-        {
-            var source = $$"""
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => {{code}};
-                }
-                """;
-            var output = "001";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.HasValue.get"
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_NET([CombinatorialValues("!(x == true)", "!!!(x == true)")] string code)
-        {
-            var source = $$"""
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => {{code}};
-                }
-                """;
-            var output = "011";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Boolean_NNT([CombinatorialValues("x != true", "!!(x != true)")] string code)
-        {
-            var source = $$"""
-                C.Run(true);
-                C.Run(false);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(bool? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(bool? x) => {{code}};
-                }
-                """;
-            var output = "011";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "bool bool?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => x == 1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "int int?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_1E()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => 1 == x;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  ldarga.s   V_0
-                  IL_0003:  call       "int int?.GetValueOrDefault()"
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_N1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => x != 1;
-                }
-                """;
-            var output = "1011";
-            var il = """
-                {
-                  // Code size       14 (0xe)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "int int?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  ceq
-                  IL_000a:  ldc.i4.0
-                  IL_000b:  ceq
-                  IL_000d:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => x == 0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "int int?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  ceq
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "bool int?.HasValue.get"
-                  IL_0015:  and
-                  IL_0016:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_0E()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => 0 == x;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       21 (0x15)
-                  .maxstack  2
-                  .locals init (int? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldarg.0
-                  IL_0002:  stloc.0
-                  IL_0003:  ldloca.s   V_0
-                  IL_0005:  call       "int int?.GetValueOrDefault()"
-                  IL_000a:  ceq
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "bool int?.HasValue.get"
-                  IL_0013:  and
-                  IL_0014:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_L1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => x < 1;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.1
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "int int?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  clt
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "bool int?.HasValue.get"
-                  IL_0015:  and
-                  IL_0016:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Int_GE1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(int? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(int? x) => x >= -1;
-                }
-                """;
-            var output = "1110";
-            var il = """
-                {
-                  // Code size       26 (0x1a)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.m1
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "int int?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  clt
-                  IL_000e:  ldc.i4.0
-                  IL_000f:  ceq
-                  IL_0011:  ldloca.s   V_0
-                  IL_0013:  call       "bool int?.HasValue.get"
-                  IL_0018:  and
-                  IL_0019:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Double_E0([CombinatorialValues("0d", "0.0")] string rhs)
-        {
-            var source = $$"""
-                C.Run(0d);
-                C.Run(0.0);
-                C.Run(1.0);
-                C.Run(1.2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(double? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(double? x) => x == {{rhs}};
-                }
-                """;
-            var output = "11000";
-            var il = """
-                {
-                  // Code size       31 (0x1f)
-                  .maxstack  2
-                  .locals init (double? V_0,
-                                double V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.r8     0
-                  IL_000b:  stloc.1
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "double double?.GetValueOrDefault()"
-                  IL_0013:  ldloc.1
-                  IL_0014:  ceq
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "bool double?.HasValue.get"
-                  IL_001d:  and
-                  IL_001e:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Double_G1()
-        {
-            var source = """
-                C.Run(0d);
-                C.Run(0.0);
-                C.Run(1.0);
-                C.Run(1.2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(double? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(double? x) => x > 1.0;
-                }
-                """;
-            var output = "00010";
-            var il = """
-                {
-                  // Code size       31 (0x1f)
-                  .maxstack  2
-                  .locals init (double? V_0,
-                                double V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.r8     1
-                  IL_000b:  stloc.1
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "double double?.GetValueOrDefault()"
-                  IL_0013:  ldloc.1
-                  IL_0014:  cgt
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "bool double?.HasValue.get"
-                  IL_001d:  and
-                  IL_001e:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Double_LE1()
-        {
-            var source = """
-                C.Run(0d);
-                C.Run(0.0);
-                C.Run(1.0);
-                C.Run(1.2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(double? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(double? x) => x <= 1.0;
-                }
-                """;
-            var output = "11100";
-            var il = """
-                {
-                  // Code size       34 (0x22)
-                  .maxstack  2
-                  .locals init (double? V_0,
-                                double V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.r8     1
-                  IL_000b:  stloc.1
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "double double?.GetValueOrDefault()"
-                  IL_0013:  ldloc.1
-                  IL_0014:  cgt.un
-                  IL_0016:  ldc.i4.0
-                  IL_0017:  ceq
-                  IL_0019:  ldloca.s   V_0
-                  IL_001b:  call       "bool double?.HasValue.get"
-                  IL_0020:  and
-                  IL_0021:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Decimal_E0()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x == 0m;
-                }
-                """;
-            var output = "1100011";
-            var il = """
-                {
-                  // Code size       32 (0x20)
-                  .maxstack  2
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  initobj    "decimal"
-                  IL_000a:  ldloca.s   V_0
-                  IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0011:  ldloc.1
-                  IL_0012:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  call       "bool decimal?.HasValue.get"
-                  IL_001e:  and
-                  IL_001f:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
-        public void NullableConstant_Decimal_E00()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x == 0.0m;
-                }
-                """;
-            var output = "1100011";
-            var il = """
-                {
-                  // Code size       36 (0x24)
-                  .maxstack  6
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  ldc.i4.0
-                  IL_0006:  ldc.i4.0
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.1
-                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0015:  ldloc.1
-                  IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "bool decimal?.HasValue.get"
-                  IL_0022:  and
-                  IL_0023:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
-        public void NullableConstant_Decimal_00E()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => 0.0m == x;
-                }
-                """;
-            var output = "1100011";
-            var il = """
-                {
-                  // Code size       33 (0x21)
-                  .maxstack  5
-                  .locals init (decimal? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  ldc.i4.0
-                  IL_0004:  ldc.i4.1
-                  IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000a:  ldarg.0
-                  IL_000b:  stloc.0
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0018:  ldloca.s   V_0
-                  IL_001a:  call       "bool decimal?.HasValue.get"
-                  IL_001f:  and
-                  IL_0020:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
-        public void NullableConstant_Decimal_E000()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x == 0.00m;
-                }
-                """;
-            var output = "1100011";
-            var il = """
-                {
-                  // Code size       36 (0x24)
-                  .maxstack  6
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  ldc.i4.0
-                  IL_0006:  ldc.i4.0
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.2
-                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0015:  ldloc.1
-                  IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "bool decimal?.HasValue.get"
-                  IL_0022:  and
-                  IL_0023:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
-        public void NullableConstant_Decimal_000E()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => 0.00m == x;
-                }
-                """;
-            var output = "1100011";
-            var il = """
-                {
-                  // Code size       33 (0x21)
-                  .maxstack  5
-                  .locals init (decimal? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  ldc.i4.0
-                  IL_0004:  ldc.i4.2
-                  IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000a:  ldarg.0
-                  IL_000b:  stloc.0
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0018:  ldloca.s   V_0
-                  IL_001a:  call       "bool decimal?.HasValue.get"
-                  IL_001f:  and
-                  IL_0020:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Decimal_NE00()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x != 0.0m;
-                }
-                """;
-            var output = "0011100";
-            var il = """
-                {
-                  // Code size       39 (0x27)
-                  .maxstack  6
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  ldc.i4.0
-                  IL_0006:  ldc.i4.0
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.1
-                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0015:  ldloc.1
-                  IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "bool decimal?.HasValue.get"
-                  IL_0022:  and
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  ceq
-                  IL_0026:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Decimal_00NE()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => 0.0m != x;
-                }
-                """;
-            var output = "0011100";
-            var il = """
-                {
-                  // Code size       36 (0x24)
-                  .maxstack  5
-                  .locals init (decimal? V_0)
-                  IL_0000:  ldc.i4.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  ldc.i4.0
-                  IL_0004:  ldc.i4.1
-                  IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000a:  ldarg.0
-                  IL_000b:  stloc.0
-                  IL_000c:  ldloca.s   V_0
-                  IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
-                  IL_0018:  ldloca.s   V_0
-                  IL_001a:  call       "bool decimal?.HasValue.get"
-                  IL_001f:  and
-                  IL_0020:  ldc.i4.0
-                  IL_0021:  ceq
-                  IL_0023:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Decimal_GE0()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x >= 0m;
-                }
-                """;
-            var output = "1111011";
-            var il = """
-                {
-                  // Code size       32 (0x20)
-                  .maxstack  2
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  initobj    "decimal"
-                  IL_000a:  ldloca.s   V_0
-                  IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0011:  ldloc.1
-                  IL_0012:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  call       "bool decimal?.HasValue.get"
-                  IL_001e:  and
-                  IL_001f:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Decimal_GE00()
-        {
-            var source = """
-                C.Run(0m);
-                C.Run(0.0m);
-                C.Run(1m);
-                C.Run(2m);
-                C.Run(null);
-                C.Run(default(decimal));
-                C.Run(decimal.Zero);
-
-                class C
-                {
-                    public static void Run(decimal? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(decimal? x) => x >= 0.0m;
-                }
-                """;
-            var output = "1111011";
-            var il = """
-                {
-                  // Code size       36 (0x24)
-                  .maxstack  6
-                  .locals init (decimal? V_0,
-                                decimal V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_1
-                  IL_0004:  ldc.i4.0
-                  IL_0005:  ldc.i4.0
-                  IL_0006:  ldc.i4.0
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.1
-                  IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
-                  IL_0015:  ldloc.1
-                  IL_0016:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
-                  IL_001b:  ldloca.s   V_0
-                  IL_001d:  call       "bool decimal?.HasValue.get"
-                  IL_0022:  and
-                  IL_0023:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Byte_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(byte? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(byte? x) => x == (byte)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                byte? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool byte?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "byte byte?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Byte_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(byte? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(byte? x) => x == 1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       46 (0x2e)
-                  .maxstack  2
-                  .locals init (byte? V_0,
-                                int? V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  call       "bool byte?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.1
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "byte byte?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.1
-                  IL_0023:  ldloca.s   V_1
-                  IL_0025:  call       "int int?.GetValueOrDefault()"
-                  IL_002a:  ldc.i4.1
-                  IL_002b:  ceq
-                  IL_002d:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Char_E0()
-        {
-            var source = """
-                C.Run('\0');
-                C.Run(default(char));
-                C.Run('A');
-                C.Run('\x1');
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(char? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(char? x) => x == '\0';
-                }
-                """;
-            var output = "11000";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                char? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool char?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "char char?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Char_E1()
-        {
-            var source = """
-                C.Run('\0');
-                C.Run(default(char));
-                C.Run('A');
-                C.Run('\x1');
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(char? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(char? x) => x == '\x1';
-                }
-                """;
-            var output = "00010";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                char? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool char?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "char char?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.1
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_UInt_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(uint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(uint? x) => x == 0U;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       23 (0x17)
-                  .maxstack  2
-                  .locals init (uint? V_0,
-                                uint V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  stloc.1
-                  IL_0004:  ldloca.s   V_0
-                  IL_0006:  call       "uint uint?.GetValueOrDefault()"
-                  IL_000b:  ldloc.1
-                  IL_000c:  ceq
-                  IL_000e:  ldloca.s   V_0
-                  IL_0010:  call       "bool uint?.HasValue.get"
-                  IL_0015:  and
-                  IL_0016:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_UInt_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(uint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(uint? x) => x == 1U;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       11 (0xb)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "uint uint?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  ceq
-                  IL_000a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Short_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(short? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(short? x) => x == (short)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                short? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool short?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "short short?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Short_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(short? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(short? x) => x == 1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       46 (0x2e)
-                  .maxstack  2
-                  .locals init (short? V_0,
-                                int? V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  call       "bool short?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.1
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "short short?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.1
-                  IL_0023:  ldloca.s   V_1
-                  IL_0025:  call       "int int?.GetValueOrDefault()"
-                  IL_002a:  ldc.i4.1
-                  IL_002b:  ceq
-                  IL_002d:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_UShort_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(ushort? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(ushort? x) => x == (ushort)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                ushort? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool ushort?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "ushort ushort?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_UShort_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(ushort? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(ushort? x) => x == 1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       46 (0x2e)
-                  .maxstack  2
-                  .locals init (ushort? V_0,
-                                int? V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  call       "bool ushort?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.1
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "ushort ushort?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.1
-                  IL_0023:  ldloca.s   V_1
-                  IL_0025:  call       "int int?.GetValueOrDefault()"
-                  IL_002a:  ldc.i4.1
-                  IL_002b:  ceq
-                  IL_002d:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Long_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(long? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(long? x) => x == 0L;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       24 (0x18)
-                  .maxstack  2
-                  .locals init (long? V_0,
-                                long V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  conv.i8
-                  IL_0004:  stloc.1
-                  IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "long long?.GetValueOrDefault()"
-                  IL_000c:  ldloc.1
-                  IL_000d:  ceq
-                  IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool long?.HasValue.get"
-                  IL_0016:  and
-                  IL_0017:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Long_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(long? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(long? x) => x == 1L;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       12 (0xc)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "long long?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  conv.i8
-                  IL_0009:  ceq
-                  IL_000b:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_ULong_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(ulong? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(ulong? x) => x == 0UL;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       24 (0x18)
-                  .maxstack  2
-                  .locals init (ulong? V_0,
-                                ulong V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  conv.i8
-                  IL_0004:  stloc.1
-                  IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "ulong ulong?.GetValueOrDefault()"
-                  IL_000c:  ldloc.1
-                  IL_000d:  ceq
-                  IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool ulong?.HasValue.get"
-                  IL_0016:  and
-                  IL_0017:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_ULong_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(ulong? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(ulong? x) => x == 1UL;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       12 (0xc)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "ulong ulong?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  conv.i8
-                  IL_0009:  ceq
-                  IL_000b:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_NInt_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(nint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(nint? x) => x == (nint)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       24 (0x18)
-                  .maxstack  2
-                  .locals init (nint? V_0,
-                                System.IntPtr V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  conv.i
-                  IL_0004:  stloc.1
-                  IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "nint nint?.GetValueOrDefault()"
-                  IL_000c:  ldloc.1
-                  IL_000d:  ceq
-                  IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool nint?.HasValue.get"
-                  IL_0016:  and
-                  IL_0017:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_NInt_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(nint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(nint? x) => x == (nint)1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       12 (0xc)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "nint nint?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  conv.i
-                  IL_0009:  ceq
-                  IL_000b:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_NUInt_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(nuint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(nuint? x) => x == (nuint)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       24 (0x18)
-                  .maxstack  2
-                  .locals init (nuint? V_0,
-                                System.UIntPtr V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.0
-                  IL_0003:  conv.i
-                  IL_0004:  stloc.1
-                  IL_0005:  ldloca.s   V_0
-                  IL_0007:  call       "nuint nuint?.GetValueOrDefault()"
-                  IL_000c:  ldloc.1
-                  IL_000d:  ceq
-                  IL_000f:  ldloca.s   V_0
-                  IL_0011:  call       "bool nuint?.HasValue.get"
-                  IL_0016:  and
-                  IL_0017:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_NUInt_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(nuint? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(nuint? x) => x == (nuint)1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       12 (0xc)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "nuint nuint?.GetValueOrDefault()"
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  conv.i
-                  IL_0009:  ceq
-                  IL_000b:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_SByte_E0()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(sbyte? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(sbyte? x) => x == (sbyte)0;
-                }
-                """;
-            var output = "1000";
-            var il = """
-                {
-                  // Code size       56 (0x38)
-                  .maxstack  2
-                  .locals init (int? V_0,
-                                int V_1,
-                                sbyte? V_2,
-                                int? V_3)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.2
-                  IL_0002:  ldloca.s   V_2
-                  IL_0004:  call       "bool sbyte?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_3
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.3
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_2
-                  IL_0018:  call       "sbyte sbyte?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.0
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.1
-                  IL_0025:  ldloca.s   V_0
-                  IL_0027:  call       "int int?.GetValueOrDefault()"
-                  IL_002c:  ldloc.1
-                  IL_002d:  ceq
-                  IL_002f:  ldloca.s   V_0
-                  IL_0031:  call       "bool int?.HasValue.get"
-                  IL_0036:  and
-                  IL_0037:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_SByte_E1()
-        {
-            var source = """
-                C.Run(0);
-                C.Run(1);
-                C.Run(2);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(sbyte? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(sbyte? x) => x == 1;
-                }
-                """;
-            var output = "0100";
-            var il = """
-                {
-                  // Code size       46 (0x2e)
-                  .maxstack  2
-                  .locals init (sbyte? V_0,
-                                int? V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  call       "bool sbyte?.HasValue.get"
-                  IL_0009:  brtrue.s   IL_0016
-                  IL_000b:  ldloca.s   V_1
-                  IL_000d:  initobj    "int?"
-                  IL_0013:  ldloc.1
-                  IL_0014:  br.s       IL_0022
-                  IL_0016:  ldloca.s   V_0
-                  IL_0018:  call       "sbyte sbyte?.GetValueOrDefault()"
-                  IL_001d:  newobj     "int?..ctor(int)"
-                  IL_0022:  stloc.1
-                  IL_0023:  ldloca.s   V_1
-                  IL_0025:  call       "int int?.GetValueOrDefault()"
-                  IL_002a:  ldc.i4.1
-                  IL_002b:  ceq
-                  IL_002d:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Single_E0()
-        {
-            var source = """
-                C.Run(0f);
-                C.Run(0.0f);
-                C.Run(default(float));
-                C.Run(1f);
-                C.Run(2f);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(float? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(float? x) => x == 0f;
-                }
-                """;
-            var output = "111000";
-            var il = """
-                {
-                  // Code size       27 (0x1b)
-                  .maxstack  2
-                  .locals init (float? V_0,
-                                float V_1)
-                  IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.r4     0
-                  IL_0007:  stloc.1
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  call       "float float?.GetValueOrDefault()"
-                  IL_000f:  ldloc.1
-                  IL_0010:  ceq
-                  IL_0012:  ldloca.s   V_0
-                  IL_0014:  call       "bool float?.HasValue.get"
-                  IL_0019:  and
-                  IL_001a:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
-        public void NullableConstant_Single_E1()
-        {
-            var source = """
-                C.Run(0f);
-                C.Run(0.0f);
-                C.Run(default(float));
-                C.Run(1f);
-                C.Run(2f);
-                C.Run(null);
-
-                class C
-                {
-                    public static void Run(float? x)
-                    {
-                        System.Console.Write(M(x) ? 1 : 0);
-                    }
-                    static bool M(float? x) => x == 1f;
-                }
-                """;
-            var output = "000100";
-            var il = """
-                {
-                  // Code size       15 (0xf)
-                  .maxstack  2
-                  IL_0000:  ldarga.s   V_0
-                  IL_0002:  call       "float float?.GetValueOrDefault()"
-                  IL_0007:  ldc.r4     1
-                  IL_000c:  ceq
-                  IL_000e:  ret
-                }
-                """;
-            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C.M", il);
-        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_ET([CombinatorialValues("x == true", "true == x")] string code)
+    {
+        var source = $$"""
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => {{code}};
+            }
+            """;
+        var output = "100";
+        var il = """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "bool bool?.GetValueOrDefault()"
+              IL_0007:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_EF1()
+    {
+        var source = """
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => x == false;
+            }
+            """;
+        var output = "010";
+        var il = """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              .locals init (bool? V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "bool bool?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  ceq
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "bool bool?.HasValue.get"
+              IL_0015:  and
+              IL_0016:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_EF2()
+    {
+        var source = """
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => false == x;
+            }
+            """;
+        var output = "010";
+        var il = """
+            {
+              // Code size       21 (0x15)
+              .maxstack  2
+              .locals init (bool? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldarg.0
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  call       "bool bool?.GetValueOrDefault()"
+              IL_000a:  ceq
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "bool bool?.HasValue.get"
+              IL_0013:  and
+              IL_0014:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_NT([CombinatorialValues("x != true", "true != x")] string code)
+    {
+        var source = $$"""
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => {{code}};
+            }
+            """;
+        var output = "011";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "bool bool?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.0
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_NF1()
+    {
+        var source = """
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => x != false;
+            }
+            """;
+        var output = "101";
+        var il = """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  2
+              .locals init (bool? V_0,
+                            bool V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "bool bool?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  ceq
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "bool bool?.HasValue.get"
+              IL_0015:  and
+              IL_0016:  ldc.i4.0
+              IL_0017:  ceq
+              IL_0019:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_NF2()
+    {
+        var source = """
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => false != x;
+            }
+            """;
+        var output = "101";
+        var il = """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (bool? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldarg.0
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  call       "bool bool?.GetValueOrDefault()"
+              IL_000a:  ceq
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "bool bool?.HasValue.get"
+              IL_0013:  and
+              IL_0014:  ldc.i4.0
+              IL_0015:  ceq
+              IL_0017:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_EN([CombinatorialValues("x == null", "null == x")] string code)
+    {
+        var source = $$"""
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => {{code}};
+            }
+            """;
+        var output = "001";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "bool bool?.HasValue.get"
+              IL_0007:  ldc.i4.0
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_NET([CombinatorialValues("!(x == true)", "!!!(x == true)")] string code)
+    {
+        var source = $$"""
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => {{code}};
+            }
+            """;
+        var output = "011";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "bool bool?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.0
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Boolean_NNT([CombinatorialValues("x != true", "!!(x != true)")] string code)
+    {
+        var source = $$"""
+            C.Run(true);
+            C.Run(false);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(bool? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(bool? x) => {{code}};
+            }
+            """;
+        var output = "011";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "bool bool?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.0
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => x == 1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "int int?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_1E()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => 1 == x;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldc.i4.1
+              IL_0001:  ldarga.s   V_0
+              IL_0003:  call       "int int?.GetValueOrDefault()"
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_N1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => x != 1;
+            }
+            """;
+        var output = "1011";
+        var il = """
+            {
+              // Code size       14 (0xe)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "int int?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  ceq
+              IL_000a:  ldc.i4.0
+              IL_000b:  ceq
+              IL_000d:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => x == 0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "int int?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  ceq
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "bool int?.HasValue.get"
+              IL_0015:  and
+              IL_0016:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_0E()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => 0 == x;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       21 (0x15)
+              .maxstack  2
+              .locals init (int? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldarg.0
+              IL_0002:  stloc.0
+              IL_0003:  ldloca.s   V_0
+              IL_0005:  call       "int int?.GetValueOrDefault()"
+              IL_000a:  ceq
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "bool int?.HasValue.get"
+              IL_0013:  and
+              IL_0014:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_L1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => x < 1;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.1
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "int int?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  clt
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "bool int?.HasValue.get"
+              IL_0015:  and
+              IL_0016:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Int_GE1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(int? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(int? x) => x >= -1;
+            }
+            """;
+        var output = "1110";
+        var il = """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.m1
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "int int?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  clt
+              IL_000e:  ldc.i4.0
+              IL_000f:  ceq
+              IL_0011:  ldloca.s   V_0
+              IL_0013:  call       "bool int?.HasValue.get"
+              IL_0018:  and
+              IL_0019:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Double_E0([CombinatorialValues("0d", "0.0")] string rhs)
+    {
+        var source = $$"""
+            C.Run(0d);
+            C.Run(0.0);
+            C.Run(1.0);
+            C.Run(1.2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(double? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(double? x) => x == {{rhs}};
+            }
+            """;
+        var output = "11000";
+        var il = """
+            {
+              // Code size       31 (0x1f)
+              .maxstack  2
+              .locals init (double? V_0,
+                            double V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.r8     0
+              IL_000b:  stloc.1
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "double double?.GetValueOrDefault()"
+              IL_0013:  ldloc.1
+              IL_0014:  ceq
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "bool double?.HasValue.get"
+              IL_001d:  and
+              IL_001e:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Double_G1()
+    {
+        var source = """
+            C.Run(0d);
+            C.Run(0.0);
+            C.Run(1.0);
+            C.Run(1.2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(double? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(double? x) => x > 1.0;
+            }
+            """;
+        var output = "00010";
+        var il = """
+            {
+              // Code size       31 (0x1f)
+              .maxstack  2
+              .locals init (double? V_0,
+                            double V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.r8     1
+              IL_000b:  stloc.1
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "double double?.GetValueOrDefault()"
+              IL_0013:  ldloc.1
+              IL_0014:  cgt
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "bool double?.HasValue.get"
+              IL_001d:  and
+              IL_001e:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Double_LE1()
+    {
+        var source = """
+            C.Run(0d);
+            C.Run(0.0);
+            C.Run(1.0);
+            C.Run(1.2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(double? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(double? x) => x <= 1.0;
+            }
+            """;
+        var output = "11100";
+        var il = """
+            {
+              // Code size       34 (0x22)
+              .maxstack  2
+              .locals init (double? V_0,
+                            double V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.r8     1
+              IL_000b:  stloc.1
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "double double?.GetValueOrDefault()"
+              IL_0013:  ldloc.1
+              IL_0014:  cgt.un
+              IL_0016:  ldc.i4.0
+              IL_0017:  ceq
+              IL_0019:  ldloca.s   V_0
+              IL_001b:  call       "bool double?.HasValue.get"
+              IL_0020:  and
+              IL_0021:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Decimal_E0()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x == 0m;
+            }
+            """;
+        var output = "1100011";
+        var il = """
+            {
+              // Code size       32 (0x20)
+              .maxstack  2
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  initobj    "decimal"
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0011:  ldloc.1
+              IL_0012:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_0017:  ldloca.s   V_0
+              IL_0019:  call       "bool decimal?.HasValue.get"
+              IL_001e:  and
+              IL_001f:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
+    public void NullableConstant_Decimal_E00()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x == 0.0m;
+            }
+            """;
+        var output = "1100011";
+        var il = """
+            {
+              // Code size       36 (0x24)
+              .maxstack  6
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0015:  ldloc.1
+              IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_001b:  ldloca.s   V_0
+              IL_001d:  call       "bool decimal?.HasValue.get"
+              IL_0022:  and
+              IL_0023:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
+    public void NullableConstant_Decimal_00E()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => 0.0m == x;
+            }
+            """;
+        var output = "1100011";
+        var il = """
+            {
+              // Code size       33 (0x21)
+              .maxstack  5
+              .locals init (decimal? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldc.i4.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+              IL_000a:  ldarg.0
+              IL_000b:  stloc.0
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_0018:  ldloca.s   V_0
+              IL_001a:  call       "bool decimal?.HasValue.get"
+              IL_001f:  and
+              IL_0020:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
+    public void NullableConstant_Decimal_E000()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x == 0.00m;
+            }
+            """;
+        var output = "1100011";
+        var il = """
+            {
+              // Code size       36 (0x24)
+              .maxstack  6
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.2
+              IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0015:  ldloc.1
+              IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_001b:  ldloca.s   V_0
+              IL_001d:  call       "bool decimal?.HasValue.get"
+              IL_0022:  and
+              IL_0023:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/73510")]
+    public void NullableConstant_Decimal_000E()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => 0.00m == x;
+            }
+            """;
+        var output = "1100011";
+        var il = """
+            {
+              // Code size       33 (0x21)
+              .maxstack  5
+              .locals init (decimal? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldc.i4.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.2
+              IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+              IL_000a:  ldarg.0
+              IL_000b:  stloc.0
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_0018:  ldloca.s   V_0
+              IL_001a:  call       "bool decimal?.HasValue.get"
+              IL_001f:  and
+              IL_0020:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Decimal_NE00()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x != 0.0m;
+            }
+            """;
+        var output = "0011100";
+        var il = """
+            {
+              // Code size       39 (0x27)
+              .maxstack  6
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0015:  ldloc.1
+              IL_0016:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_001b:  ldloca.s   V_0
+              IL_001d:  call       "bool decimal?.HasValue.get"
+              IL_0022:  and
+              IL_0023:  ldc.i4.0
+              IL_0024:  ceq
+              IL_0026:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Decimal_00NE()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => 0.0m != x;
+            }
+            """;
+        var output = "0011100";
+        var il = """
+            {
+              // Code size       36 (0x24)
+              .maxstack  5
+              .locals init (decimal? V_0)
+              IL_0000:  ldc.i4.0
+              IL_0001:  ldc.i4.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  ldc.i4.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+              IL_000a:  ldarg.0
+              IL_000b:  stloc.0
+              IL_000c:  ldloca.s   V_0
+              IL_000e:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0013:  call       "bool decimal.op_Equality(decimal, decimal)"
+              IL_0018:  ldloca.s   V_0
+              IL_001a:  call       "bool decimal?.HasValue.get"
+              IL_001f:  and
+              IL_0020:  ldc.i4.0
+              IL_0021:  ceq
+              IL_0023:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Decimal_GE0()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x >= 0m;
+            }
+            """;
+        var output = "1111011";
+        var il = """
+            {
+              // Code size       32 (0x20)
+              .maxstack  2
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  initobj    "decimal"
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0011:  ldloc.1
+              IL_0012:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
+              IL_0017:  ldloca.s   V_0
+              IL_0019:  call       "bool decimal?.HasValue.get"
+              IL_001e:  and
+              IL_001f:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Decimal_GE00()
+    {
+        var source = """
+            C.Run(0m);
+            C.Run(0.0m);
+            C.Run(1m);
+            C.Run(2m);
+            C.Run(null);
+            C.Run(default(decimal));
+            C.Run(decimal.Zero);
+
+            class C
+            {
+                public static void Run(decimal? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(decimal? x) => x >= 0.0m;
+            }
+            """;
+        var output = "1111011";
+        var il = """
+            {
+              // Code size       36 (0x24)
+              .maxstack  6
+              .locals init (decimal? V_0,
+                            decimal V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_1
+              IL_0004:  ldc.i4.0
+              IL_0005:  ldc.i4.0
+              IL_0006:  ldc.i4.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.1
+              IL_0009:  call       "decimal..ctor(int, int, int, bool, byte)"
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "decimal decimal?.GetValueOrDefault()"
+              IL_0015:  ldloc.1
+              IL_0016:  call       "bool decimal.op_GreaterThanOrEqual(decimal, decimal)"
+              IL_001b:  ldloca.s   V_0
+              IL_001d:  call       "bool decimal?.HasValue.get"
+              IL_0022:  and
+              IL_0023:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Byte_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(byte? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(byte? x) => x == (byte)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            byte? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool byte?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "byte byte?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.0
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Byte_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(byte? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(byte? x) => x == 1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       46 (0x2e)
+              .maxstack  2
+              .locals init (byte? V_0,
+                            int? V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "bool byte?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.1
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "byte byte?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.1
+              IL_0023:  ldloca.s   V_1
+              IL_0025:  call       "int int?.GetValueOrDefault()"
+              IL_002a:  ldc.i4.1
+              IL_002b:  ceq
+              IL_002d:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Char_E0()
+    {
+        var source = """
+            C.Run('\0');
+            C.Run(default(char));
+            C.Run('A');
+            C.Run('\x1');
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(char? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(char? x) => x == '\0';
+            }
+            """;
+        var output = "11000";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            char? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool char?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "char char?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.0
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Char_E1()
+    {
+        var source = """
+            C.Run('\0');
+            C.Run(default(char));
+            C.Run('A');
+            C.Run('\x1');
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(char? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(char? x) => x == '\x1';
+            }
+            """;
+        var output = "00010";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            char? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool char?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "char char?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.1
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_UInt_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(uint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(uint? x) => x == 0U;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       23 (0x17)
+              .maxstack  2
+              .locals init (uint? V_0,
+                            uint V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  stloc.1
+              IL_0004:  ldloca.s   V_0
+              IL_0006:  call       "uint uint?.GetValueOrDefault()"
+              IL_000b:  ldloc.1
+              IL_000c:  ceq
+              IL_000e:  ldloca.s   V_0
+              IL_0010:  call       "bool uint?.HasValue.get"
+              IL_0015:  and
+              IL_0016:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_UInt_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(uint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(uint? x) => x == 1U;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       11 (0xb)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "uint uint?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  ceq
+              IL_000a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Short_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(short? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(short? x) => x == (short)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            short? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool short?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "short short?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.0
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Short_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(short? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(short? x) => x == 1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       46 (0x2e)
+              .maxstack  2
+              .locals init (short? V_0,
+                            int? V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "bool short?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.1
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "short short?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.1
+              IL_0023:  ldloca.s   V_1
+              IL_0025:  call       "int int?.GetValueOrDefault()"
+              IL_002a:  ldc.i4.1
+              IL_002b:  ceq
+              IL_002d:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_UShort_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(ushort? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(ushort? x) => x == (ushort)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            ushort? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool ushort?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "ushort ushort?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.0
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_UShort_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(ushort? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(ushort? x) => x == 1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       46 (0x2e)
+              .maxstack  2
+              .locals init (ushort? V_0,
+                            int? V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "bool ushort?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.1
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "ushort ushort?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.1
+              IL_0023:  ldloca.s   V_1
+              IL_0025:  call       "int int?.GetValueOrDefault()"
+              IL_002a:  ldc.i4.1
+              IL_002b:  ceq
+              IL_002d:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Long_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(long? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(long? x) => x == 0L;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (long? V_0,
+                            long V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  conv.i8
+              IL_0004:  stloc.1
+              IL_0005:  ldloca.s   V_0
+              IL_0007:  call       "long long?.GetValueOrDefault()"
+              IL_000c:  ldloc.1
+              IL_000d:  ceq
+              IL_000f:  ldloca.s   V_0
+              IL_0011:  call       "bool long?.HasValue.get"
+              IL_0016:  and
+              IL_0017:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Long_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(long? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(long? x) => x == 1L;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "long long?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  conv.i8
+              IL_0009:  ceq
+              IL_000b:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_ULong_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(ulong? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(ulong? x) => x == 0UL;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (ulong? V_0,
+                            ulong V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  conv.i8
+              IL_0004:  stloc.1
+              IL_0005:  ldloca.s   V_0
+              IL_0007:  call       "ulong ulong?.GetValueOrDefault()"
+              IL_000c:  ldloc.1
+              IL_000d:  ceq
+              IL_000f:  ldloca.s   V_0
+              IL_0011:  call       "bool ulong?.HasValue.get"
+              IL_0016:  and
+              IL_0017:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_ULong_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(ulong? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(ulong? x) => x == 1UL;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "ulong ulong?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  conv.i8
+              IL_0009:  ceq
+              IL_000b:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_NInt_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(nint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(nint? x) => x == (nint)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (nint? V_0,
+                            System.IntPtr V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  conv.i
+              IL_0004:  stloc.1
+              IL_0005:  ldloca.s   V_0
+              IL_0007:  call       "nint nint?.GetValueOrDefault()"
+              IL_000c:  ldloc.1
+              IL_000d:  ceq
+              IL_000f:  ldloca.s   V_0
+              IL_0011:  call       "bool nint?.HasValue.get"
+              IL_0016:  and
+              IL_0017:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_NInt_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(nint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(nint? x) => x == (nint)1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "nint nint?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  conv.i
+              IL_0009:  ceq
+              IL_000b:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_NUInt_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(nuint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(nuint? x) => x == (nuint)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       24 (0x18)
+              .maxstack  2
+              .locals init (nuint? V_0,
+                            System.UIntPtr V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.i4.0
+              IL_0003:  conv.i
+              IL_0004:  stloc.1
+              IL_0005:  ldloca.s   V_0
+              IL_0007:  call       "nuint nuint?.GetValueOrDefault()"
+              IL_000c:  ldloc.1
+              IL_000d:  ceq
+              IL_000f:  ldloca.s   V_0
+              IL_0011:  call       "bool nuint?.HasValue.get"
+              IL_0016:  and
+              IL_0017:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_NUInt_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(nuint? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(nuint? x) => x == (nuint)1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "nuint nuint?.GetValueOrDefault()"
+              IL_0007:  ldc.i4.1
+              IL_0008:  conv.i
+              IL_0009:  ceq
+              IL_000b:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_SByte_E0()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(sbyte? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(sbyte? x) => x == (sbyte)0;
+            }
+            """;
+        var output = "1000";
+        var il = """
+            {
+              // Code size       56 (0x38)
+              .maxstack  2
+              .locals init (int? V_0,
+                            int V_1,
+                            sbyte? V_2,
+                            int? V_3)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.2
+              IL_0002:  ldloca.s   V_2
+              IL_0004:  call       "bool sbyte?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_3
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.3
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_2
+              IL_0018:  call       "sbyte sbyte?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.0
+              IL_0023:  ldc.i4.0
+              IL_0024:  stloc.1
+              IL_0025:  ldloca.s   V_0
+              IL_0027:  call       "int int?.GetValueOrDefault()"
+              IL_002c:  ldloc.1
+              IL_002d:  ceq
+              IL_002f:  ldloca.s   V_0
+              IL_0031:  call       "bool int?.HasValue.get"
+              IL_0036:  and
+              IL_0037:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_SByte_E1()
+    {
+        var source = """
+            C.Run(0);
+            C.Run(1);
+            C.Run(2);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(sbyte? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(sbyte? x) => x == 1;
+            }
+            """;
+        var output = "0100";
+        var il = """
+            {
+              // Code size       46 (0x2e)
+              .maxstack  2
+              .locals init (sbyte? V_0,
+                            int? V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldloca.s   V_0
+              IL_0004:  call       "bool sbyte?.HasValue.get"
+              IL_0009:  brtrue.s   IL_0016
+              IL_000b:  ldloca.s   V_1
+              IL_000d:  initobj    "int?"
+              IL_0013:  ldloc.1
+              IL_0014:  br.s       IL_0022
+              IL_0016:  ldloca.s   V_0
+              IL_0018:  call       "sbyte sbyte?.GetValueOrDefault()"
+              IL_001d:  newobj     "int?..ctor(int)"
+              IL_0022:  stloc.1
+              IL_0023:  ldloca.s   V_1
+              IL_0025:  call       "int int?.GetValueOrDefault()"
+              IL_002a:  ldc.i4.1
+              IL_002b:  ceq
+              IL_002d:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Single_E0()
+    {
+        var source = """
+            C.Run(0f);
+            C.Run(0.0f);
+            C.Run(default(float));
+            C.Run(1f);
+            C.Run(2f);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(float? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(float? x) => x == 0f;
+            }
+            """;
+        var output = "111000";
+        var il = """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  2
+              .locals init (float? V_0,
+                            float V_1)
+              IL_0000:  ldarg.0
+              IL_0001:  stloc.0
+              IL_0002:  ldc.r4     0
+              IL_0007:  stloc.1
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  call       "float float?.GetValueOrDefault()"
+              IL_000f:  ldloc.1
+              IL_0010:  ceq
+              IL_0012:  ldloca.s   V_0
+              IL_0014:  call       "bool float?.HasValue.get"
+              IL_0019:  and
+              IL_001a:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52629")]
+    public void NullableConstant_Single_E1()
+    {
+        var source = """
+            C.Run(0f);
+            C.Run(0.0f);
+            C.Run(default(float));
+            C.Run(1f);
+            C.Run(2f);
+            C.Run(null);
+
+            class C
+            {
+                public static void Run(float? x)
+                {
+                    System.Console.Write(M(x) ? 1 : 0);
+                }
+                static bool M(float? x) => x == 1f;
+            }
+            """;
+        var output = "000100";
+        var il = """
+            {
+              // Code size       15 (0xf)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "float float?.GetValueOrDefault()"
+              IL_0007:  ldc.r4     1
+              IL_000c:  ceq
+              IL_000e:  ret
+            }
+            """;
+        var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
+        verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: output);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", il);
     }
 }

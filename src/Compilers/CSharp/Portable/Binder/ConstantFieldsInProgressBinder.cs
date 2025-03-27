@@ -4,29 +4,28 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This binder keeps track of the set of constant fields that are currently being evaluated
+/// so that the set can be passed into the next call to SourceFieldSymbol.ConstantValue (and
+/// its callers).
+/// </summary>
+internal sealed class ConstantFieldsInProgressBinder : Binder
 {
-    /// <summary>
-    /// This binder keeps track of the set of constant fields that are currently being evaluated
-    /// so that the set can be passed into the next call to SourceFieldSymbol.ConstantValue (and
-    /// its callers).
-    /// </summary>
-    internal sealed class ConstantFieldsInProgressBinder : Binder
+    private readonly ConstantFieldsInProgress _inProgress;
+
+    internal ConstantFieldsInProgressBinder(ConstantFieldsInProgress inProgress, Binder next)
+        : base(next, BinderFlags.FieldInitializer | next.Flags)
     {
-        private readonly ConstantFieldsInProgress _inProgress;
+        _inProgress = inProgress;
+    }
 
-        internal ConstantFieldsInProgressBinder(ConstantFieldsInProgress inProgress, Binder next)
-            : base(next, BinderFlags.FieldInitializer | next.Flags)
+    internal override ConstantFieldsInProgress ConstantFieldsInProgress
+    {
+        get
         {
-            _inProgress = inProgress;
-        }
-
-        internal override ConstantFieldsInProgress ConstantFieldsInProgress
-        {
-            get
-            {
-                return _inProgress;
-            }
+            return _inProgress;
         }
     }
 }

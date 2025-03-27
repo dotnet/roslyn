@@ -13,14 +13,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public partial class NullableConversionTests : CompilingTestBase
 {
-    public partial class NullableConversionTests : CompilingTestBase
+    [Fact, WorkItem(544450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544450")]
+    public void TestBug12780()
     {
-        [Fact, WorkItem(544450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544450")]
-        public void TestBug12780()
-        {
-            string source = @"
+        string source = @"
 enum E : byte { A, B }
 class Program
 {
@@ -33,16 +33,16 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "AB");
-        }
+        var verifier = CompileAndVerify(source: source, expectedOutput: "AB");
+    }
 
-        [Fact]
-        public void TestNullableConversions()
-        {
-            // IntPtr and UIntPtr violate the rules of user-defined conversions for 
-            // backwards-compatibility reasons. All of these should compile without error.
+    [Fact]
+    public void TestNullableConversions()
+    {
+        // IntPtr and UIntPtr violate the rules of user-defined conversions for 
+        // backwards-compatibility reasons. All of these should compile without error.
 
-            string source = @"
+        string source = @"
 using System;
 class P
 {
@@ -81,14 +81,14 @@ class P
 }
 ";
 
-            string expectedOutput = @"tttttttfft";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"tttttttfft";
+        var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+    }
 
-        [Fact]
-        public void TestLiftedUserDefinedConversions()
-        {
-            string source = @"
+    [Fact]
+    public void TestLiftedUserDefinedConversions()
+    {
+        string source = @"
 struct Conv
 {
     public static implicit operator int(Conv c)
@@ -144,14 +144,14 @@ struct Conv
 }
 ";
 
-            string expectedOutput = @"tttttttttt";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
-        }
+        string expectedOutput = @"tttttttttt";
+        var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+    }
 
-        [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
-        public void TestNullableWithGenericConstraints01()
-        {
-            string source = @"
+    [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
+    public void TestNullableWithGenericConstraints01()
+    {
+        string source = @"
 class GenC<T, U> where T : struct, U where U : class
 {
     public void Test(T t)
@@ -170,13 +170,13 @@ static class Program
         (new GenC<S1, I1>()).Test(default(S1));
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Hola");
-        }
+        CompileAndVerify(source, expectedOutput: "Hola");
+    }
 
-        [Fact, WorkItem(543996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543996")]
-        public void TestNonLiftedUDCOnStruct()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(543996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543996")]
+    public void TestNonLiftedUDCOnStruct()
+    {
+        string source = @"using System;
 struct A
 {
     public C CFld;
@@ -214,13 +214,13 @@ public class Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "TrueTrue");
-        }
+        CompileAndVerify(source, expectedOutput: "TrueTrue");
+    }
 
-        [Fact, WorkItem(543997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543997")]
-        public void TestImplicitLiftedUDCOnStruct()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(543997, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543997")]
+    public void TestImplicitLiftedUDCOnStruct()
+    {
+        string source = @"using System;
 
 namespace Test
 {
@@ -249,13 +249,13 @@ namespace Test
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "Imp S::int? -> S True");
-        }
+        CompileAndVerify(source, expectedOutput: "Imp S::int? -> S True");
+    }
 
-        [Fact]
-        public void TestExplicitUnliftedUDC()
-        {
-            string source = @"
+    [Fact]
+    public void TestExplicitUnliftedUDC()
+    {
+        string source = @"
 using System;
 namespace Test
 {
@@ -281,13 +281,13 @@ namespace Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "123t");
-        }
+        CompileAndVerify(source, expectedOutput: "123t");
+    }
 
-        [Fact, WorkItem(545091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545091")]
-        public void TestImplicitUDCInNullCoalescingOperand()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(545091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545091")]
+    public void TestImplicitUDCInNullCoalescingOperand()
+    {
+        string source = @"using System;
 
 class C
 {
@@ -309,32 +309,32 @@ class A
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "implicit C");
-        }
+        CompileAndVerify(source, expectedOutput: "implicit C");
+    }
 
-        [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
-        [Fact]
-        public void TestLiftedVsUnlifted()
-        {
-            // The correct behavior here is to choose operator 2. Binary operator overload
-            // resolution should determine that the best built-in addition operator is
-            // lifted int + int, which has signature int? + int? --> int?. However, the 
-            // native compiler gets this wrong. The native compiler, pretends
-            // that there are *three* lifted operators: int + int? --> int?, int? + int --> int?,
-            // and int? + int? --> int?. Therefore the native compiler decides that the 
-            // int? + int --> int operator is the best, because it is the applicable operator
-            // with the most specific types, and therefore chooses operator 1.
-            //            
-            // This does not match the specification.
-            // It seems reasonable that if someone has done this very strange thing of making 
-            // conversions S --> int and S --> int?, that they probably intend for the
-            // lifted operation to use the conversion specifically designed for nullables.
-            //
-            // Roslyn matches the specification and takes the break from the native compiler.
+    [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
+    [Fact]
+    public void TestLiftedVsUnlifted()
+    {
+        // The correct behavior here is to choose operator 2. Binary operator overload
+        // resolution should determine that the best built-in addition operator is
+        // lifted int + int, which has signature int? + int? --> int?. However, the 
+        // native compiler gets this wrong. The native compiler, pretends
+        // that there are *three* lifted operators: int + int? --> int?, int? + int --> int?,
+        // and int? + int? --> int?. Therefore the native compiler decides that the 
+        // int? + int --> int operator is the best, because it is the applicable operator
+        // with the most specific types, and therefore chooses operator 1.
+        //            
+        // This does not match the specification.
+        // It seems reasonable that if someone has done this very strange thing of making 
+        // conversions S --> int and S --> int?, that they probably intend for the
+        // lifted operation to use the conversion specifically designed for nullables.
+        //
+        // Roslyn matches the specification and takes the break from the native compiler.
 
-            // See the next test case for more thoughts on this.
+        // See the next test case for more thoughts on this.
 
-            string source = @"
+        string source = @"
 using System;
 
 public struct S
@@ -360,20 +360,20 @@ public struct S
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "2");
-        }
+        CompileAndVerify(source, expectedOutput: "2");
+    }
 
-        [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
-        [Fact]
-        public void TestLiftedVsUnlifted_Combinations()
-        {
-            // The point of this test is to show that Roslyn and the native compiler
-            // agree on resolution of *conversions* but do not agree on resolution
-            // of *binary operators*. That is, we wish to show that we are isolating
-            // the breaking change to the binary operator overload resolution, and not
-            // to the conversion resolution code. See the previous bug for details.
+    [WorkItem(545377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545377")]
+    [Fact]
+    public void TestLiftedVsUnlifted_Combinations()
+    {
+        // The point of this test is to show that Roslyn and the native compiler
+        // agree on resolution of *conversions* but do not agree on resolution
+        // of *binary operators*. That is, we wish to show that we are isolating
+        // the breaking change to the binary operator overload resolution, and not
+        // to the conversion resolution code. See the previous bug for details.
 
-            string source = @"
+        string source = @"
 using System;
 
 struct S___A
@@ -650,26 +650,26 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
+        var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
 
-            // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
-            // for straight conversions. 
-            // Because Roslyn (correctly) prefers converting to int? instead of int when doing lifted addition,
-            // native compiler produces ABACABADABACABABBBBDDBBDDBBABACABADABACABABBDDBBDDBB for additions.
-            // Roslyn compiler produces ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD. That is,
-            // preference is given to int?-returning conversions C and D over int-returning A and B.
+        // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
+        // for straight conversions. 
+        // Because Roslyn (correctly) prefers converting to int? instead of int when doing lifted addition,
+        // native compiler produces ABACABADABACABABBBBDDBBDDBBABACABADABACABABBDDBBDDBB for additions.
+        // Roslyn compiler produces ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD. That is,
+        // preference is given to int?-returning conversions C and D over int-returning A and B.
 
-            string expected = @"ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD
+        string expected = @"ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD
 ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD";
 
-            CompileAndVerify(compilation, expectedOutput: expected);
-        }
+        CompileAndVerify(compilation, expectedOutput: expected);
+    }
 
-        [Fact]
-        [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
-        public void NullableConversionFromFloatingPointConst()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
+    public void NullableConversionFromFloatingPointConst()
+    {
+        var source = @"
 class C
 {
     void Use(int? p)
@@ -744,77 +744,76 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            using (new EnsureEnglishUICulture())
-            {
-                compilation.VerifyDiagnostics(
-                    // (15,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)double.MaxValue;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(15, 13),
-                    // (16,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)double.NaN;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(16, 13),
-                    // (17,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)double.NegativeInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(17, 13),
-                    // (18,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)double.PositiveInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(18, 13),
-                    // (22,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)float.MaxValue;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(22, 13),
-                    // (23,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)float.NaN;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(23, 13),
-                    // (24,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)float.NegativeInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(24, 13),
-                    // (25,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         i = (int?)float.PositiveInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(25, 13),
-                    // (29,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)double.MaxValue;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(29, 13),
-                    // (30,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)double.NaN;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(30, 13),
-                    // (31,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)double.NegativeInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(31, 13),
-                    // (32,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)double.PositiveInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(32, 13),
-                    // (36,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)float.MaxValue;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(36, 13),
-                    // (37,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)float.NaN;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(37, 13),
-                    // (38,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)float.NegativeInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(38, 13),
-                    // (39,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
-                    //         _ = (int)float.PositiveInfinity;
-                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(39, 13)
-                    );
-            }
-
-            var syntaxTree = compilation.SyntaxTrees.First();
-            var target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];
-            var operand = target.Expression;
-            Assert.Equal("double.NaN", operand.ToFullString());
-
-            // Note: there is a valid conversion here at the type level.  It's the process of evaluating the conversion, which for
-            // constants happens at compile time, that triggers the error.
-            HashSet<DiagnosticInfo> unused = null;
-            var bag = DiagnosticBag.GetInstance();
-            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Int32));
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(
-                compilation.GetBinder(target).BindExpression(operand, bag),
-                nullableIntType,
-                ref unused);
-            Assert.True(conversion.IsExplicit && conversion.IsNullable);
+        using (new EnsureEnglishUICulture())
+        {
+            compilation.VerifyDiagnostics(
+                // (15,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)double.MaxValue;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(15, 13),
+                // (16,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)double.NaN;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(16, 13),
+                // (17,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)double.NegativeInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(17, 13),
+                // (18,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)double.PositiveInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(18, 13),
+                // (22,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)float.MaxValue;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(22, 13),
+                // (23,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)float.NaN;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(23, 13),
+                // (24,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)float.NegativeInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(24, 13),
+                // (25,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         i = (int?)float.PositiveInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(25, 13),
+                // (29,13): error CS0221: Constant value '1.7976931348623157E+308' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)double.MaxValue;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.MaxValue").WithArguments(double.MaxValue.ToString(), "int").WithLocation(29, 13),
+                // (30,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)double.NaN;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NaN").WithArguments(double.NaN.ToString(), "int").WithLocation(30, 13),
+                // (31,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)double.NegativeInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.NegativeInfinity").WithArguments(double.NegativeInfinity.ToString(), "int").WithLocation(31, 13),
+                // (32,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)double.PositiveInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)double.PositiveInfinity").WithArguments(double.PositiveInfinity.ToString(), "int").WithLocation(32, 13),
+                // (36,13): error CS0221: Constant value '3.4028235E+38' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)float.MaxValue;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.MaxValue").WithArguments(float.MaxValue.ToString(), "int").WithLocation(36, 13),
+                // (37,13): error CS0221: Constant value 'NaN' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)float.NaN;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NaN").WithArguments(float.NaN.ToString(), "int").WithLocation(37, 13),
+                // (38,13): error CS0221: Constant value '-∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)float.NegativeInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.NegativeInfinity").WithArguments(float.NegativeInfinity.ToString(), "int").WithLocation(38, 13),
+                // (39,13): error CS0221: Constant value '∞' cannot be converted to a 'int' (use 'unchecked' syntax to override)
+                //         _ = (int)float.PositiveInfinity;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int)float.PositiveInfinity").WithArguments(float.PositiveInfinity.ToString(), "int").WithLocation(39, 13)
+                );
         }
+
+        var syntaxTree = compilation.SyntaxTrees.First();
+        var target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];
+        var operand = target.Expression;
+        Assert.Equal("double.NaN", operand.ToFullString());
+
+        // Note: there is a valid conversion here at the type level.  It's the process of evaluating the conversion, which for
+        // constants happens at compile time, that triggers the error.
+        HashSet<DiagnosticInfo> unused = null;
+        var bag = DiagnosticBag.GetInstance();
+        var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+        var conversion = compilation.Conversions.ClassifyConversionFromExpression(
+            compilation.GetBinder(target).BindExpression(operand, bag),
+            nullableIntType,
+            ref unused);
+        Assert.True(conversion.IsExplicit && conversion.IsNullable);
     }
 }

@@ -6,29 +6,28 @@ using System;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Specifies the C# or VB source code kind.
+/// </summary>
+public enum SourceCodeKind
 {
     /// <summary>
-    /// Specifies the C# or VB source code kind.
+    /// No scripting. Used for .cs/.vb file parsing.
     /// </summary>
-    public enum SourceCodeKind
-    {
-        /// <summary>
-        /// No scripting. Used for .cs/.vb file parsing.
-        /// </summary>
-        Regular = 0,
+    Regular = 0,
 
-        /// <summary>
-        /// Allows top-level statements, declarations, and optional trailing expression. 
-        /// Used for parsing .csx/.vbx and interactive submissions.
-        /// </summary>
-        Script = 1,
+    /// <summary>
+    /// Allows top-level statements, declarations, and optional trailing expression. 
+    /// Used for parsing .csx/.vbx and interactive submissions.
+    /// </summary>
+    Script = 1,
 
-        /// <summary>
-        /// The same as <see cref="Script"/>.
-        /// </summary>
-        [Obsolete("Use Script instead", error: false)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        Interactive = 2,
-    }
+    /// <summary>
+    /// The same as <see cref="Script"/>.
+    /// </summary>
+    [Obsolete("Use Script instead", error: false)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    Interactive = 2,
 }

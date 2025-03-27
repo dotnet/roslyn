@@ -9,16 +9,15 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
+
+public static class DkmLanguageId
 {
-    public static class DkmLanguageId
+    public static Guid Cpp
     {
-        public static Guid Cpp
+        get
         {
-            get
-            {
-                return new Guid("3A12D0B7-C26C-11D0-B442-00A0244A1DD2");
-            }
+            return new Guid("3A12D0B7-C26C-11D0-B442-00A0244A1DD2");
         }
     }
 }

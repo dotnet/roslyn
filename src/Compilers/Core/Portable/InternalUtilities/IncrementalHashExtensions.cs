@@ -7,30 +7,29 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class IncrementalHashExtensions
 {
-    internal static class IncrementalHashExtensions
+    internal static void AppendData(this IncrementalHash hash, IEnumerable<Blob> blobs)
     {
-        internal static void AppendData(this IncrementalHash hash, IEnumerable<Blob> blobs)
+        foreach (var blob in blobs)
         {
-            foreach (var blob in blobs)
-            {
-                hash.AppendData(blob.GetBytes());
-            }
+            hash.AppendData(blob.GetBytes());
         }
+    }
 
-        internal static void AppendData(this IncrementalHash hash, IEnumerable<ArraySegment<byte>> blobs)
+    internal static void AppendData(this IncrementalHash hash, IEnumerable<ArraySegment<byte>> blobs)
+    {
+        foreach (var blob in blobs)
         {
-            foreach (var blob in blobs)
-            {
-                hash.AppendData(blob);
-            }
+            hash.AppendData(blob);
         }
+    }
 
-        internal static void AppendData(this IncrementalHash hash, ArraySegment<byte> segment)
-        {
-            RoslynDebug.AssertNotNull(segment.Array);
-            hash.AppendData(segment.Array, segment.Offset, segment.Count);
-        }
+    internal static void AppendData(this IncrementalHash hash, ArraySegment<byte> segment)
+    {
+        RoslynDebug.AssertNotNull(segment.Array);
+        hash.AppendData(segment.Array, segment.Offset, segment.Count);
     }
 }

@@ -6,13 +6,12 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Clr
+namespace Microsoft.VisualStudio.Debugger.Clr;
+
+public enum DkmClrCastExpressionOptions
 {
-    public enum DkmClrCastExpressionOptions
-    {
-        None = 0,
-        ConditionalCast = 1,
-        ParenthesizeArgument = 2,
-        ParenthesizeEntireExpression = 4
-    }
+    None = 0,
+    ConditionalCast = 1,
+    ParenthesizeArgument = 2,
+    ParenthesizeEntireExpression = 4
 }

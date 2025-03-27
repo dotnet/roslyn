@@ -4,14 +4,13 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class BoundDiscardPattern
 {
-    internal partial class BoundDiscardPattern
+    private partial void Validate()
     {
-        private partial void Validate()
-        {
-            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
-        }
+        Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
     }
 }
 

@@ -11,15 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+internal static class CommonCompilerExtensions
 {
-    internal static class CommonCompilerExtensions
+    internal static (int Result, string Output) Run(this CommonCompiler compiler, CancellationToken cancellationToken = default)
     {
-        internal static (int Result, string Output) Run(this CommonCompiler compiler, CancellationToken cancellationToken = default)
-        {
-            using var writer = new StringWriter();
-            var result = compiler.Run(writer, cancellationToken);
-            return (result, writer.ToString());
-        }
+        using var writer = new StringWriter();
+        var result = compiler.Run(writer, cancellationToken);
+        return (result, writer.ToString());
     }
 }

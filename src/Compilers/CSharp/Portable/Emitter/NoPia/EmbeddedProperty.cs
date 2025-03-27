@@ -13,60 +13,59 @@ using Cci = Microsoft.Cci;
 using PropertySymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.PropertySymbol;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
+namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia;
+
+internal sealed class EmbeddedProperty : EmbeddedTypesManager.CommonEmbeddedProperty
 {
-    internal sealed class EmbeddedProperty : EmbeddedTypesManager.CommonEmbeddedProperty
+    public EmbeddedProperty(PropertySymbolAdapter underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
+        base(underlyingProperty, getter, setter)
     {
-        public EmbeddedProperty(PropertySymbolAdapter underlyingProperty, EmbeddedMethod getter, EmbeddedMethod setter) :
-            base(underlyingProperty, getter, setter)
+    }
+
+    protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    {
+        return UnderlyingProperty.AdaptedPropertySymbol.GetCustomAttributesToEmit(moduleBuilder);
+    }
+
+    protected override ImmutableArray<EmbeddedParameter> GetParameters()
+    {
+        return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.AdaptedPropertySymbol.Parameters);
+    }
+
+    protected override bool IsRuntimeSpecial
+    {
+        get { return UnderlyingProperty.AdaptedPropertySymbol.HasRuntimeSpecialName; }
+    }
+
+    protected override bool IsSpecialName
+    {
+        get
         {
+            return UnderlyingProperty.AdaptedPropertySymbol.HasSpecialName;
         }
+    }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    protected override Cci.ISignature UnderlyingPropertySignature
+    {
+        get
         {
-            return UnderlyingProperty.AdaptedPropertySymbol.GetCustomAttributesToEmit(moduleBuilder);
+            return (Cci.ISignature)UnderlyingProperty;
         }
+    }
 
-        protected override ImmutableArray<EmbeddedParameter> GetParameters()
+    protected override EmbeddedType ContainingType
+    {
+        get { return AnAccessor.ContainingType; }
+    }
+
+    protected override Cci.TypeMemberVisibility Visibility
+        => UnderlyingProperty.AdaptedPropertySymbol.MetadataVisibility;
+
+    protected override string Name
+    {
+        get
         {
-            return EmbeddedTypesManager.EmbedParameters(this, UnderlyingProperty.AdaptedPropertySymbol.Parameters);
-        }
-
-        protected override bool IsRuntimeSpecial
-        {
-            get { return UnderlyingProperty.AdaptedPropertySymbol.HasRuntimeSpecialName; }
-        }
-
-        protected override bool IsSpecialName
-        {
-            get
-            {
-                return UnderlyingProperty.AdaptedPropertySymbol.HasSpecialName;
-            }
-        }
-
-        protected override Cci.ISignature UnderlyingPropertySignature
-        {
-            get
-            {
-                return (Cci.ISignature)UnderlyingProperty;
-            }
-        }
-
-        protected override EmbeddedType ContainingType
-        {
-            get { return AnAccessor.ContainingType; }
-        }
-
-        protected override Cci.TypeMemberVisibility Visibility
-            => UnderlyingProperty.AdaptedPropertySymbol.MetadataVisibility;
-
-        protected override string Name
-        {
-            get
-            {
-                return UnderlyingProperty.AdaptedPropertySymbol.MetadataName;
-            }
+            return UnderlyingProperty.AdaptedPropertySymbol.MetadataName;
         }
     }
 }

@@ -17,40 +17,39 @@ using Xunit;
 using Roslyn.Test.Utilities;
 using Basic.Reference.Assemblies;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public abstract class OverloadResolutionTestBase : CompilingTestBase
 {
-    public abstract class OverloadResolutionTestBase : CompilingTestBase
+    internal void TestOverloadResolutionWithDiff(string source, MetadataReference[] additionalRefs = null)
     {
-        internal void TestOverloadResolutionWithDiff(string source, MetadataReference[] additionalRefs = null)
-        {
-            // The mechanism of this test is: we build the bound tree for the code passed in and then extract
-            // from it the nodes that describe the method symbols. We then compare the description of
-            // the symbols given to the comment that follows the call.
+        // The mechanism of this test is: we build the bound tree for the code passed in and then extract
+        // from it the nodes that describe the method symbols. We then compare the description of
+        // the symbols given to the comment that follows the call.
 
-            var mscorlibRef = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib");
-            var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
+        var mscorlibRef = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib");
+        var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
 
-            var compilation = CreateEmptyCompilation(source, references, TestOptions.ReleaseDll);
+        var compilation = CreateEmptyCompilation(source, references, TestOptions.ReleaseDll);
 
-            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
-            var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-            diagnostics.Free();
-            var tree = BoundTreeDumperNodeProducer.MakeTree(block);
-            var results = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value)
-                .Where(x => x.Text == "method" && x.Value != null)
-                .Select(x => x.Value)
-                .ToArray());
+        var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+        var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+        var block = MethodCompiler.BindSynthesizedMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+        diagnostics.Free();
+        var tree = BoundTreeDumperNodeProducer.MakeTree(block);
+        var results = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value)
+            .Where(x => x.Text == "method" && x.Value != null)
+            .Select(x => x.Value)
+            .ToArray());
 
-            // var r = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value).ToArray();
+        // var r = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value).ToArray();
 
-            var expected = string.Join("\n", source
-                .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
-                .Where(x => x.Contains("//-"))
-                .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
-                .ToArray());
+        var expected = string.Join("\n", source
+            .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
+            .Where(x => x.Contains("//-"))
+            .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
+            .ToArray());
 
-            AssertEx.EqualOrDiff(expected, results);
-        }
+        AssertEx.EqualOrDiff(expected, results);
     }
 }

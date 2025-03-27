@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal struct SuppressMessageInfo
 {
-    internal struct SuppressMessageInfo
-    {
-        public string Id;
-        public string Scope;
-        public string Target;
-        public string MessageId;
-        public AttributeData Attribute;
-    }
+    public string Id;
+    public string Scope;
+    public string Target;
+    public string MessageId;
+    public AttributeData Attribute;
 }

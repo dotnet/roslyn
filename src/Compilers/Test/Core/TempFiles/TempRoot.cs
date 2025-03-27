@@ -9,73 +9,72 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
+namespace Microsoft.CodeAnalysis.Test.Utilities;
+
+public sealed class TempRoot : IDisposable
 {
-    public sealed class TempRoot : IDisposable
+    private readonly ConcurrentBag<IDisposable> _temps = new ConcurrentBag<IDisposable>();
+    public static readonly string Root;
+    private bool _disposed;
+
+    static TempRoot()
     {
-        private readonly ConcurrentBag<IDisposable> _temps = new ConcurrentBag<IDisposable>();
-        public static readonly string Root;
-        private bool _disposed;
+        Root = Path.Combine(Path.GetTempPath(), "RoslynTests");
+        Directory.CreateDirectory(Root);
+    }
 
-        static TempRoot()
+    public void Dispose()
+    {
+        _disposed = true;
+        while (_temps.TryTake(out var temp))
         {
-            Root = Path.Combine(Path.GetTempPath(), "RoslynTests");
-            Directory.CreateDirectory(Root);
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-            while (_temps.TryTake(out var temp))
+            try
             {
-                try
+                if (temp != null)
                 {
-                    if (temp != null)
-                    {
-                        temp.Dispose();
-                    }
-                }
-                catch
-                {
-                    // ignore
+                    temp.Dispose();
                 }
             }
-        }
-
-        private void CheckDisposed()
-        {
-            if (this._disposed)
+            catch
             {
-                throw new ObjectDisposedException(nameof(TempRoot));
+                // ignore
             }
         }
+    }
 
-        public TempDirectory CreateDirectory()
+    private void CheckDisposed()
+    {
+        if (this._disposed)
         {
-            CheckDisposed();
-            var dir = new DisposableDirectory(this);
-            _temps.Add(dir);
-            return dir;
+            throw new ObjectDisposedException(nameof(TempRoot));
         }
+    }
 
-        public TempFile CreateFile(string prefix = null, string extension = null, string directory = null, [CallerFilePath] string callerSourcePath = null, [CallerLineNumber] int callerLineNumber = 0)
-        {
-            CheckDisposed();
-            return AddFile(new DisposableFile(prefix, extension, directory, callerSourcePath, callerLineNumber));
-        }
+    public TempDirectory CreateDirectory()
+    {
+        CheckDisposed();
+        var dir = new DisposableDirectory(this);
+        _temps.Add(dir);
+        return dir;
+    }
 
-        public DisposableFile AddFile(DisposableFile file)
-        {
-            CheckDisposed();
-            _temps.Add(file);
-            return file;
-        }
+    public TempFile CreateFile(string prefix = null, string extension = null, string directory = null, [CallerFilePath] string callerSourcePath = null, [CallerLineNumber] int callerLineNumber = 0)
+    {
+        CheckDisposed();
+        return AddFile(new DisposableFile(prefix, extension, directory, callerSourcePath, callerLineNumber));
+    }
 
-        internal static void CreateStream(string fullPath, FileMode mode)
+    public DisposableFile AddFile(DisposableFile file)
+    {
+        CheckDisposed();
+        _temps.Add(file);
+        return file;
+    }
+
+    internal static void CreateStream(string fullPath, FileMode mode)
+    {
+        using (var file = new FileStream(fullPath, mode))
         {
-            using (var file = new FileStream(fullPath, mode))
-            {
-            }
         }
     }
 }

@@ -14,216 +14,215 @@ using System.Reflection;
 using System.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Provides APIs to enumerate and look up assemblies stored in the Global Assembly Cache.
+/// </summary>
+internal sealed class MonoGlobalAssemblyCache : GlobalAssemblyCache
 {
-    /// <summary>
-    /// Provides APIs to enumerate and look up assemblies stored in the Global Assembly Cache.
-    /// </summary>
-    internal sealed class MonoGlobalAssemblyCache : GlobalAssemblyCache
+    private static readonly string s_corlibDirectory;
+    private static readonly string s_gacDirectory;
+
+    static MonoGlobalAssemblyCache()
     {
-        private static readonly string s_corlibDirectory;
-        private static readonly string s_gacDirectory;
+        var corlibAssemblyFile = typeof(object).Assembly.Location;
+        s_corlibDirectory = Path.GetDirectoryName(corlibAssemblyFile);
 
-        static MonoGlobalAssemblyCache()
+        var systemAssemblyFile = typeof(Uri).Assembly.Location;
+        s_gacDirectory = Directory.GetParent(Path.GetDirectoryName(systemAssemblyFile)).Parent.FullName;
+    }
+
+    private static AssemblyName CreateAssemblyNameFromFile(string path)
+        => AssemblyName.GetAssemblyName(path);
+
+    private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, byte[] publicKeyTokenBytes)
+    {
+        var fileName = name + ".dll";
+
+        // First check to see if the assembly lives alongside mscorlib.dll.
+        var corlibFriendPath = Path.Combine(s_corlibDirectory, fileName);
+        if (!File.Exists(corlibFriendPath))
         {
-            var corlibAssemblyFile = typeof(object).Assembly.Location;
-            s_corlibDirectory = Path.GetDirectoryName(corlibAssemblyFile);
-
-            var systemAssemblyFile = typeof(Uri).Assembly.Location;
-            s_gacDirectory = Directory.GetParent(Path.GetDirectoryName(systemAssemblyFile)).Parent.FullName;
+            // If not, check the Facades directory (e.g. this is where netstandard.dll will live)
+            corlibFriendPath = Path.Combine(s_corlibDirectory, "Facades", fileName);
         }
 
-        private static AssemblyName CreateAssemblyNameFromFile(string path)
-            => AssemblyName.GetAssemblyName(path);
-
-        private static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, byte[] publicKeyTokenBytes)
+        // Yield and bail early if we find anything - it'll either be a Facade assembly or a
+        // symlink into the GAC so we can avoid the more exhaustive work below.
+        if (File.Exists(corlibFriendPath))
         {
-            var fileName = name + ".dll";
-
-            // First check to see if the assembly lives alongside mscorlib.dll.
-            var corlibFriendPath = Path.Combine(s_corlibDirectory, fileName);
-            if (!File.Exists(corlibFriendPath))
-            {
-                // If not, check the Facades directory (e.g. this is where netstandard.dll will live)
-                corlibFriendPath = Path.Combine(s_corlibDirectory, "Facades", fileName);
-            }
-
-            // Yield and bail early if we find anything - it'll either be a Facade assembly or a
-            // symlink into the GAC so we can avoid the more exhaustive work below.
-            if (File.Exists(corlibFriendPath))
-            {
-                yield return corlibFriendPath;
-                yield break;
-            }
-
-            var publicKeyToken = ToHexString(publicKeyTokenBytes);
-
-            // Another bail fast attempt to peek directly into the GAC if we have version and public key
-            if (version != null && publicKeyToken != null)
-            {
-                yield return Path.Combine(gacPath, name, version + "__" + publicKeyToken, fileName);
-                yield break;
-            }
-
-            // Otherwise we need to iterate the GAC in the file system to find a match
-            var gacAssemblyRootDir = new DirectoryInfo(Path.Combine(gacPath, name));
-            if (!gacAssemblyRootDir.Exists)
-            {
-                yield break;
-            }
-
-            foreach (var assemblyDir in gacAssemblyRootDir.GetDirectories())
-            {
-                if (version != null && !assemblyDir.Name.StartsWith(version.ToString(), StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                if (publicKeyToken != null && !assemblyDir.Name.EndsWith(publicKeyToken, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                var assemblyPath = Path.Combine(assemblyDir.ToString(), fileName);
-                if (File.Exists(assemblyPath))
-                {
-                    yield return assemblyPath;
-                }
-            }
+            yield return corlibFriendPath;
+            yield break;
         }
 
-        private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(AssemblyName name, ImmutableArray<ProcessorArchitecture> architectureFilter)
-        {
-            if (name == null)
-            {
-                return GetAssemblyIdentitiesAndPaths(null, null, null, architectureFilter);
-            }
+        var publicKeyToken = ToHexString(publicKeyTokenBytes);
 
-            return GetAssemblyIdentitiesAndPaths(name.Name, name.Version, name.GetPublicKeyToken(), architectureFilter);
+        // Another bail fast attempt to peek directly into the GAC if we have version and public key
+        if (version != null && publicKeyToken != null)
+        {
+            yield return Path.Combine(gacPath, name, version + "__" + publicKeyToken, fileName);
+            yield break;
         }
 
-        private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(string name, Version version, byte[] publicKeyToken, ImmutableArray<ProcessorArchitecture> architectureFilter)
+        // Otherwise we need to iterate the GAC in the file system to find a match
+        var gacAssemblyRootDir = new DirectoryInfo(Path.Combine(gacPath, name));
+        if (!gacAssemblyRootDir.Exists)
         {
-            var assemblyPaths = GetGacAssemblyPaths(s_gacDirectory, name, version, publicKeyToken);
+            yield break;
+        }
 
-            foreach (var assemblyPath in assemblyPaths)
+        foreach (var assemblyDir in gacAssemblyRootDir.GetDirectories())
+        {
+            if (version != null && !assemblyDir.Name.StartsWith(version.ToString(), StringComparison.Ordinal))
             {
-                if (!File.Exists(assemblyPath))
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
+            if (publicKeyToken != null && !assemblyDir.Name.EndsWith(publicKeyToken, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var assemblyPath = Path.Combine(assemblyDir.ToString(), fileName);
+            if (File.Exists(assemblyPath))
+            {
+                yield return assemblyPath;
+            }
+        }
+    }
+
+    private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(AssemblyName name, ImmutableArray<ProcessorArchitecture> architectureFilter)
+    {
+        if (name == null)
+        {
+            return GetAssemblyIdentitiesAndPaths(null, null, null, architectureFilter);
+        }
+
+        return GetAssemblyIdentitiesAndPaths(name.Name, name.Version, name.GetPublicKeyToken(), architectureFilter);
+    }
+
+    private static IEnumerable<(AssemblyIdentity Identity, string Path)> GetAssemblyIdentitiesAndPaths(string name, Version version, byte[] publicKeyToken, ImmutableArray<ProcessorArchitecture> architectureFilter)
+    {
+        var assemblyPaths = GetGacAssemblyPaths(s_gacDirectory, name, version, publicKeyToken);
+
+        foreach (var assemblyPath in assemblyPaths)
+        {
+            if (!File.Exists(assemblyPath))
+            {
+                continue;
+            }
+
+            var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
 
 #pragma warning disable SYSLIB0037
-                // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
-                if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
-                    architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
-                    architectureFilter.Length > 0 &&
-                    !architectureFilter.Contains(gacAssemblyName.ProcessorArchitecture))
-                {
-                    continue;
-                }
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
+            if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
+                architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
+                architectureFilter.Length > 0 &&
+                !architectureFilter.Contains(gacAssemblyName.ProcessorArchitecture))
+            {
+                continue;
+            }
 #pragma warning restore SYSLIB0037
 
-                var assemblyIdentity = new AssemblyIdentity(
-                    gacAssemblyName.Name,
-                    gacAssemblyName.Version,
-                    gacAssemblyName.CultureName,
-                    ImmutableArray.Create(gacAssemblyName.GetPublicKeyToken()));
+            var assemblyIdentity = new AssemblyIdentity(
+                gacAssemblyName.Name,
+                gacAssemblyName.Version,
+                gacAssemblyName.CultureName,
+                ImmutableArray.Create(gacAssemblyName.GetPublicKeyToken()));
 
-                yield return (assemblyIdentity, assemblyPath);
-            }
+            yield return (assemblyIdentity, assemblyPath);
         }
+    }
 
-        public override IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+    public override IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+    {
+        return GetAssemblyIdentitiesAndPaths(partialName, architectureFilter).Select(identityAndPath => identityAndPath.Item1);
+    }
+
+    public override IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+    {
+        AssemblyName name;
+        try
         {
-            return GetAssemblyIdentitiesAndPaths(partialName, architectureFilter).Select(identityAndPath => identityAndPath.Item1);
+            name = (partialName == null) ? null : new AssemblyName(partialName);
         }
-
-        public override IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+        catch
         {
-            AssemblyName name;
-            try
-            {
-                name = (partialName == null) ? null : new AssemblyName(partialName);
-            }
-            catch
-            {
-                return SpecializedCollections.EmptyEnumerable<AssemblyIdentity>();
-            }
-
-            return GetAssemblyIdentities(name, architectureFilter);
+            return SpecializedCollections.EmptyEnumerable<AssemblyIdentity>();
         }
 
-        public override IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+        return GetAssemblyIdentities(name, architectureFilter);
+    }
+
+    public override IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
+    {
+        return GetAssemblyIdentitiesAndPaths(name: null, version: null, publicKeyToken: null, architectureFilter: architectureFilter).
+            Select(identityAndPath => identityAndPath.Identity.Name).Distinct();
+    }
+
+    public override AssemblyIdentity ResolvePartialName(
+        string displayName,
+        out string location,
+        ImmutableArray<ProcessorArchitecture> architectureFilter,
+        CultureInfo preferredCulture)
+    {
+        if (displayName == null)
         {
-            return GetAssemblyIdentitiesAndPaths(name: null, version: null, publicKeyToken: null, architectureFilter: architectureFilter).
-                Select(identityAndPath => identityAndPath.Identity.Name).Distinct();
+            throw new ArgumentNullException(nameof(displayName));
         }
 
-        public override AssemblyIdentity ResolvePartialName(
-            string displayName,
-            out string location,
-            ImmutableArray<ProcessorArchitecture> architectureFilter,
-            CultureInfo preferredCulture)
+        string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
+
+        var assemblyName = new AssemblyName(displayName);
+        AssemblyIdentity assemblyIdentity = null;
+
+        location = null;
+        bool isBestMatch = false;
+
+        foreach (var identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
         {
-            if (displayName == null)
+            var assemblyPath = identityAndPath.Path;
+
+            if (!File.Exists(assemblyPath))
             {
-                throw new ArgumentNullException(nameof(displayName));
+                continue;
             }
 
-            string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
+            var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
 
-            var assemblyName = new AssemblyName(displayName);
-            AssemblyIdentity assemblyIdentity = null;
+            isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
+            bool isBetterMatch = location == null || isBestMatch;
 
-            location = null;
-            bool isBestMatch = false;
-
-            foreach (var identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
+            if (isBetterMatch)
             {
-                var assemblyPath = identityAndPath.Path;
-
-                if (!File.Exists(assemblyPath))
-                {
-                    continue;
-                }
-
-                var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
-
-                isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
-                bool isBetterMatch = location == null || isBestMatch;
-
-                if (isBetterMatch)
-                {
-                    location = assemblyPath;
-                    assemblyIdentity = identityAndPath.Identity;
-                }
-
-                if (isBestMatch)
-                {
-                    break;
-                }
+                location = assemblyPath;
+                assemblyIdentity = identityAndPath.Identity;
             }
 
-            return assemblyIdentity;
+            if (isBestMatch)
+            {
+                break;
+            }
         }
 
-        private static string ToHexString(byte[] bytes)
+        return assemblyIdentity;
+    }
+
+    private static string ToHexString(byte[] bytes)
+    {
+        if (bytes == null)
         {
-            if (bytes == null)
-            {
-                return null;
-            }
-
-            var sb = PooledObjects.PooledStringBuilder.GetInstance();
-            foreach (var b in bytes)
-            {
-                sb.Builder.Append(b.ToString("x2"));
-            }
-
-            return sb.ToStringAndFree();
+            return null;
         }
+
+        var sb = PooledObjects.PooledStringBuilder.GetInstance();
+        foreach (var b in bytes)
+        {
+            sb.Builder.Append(b.ToString("x2"));
+        }
+
+        return sb.ToStringAndFree();
     }
 }

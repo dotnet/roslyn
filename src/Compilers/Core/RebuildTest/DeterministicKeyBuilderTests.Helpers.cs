@@ -23,41 +23,40 @@ using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
+namespace Microsoft.CodeAnalysis.Rebuild.UnitTests;
+
+public partial class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions, TParseOptions>
 {
-    public partial class DeterministicKeyBuilderTests<TCompilation, TCompilationOptions, TParseOptions>
+    private sealed class Analyzer : DiagnosticAnalyzer
     {
-        private sealed class Analyzer : DiagnosticAnalyzer
-        {
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
 
-            public override void Initialize(AnalysisContext context) => throw new NotImplementedException();
-        }
+        public override void Initialize(AnalysisContext context) => throw new NotImplementedException();
+    }
 
-        private sealed class Analyzer2 : DiagnosticAnalyzer
-        {
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
+    private sealed class Analyzer2 : DiagnosticAnalyzer
+    {
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
 
-            public override void Initialize(AnalysisContext context) => throw new NotImplementedException();
-        }
+        public override void Initialize(AnalysisContext context) => throw new NotImplementedException();
+    }
 
-        private sealed class Generator : ISourceGenerator
-        {
-            public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+    private sealed class Generator : ISourceGenerator
+    {
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
 
-            public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
-        }
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
+    }
 
-        private sealed class Generator2 : ISourceGenerator
-        {
-            public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+    private sealed class Generator2 : ISourceGenerator
+    {
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
 
-            public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
-        }
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
+    }
 
-        private sealed class Generator3 : IIncrementalGenerator
-        {
-            public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
-        }
+    private sealed class Generator3 : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
     }
 }

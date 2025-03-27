@@ -11,81 +11,80 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Clr
+namespace Microsoft.VisualStudio.Debugger.Clr;
+
+public readonly struct DkmClrMethodId : IComparable<DkmClrMethodId>, IEquatable<DkmClrMethodId>
 {
-    public readonly struct DkmClrMethodId : IComparable<DkmClrMethodId>, IEquatable<DkmClrMethodId>
+    public int CompareTo(DkmClrMethodId other)
     {
-        public int CompareTo(DkmClrMethodId other)
+        if (this.Token != other.Token)
         {
-            if (this.Token != other.Token)
-            {
-                if (this.Token < other.Token)
-                    return -1;
-                else
-                    return 1;
-            }
-            if (this.Version != other.Version)
-            {
-                if (this.Version < other.Version)
-                    return -1;
-                else
-                    return 1;
-            }
-            return 0;
+            if (this.Token < other.Token)
+                return -1;
+            else
+                return 1;
         }
-
-        public bool Equals(DkmClrMethodId other)
+        if (this.Version != other.Version)
         {
-            return (this.CompareTo(other) == 0);
+            if (this.Version < other.Version)
+                return -1;
+            else
+                return 1;
         }
+        return 0;
+    }
 
-        public override bool Equals(object obj)
-        {
-            return obj is DkmClrMethodId && Equals((DkmClrMethodId)obj);
-        }
+    public bool Equals(DkmClrMethodId other)
+    {
+        return (this.CompareTo(other) == 0);
+    }
 
-        public static bool operator !=(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) != 0;
-        }
+    public override bool Equals(object obj)
+    {
+        return obj is DkmClrMethodId && Equals((DkmClrMethodId)obj);
+    }
 
-        public static bool operator ==(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) == 0;
-        }
+    public static bool operator !=(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) != 0;
+    }
 
-        public static bool operator >(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) > 0;
-        }
+    public static bool operator ==(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) == 0;
+    }
 
-        public static bool operator <(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) < 0;
-        }
+    public static bool operator >(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) > 0;
+    }
 
-        public static bool operator >=(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) >= 0;
-        }
+    public static bool operator <(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) < 0;
+    }
 
-        public static bool operator <=(DkmClrMethodId element0, DkmClrMethodId element1)
-        {
-            return element0.CompareTo(element1) <= 0;
-        }
-        public override int GetHashCode()
-        {
-            return Token ^ ((int)Version);
-        }
+    public static bool operator >=(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) >= 0;
+    }
 
-        public readonly int Token;
+    public static bool operator <=(DkmClrMethodId element0, DkmClrMethodId element1)
+    {
+        return element0.CompareTo(element1) <= 0;
+    }
+    public override int GetHashCode()
+    {
+        return Token ^ ((int)Version);
+    }
 
-        public readonly uint Version;
+    public readonly int Token;
 
-        public DkmClrMethodId(int Token, uint Version)
-        {
-            this.Token = Token;
-            this.Version = Version;
-        }
+    public readonly uint Version;
+
+    public DkmClrMethodId(int Token, uint Version)
+    {
+        this.Token = Token;
+        this.Version = Version;
     }
 }

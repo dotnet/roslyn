@@ -4,17 +4,16 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Emit
+namespace Microsoft.CodeAnalysis.Emit;
+
+/// <summary>
+/// Represents additional info needed by iterator method implementation methods 
+/// (MoveNext methods) to properly emit necessary PDB data for iterator debugging.
+/// </summary>
+internal sealed class IteratorMoveNextBodyDebugInfo : StateMachineMoveNextBodyDebugInfo
 {
-    /// <summary>
-    /// Represents additional info needed by iterator method implementation methods 
-    /// (MoveNext methods) to properly emit necessary PDB data for iterator debugging.
-    /// </summary>
-    internal sealed class IteratorMoveNextBodyDebugInfo : StateMachineMoveNextBodyDebugInfo
+    public IteratorMoveNextBodyDebugInfo(Cci.IMethodDefinition kickoffMethod)
+        : base(kickoffMethod)
     {
-        public IteratorMoveNextBodyDebugInfo(Cci.IMethodDefinition kickoffMethod)
-            : base(kickoffMethod)
-        {
-        }
     }
 }

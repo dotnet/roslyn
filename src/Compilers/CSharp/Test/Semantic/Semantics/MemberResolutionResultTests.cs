@@ -12,16 +12,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics;
+
+public class MemberResolutionResultTests
 {
-    public class MemberResolutionResultTests
+    [Fact]
+    public void Equality()
     {
-        [Fact]
-        public void Equality()
-        {
-            var d = default(MemberResolutionResult<MethodSymbol>);
-            Assert.Throws<NotSupportedException>(() => d.Equals(d));
-            Assert.Throws<NotSupportedException>(() => d.GetHashCode());
-        }
+        var d = default(MemberResolutionResult<MethodSymbol>);
+        Assert.Throws<NotSupportedException>(() => d.Equals(d));
+        Assert.Throws<NotSupportedException>(() => d.GetHashCode());
     }
 }

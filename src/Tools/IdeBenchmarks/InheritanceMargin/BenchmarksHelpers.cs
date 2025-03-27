@@ -11,28 +11,27 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace IdeBenchmarks.InheritanceMargin
-{
-    internal static class BenchmarksHelpers
-    {
-        public static async Task<ImmutableArray<InheritanceMarginItem>> GenerateInheritanceMarginItemsAsync(
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
-            foreach (var project in solution.Projects)
-            {
-                var languageService = project.GetRequiredLanguageService<IInheritanceMarginService>();
-                foreach (var document in project.Documents)
-                {
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var items = await languageService.GetInheritanceMemberItemsAsync(
-                        document, root.Span, includeGlobalImports: true, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false);
-                    builder.AddRange(items);
-                }
-            }
+namespace IdeBenchmarks.InheritanceMargin;
 
-            return builder.ToImmutable();
+internal static class BenchmarksHelpers
+{
+    public static async Task<ImmutableArray<InheritanceMarginItem>> GenerateInheritanceMarginItemsAsync(
+        Solution solution,
+        CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
+        foreach (var project in solution.Projects)
+        {
+            var languageService = project.GetRequiredLanguageService<IInheritanceMarginService>();
+            foreach (var document in project.Documents)
+            {
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var items = await languageService.GetInheritanceMemberItemsAsync(
+                    document, root.Span, includeGlobalImports: true, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false);
+                builder.AddRange(items);
+            }
         }
+
+        return builder.ToImmutable();
     }
 }

@@ -11,98 +11,97 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Tracks synthesized fields that are needed in a submission being compiled.
+/// </summary>
+/// <remarks>
+/// For every other submission referenced by this submission we add a field, so that we can access members of the target submission.
+/// A field is also needed for the host object, if provided.
+/// </remarks>
+internal class SynthesizedSubmissionFields
 {
-    /// <summary>
-    /// Tracks synthesized fields that are needed in a submission being compiled.
-    /// </summary>
-    /// <remarks>
-    /// For every other submission referenced by this submission we add a field, so that we can access members of the target submission.
-    /// A field is also needed for the host object, if provided.
-    /// </remarks>
-    internal class SynthesizedSubmissionFields
+    private readonly NamedTypeSymbol _declaringSubmissionClass;
+    private readonly CSharpCompilation _compilation;
+
+    private FieldSymbol _hostObjectField;
+    private Dictionary<ImplicitNamedTypeSymbol, FieldSymbol> _previousSubmissionFieldMap;
+
+    public SynthesizedSubmissionFields(CSharpCompilation compilation, NamedTypeSymbol submissionClass)
     {
-        private readonly NamedTypeSymbol _declaringSubmissionClass;
-        private readonly CSharpCompilation _compilation;
+        Debug.Assert(compilation != null);
+        Debug.Assert(submissionClass.IsSubmissionClass);
 
-        private FieldSymbol _hostObjectField;
-        private Dictionary<ImplicitNamedTypeSymbol, FieldSymbol> _previousSubmissionFieldMap;
+        _declaringSubmissionClass = submissionClass;
+        _compilation = compilation;
+    }
 
-        public SynthesizedSubmissionFields(CSharpCompilation compilation, NamedTypeSymbol submissionClass)
+    internal int Count
+    {
+        get
         {
-            Debug.Assert(compilation != null);
-            Debug.Assert(submissionClass.IsSubmissionClass);
+            return _previousSubmissionFieldMap == null ? 0 : _previousSubmissionFieldMap.Count;
+        }
+    }
 
-            _declaringSubmissionClass = submissionClass;
-            _compilation = compilation;
+    internal IEnumerable<FieldSymbol> FieldSymbols
+    {
+        get
+        {
+            return _previousSubmissionFieldMap == null ? Array.Empty<FieldSymbol>() : (IEnumerable<FieldSymbol>)_previousSubmissionFieldMap.Values;
+        }
+    }
+
+    internal FieldSymbol GetHostObjectField()
+    {
+        if ((object)_hostObjectField != null)
+        {
+            return _hostObjectField;
         }
 
-        internal int Count
+        var hostObjectTypeSymbol = _compilation.GetHostObjectTypeSymbol();
+        if ((object)hostObjectTypeSymbol != null && hostObjectTypeSymbol.Kind != SymbolKind.ErrorType)
         {
-            get
-            {
-                return _previousSubmissionFieldMap == null ? 0 : _previousSubmissionFieldMap.Count;
-            }
+            return _hostObjectField = new SynthesizedFieldSymbol(
+                _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", isPublic: false, isReadOnly: true, isStatic: false);
         }
 
-        internal IEnumerable<FieldSymbol> FieldSymbols
+        return null;
+    }
+
+    internal FieldSymbol GetOrMakeField(ImplicitNamedTypeSymbol previousSubmissionType)
+    {
+        if (_previousSubmissionFieldMap == null)
         {
-            get
-            {
-                return _previousSubmissionFieldMap == null ? Array.Empty<FieldSymbol>() : (IEnumerable<FieldSymbol>)_previousSubmissionFieldMap.Values;
-            }
+            _previousSubmissionFieldMap = new Dictionary<ImplicitNamedTypeSymbol, FieldSymbol>();
         }
 
-        internal FieldSymbol GetHostObjectField()
+        FieldSymbol previousSubmissionField;
+        if (!_previousSubmissionFieldMap.TryGetValue(previousSubmissionType, out previousSubmissionField))
         {
-            if ((object)_hostObjectField != null)
-            {
-                return _hostObjectField;
-            }
+            // TODO: generate better name?
+            previousSubmissionField = new SynthesizedFieldSymbol(
+                _declaringSubmissionClass,
+                previousSubmissionType,
+                "<" + previousSubmissionType.Name + ">",
+                isReadOnly: true);
+            _previousSubmissionFieldMap.Add(previousSubmissionType, previousSubmissionField);
+        }
+        return previousSubmissionField;
+    }
 
-            var hostObjectTypeSymbol = _compilation.GetHostObjectTypeSymbol();
-            if ((object)hostObjectTypeSymbol != null && hostObjectTypeSymbol.Kind != SymbolKind.ErrorType)
-            {
-                return _hostObjectField = new SynthesizedFieldSymbol(
-                    _declaringSubmissionClass, hostObjectTypeSymbol, "<host-object>", isPublic: false, isReadOnly: true, isStatic: false);
-            }
-
-            return null;
+    internal void AddToType(NamedTypeSymbol containingType, PEModuleBuilder moduleBeingBuilt)
+    {
+        foreach (var field in FieldSymbols)
+        {
+            moduleBeingBuilt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
         }
 
-        internal FieldSymbol GetOrMakeField(ImplicitNamedTypeSymbol previousSubmissionType)
+        FieldSymbol hostObjectField = GetHostObjectField();
+        if ((object)hostObjectField != null)
         {
-            if (_previousSubmissionFieldMap == null)
-            {
-                _previousSubmissionFieldMap = new Dictionary<ImplicitNamedTypeSymbol, FieldSymbol>();
-            }
-
-            FieldSymbol previousSubmissionField;
-            if (!_previousSubmissionFieldMap.TryGetValue(previousSubmissionType, out previousSubmissionField))
-            {
-                // TODO: generate better name?
-                previousSubmissionField = new SynthesizedFieldSymbol(
-                    _declaringSubmissionClass,
-                    previousSubmissionType,
-                    "<" + previousSubmissionType.Name + ">",
-                    isReadOnly: true);
-                _previousSubmissionFieldMap.Add(previousSubmissionType, previousSubmissionField);
-            }
-            return previousSubmissionField;
-        }
-
-        internal void AddToType(NamedTypeSymbol containingType, PEModuleBuilder moduleBeingBuilt)
-        {
-            foreach (var field in FieldSymbols)
-            {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
-            }
-
-            FieldSymbol hostObjectField = GetHostObjectField();
-            if ((object)hostObjectField != null)
-            {
-                moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField.GetCciAdapter());
-            }
+            moduleBeingBuilt.AddSynthesizedDefinition(containingType, hostObjectField.GetCciAdapter());
         }
     }
 }

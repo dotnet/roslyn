@@ -10,22 +10,22 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IncludeTests : CSharpTestBase
-    {
-        [Theory]
-        [InlineData("Field", "F:Acme.Widget.Field")]
-        [InlineData(WellKnownMemberNames.StaticConstructorName, "M:Acme.Widget.#cctor")]
-        [InlineData("Event", "E:Acme.Widget.Event")]
-        [InlineData("Property", "P:Acme.Widget.Property")]
-        [InlineData("Method", "M:Acme.Widget.Method")]
-        [InlineData("NamedType", "T:Acme.Widget.NamedType")]
-        public void TestDocumentationCaching(string symbolName, string documentationId)
-        {
-            using var _ = new EnsureEnglishUICulture();
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
+public class IncludeTests : CSharpTestBase
+{
+    [Theory]
+    [InlineData("Field", "F:Acme.Widget.Field")]
+    [InlineData(WellKnownMemberNames.StaticConstructorName, "M:Acme.Widget.#cctor")]
+    [InlineData("Event", "E:Acme.Widget.Event")]
+    [InlineData("Property", "P:Acme.Widget.Property")]
+    [InlineData("Method", "M:Acme.Widget.Method")]
+    [InlineData("NamedType", "T:Acme.Widget.NamedType")]
+    public void TestDocumentationCaching(string symbolName, string documentationId)
+    {
+        using var _ = new EnsureEnglishUICulture();
+
+        var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme
 {
     class Widget
     {
@@ -50,45 +50,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ");
 
-            var acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            var widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
+        var acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
+        var widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
 
-            var symbol = widgetClass.GetMembers(symbolName).Single();
-            Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
-            Assert.Equal(
+        var symbol = widgetClass.GetMembers(symbolName).Single();
+        Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-        }
+    }
 
-        [Theory]
-        [InlineData("Field", "F:Acme.Widget.Field")]
-        [InlineData(WellKnownMemberNames.StaticConstructorName, "M:Acme.Widget.#cctor")]
-        [InlineData("Event", "E:Acme.Widget.Event")]
-        [InlineData("Property", "P:Acme.Widget.Property")]
-        [InlineData("Method", "M:Acme.Widget.Method")]
-        [InlineData("NamedType", "T:Acme.Widget.NamedType")]
-        public void TestDocumentationCachingFileScopedNamespace(string symbolName, string documentationId)
-        {
-            using var _ = new EnsureEnglishUICulture();
+    [Theory]
+    [InlineData("Field", "F:Acme.Widget.Field")]
+    [InlineData(WellKnownMemberNames.StaticConstructorName, "M:Acme.Widget.#cctor")]
+    [InlineData("Event", "E:Acme.Widget.Event")]
+    [InlineData("Property", "P:Acme.Widget.Property")]
+    [InlineData("Method", "M:Acme.Widget.Method")]
+    [InlineData("NamedType", "T:Acme.Widget.NamedType")]
+    public void TestDocumentationCachingFileScopedNamespace(string symbolName, string documentationId)
+    {
+        using var _ = new EnsureEnglishUICulture();
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme;
+        var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"namespace Acme;
 
 class Widget
 {
@@ -112,31 +112,30 @@ class Widget
 }
 ");
 
-            var acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
-            var widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
+        var acmeNamespace = (NamespaceSymbol)compilation.GlobalNamespace.GetMembers("Acme").Single();
+        var widgetClass = acmeNamespace.GetTypeMembers("Widget").Single();
 
-            var symbol = widgetClass.GetMembers(symbolName).Single();
-            Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
-            Assert.Equal(
+        var symbol = widgetClass.GetMembers(symbolName).Single();
+        Assert.Equal(documentationId, symbol.GetDocumentationCommentId());
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <!-- Include tag is invalid --><include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: true));
-            Assert.Equal(
+        Assert.Equal(
 $@"<member name=""{documentationId}"">
     <include file=""NonExistent.xml"" />
 </member>
 ", symbol.GetDocumentationCommentXml(expandIncludes: false));
-        }
     }
 }

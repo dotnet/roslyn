@@ -15,42 +15,42 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public partial class DiagnosticAnalyzerTests
 {
-    public partial class DiagnosticAnalyzerTests
+    [Fact]
+    public void DiagnosticAnalyzerAllInOne()
     {
-        [Fact]
-        public void DiagnosticAnalyzerAllInOne()
-        {
-            var source = TestResource.AllInOneCSharpCode;
+        var source = TestResource.AllInOneCSharpCode;
 
-            // AllInOneCSharpCode has no properties with initializers/attributes.
-            var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
-            symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
+        // AllInOneCSharpCode has no properties with initializers/attributes.
+        var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
+        symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
-            // Add nodes that are not yet in AllInOneCSharpCode to this list.
-            var missingSyntaxKinds = new HashSet<SyntaxKind>();
-            // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
-            missingSyntaxKinds.Add(SyntaxKind.WithExpression);
-            missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxKinds.Add(SyntaxKind.CollectionExpression);
-            missingSyntaxKinds.Add(SyntaxKind.ExpressionElement);
-            missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
+        // Add nodes that are not yet in AllInOneCSharpCode to this list.
+        var missingSyntaxKinds = new HashSet<SyntaxKind>();
+        // https://github.com/dotnet/roslyn/issues/44682 Add to all in one
+        missingSyntaxKinds.Add(SyntaxKind.WithExpression);
+        missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
+        missingSyntaxKinds.Add(SyntaxKind.CollectionExpression);
+        missingSyntaxKinds.Add(SyntaxKind.ExpressionElement);
+        missingSyntaxKinds.Add(SyntaxKind.SpreadElement);
 
-            var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
-            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
-            analyzer.VerifyAllAnalyzerMembersWereCalled();
-            analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
-            analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
-        }
+        var analyzer = new CSharpTrackingDiagnosticAnalyzer();
+        var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+        CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
+        analyzer.VerifyAllAnalyzerMembersWereCalled();
+        analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
+        analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
+        analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks);
+    }
 
-        [WorkItem(896075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896075")]
-        [Fact]
-        public void DiagnosticAnalyzerIndexerDeclaration()
-        {
-            var source = @"
+    [WorkItem(896075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/896075")]
+    [Fact]
+    public void DiagnosticAnalyzerIndexerDeclaration()
+    {
+        var source = @"
 public class C
 {
     public string this[int index]
@@ -60,16 +60,16 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
-        }
+        CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+    }
 
-        // AllInOne does not include experimental features.
-        #region Experimental Features
+    // AllInOne does not include experimental features.
+    #region Experimental Features
 
-        [Fact]
-        public void DiagnosticAnalyzerConditionalAccess()
-        {
-            var source = @"
+    [Fact]
+    public void DiagnosticAnalyzerConditionalAccess()
+    {
+        var source = @"
 public class C
 {
     public string this[int index]
@@ -79,45 +79,44 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
-        }
+        CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+    }
 
-        [Fact]
-        public void DiagnosticAnalyzerExpressionBodiedProperty()
-        {
-            var comp = CreateCompilationWithMscorlib461(@"
+    [Fact]
+    public void DiagnosticAnalyzerExpressionBodiedProperty()
+    {
+        var comp = CreateCompilationWithMscorlib461(@"
 public class C
 {
     public int P => 10;
 }").VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
-        }
+    }
 
-        #endregion
+    #endregion
 
-        [Fact]
-        [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
-        public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
-        {
-            var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
-            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+    [Fact]
+    [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
+    public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
+    {
+        var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
+        var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
 
-            ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
-                compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
-        }
+        ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
+            compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
+    }
 
-        [Fact]
-        public void AnalyzerOptionsArePassedToAllAnalyzers()
-        {
-            var text = new StringText(string.Empty, encodingOpt: null);
-            AnalyzerOptions options = new AnalyzerOptions
-            (
-                new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
-            );
+    [Fact]
+    public void AnalyzerOptionsArePassedToAllAnalyzers()
+    {
+        var text = new StringText(string.Empty, encodingOpt: null);
+        AnalyzerOptions options = new AnalyzerOptions
+        (
+            new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
+        );
 
-            var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
-            var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
-            compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
-            analyzer.VerifyAnalyzerOptions();
-        }
+        var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
+        var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
+        compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
+        analyzer.VerifyAnalyzerOptions();
     }
 }

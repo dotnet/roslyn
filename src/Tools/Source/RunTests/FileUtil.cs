@@ -4,67 +4,66 @@
 
 using System.IO;
 
-namespace RunTests
+namespace RunTests;
+
+internal static class FileUtil
 {
-    internal static class FileUtil
+    /// <summary>
+    /// Ensure a directory with the given name is present.  Will be created if necessary. True
+    /// is returned when it is created.
+    /// </summary>
+    internal static bool EnsureDirectory(string directory)
     {
-        /// <summary>
-        /// Ensure a directory with the given name is present.  Will be created if necessary. True
-        /// is returned when it is created.
-        /// </summary>
-        internal static bool EnsureDirectory(string directory)
+        if (!Directory.Exists(directory))
         {
-            if (!Directory.Exists(directory))
+            Directory.CreateDirectory(directory);
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Delete file if it exists and swallow any potential exceptions.  Returns true if the
+    /// file is actually deleted.
+    /// </summary>
+    internal static bool DeleteFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
             {
-                Directory.CreateDirectory(directory);
+                File.Delete(filePath);
                 return true;
             }
-
-            return false;
         }
-
-        /// <summary>
-        /// Delete file if it exists and swallow any potential exceptions.  Returns true if the
-        /// file is actually deleted.
-        /// </summary>
-        internal static bool DeleteFile(string filePath)
+        catch
         {
-            try
-            {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                    return true;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            return false;
+            // Ignore
         }
 
-        /// <summary>
-        /// Delete directory if it exists and swallow any potential exceptions.  Returns true if the
-        /// directory is actually deleted.
-        /// </summary>
-        internal static bool DeleteDirectory(string directory)
+        return false;
+    }
+
+    /// <summary>
+    /// Delete directory if it exists and swallow any potential exceptions.  Returns true if the
+    /// directory is actually deleted.
+    /// </summary>
+    internal static bool DeleteDirectory(string directory)
+    {
+        try
         {
-            try
+            if (Directory.Exists(directory))
             {
-                if (Directory.Exists(directory))
-                {
-                    Directory.Delete(directory, recursive: true);
-                    return true;
-                }
+                Directory.Delete(directory, recursive: true);
+                return true;
             }
-            catch
-            {
-                // Ignore
-            }
-
-            return false;
         }
+        catch
+        {
+            // Ignore
+        }
+
+        return false;
     }
 }

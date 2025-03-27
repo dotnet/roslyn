@@ -12,40 +12,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+internal abstract class AbstractTypeParameterMap : AbstractTypeMap
 {
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal abstract class AbstractTypeParameterMap : AbstractTypeMap
+    protected readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> Mapping;
+
+    protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
     {
-        protected readonly SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> Mapping;
+        this.Mapping = mapping;
+    }
 
-        protected AbstractTypeParameterMap(SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> mapping)
+    protected sealed override TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
+    {
+        // It might need to be substituted directly.
+        TypeWithAnnotations result;
+        if (Mapping.TryGetValue(typeParameter, out result))
         {
-            this.Mapping = mapping;
+            return result;
         }
 
-        protected sealed override TypeWithAnnotations SubstituteTypeParameter(TypeParameterSymbol typeParameter)
-        {
-            // It might need to be substituted directly.
-            TypeWithAnnotations result;
-            if (Mapping.TryGetValue(typeParameter, out result))
-            {
-                return result;
-            }
+        return TypeWithAnnotations.Create(typeParameter);
+    }
 
-            return TypeWithAnnotations.Create(typeParameter);
+    private string GetDebuggerDisplay()
+    {
+        var result = new StringBuilder("[");
+        result.Append(this.GetType().Name);
+        foreach (var kv in Mapping)
+        {
+            result.Append(' ').Append(kv.Key).Append(':').Append(kv.Value.Type);
         }
 
-        private string GetDebuggerDisplay()
-        {
-            var result = new StringBuilder("[");
-            result.Append(this.GetType().Name);
-            foreach (var kv in Mapping)
-            {
-                result.Append(' ').Append(kv.Key).Append(':').Append(kv.Value.Type);
-            }
-
-            return result.Append(']').ToString();
-        }
+        return result.Append(']').ToString();
     }
 }

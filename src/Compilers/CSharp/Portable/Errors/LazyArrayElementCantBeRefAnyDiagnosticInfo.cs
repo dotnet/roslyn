@@ -8,35 +8,34 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class LazyArrayElementCantBeRefAnyDiagnosticInfo : LazyDiagnosticInfo
 {
-    internal sealed class LazyArrayElementCantBeRefAnyDiagnosticInfo : LazyDiagnosticInfo
+    private readonly TypeWithAnnotations _possiblyRestrictedTypeSymbol;
+
+    internal LazyArrayElementCantBeRefAnyDiagnosticInfo(TypeWithAnnotations possiblyRestrictedTypeSymbol)
     {
-        private readonly TypeWithAnnotations _possiblyRestrictedTypeSymbol;
+        _possiblyRestrictedTypeSymbol = possiblyRestrictedTypeSymbol;
+    }
 
-        internal LazyArrayElementCantBeRefAnyDiagnosticInfo(TypeWithAnnotations possiblyRestrictedTypeSymbol)
+    private LazyArrayElementCantBeRefAnyDiagnosticInfo(LazyArrayElementCantBeRefAnyDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
+    {
+        _possiblyRestrictedTypeSymbol = original._possiblyRestrictedTypeSymbol;
+    }
+
+    protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
+    {
+        return new LazyArrayElementCantBeRefAnyDiagnosticInfo(this, severity);
+    }
+
+    protected override DiagnosticInfo ResolveInfo()
+    {
+        if (_possiblyRestrictedTypeSymbol.IsRestrictedType())
         {
-            _possiblyRestrictedTypeSymbol = possiblyRestrictedTypeSymbol;
+            return new CSDiagnosticInfo(ErrorCode.ERR_ArrayElementCantBeRefAny, _possiblyRestrictedTypeSymbol.Type);
         }
 
-        private LazyArrayElementCantBeRefAnyDiagnosticInfo(LazyArrayElementCantBeRefAnyDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
-        {
-            _possiblyRestrictedTypeSymbol = original._possiblyRestrictedTypeSymbol;
-        }
-
-        protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
-        {
-            return new LazyArrayElementCantBeRefAnyDiagnosticInfo(this, severity);
-        }
-
-        protected override DiagnosticInfo ResolveInfo()
-        {
-            if (_possiblyRestrictedTypeSymbol.IsRestrictedType())
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_ArrayElementCantBeRefAny, _possiblyRestrictedTypeSymbol.Type);
-            }
-
-            return null;
-        }
+        return null;
     }
 }

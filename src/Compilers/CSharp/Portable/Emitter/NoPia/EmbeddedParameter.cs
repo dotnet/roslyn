@@ -17,102 +17,101 @@ using Microsoft.CodeAnalysis.CodeGen;
 using ParameterSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
+namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia;
+
+internal sealed class EmbeddedParameter : EmbeddedTypesManager.CommonEmbeddedParameter
 {
-    internal sealed class EmbeddedParameter : EmbeddedTypesManager.CommonEmbeddedParameter
+    public EmbeddedParameter(
+        EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod, ParameterSymbolAdapter underlyingParameter) :
+        base(containingPropertyOrMethod, underlyingParameter)
     {
-        public EmbeddedParameter(
-            EmbeddedTypesManager.CommonEmbeddedMember containingPropertyOrMethod, ParameterSymbolAdapter underlyingParameter) :
-            base(containingPropertyOrMethod, underlyingParameter)
-        {
-            Debug.Assert(underlyingParameter.AdaptedParameterSymbol.IsDefinition);
-        }
+        Debug.Assert(underlyingParameter.AdaptedParameterSymbol.IsDefinition);
+    }
 
-        protected override bool HasDefaultValue
+    protected override bool HasDefaultValue
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.HasMetadataConstantValue;
-            }
+            return UnderlyingParameter.AdaptedParameterSymbol.HasMetadataConstantValue;
         }
+    }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    {
+        return UnderlyingParameter.AdaptedParameterSymbol.GetCustomAttributesToEmit(moduleBuilder);
+    }
+
+    protected override MetadataConstant GetDefaultValue(EmitContext context)
+    {
+        return UnderlyingParameter.GetMetadataConstantValue(context);
+    }
+
+    protected override bool IsIn
+    {
+        get
         {
-            return UnderlyingParameter.AdaptedParameterSymbol.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataIn;
         }
+    }
 
-        protected override MetadataConstant GetDefaultValue(EmitContext context)
+    protected override bool IsOut
+    {
+        get
         {
-            return UnderlyingParameter.GetMetadataConstantValue(context);
+            return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOut;
         }
+    }
 
-        protected override bool IsIn
+    protected override bool IsOptional
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataIn;
-            }
+            return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOptional;
         }
+    }
 
-        protected override bool IsOut
+    protected override bool IsMarshalledExplicitly
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOut;
-            }
+            return UnderlyingParameter.AdaptedParameterSymbol.IsMarshalledExplicitly;
         }
+    }
 
-        protected override bool IsOptional
+    protected override Cci.IMarshallingInformation MarshallingInformation
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.IsMetadataOptional;
-            }
+            return UnderlyingParameter.AdaptedParameterSymbol.MarshallingInformation;
         }
+    }
 
-        protected override bool IsMarshalledExplicitly
+    protected override ImmutableArray<byte> MarshallingDescriptor
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.IsMarshalledExplicitly;
-            }
+            return UnderlyingParameter.AdaptedParameterSymbol.MarshallingDescriptor;
         }
+    }
 
-        protected override Cci.IMarshallingInformation MarshallingInformation
+    protected override string Name
+    {
+        get { return UnderlyingParameter.AdaptedParameterSymbol.MetadataName; }
+    }
+
+    protected override Cci.IParameterTypeInformation UnderlyingParameterTypeInformation
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.MarshallingInformation;
-            }
+            return (Cci.IParameterTypeInformation)UnderlyingParameter;
         }
+    }
 
-        protected override ImmutableArray<byte> MarshallingDescriptor
+    protected override ushort Index
+    {
+        get
         {
-            get
-            {
-                return UnderlyingParameter.AdaptedParameterSymbol.MarshallingDescriptor;
-            }
-        }
-
-        protected override string Name
-        {
-            get { return UnderlyingParameter.AdaptedParameterSymbol.MetadataName; }
-        }
-
-        protected override Cci.IParameterTypeInformation UnderlyingParameterTypeInformation
-        {
-            get
-            {
-                return (Cci.IParameterTypeInformation)UnderlyingParameter;
-            }
-        }
-
-        protected override ushort Index
-        {
-            get
-            {
-                return (ushort)UnderlyingParameter.AdaptedParameterSymbol.Ordinal;
-            }
+            return (ushort)UnderlyingParameter.AdaptedParameterSymbol.Ordinal;
         }
     }
 }

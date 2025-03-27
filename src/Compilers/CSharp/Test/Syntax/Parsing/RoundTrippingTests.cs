@@ -12,165 +12,165 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class RoundTrippingTests
 {
-    public class RoundTrippingTests
+    #region Helper
+
+    internal static void ParseAndRoundTripping(string text, int errorCount = 0, int memberCount = 0)
     {
-        #region Helper
+        ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), errorCount, memberCount);
+    }
 
-        internal static void ParseAndRoundTripping(string text, int errorCount = 0, int memberCount = 0)
+    internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
+    {
+        var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), options);
+        var toText = tree.GetCompilationUnitRoot().ToFullString();
+
+        Assert.Equal(text, toText);
+
+        // -1 mean there are errors but actual number of errors is not important.
+        // it makes the test more robust in case error count changes
+        if (errorCount == -1)
         {
-            ParseAndRoundTripping(text, TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), errorCount, memberCount);
+            Assert.NotEqual(0, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
+        }
+        else
+        {
+            Assert.Equal(errorCount, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
         }
 
-        internal static void ParseAndRoundTripping(string text, CSharpParseOptions options, int errorCount = 0, int memberCount = 0)
+        // check member count only if > 0
+        if (memberCount > 0)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), options);
-            var toText = tree.GetCompilationUnitRoot().ToFullString();
-
-            Assert.Equal(text, toText);
-
-            // -1 mean there are errors but actual number of errors is not important.
-            // it makes the test more robust in case error count changes
-            if (errorCount == -1)
-            {
-                Assert.NotEqual(0, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
-            }
-            else
-            {
-                Assert.Equal(errorCount, tree.GetCompilationUnitRoot().ErrorsAndWarnings().Length);
-            }
-
-            // check member count only if > 0
-            if (memberCount > 0)
-            {
-                Assert.Equal(memberCount, tree.GetCompilationUnitRoot().Members.Count);
-            }
-
-            ParentChecker.CheckParents(tree.GetCompilationUnitRoot(), tree);
+            Assert.Equal(memberCount, tree.GetCompilationUnitRoot().Members.Count);
         }
 
-        private static void ParseAndCheckTerminalSpans(string text)
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var toText = tree.GetCompilationUnitRoot().ToFullString();
-            Assert.Equal(text, toText);
+        ParentChecker.CheckParents(tree.GetCompilationUnitRoot(), tree);
+    }
 
-            var nodes = tree.GetCompilationUnitRoot().DescendantTokens(tk => tk.FullWidth > 0).ToList();
-            if (nodes.Count > 0)
+    private static void ParseAndCheckTerminalSpans(string text)
+    {
+        var tree = SyntaxFactory.ParseSyntaxTree(text);
+        var toText = tree.GetCompilationUnitRoot().ToFullString();
+        Assert.Equal(text, toText);
+
+        var nodes = tree.GetCompilationUnitRoot().DescendantTokens(tk => tk.FullWidth > 0).ToList();
+        if (nodes.Count > 0)
+        {
+            var prevSpan = nodes[0].FullSpan;
+            for (int i = 1; i < nodes.Count; i++)
             {
-                var prevSpan = nodes[0].FullSpan;
-                for (int i = 1; i < nodes.Count; i++)
-                {
-                    var span = nodes[i].FullSpan;
-                    Assert.Equal(prevSpan.End, span.Start);
-                    prevSpan = span;
-                }
+                var span = nodes[i].FullSpan;
+                Assert.Equal(prevSpan.End, span.Start);
+                prevSpan = span;
             }
         }
+    }
 
-        #endregion
+    #endregion
 
-        [Fact]
-        public void AutoPropInitializers()
-        {
-            var parseOptions = TestOptions.Regular;
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", parseOptions, 1, 1);
-            ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
-            ParseAndRoundTripping("class C { int GetInt { get; } = 0;; }", parseOptions, 1, 1);
-            ParseAndRoundTripping("class C { int GetInt { get;; } = 0;; }", parseOptions, 2, 1);
-            ParseAndRoundTripping("interface I { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
-            ParseAndRoundTripping("interface I { int GetInt { get; } = 0 }", parseOptions, 1, 1);
-            ParseAndRoundTripping("interface I { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
-        }
+    [Fact]
+    public void AutoPropInitializers()
+    {
+        var parseOptions = TestOptions.Regular;
+        ParseAndRoundTripping("class C { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+        ParseAndRoundTripping("class C { int GetInt { get; } = 0 }", parseOptions, 1, 1);
+        ParseAndRoundTripping("class C { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+        ParseAndRoundTripping("class C { int GetInt { get; } = 0;; }", parseOptions, 1, 1);
+        ParseAndRoundTripping("class C { int GetInt { get;; } = 0;; }", parseOptions, 2, 1);
+        ParseAndRoundTripping("interface I { int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+        ParseAndRoundTripping("interface I { int GetInt { get; } = 0 }", parseOptions, 1, 1);
+        ParseAndRoundTripping("interface I { public int GetInt { get; } = 0; }", parseOptions, memberCount: 1);
+    }
 
-        [Fact()]
-        [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
-        public void NullChar()
-        {
-            ParseAndRoundTripping("\0", 1);
-            ParseAndRoundTripping("abc\0def", 3);
-            ParseAndRoundTripping("\0abc", 3);
-            ParseAndRoundTripping("class C { string s = \"\0\"; }", 0);
-        }
+    [Fact()]
+    [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
+    public void NullChar()
+    {
+        ParseAndRoundTripping("\0", 1);
+        ParseAndRoundTripping("abc\0def", 3);
+        ParseAndRoundTripping("\0abc", 3);
+        ParseAndRoundTripping("class C { string s = \"\0\"; }", 0);
+    }
 
-        [Fact()]
-        [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
-        public void CharMaxValue()
-        {
-            string text = "abc" + char.MaxValue + "def";
-            var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), path: "");
-            var toText = tree.GetCompilationUnitRoot().ToFullString();
-            Assert.Equal(text, toText);
-        }
+    [Fact()]
+    [WorkItem(530410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530410")]
+    public void CharMaxValue()
+    {
+        string text = "abc" + char.MaxValue + "def";
+        var tree = SyntaxFactory.ParseSyntaxTree(SourceText.From(text), path: "");
+        var toText = tree.GetCompilationUnitRoot().ToFullString();
+        Assert.Equal(text, toText);
+    }
 
-        [Fact]
-        public void TestOptionalFloat()
-        {
-            ParseAndRoundTripping(Resources.OptionalFloat);
-        }
+    [Fact]
+    public void TestOptionalFloat()
+    {
+        ParseAndRoundTripping(Resources.OptionalFloat);
+    }
 
-        [Fact]
-        public void TestOptionalParamsArray()
-        {
-            ParseAndRoundTripping(Resources.OptionalParamsArray);
-        }
+    [Fact]
+    public void TestOptionalParamsArray()
+    {
+        ParseAndRoundTripping(Resources.OptionalParamsArray);
+    }
 
-        [WorkItem(862632, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegInvalidExternAlias01()
-        {
-            ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
-        }
+    [WorkItem(862632, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegInvalidExternAlias01()
+    {
+        ParseAndRoundTripping(Resources.InvalidExternAlias01, errorCount: 1); // Parsed as local with an initializer
+    }
 
-        [WorkItem(901348, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegPartialAliasedName()
-        {
-            ParseAndRoundTripping(Resources.PartialAliasedName, -1);
-        }
+    [WorkItem(901348, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegPartialAliasedName()
+    {
+        ParseAndRoundTripping(Resources.PartialAliasedName, -1);
+    }
 
-        [WorkItem(894884, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegPartialInKeyword()
-        {
-            ParseAndRoundTripping(Resources.PartialInKeyword, -1);
-        }
+    [WorkItem(894884, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegPartialInKeyword()
+    {
+        ParseAndRoundTripping(Resources.PartialInKeyword, -1);
+    }
 
-        [WorkItem(901493, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegPartialAttribute()
-        {
-            // although this code snippet has multiple statements on top level we report that as semantic errors, not parse errors:
-            ParseAndRoundTripping(Resources.PartialNewAttributeArray, 0);
-        }
+    [WorkItem(901493, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegPartialAttribute()
+    {
+        // although this code snippet has multiple statements on top level we report that as semantic errors, not parse errors:
+        ParseAndRoundTripping(Resources.PartialNewAttributeArray, 0);
+    }
 
-        [WorkItem(901498, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegPartialPreProcessorExpression()
-        {
-            ParseAndRoundTripping(Resources.PartialPreprocessorExpression, -1);
-        }
+    [WorkItem(901498, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegPartialPreProcessorExpression()
+    {
+        ParseAndRoundTripping(Resources.PartialPreprocessorExpression, -1);
+    }
 
-        [WorkItem(901508, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegPartialUnicodeIdentifier()
-        {
-            ParseAndRoundTripping(Resources.PartialUnicodeIdentifier, -1);
-        }
+    [WorkItem(901508, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegPartialUnicodeIdentifier()
+    {
+        ParseAndRoundTripping(Resources.PartialUnicodeIdentifier, -1);
+    }
 
-        [WorkItem(901516, "DevDiv/Personal")]
-        [Fact]
-        public void TestNegIncompleteSwitchBlock()
-        {
-            ParseAndRoundTripping(Resources.PartialSwitchBlock, -1);
-        }
+    [WorkItem(901516, "DevDiv/Personal")]
+    [Fact]
+    public void TestNegIncompleteSwitchBlock()
+    {
+        ParseAndRoundTripping(Resources.PartialSwitchBlock, -1);
+    }
 
-        [Fact]
-        public void TestNegBug862116()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug862116()
+    {
+        var text = @"
 namespace x
 {
     public class a
@@ -187,13 +187,13 @@ namespace x
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug862635()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug862635()
+    {
+        var text = @"
 class Test
 {
     static void Main() 
@@ -202,13 +202,13 @@ class Test
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug862637()
-        {
-            var text = @"
+    [Fact]
+    public void Bug862637()
+    {
+        var text = @"
 using System;
 public class Test
 {
@@ -218,13 +218,13 @@ public class Test
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug862640()
-        {
-            var text = @"
+    [Fact]
+    public void Bug862640()
+    {
+        var text = @"
 public class Production
 {
     public Production()
@@ -239,26 +239,26 @@ public class Production
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug862642()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug862642()
+    {
+        var text = @"
 alias myAlias;
 class myClass
 {
 }
 ";
-            // top-level field declaration is a semantic error
-            ParseAndRoundTripping(text);
-        }
+        // top-level field declaration is a semantic error
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug862643()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug862643()
+    {
+        var text = @"
 using System;
 [AttributeUsage(AttributeTargets.All)]
 public class Goo : Attribute
@@ -271,13 +271,13 @@ public class Class1 {
  public int IP { get {return 0;} set {}}
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug862644()
-        {
-            var text = @"
+    [Fact]
+    public void Bug862644()
+    {
+        var text = @"
 using System;
 public class Test
 {
@@ -287,22 +287,22 @@ public class Test
  }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug862646()
-        {
-            var text = @"
+    [Fact]
+    public void Bug862646()
+    {
+        var text = @"
 // C# compiler emits Void& type
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug862648()
-        {
-            var text = @"
+    [Fact]
+    public void Bug862648()
+    {
+        var text = @"
 class TestClass
 {
     static void Main()
@@ -311,26 +311,26 @@ class TestClass
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug870754()
-        {
-            var text = @"class C{
+    [Fact]
+    public void Bug870754()
+    {
+        var text = @"class C{
 C(){
 int y = 3;
 (y).ToString();
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug875711()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug875711()
+    {
+        var text = @"
 using System;
 public class A
 {
@@ -339,36 +339,36 @@ public class A
  }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug876359()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug876359()
+    {
+        var text = @"
 class C {
   fixed x;
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug876363()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug876363()
+    {
+        var text = @"
 class X { void f() {
 int a = 1; \u000a int b = (int)2.3;
 }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug876565()
-        {
-            var text = @"
+    [Fact]
+    public void Bug876565()
+    {
+        var text = @"
 public class C
 {
     public static int Main()
@@ -378,13 +378,13 @@ public class C
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug876573()
-        {
-            var text = @"
+    [Fact]
+    public void Bug876573()
+    {
+        var text = @"
 [partial]
 partial class partial { }
 partial class partial
@@ -395,44 +395,44 @@ partial class partial
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug876575()
-        {
-            var text = @"partial enum E{}";
-            // ERR_PartialMisplaced is not produced during parsing.
-            ParseAndRoundTripping(text, errorCount: 0);
-        }
+    [Fact]
+    public void TestNegBug876575()
+    {
+        var text = @"partial enum E{}";
+        // ERR_PartialMisplaced is not produced during parsing.
+        ParseAndRoundTripping(text, errorCount: 0);
+    }
 
-        [Fact]
-        public void Bug877232()
-        {
-            var text = @"
+    [Fact]
+    public void Bug877232()
+    {
+        var text = @"
 class MyClass : MyBase {
  MyClass() : base() {
  }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug877242()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug877242()
+    {
+        var text = @"
 private namespace test
 {
 }
 ";
-            ParseAndRoundTripping(text, 0);
-        }
+        ParseAndRoundTripping(text, 0);
+    }
 
-        [Fact]
-        public void Bug877246()
-        {
-            var text = @"
+    [Fact]
+    public void Bug877246()
+    {
+        var text = @"
 public struct Test
 {
     static int Main()
@@ -441,13 +441,13 @@ public struct Test
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug877251()
-        {
-            var text = @"
+    [Fact]
+    public void Bug877251()
+    {
+        var text = @"
 static class Test
 {
     static void Main()
@@ -456,13 +456,13 @@ static class Test
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug877256()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug877256()
+    {
+        var text = @"
 using System;
 public static class Extensions
 {
@@ -470,13 +470,13 @@ public static class Extensions
  static ~Extensions(this Struct? s) {}
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug877313()
-        {
-            var text = @"
+    [Fact]
+    public void Bug877313()
+    {
+        var text = @"
 partial class ConstraintsDef
 {
     partial void PM<T1, T2>(T1 v1, ref T2 v2, params T2[] v3)
@@ -488,13 +488,13 @@ partial class ConstraintsDef
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug877318()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug877318()
+    {
+        var text = @"
 partial class PartialPartial
 {
     int i = 1;
@@ -511,23 +511,23 @@ partial class PartialPartial
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug879395()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug879395()
+    {
+        var text = @"
 module m1
 end module
 ";
-            ParseAndRoundTripping(text, 2);
-        }
+        ParseAndRoundTripping(text, 2);
+    }
 
-        [Fact]
-        public void Bug880479()
-        {
-            var text = @"
+    [Fact]
+    public void Bug880479()
+    {
+        var text = @"
 class c1
 {
 void goo(int a, int b, int c)
@@ -535,13 +535,13 @@ void goo(int a, int b, int c)
 }
 }
 ";
-            ParseAndCheckTerminalSpans(text);
-        }
+        ParseAndCheckTerminalSpans(text);
+    }
 
-        [Fact]
-        public void TestNegBug881436()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug881436()
+    {
+        var text = @"
 public class Test
 {
     public static void Main()
@@ -550,13 +550,13 @@ public class Test
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug881480()
-        {
-            var text = @"
+    [Fact]
+    public void Bug881480()
+    {
+        var text = @"
 // <Code> 
  
 public static class SubGenericClass<T> : GenericClass<T>
@@ -564,13 +564,13 @@ public static class SubGenericClass<T> : GenericClass<T>
     public SubGenericClass() : base() { }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug881485()
-        {
-            var text = @"
+    [Fact]
+    public void Bug881485()
+    {
+        var text = @"
 class Test
 {
     public static int Test2()
@@ -579,24 +579,24 @@ class Test
    }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug881488()
-        {
-            var text = @"partial class A
+    [Fact]
+    public void TestNegBug881488()
+    {
+        var text = @"partial class A
 {
        partial void C<T>(T )=>{ t) { }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug882388()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882388()
+    {
+        var text = @"
 public class Class1
 {
     public int Meth2(int i) {
@@ -605,13 +605,13 @@ public class Class1
     }
 }
 ";
-            ParseAndRoundTripping(text, errorCount: 0);
-        }
+        ParseAndRoundTripping(text, errorCount: 0);
+    }
 
-        [Fact]
-        public void Bug882417()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882417()
+    {
+        var text = @"
 [AttributeUsage(AttributeTargets.Class)]
 public class HelpAttribute : Attribute
 {
@@ -622,13 +622,13 @@ public class HelpAttribute : Attribute
  public byte Verify {get {return b;} }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug882424()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882424()
+    {
+        var text = @"
 public class MyClass {
  //invalid simple name
  int -goo(){
@@ -636,49 +636,49 @@ public class MyClass {
  }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug882432()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882432()
+    {
+        var text = @"
 public class Base1 {
     public static E1 {a, b, c, };
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug882444()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882444()
+    {
+        var text = @"
 namespace nms {
 public class MyException : ApplicationException {
     public MyException(String str) : base ApplicationException (str)
     {}
 };
 ";
-            ParseAndRoundTripping(text, -1, 1);
-        }
+        ParseAndRoundTripping(text, -1, 1);
+    }
 
-        [Fact]
-        public void Bug882459()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882459()
+    {
+        var text = @"
 public partial class Base
 {
     ViolateClassConstraint Fld01 = new Base().Meth<ViolateClassConstraint>(new ViolateClassConstraint()); //E:CS0315
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug882463()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882463()
+    {
+        var text = @"
 public class Test
 {
  yield break;
@@ -688,13 +688,13 @@ public class Test
  }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug882465()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882465()
+    {
+        var text = @"
 public class Comments
 {
  // /* This is a comment 
@@ -702,13 +702,13 @@ public class Comments
  */
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug882471()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882471()
+    {
+        var text = @"
 class Test
 {
     static int Main()
@@ -717,25 +717,25 @@ class Test
     }
 }
 ";
-            ParseAndRoundTripping(text, 0, 1);
-        }
+        ParseAndRoundTripping(text, 0, 1);
+    }
 
-        [Fact]
-        public void Bug882481()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882481()
+    {
+        var text = @"
 #define \u0066oxbar
 #if foxbar
 class Goo { }
 #endif
 ";
-            ParseAndRoundTripping(text, 0, 1);
-        }
+        ParseAndRoundTripping(text, 0, 1);
+    }
 
-        [Fact]
-        public void TestNegBug882482()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug882482()
+    {
+        var text = @"
 using System;
 class main
 {
@@ -746,13 +746,13 @@ class main
  }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug882957()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882957()
+    {
+        var text = @"
 partial class CNExp
 {
     public static long? operator &(CNExp v1, long? v2)
@@ -761,13 +761,13 @@ partial class CNExp
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug882984()
-        {
-            var text = @"
+    [Fact]
+    public void Bug882984()
+    {
+        var text = @"
 unsafe partial class C 
 {
     byte* buf;
@@ -777,13 +777,13 @@ unsafe partial class C
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug883177()
-        {
-            var text = @"
+    [Fact]
+    public void Bug883177()
+    {
+        var text = @"
 unsafe
 struct Test
 {
@@ -803,14 +803,14 @@ struct Test
     }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        [Trait("Regression", "Spans")]
-        public void Bug884246()
-        {
-            var text = @"
+    [Fact]
+    [Trait("Regression", "Spans")]
+    public void Bug884246()
+    {
+        var text = @"
 using System.Reflection;
 #if VER1
 [assembly:AssemblyVersionAttribute(""1.0.0.0"")]
@@ -819,13 +819,13 @@ using System.Reflection;
 #endif
 public class otherClass{}";
 
-            ParseAndCheckTerminalSpans(text);
-        }
+        ParseAndCheckTerminalSpans(text);
+    }
 
-        [Fact]
-        public void Bug890389()
-        {
-            var text = @"using System;
+    [Fact]
+    public void Bug890389()
+    {
+        var text = @"using System;
 class C
 {
 void Goo()
@@ -834,13 +834,13 @@ Func<string> i = 3.ToString;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug892249()
-        {
-            var text = @"using System;
+    [Fact]
+    public void TestNegBug892249()
+    {
+        var text = @"using System;
 class AAttribute : Attribute {
   public AAttribute(object o) { }
 }
@@ -848,13 +848,13 @@ class AAttribute : Attribute {
 class C {
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void TestNegBug892255()
-        {
-            var text = @"using System;
+    [Fact]
+    public void TestNegBug892255()
+    {
+        var text = @"using System;
 public class Test
 {
     public static int Main(string [] args)
@@ -871,14 +871,14 @@ public class Test
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [WorkItem(894494, "DevDiv/Personal")]
-        [Fact]
-        public void TestRegressNegExtraPublicKeyword()
-        {
-            var text = @"
+    [WorkItem(894494, "DevDiv/Personal")]
+    [Fact]
+    public void TestRegressNegExtraPublicKeyword()
+    {
+        var text = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -896,13 +896,13 @@ namespace ConsoleApplication1
 public class Class_1_L0
 {
 /";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void TestNegBug894884()
-        {
-            var text = @"
+    [Fact]
+    public void TestNegBug894884()
+    {
+        var text = @"
 class C
 {
 public static int Main()
@@ -912,14 +912,14 @@ switch(str)
 default:
 List<in
 ";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [WorkItem(895762, "DevDiv/Personal")]
-        [Fact]
-        public void TestRegressInfiniteLoopXmlDoc()
-        {
-            var text = @"
+    [WorkItem(895762, "DevDiv/Personal")]
+    [Fact]
+    public void TestRegressInfiniteLoopXmlDoc()
+    {
+        var text = @"
 public struct MemberClass<T>
 {
 /// <summary>
@@ -927,47 +927,47 @@ public struct MemberClass<T>
 /// </summary>
 /// <param n";
 
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [Fact]
-        public void Bug909041()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909041()
+    {
+        var text = @"
 interface A
 {
 void M<T>(T t) where T : class;
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909041b()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909041b()
+    {
+        var text = @"
 public delegate void Del<T>(T t) where T : IEnumerable;
 public class A {}
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909041c()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909041c()
+    {
+        var text = @"
 class A
 {
 static extern bool Bar<U>() where U : class;
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909045()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909045()
+    {
+        var text = @"
 public class A
 {
 public void M<T, V>(T t, V v)
@@ -975,15 +975,15 @@ where T : new()
 where V : class { }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(909049, "DevDiv/Personal")]
-        [WorkItem(911392, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4AttributeWithTarget()
-        {
-            var text = @"using System;
+    [WorkItem(909049, "DevDiv/Personal")]
+    [WorkItem(911392, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4AttributeWithTarget()
+    {
+        var text = @"using System;
 using System.Runtime.InteropServices;
 
 interface IGoo
@@ -1017,13 +1017,13 @@ public class Goo
         remove { }
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909063()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909063()
+    {
+        var text = @"
 class A
 {
 public int i, j;
@@ -1034,13 +1034,13 @@ var vv = new[] { 1, 2, };
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909333()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909333()
+    {
+        var text = @"
 extern alias libAlias;
 class myClass
 {
@@ -1051,13 +1051,13 @@ return 0;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909334()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909334()
+    {
+        var text = @"
 class Test
 {
 unsafe static int Main()
@@ -1067,13 +1067,13 @@ return 0;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909337()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909337()
+    {
+        var text = @"
 using System.Collections;
 public class Test<I> 
 {
@@ -1085,13 +1085,13 @@ public Test(I i)
 ~Test() {}
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909338()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909338()
+    {
+        var text = @"
 class Test
 {
 static void Main()
@@ -1100,13 +1100,13 @@ var v = typeof(void);
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909350()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909350()
+    {
+        var text = @"
 [Author(""Brian Kernighan""), Author(""Dennis Ritchie""),] 
 class Class1
 {
@@ -1116,13 +1116,13 @@ enum E
     One, Two,
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909371()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909371()
+    {
+        var text = @"
 class A
 {
 byte M(byte b) 
@@ -1131,13 +1131,13 @@ return b;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909371b()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909371b()
+    {
+        var text = @"
 [AttributeUsage(AttributeTargets.Class)]
 public class HelpAttribute : Attribute
 {
@@ -1147,14 +1147,14 @@ b = b1;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(909372, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4ValidOperatorOverloading()
-        {
-            var text = @"using System;
+    [WorkItem(909372, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4ValidOperatorOverloading()
+    {
+        var text = @"using System;
 
 public class A
 {
@@ -1197,13 +1197,13 @@ public class A
         return false;
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909419()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909419()
+    {
+        var text = @"
 class Test
 {
 static int Main()
@@ -1214,13 +1214,13 @@ static int Main()
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909425()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909425()
+    {
+        var text = @"
 public class MyClass
 {
 public static int Main() 
@@ -1232,14 +1232,14 @@ public static int Main()
 static int M(double d) { return 0; }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(909449, "DevDiv/Personal")]
-        [Fact]
-        public void RegressOverAggressiveWarningForUlongSuffix()
-        {
-            var text = @"class Program
+    [WorkItem(909449, "DevDiv/Personal")]
+    [Fact]
+    public void RegressOverAggressiveWarningForUlongSuffix()
+    {
+        var text = @"class Program
 {
 static void Main()
 {
@@ -1249,13 +1249,13 @@ ulong x4 = 7Ul; // should NOT warn
 ulong x6 = 7ul; // should NOT warn
 }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact]
-        public void Bug909451()
-        {
-            var text = @"
+    [Fact]
+    public void Bug909451()
+    {
+        var text = @"
 public class AnonymousTypeTest : ParentClass
 {
 public void Run()
@@ -1264,14 +1264,14 @@ var p1 = new { base.Number };
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(909828, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4ValidUlongLiteral()
-        {
-            var text = @"public class Test
+    [WorkItem(909828, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4ValidUlongLiteral()
+    {
+        var text = @"public class Test
 {
 public static int Main()
 {
@@ -1283,14 +1283,14 @@ return 0;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(922886, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4ValidNumericLiteral()
-        {
-            var text = @"public class Test
+    [WorkItem(922886, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4ValidNumericLiteral()
+    {
+        var text = @"public class Test
 {
 public static void Main()
 {
@@ -1305,14 +1305,14 @@ ulong max8 = 18446744073709551615;
 }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911058, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4IdentifierStartWithAt1()
-        {
-            var text = @"using System;
+    [WorkItem(911058, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4IdentifierStartWithAt1()
+    {
+        var text = @"using System;
 
 [AttributeUsage(AttributeTargets.All)]
 public class X : Attribute { }
@@ -1338,14 +1338,14 @@ namespace N2
         }
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911059, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4IdentifierStartWithAt2()
-        {
-            var text = @"public class A
+    [WorkItem(911059, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4IdentifierStartWithAt2()
+    {
+        var text = @"public class A
         {
             public int @__namespace = 0;
 
@@ -1358,14 +1358,14 @@ namespace N2
             }
         }";
 
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911418, "DevDiv/Personal")]
-        [Fact]
-        public void RegressNegNoError4InvalidAttributeTarget()
-        {
-            var text = @"using System;
+    [WorkItem(911418, "DevDiv/Personal")]
+    [Fact]
+    public void RegressNegNoError4InvalidAttributeTarget()
+    {
+        var text = @"using System;
 using System.Reflection;
 
 public class goo 
@@ -1379,17 +1379,17 @@ public class goo
 public class A : Attribute
 {
 }";
-            ParseAndRoundTripping(text, -1);
+        ParseAndRoundTripping(text, -1);
 
-            // Assert.Equal((int)ErrorCode.ERR_SyntaxError, tree.Errors()[0].Code); // CS1003
-            // Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, tree.Errors()[1].Code); // CS1519
-        }
+        // Assert.Equal((int)ErrorCode.ERR_SyntaxError, tree.Errors()[0].Code); // CS1003
+        // Assert.Equal((int)ErrorCode.ERR_InvalidMemberDecl, tree.Errors()[1].Code); // CS1519
+    }
 
-        [WorkItem(911477, "DevDiv/Personal")]
-        [Fact]
-        public void RegressWrongError4WarningExternOnCtor()
-        {
-            var text = @"using System;
+    [WorkItem(911477, "DevDiv/Personal")]
+    [Fact]
+    public void RegressWrongError4WarningExternOnCtor()
+    {
+        var text = @"using System;
 public class C
 {
     extern C();
@@ -1399,17 +1399,17 @@ public class C
     }
 }";
 
-            // The warning WRN_ExternCtorNoImplementation is given in semantic analysis.
-            ParseAndRoundTripping(text); // , 1);
+        // The warning WRN_ExternCtorNoImplementation is given in semantic analysis.
+        ParseAndRoundTripping(text); // , 1);
 
-            // Assert.Equal((int)ErrorCode.WRN_ExternCtorNoImplementation, tree.Errors()[0].Code); // W CS0824
-        }
+        // Assert.Equal((int)ErrorCode.WRN_ExternCtorNoImplementation, tree.Errors()[0].Code); // W CS0824
+    }
 
-        [WorkItem(911488, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4MemberOnSimpleTypeAsKeyword()
-        {
-            var text = @"using System;
+    [WorkItem(911488, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4MemberOnSimpleTypeAsKeyword()
+    {
+        var text = @"using System;
 public class Test
 {
     public void M()
@@ -1421,14 +1421,14 @@ public class Test
         bool.TryParse(s, out b);  // error
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911505, "DevDiv/Personal")]
-        [Fact]
-        public void RegressWarning4EscapeCharInXmlDocAsText()
-        {
-            var text = @"using System;
+    [WorkItem(911505, "DevDiv/Personal")]
+    [Fact]
+    public void RegressWarning4EscapeCharInXmlDocAsText()
+    {
+        var text = @"using System;
 /// <summary>
 /// << A '&' B >>
 /// </summary>
@@ -1439,14 +1439,14 @@ public class Test
         return false;
     }
 }";
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [WorkItem(911518, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4AnonymousTypeWithTrailingComma()
-        {
-            var text = @"using System;
+    [WorkItem(911518, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4AnonymousTypeWithTrailingComma()
+    {
+        var text = @"using System;
 public class Test
 {
     public static void Main()
@@ -1455,14 +1455,14 @@ public class Test
         var v1 = new { X = x, };
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911521, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4QueryWithVarInLet()
-        {
-            var text = @"class Q
+    [WorkItem(911521, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4QueryWithVarInLet()
+    {
+        var text = @"class Q
 {
     static void Main()
     {
@@ -1477,14 +1477,14 @@ public class Test
 
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(911525, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4AttributeWithNamedParam()
-        {
-            var text = @"using System;
+    [WorkItem(911525, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4AttributeWithNamedParam()
+    {
+        var text = @"using System;
 public class TestAttribute : Attribute
 {
   public TestAttribute(int i = 0, int j = 1) { }
@@ -1499,62 +1499,62 @@ public class A
   }
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(917285, "DevDiv/Personal")]
-        [Fact]
-        public void RegressAssertForLFCRSequence()
-        {
-            var text = "class Test\r\n{\n\r}\r\n";
+    [WorkItem(917285, "DevDiv/Personal")]
+    [Fact]
+    public void RegressAssertForLFCRSequence()
+    {
+        var text = "class Test\r\n{\n\r}\r\n";
 
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(917771, "DevDiv/Personal")]
-        [WorkItem(918947, "DevDiv/Personal")]
-        [Fact]
-        public void RegressNotCheckNullRef()
-        {
-            var text = @"public struct MyStruct
+    [WorkItem(917771, "DevDiv/Personal")]
+    [WorkItem(918947, "DevDiv/Personal")]
+    [Fact]
+    public void RegressNotCheckNullRef()
+    {
+        var text = @"public struct MyStruct
 {
 public delegate void TypeName<T>(ref T t, dynamic d);
 public delegate Y @dynamic<X, Y>(X u, params dynamic[] ary);
 public enum EM { };
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [WorkItem(917771, "DevDiv/Personal")]
-        [Fact]
-        public void RegressNegNotCheckNullRef()
-        {
-            var text = @"class A
+    [WorkItem(917771, "DevDiv/Personal")]
+    [Fact]
+    public void RegressNegNotCheckNullRef()
+    {
+        var text = @"class A
 {
 A a { 0, 1 };
 }
 ";
-            ParseAndRoundTripping(text, 2);
-        }
+        ParseAndRoundTripping(text, 2);
+    }
 
-        [WorkItem(922887, "DevDiv/Personal")]
-        [Fact]
-        public void RegressError4ExternOperator()
-        {
-            var text = @"public class A
+    [WorkItem(922887, "DevDiv/Personal")]
+    [Fact]
+    public void RegressError4ExternOperator()
+    {
+        var text = @"public class A
 {
     public static extern int operator !(A a);
     public static extern int operator +(A a, int n);
 }
 ";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact, WorkItem(536922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536922")]
-        public void RegressError4QueryWithNullable()
-        {
-            var text = @"using System.Linq;
+    [Fact, WorkItem(536922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536922")]
+    public void RegressError4QueryWithNullable()
+    {
+        var text = @"using System.Linq;
 class A
 {
     static void Main()
@@ -1565,55 +1565,55 @@ class A
                 select x;
     }
 }";
-            ParseAndRoundTripping(text);
-        }
+        ParseAndRoundTripping(text);
+    }
 
-        [Fact, WorkItem(537265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537265")]
-        public void PartialMethodWithLanguageVersion2()
-        {
-            var text = @"partial class P
+    [Fact, WorkItem(537265, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537265")]
+    public void PartialMethodWithLanguageVersion2()
+    {
+        var text = @"partial class P
 {
     partial void M();
 }
 ";
-            CSharpParseOptions options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp2);
+        CSharpParseOptions options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp2);
 
-            var itext = SourceText.From(text);
-            var tree = SyntaxFactory.ParseSyntaxTree(itext, options, "");
-            var newTest = tree.GetCompilationUnitRoot().ToFullString();
-            Assert.Equal(text, newTest);
-        }
+        var itext = SourceText.From(text);
+        var tree = SyntaxFactory.ParseSyntaxTree(itext, options, "");
+        var newTest = tree.GetCompilationUnitRoot().ToFullString();
+        Assert.Equal(text, newTest);
+    }
 
-        [WorkItem(527490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527490")]
-        [Fact]
-        public void VariableDeclarationAsTypeOfArgument()
-        {
-            string text = "typeof(System.String value)";
-            var typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: true);
-            Assert.Equal(text, typeOfExpression.ToFullString());
-            Assert.NotEmpty(typeOfExpression.GetDiagnostics());
+    [WorkItem(527490, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527490")]
+    [Fact]
+    public void VariableDeclarationAsTypeOfArgument()
+    {
+        string text = "typeof(System.String value)";
+        var typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: true);
+        Assert.Equal(text, typeOfExpression.ToFullString());
+        Assert.NotEmpty(typeOfExpression.GetDiagnostics());
 
-            typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: false);
-            Assert.Equal("typeof(System.String ", typeOfExpression.ToFullString());
-            Assert.NotEmpty(typeOfExpression.GetDiagnostics());
-        }
+        typeOfExpression = SyntaxFactory.ParseExpression(text, consumeFullText: false);
+        Assert.Equal("typeof(System.String ", typeOfExpression.ToFullString());
+        Assert.NotEmpty(typeOfExpression.GetDiagnostics());
+    }
 
-        [WorkItem(540809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540809")]
-        [Fact]
-        public void IncompleteGlobalAlias()
-        {
-            var text = @"namespace N2
+    [WorkItem(540809, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540809")]
+    [Fact]
+    public void IncompleteGlobalAlias()
+    {
+        var text = @"namespace N2
 {
     [global:";
 
-            ParseAndRoundTripping(text, errorCount: 3);
-        }
+        ParseAndRoundTripping(text, errorCount: 3);
+    }
 
-        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
-        [Fact]
-        public void MethodCallWithQueryArgInsideQueryExpr()
-        {
-            var text = @"
+    [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
+    [Fact]
+    public void MethodCallWithQueryArgInsideQueryExpr()
+    {
+        var text = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1632,14 +1632,14 @@ class Program
     }
 }";
 
-            ParseAndRoundTripping(text, 0);
-        }
+        ParseAndRoundTripping(text, 0);
+    }
 
-        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
-        [Fact]
-        public void MethodCallWithFromArgInsideQueryExpr()
-        {
-            var text = @"
+    [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
+    [Fact]
+    public void MethodCallWithFromArgInsideQueryExpr()
+    {
+        var text = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1658,14 +1658,14 @@ class Program
     }
 }";
 
-            ParseAndRoundTripping(text, -1);
-        }
+        ParseAndRoundTripping(text, -1);
+    }
 
-        [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
-        [Fact]
-        public void ArrayCreationWithQueryArgInsideQueryExpr()
-        {
-            var text = @"
+    [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
+    [Fact]
+    public void ArrayCreationWithQueryArgInsideQueryExpr()
+    {
+        var text = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1684,7 +1684,6 @@ class Program
     }
 }";
 
-            ParseAndRoundTripping(text, 0);
-        }
+        ParseAndRoundTripping(text, 0);
     }
 }

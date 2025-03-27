@@ -8,157 +8,156 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public partial struct SyntaxTriviaList
 {
-    public partial struct SyntaxTriviaList
+    [StructLayout(LayoutKind.Auto)]
+    public struct Enumerator
     {
-        [StructLayout(LayoutKind.Auto)]
-        public struct Enumerator
+        private SyntaxToken _token;
+        private GreenNode? _singleNodeOrList;
+        private int _baseIndex;
+        private int _count;
+
+        private int _index;
+        private GreenNode? _current;
+        private int _position;
+
+        internal Enumerator(in SyntaxTriviaList list)
         {
-            private SyntaxToken _token;
-            private GreenNode? _singleNodeOrList;
-            private int _baseIndex;
-            private int _count;
+            _token = list.Token;
+            _singleNodeOrList = list.Node;
+            _baseIndex = list.Index;
+            _count = list.Count;
 
-            private int _index;
-            private GreenNode? _current;
-            private int _position;
+            _index = -1;
+            _current = null;
+            _position = list.Position;
+        }
 
-            internal Enumerator(in SyntaxTriviaList list)
+        // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
+        private void InitializeFrom(in SyntaxToken token, GreenNode greenNode, int index, int position)
+        {
+            _token = token;
+            _singleNodeOrList = greenNode;
+            _baseIndex = index;
+            _count = greenNode.IsList ? greenNode.SlotCount : 1;
+
+            _index = -1;
+            _current = null;
+            _position = position;
+        }
+
+        // PERF: Used to initialize an enumerator for leading trivia directly from a token.
+        // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
+        // by ref since it's a non-trivial struct
+        internal void InitializeFromLeadingTrivia(in SyntaxToken token)
+        {
+            Debug.Assert(token.Node is object);
+            var node = token.Node.GetLeadingTriviaCore();
+            Debug.Assert(node is object);
+            InitializeFrom(in token, node, 0, token.Position);
+        }
+
+        // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
+        // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
+        // by ref since it's a non-trivial struct
+        internal void InitializeFromTrailingTrivia(in SyntaxToken token)
+        {
+            Debug.Assert(token.Node is object);
+            var leading = token.Node.GetLeadingTriviaCore();
+            int index = 0;
+            if (leading != null)
             {
-                _token = list.Token;
-                _singleNodeOrList = list.Node;
-                _baseIndex = list.Index;
-                _count = list.Count;
+                index = leading.IsList ? leading.SlotCount : 1;
+            }
 
-                _index = -1;
+            var trailingGreen = token.Node.GetTrailingTriviaCore();
+            int trailingPosition = token.Position + token.FullWidth;
+            if (trailingGreen != null)
+            {
+                trailingPosition -= trailingGreen.FullWidth;
+            }
+
+            Debug.Assert(trailingGreen is object);
+            InitializeFrom(in token, trailingGreen, index, trailingPosition);
+        }
+
+        public bool MoveNext()
+        {
+            int newIndex = _index + 1;
+            if (newIndex >= _count)
+            {
+                // invalidate iterator
                 _current = null;
-                _position = list.Position;
+                return false;
             }
 
-            // PERF: Passing SyntaxToken by ref since it's a non-trivial struct
-            private void InitializeFrom(in SyntaxToken token, GreenNode greenNode, int index, int position)
-            {
-                _token = token;
-                _singleNodeOrList = greenNode;
-                _baseIndex = index;
-                _count = greenNode.IsList ? greenNode.SlotCount : 1;
+            _index = newIndex;
 
-                _index = -1;
-                _current = null;
-                _position = position;
+            if (_current != null)
+            {
+                _position += _current.FullWidth;
             }
 
-            // PERF: Used to initialize an enumerator for leading trivia directly from a token.
-            // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
-            // by ref since it's a non-trivial struct
-            internal void InitializeFromLeadingTrivia(in SyntaxToken token)
+            Debug.Assert(_singleNodeOrList is object);
+            _current = GetGreenNodeAt(_singleNodeOrList, newIndex);
+            return true;
+        }
+
+        public SyntaxTrivia Current
+        {
+            get
             {
-                Debug.Assert(token.Node is object);
-                var node = token.Node.GetLeadingTriviaCore();
-                Debug.Assert(node is object);
-                InitializeFrom(in token, node, 0, token.Position);
-            }
-
-            // PERF: Used to initialize an enumerator for trailing trivia directly from a token.
-            // This saves constructing an intermediate SyntaxTriviaList. Also, passing token
-            // by ref since it's a non-trivial struct
-            internal void InitializeFromTrailingTrivia(in SyntaxToken token)
-            {
-                Debug.Assert(token.Node is object);
-                var leading = token.Node.GetLeadingTriviaCore();
-                int index = 0;
-                if (leading != null)
+                if (_current == null)
                 {
-                    index = leading.IsList ? leading.SlotCount : 1;
+                    throw new InvalidOperationException();
                 }
 
-                var trailingGreen = token.Node.GetTrailingTriviaCore();
-                int trailingPosition = token.Position + token.FullWidth;
-                if (trailingGreen != null)
-                {
-                    trailingPosition -= trailingGreen.FullWidth;
-                }
-
-                Debug.Assert(trailingGreen is object);
-                InitializeFrom(in token, trailingGreen, index, trailingPosition);
-            }
-
-            public bool MoveNext()
-            {
-                int newIndex = _index + 1;
-                if (newIndex >= _count)
-                {
-                    // invalidate iterator
-                    _current = null;
-                    return false;
-                }
-
-                _index = newIndex;
-
-                if (_current != null)
-                {
-                    _position += _current.FullWidth;
-                }
-
-                Debug.Assert(_singleNodeOrList is object);
-                _current = GetGreenNodeAt(_singleNodeOrList, newIndex);
-                return true;
-            }
-
-            public SyntaxTrivia Current
-            {
-                get
-                {
-                    if (_current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
-                }
-            }
-
-            internal bool TryMoveNextAndGetCurrent(out SyntaxTrivia current)
-            {
-                if (!MoveNext())
-                {
-                    current = default;
-                    return false;
-                }
-
-                current = new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
-                return true;
+                return new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
             }
         }
 
-        private class EnumeratorImpl : IEnumerator<SyntaxTrivia>
+        internal bool TryMoveNextAndGetCurrent(out SyntaxTrivia current)
         {
-            private Enumerator _enumerator;
-
-            // SyntaxTriviaList is a relatively big struct so is passed as ref
-            internal EnumeratorImpl(in SyntaxTriviaList list)
+            if (!MoveNext())
             {
-                _enumerator = new Enumerator(in list);
+                current = default;
+                return false;
             }
 
-            public SyntaxTrivia Current => _enumerator.Current;
+            current = new SyntaxTrivia(_token, _current, _position, _baseIndex + _index);
+            return true;
+        }
+    }
 
-            object IEnumerator.Current => _enumerator.Current;
+    private class EnumeratorImpl : IEnumerator<SyntaxTrivia>
+    {
+        private Enumerator _enumerator;
 
-            public bool MoveNext()
-            {
-                return _enumerator.MoveNext();
-            }
+        // SyntaxTriviaList is a relatively big struct so is passed as ref
+        internal EnumeratorImpl(in SyntaxTriviaList list)
+        {
+            _enumerator = new Enumerator(in list);
+        }
 
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
+        public SyntaxTrivia Current => _enumerator.Current;
 
-            public void Dispose()
-            {
-            }
+        object IEnumerator.Current => _enumerator.Current;
+
+        public bool MoveNext()
+        {
+            return _enumerator.MoveNext();
+        }
+
+        public void Reset()
+        {
+            throw new NotSupportedException();
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

@@ -5,37 +5,36 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax;
+
+public partial class AttributeSyntax
 {
-    public partial class AttributeSyntax
+    /// <summary>
+    /// Return the name used in syntax for the attribute. This is typically the class
+    /// name without the "Attribute" suffix. (For certain diagnostics, the native
+    /// compiler uses the attribute name from syntax rather than the class name.)
+    /// </summary>
+    internal string GetErrorDisplayName()
     {
-        /// <summary>
-        /// Return the name used in syntax for the attribute. This is typically the class
-        /// name without the "Attribute" suffix. (For certain diagnostics, the native
-        /// compiler uses the attribute name from syntax rather than the class name.)
-        /// </summary>
-        internal string GetErrorDisplayName()
-        {
-            // Dev10 uses the name from source, even if it's an alias.
-            return Name.ErrorDisplayName();
-        }
+        // Dev10 uses the name from source, even if it's an alias.
+        return Name.ErrorDisplayName();
+    }
 
-        internal AttributeArgumentSyntax? GetNamedArgumentSyntax(string namedArgName)
-        {
-            Debug.Assert(!String.IsNullOrEmpty(namedArgName));
+    internal AttributeArgumentSyntax? GetNamedArgumentSyntax(string namedArgName)
+    {
+        Debug.Assert(!String.IsNullOrEmpty(namedArgName));
 
-            if (argumentList != null)
+        if (argumentList != null)
+        {
+            foreach (var argSyntax in argumentList.Arguments)
             {
-                foreach (var argSyntax in argumentList.Arguments)
+                if (argSyntax.NameEquals != null && argSyntax.NameEquals.Name.Identifier.ValueText == namedArgName)
                 {
-                    if (argSyntax.NameEquals != null && argSyntax.NameEquals.Name.Identifier.ValueText == namedArgName)
-                    {
-                        return argSyntax;
-                    }
+                    return argSyntax;
                 }
             }
-
-            return null;
         }
+
+        return null;
     }
 }

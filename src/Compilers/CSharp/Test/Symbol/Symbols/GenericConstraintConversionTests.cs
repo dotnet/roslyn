@@ -11,17 +11,17 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
+
+public class GenericConstraintConversionTests : CSharpTestBase
 {
-    public class GenericConstraintConversionTests : CSharpTestBase
+    /// <summary>
+    /// 6.1.10, bullet 1
+    /// </summary>
+    [Fact]
+    public void ImplicitInterfaceAndBaseTypeConversions01()
     {
-        /// <summary>
-        /// 6.1.10, bullet 1
-        /// </summary>
-        [Fact]
-        public void ImplicitInterfaceAndBaseTypeConversions01()
-        {
-            var source =
+        var source =
 @"interface I { }
 interface IA : I { }
 interface IB : I { }
@@ -54,21 +54,21 @@ class C<T>
         b = u;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (25,14): error CS0266: Cannot implicitly convert type 'U' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IB").WithLocation(25, 14),
-                // (26,14): error CS0266: Cannot implicitly convert type 'V' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "IB").WithLocation(26, 14),
-                // (28,13): error CS0029: Cannot implicitly convert type 'U' to 'A'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "A").WithLocation(28, 13),
-                // (30,13): error CS0029: Cannot implicitly convert type 'U' to 'B'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "B").WithLocation(30, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (25,14): error CS0266: Cannot implicitly convert type 'U' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IB").WithLocation(25, 14),
+            // (26,14): error CS0266: Cannot implicitly convert type 'V' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "IB").WithLocation(26, 14),
+            // (28,13): error CS0029: Cannot implicitly convert type 'U' to 'A'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "A").WithLocation(28, 13),
+            // (30,13): error CS0029: Cannot implicitly convert type 'U' to 'B'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "B").WithLocation(30, 13));
+    }
 
-        [Fact]
-        public void ImplicitInterfaceAndBaseTypeConversions02()
-        {
-            var source =
+    [Fact]
+    public void ImplicitInterfaceAndBaseTypeConversions02()
+    {
+        var source =
 @"interface IA { }
 interface IB { }
 class A : IA { }
@@ -90,18 +90,18 @@ class C<T, U>
         ib = v;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (17,14): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(17, 14));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (17,14): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(17, 14));
+    }
 
-        /// <summary>
-        /// 6.1.10, bullet 2
-        /// </summary>
-        [Fact]
-        public void ImplicitConversionEffectiveInterfaceSet()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10, bullet 2
+    /// </summary>
+    [Fact]
+    public void ImplicitConversionEffectiveInterfaceSet()
+    {
+        var source =
 @"interface IA { }
 interface IB { }
 class A : IA { }
@@ -136,24 +136,24 @@ class C<T, U, V>
         b = x;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (15,13): error CS0266: Cannot implicitly convert type 'U' to 'IA'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IA").WithLocation(15, 13),
-                // (16,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(16, 13),
-                // (22,13): error CS0266: Cannot implicitly convert type 'X' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IB").WithLocation(22, 13),
-                // (26,13): error CS0266: Cannot implicitly convert type 'X' to 'IA'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IA").WithLocation(26, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (15,13): error CS0266: Cannot implicitly convert type 'U' to 'IA'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "IA").WithLocation(15, 13),
+            // (16,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(16, 13),
+            // (22,13): error CS0266: Cannot implicitly convert type 'X' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IB").WithLocation(22, 13),
+            // (26,13): error CS0266: Cannot implicitly convert type 'X' to 'IA'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IA").WithLocation(26, 13));
+    }
 
-        /// <summary>
-        /// 6.1.10, bullet 3
-        /// </summary>
-        [Fact]
-        public void ImplicitConversionToTypeParameter()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10, bullet 3
+    /// </summary>
+    [Fact]
+    public void ImplicitConversionToTypeParameter()
+    {
+        var source =
 @"class C<T, U, V, W>
     where T : U, V
     where U : W
@@ -211,62 +211,62 @@ class C<T, U, V>
         x = w;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,13): error CS0266: Cannot implicitly convert type 'U' to 'T'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "T").WithLocation(11, 13),
-                // (12,13): error CS0266: Cannot implicitly convert type 'V' to 'T'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "T").WithLocation(12, 13),
-                // (13,13): error CS0266: Cannot implicitly convert type 'W' to 'T'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "T").WithLocation(13, 13),
-                // (15,13): error CS0029: Cannot implicitly convert type 'V' to 'U'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "U").WithLocation(15, 13),
-                // (16,13): error CS0266: Cannot implicitly convert type 'W' to 'U'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "U").WithLocation(16, 13),
-                // (18,13): error CS0029: Cannot implicitly convert type 'U' to 'V'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "V").WithLocation(18, 13),
-                // (19,13): error CS0029: Cannot implicitly convert type 'W' to 'V'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "w").WithArguments("W", "V").WithLocation(19, 13),
-                // (22,13): error CS0029: Cannot implicitly convert type 'V' to 'W'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "W").WithLocation(22, 13),
-                // (30,13): error CS0266: Cannot implicitly convert type 'T' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "X").WithLocation(30, 13),
-                // (31,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(31, 13),
-                // (32,13): error CS0266: Cannot implicitly convert type 'V' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "X").WithLocation(32, 13),
-                // (33,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(33, 13),
-                // (37,13): error CS0029: Cannot implicitly convert type 'X' to 'T'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "T").WithLocation(37, 13),
-                // (39,13): error CS0029: Cannot implicitly convert type 'X' to 'V'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "V").WithLocation(39, 13),
-                // (41,13): error CS0029: Cannot implicitly convert type 'T' to 'X'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "X").WithLocation(41, 13),
-                // (42,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(42, 13),
-                // (43,13): error CS0029: Cannot implicitly convert type 'V' to 'X'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "X").WithLocation(43, 13),
-                // (44,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(44, 13),
-                // (48,13): error CS0029: Cannot implicitly convert type 'X' to 'T'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "T").WithLocation(48, 13),
-                // (52,13): error CS0029: Cannot implicitly convert type 'T' to 'X'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "X").WithLocation(52, 13),
-                // (53,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(53, 13),
-                // (54,13): error CS0266: Cannot implicitly convert type 'V' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "X").WithLocation(54, 13),
-                // (55,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(55, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (11,13): error CS0266: Cannot implicitly convert type 'U' to 'T'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "T").WithLocation(11, 13),
+            // (12,13): error CS0266: Cannot implicitly convert type 'V' to 'T'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "T").WithLocation(12, 13),
+            // (13,13): error CS0266: Cannot implicitly convert type 'W' to 'T'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "T").WithLocation(13, 13),
+            // (15,13): error CS0029: Cannot implicitly convert type 'V' to 'U'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "U").WithLocation(15, 13),
+            // (16,13): error CS0266: Cannot implicitly convert type 'W' to 'U'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "U").WithLocation(16, 13),
+            // (18,13): error CS0029: Cannot implicitly convert type 'U' to 'V'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "V").WithLocation(18, 13),
+            // (19,13): error CS0029: Cannot implicitly convert type 'W' to 'V'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "w").WithArguments("W", "V").WithLocation(19, 13),
+            // (22,13): error CS0029: Cannot implicitly convert type 'V' to 'W'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "W").WithLocation(22, 13),
+            // (30,13): error CS0266: Cannot implicitly convert type 'T' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "X").WithLocation(30, 13),
+            // (31,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(31, 13),
+            // (32,13): error CS0266: Cannot implicitly convert type 'V' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "X").WithLocation(32, 13),
+            // (33,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(33, 13),
+            // (37,13): error CS0029: Cannot implicitly convert type 'X' to 'T'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "T").WithLocation(37, 13),
+            // (39,13): error CS0029: Cannot implicitly convert type 'X' to 'V'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "V").WithLocation(39, 13),
+            // (41,13): error CS0029: Cannot implicitly convert type 'T' to 'X'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "X").WithLocation(41, 13),
+            // (42,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(42, 13),
+            // (43,13): error CS0029: Cannot implicitly convert type 'V' to 'X'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "X").WithLocation(43, 13),
+            // (44,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(44, 13),
+            // (48,13): error CS0029: Cannot implicitly convert type 'X' to 'T'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("X", "T").WithLocation(48, 13),
+            // (52,13): error CS0029: Cannot implicitly convert type 'T' to 'X'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "X").WithLocation(52, 13),
+            // (53,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(53, 13),
+            // (54,13): error CS0266: Cannot implicitly convert type 'V' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v").WithArguments("V", "X").WithLocation(54, 13),
+            // (55,13): error CS0266: Cannot implicitly convert type 'W' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "w").WithArguments("W", "X").WithLocation(55, 13));
+    }
 
-        /// <summary>
-        /// 6.1.10, bullet 4
-        /// </summary>
-        [Fact]
-        public void ImplicitConversionFromNull()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10, bullet 4
+    /// </summary>
+    [Fact]
+    public void ImplicitConversionFromNull()
+    {
+        var source =
 @"interface I { }
 class A { }
 class B<T1, T2, T3, T4, T5, T6>
@@ -283,35 +283,35 @@ class B<T1, T2, T3, T4, T5, T6>
     static T5 F5 = null;
     static T6 F6 = null;
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,20): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
-                //     static T1 F1 = null;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T1"),
-                // (12,20): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
-                //     static T3 F3 = null;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T3"),
-                // (13,20): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
-                //     static T4 F4 = null;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T4"),
-                // (14,20): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
-                //     static T5 F5 = null;
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T5"),
-                // (11,15): warning CS0414: The field 'B<T1, T2, T3, T4, T5, T6>.F2' is assigned but its value is never used
-                //     static T2 F2 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F2").WithArguments("B<T1, T2, T3, T4, T5, T6>.F2"),
-                // (15,15): warning CS0414: The field 'B<T1, T2, T3, T4, T5, T6>.F6' is assigned but its value is never used
-                //     static T6 F6 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F6").WithArguments("B<T1, T2, T3, T4, T5, T6>.F6")
-            );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,20): error CS0403: Cannot convert null to type parameter 'T1' because it could be a non-nullable value type. Consider using 'default(T1)' instead.
+            //     static T1 F1 = null;
+            Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T1"),
+            // (12,20): error CS0403: Cannot convert null to type parameter 'T3' because it could be a non-nullable value type. Consider using 'default(T3)' instead.
+            //     static T3 F3 = null;
+            Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T3"),
+            // (13,20): error CS0403: Cannot convert null to type parameter 'T4' because it could be a non-nullable value type. Consider using 'default(T4)' instead.
+            //     static T4 F4 = null;
+            Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T4"),
+            // (14,20): error CS0403: Cannot convert null to type parameter 'T5' because it could be a non-nullable value type. Consider using 'default(T5)' instead.
+            //     static T5 F5 = null;
+            Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T5"),
+            // (11,15): warning CS0414: The field 'B<T1, T2, T3, T4, T5, T6>.F2' is assigned but its value is never used
+            //     static T2 F2 = null;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F2").WithArguments("B<T1, T2, T3, T4, T5, T6>.F2"),
+            // (15,15): warning CS0414: The field 'B<T1, T2, T3, T4, T5, T6>.F6' is assigned but its value is never used
+            //     static T6 F6 = null;
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F6").WithArguments("B<T1, T2, T3, T4, T5, T6>.F6")
+        );
+    }
 
-        /// <summary>
-        /// 6.1.10, bullet 5
-        /// </summary>
-        [Fact]
-        public void ImplicitReferenceConversionToInterface()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10, bullet 5
+    /// </summary>
+    [Fact]
+    public void ImplicitReferenceConversionToInterface()
+    {
+        var source =
 @"interface IA { }
 interface IB : IA { }
 class A : IA { }
@@ -330,18 +330,18 @@ class C<T, U>
         b = u;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (15,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(15, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (15,13): error CS0266: Cannot implicitly convert type 'T' to 'IB'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "IB").WithLocation(15, 13));
+    }
 
-        /// <summary>
-        /// 6.1.10, bullet 6
-        /// </summary>
-        [Fact]
-        public void ImplicitInterfaceVarianceConversions01()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10, bullet 6
+    /// </summary>
+    [Fact]
+    public void ImplicitInterfaceVarianceConversions01()
+    {
+        var source =
 @"interface IIn<in T> { }
 interface IOut<out T> { }
 interface IInDerived<T> : IIn<T> { }
@@ -411,25 +411,25 @@ class C<T, U>
         ou = y;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (20,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(20, 14),
-                // (30,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(30, 14),
-                // (38,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(38, 14),
-                // (48,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(48, 14),
-                // (56,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(56, 14),
-                // (66,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(66, 14));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (20,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(20, 14),
+            // (30,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(30, 14),
+            // (38,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(38, 14),
+            // (48,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(48, 14),
+            // (56,14): error CS0266: Cannot implicitly convert type 'Y' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("Y", "IIn<T>").WithLocation(56, 14),
+            // (66,14): error CS0266: Cannot implicitly convert type 'X' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("X", "IOut<U>").WithLocation(66, 14));
+    }
 
-        [Fact]
-        public void ImplicitInterfaceVarianceConversions02()
-        {
-            var source =
+    [Fact]
+    public void ImplicitInterfaceVarianceConversions02()
+    {
+        var source =
 @"interface I<T> { }
 interface IIn<in T> { }
 interface IOut<out T> { }
@@ -531,69 +531,69 @@ class E<T, U>
         iu = it;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(9, 14),
-                // (10,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(10, 14),
-                // (14,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(14, 14),
-                // (15,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(15, 14),
-                // (19,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(19, 14),
-                // (20,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(20, 14),
-                // (29,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(29, 14),
-                // (30,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(30, 14),
-                // (34,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(34, 14),
-                // (35,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(35, 14),
-                // (39,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(39, 14),
-                // (40,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(40, 14),
-                // (49,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(49, 14),
-                // (50,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(50, 14),
-                // (54,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(54, 14),
-                // (60,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(60, 14),
-                // (68,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(68, 14),
-                // (69,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(69, 14),
-                // (73,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(73, 14),
-                // (74,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(74, 14),
-                // (78,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(78, 14),
-                // (79,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(79, 14),
-                // (88,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(88, 14),
-                // (89,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(89, 14),
-                // (93,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(93, 14),
-                // (94,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(94, 14),
-                // (98,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(98, 14),
-                // (99,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(99, 14));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(9, 14),
+            // (10,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(10, 14),
+            // (14,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(14, 14),
+            // (15,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(15, 14),
+            // (19,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(19, 14),
+            // (20,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(20, 14),
+            // (29,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(29, 14),
+            // (30,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(30, 14),
+            // (34,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(34, 14),
+            // (35,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(35, 14),
+            // (39,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(39, 14),
+            // (40,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(40, 14),
+            // (49,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(49, 14),
+            // (50,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(50, 14),
+            // (54,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(54, 14),
+            // (60,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(60, 14),
+            // (68,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(68, 14),
+            // (69,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(69, 14),
+            // (73,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(73, 14),
+            // (74,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(74, 14),
+            // (78,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(78, 14),
+            // (79,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(79, 14),
+            // (88,14): error CS0266: Cannot implicitly convert type 'I<U>' to 'I<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("I<U>", "I<T>").WithLocation(88, 14),
+            // (89,14): error CS0266: Cannot implicitly convert type 'I<T>' to 'I<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("I<T>", "I<U>").WithLocation(89, 14),
+            // (93,14): error CS0266: Cannot implicitly convert type 'IIn<U>' to 'IIn<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IIn<U>", "IIn<T>").WithLocation(93, 14),
+            // (94,14): error CS0266: Cannot implicitly convert type 'IIn<T>' to 'IIn<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IIn<T>", "IIn<U>").WithLocation(94, 14),
+            // (98,14): error CS0266: Cannot implicitly convert type 'IOut<U>' to 'IOut<T>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "iu").WithArguments("IOut<U>", "IOut<T>").WithLocation(98, 14),
+            // (99,14): error CS0266: Cannot implicitly convert type 'IOut<T>' to 'IOut<U>'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "it").WithArguments("IOut<T>", "IOut<U>").WithLocation(99, 14));
+    }
 
-        [Fact]
-        public void ImplicitReferenceConversions()
-        {
-            var source =
+    [Fact]
+    public void ImplicitReferenceConversions()
+    {
+        var source =
 @"class C<T, U>
     where T : U
     where U : class
@@ -604,15 +604,15 @@ class E<T, U>
         x = u;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(8, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): error CS0266: Cannot implicitly convert type 'U' to 'X'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "u").WithArguments("U", "X").WithLocation(8, 13));
+    }
 
-        [Fact]
-        public void ImplicitBoxingConversions()
-        {
-            var source =
+    [Fact]
+    public void ImplicitBoxingConversions()
+    {
+        var source =
 @"class C<T, U>
     where T : class
     where U : T
@@ -625,15 +625,15 @@ class E<T, U>
         y = t;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,13): error CS0266: Cannot implicitly convert type 'T' to 'Y'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "Y").WithLocation(10, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,13): error CS0266: Cannot implicitly convert type 'T' to 'Y'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "Y").WithLocation(10, 13));
+    }
 
-        [Fact]
-        public void ImplicitInterfaceConversionsCircularConstraint()
-        {
-            var source =
+    [Fact]
+    public void ImplicitInterfaceConversionsCircularConstraint()
+    {
+        var source =
 @"interface I { }
 class C<T, U>
     where T : T
@@ -648,22 +648,22 @@ class C<T, U>
         i = v;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (2,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(2, 9),
-                // (2,12): error CS0454: Circular constraint dependency involving 'U' and 'U'
-                Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 12),
-                // (10,13): error CS0266: Cannot implicitly convert type 'T' to 'I'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "I").WithLocation(10, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+            Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(2, 9),
+            // (2,12): error CS0454: Circular constraint dependency involving 'U' and 'U'
+            Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 12),
+            // (10,13): error CS0266: Cannot implicitly convert type 'T' to 'I'. An explicit conversion exists (are you missing a cast?)
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "I").WithLocation(10, 13));
+    }
 
-        /// <summary>
-        /// 6.2.7, bullet 1
-        /// </summary>
-        [Fact]
-        public void ExplicitBaseClassConversions()
-        {
-            var source =
+    /// <summary>
+    /// 6.2.7, bullet 1
+    /// </summary>
+    [Fact]
+    public void ExplicitBaseClassConversions()
+    {
+        var source =
 @"class A { }
 class B1<T> : A { }
 class C<T> : B1<T> { }
@@ -688,24 +688,24 @@ class D<T>
         u = (U)b2;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (14,13): error CS0030: Cannot convert type 'B1<T>' to 'T'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)b1t").WithArguments("B1<T>", "T").WithLocation(14, 13),
-                // (16,13): error CS0030: Cannot convert type 'B2' to 'T'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)b2").WithArguments("B2", "T").WithLocation(16, 13),
-                // (21,13): error CS0030: Cannot convert type 'B1<object>' to 'U'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)b1o").WithArguments("B1<object>", "U").WithLocation(21, 13),
-                // (22,13): error CS0030: Cannot convert type 'B2' to 'U'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)b2").WithArguments("B2", "U").WithLocation(22, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (14,13): error CS0030: Cannot convert type 'B1<T>' to 'T'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)b1t").WithArguments("B1<T>", "T").WithLocation(14, 13),
+            // (16,13): error CS0030: Cannot convert type 'B2' to 'T'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)b2").WithArguments("B2", "T").WithLocation(16, 13),
+            // (21,13): error CS0030: Cannot convert type 'B1<object>' to 'U'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)b1o").WithArguments("B1<object>", "U").WithLocation(21, 13),
+            // (22,13): error CS0030: Cannot convert type 'B2' to 'U'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)b2").WithArguments("B2", "U").WithLocation(22, 13));
+    }
 
-        /// <summary>
-        /// 6.2.7, bullet 2
-        /// </summary>
-        [Fact]
-        public void ExplicitConversionFromInterface()
-        {
-            var source =
+    /// <summary>
+    /// 6.2.7, bullet 2
+    /// </summary>
+    [Fact]
+    public void ExplicitConversionFromInterface()
+    {
+        var source =
 @"interface IA { }
 interface IB : IA { }
 interface IC<T> { }
@@ -727,16 +727,16 @@ class A<T>
         u = (U)ct;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        /// <summary>
-        /// 6.2.7, bullet 3
-        /// </summary>
-        [Fact]
-        public void ExplicitConversionToInterface()
-        {
-            var source =
+    /// <summary>
+    /// 6.2.7, bullet 3
+    /// </summary>
+    [Fact]
+    public void ExplicitConversionToInterface()
+    {
+        var source =
 @"interface IA { }
 interface IB : IA { }
 interface IC<T> { }
@@ -759,16 +759,16 @@ class A<T>
         ct = (IC<T>)u;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        /// <summary>
-        /// 6.2.7, bullet 4
-        /// </summary>
-        [Fact]
-        public void ExplicitConversionToTypeParameter()
-        {
-            var source =
+    /// <summary>
+    /// 6.2.7, bullet 4
+    /// </summary>
+    [Fact]
+    public void ExplicitConversionToTypeParameter()
+    {
+        var source =
 @"class C<T, U, V, W>
     where T : U, V, W
     where U : V, W
@@ -787,20 +787,20 @@ class A<T>
         v = (V)w;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (16,13): error CS0030: Cannot convert type 'W' to 'V'
-                //         v = (V)w;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(V)w").WithArguments("W", "V"),
-                // (8,14): warning CS0649: Field 'C<T, U, V, W>.w' is never assigned to, and will always have its default value 
-                //     static W w;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "w").WithArguments("C<T, U, V, W>.w", "")
-            );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (16,13): error CS0030: Cannot convert type 'W' to 'V'
+            //         v = (V)w;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(V)w").WithArguments("W", "V"),
+            // (8,14): warning CS0649: Field 'C<T, U, V, W>.w' is never assigned to, and will always have its default value 
+            //     static W w;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "w").WithArguments("C<T, U, V, W>.w", "")
+        );
+    }
 
-        [Fact]
-        public void NoConversionsToValueType()
-        {
-            var source =
+    [Fact]
+    public void NoConversionsToValueType()
+    {
+        var source =
 @"abstract class A<T>
 {
     internal abstract void M<U>(T t, U u) where U : T;
@@ -815,24 +815,24 @@ class B : A<int>
         t = (int)u;
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'U'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int", "U").WithLocation(9, 13),
-                // (10,13): error CS0030: Cannot convert type 'int' to 'U'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)t").WithArguments("int", "U").WithLocation(10, 13),
-                // (11,13): error CS0029: Cannot implicitly convert type 'U' to 'int'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "int").WithLocation(11, 13),
-                // (12,13): error CS0030: Cannot convert type 'U' to 'int'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)u").WithArguments("U", "int").WithLocation(12, 13));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,13): error CS0029: Cannot implicitly convert type 'int' to 'U'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("int", "U").WithLocation(9, 13),
+            // (10,13): error CS0030: Cannot convert type 'int' to 'U'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(U)t").WithArguments("int", "U").WithLocation(10, 13),
+            // (11,13): error CS0029: Cannot implicitly convert type 'U' to 'int'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "u").WithArguments("U", "int").WithLocation(11, 13),
+            // (12,13): error CS0030: Cannot convert type 'U' to 'int'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)u").WithArguments("U", "int").WithLocation(12, 13));
+    }
 
-        /// <summary>
-        /// 6.1.10
-        /// </summary>
-        [ClrOnlyFact]
-        public void EmitImplicitConversions()
-        {
-            var source =
+    /// <summary>
+    /// 6.1.10
+    /// </summary>
+    [ClrOnlyFact]
+    public void EmitImplicitConversions()
+    {
+        var source =
 @"interface I { }
 interface I<in T> { }
 class A { }
@@ -864,8 +864,8 @@ class C<T1, T2, T3, T4, T5, T6>
         F6(e);
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C<T1, T2, T3, T4, T5, T6>.M(T1, T2, T3, T5, T6)",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C<T1, T2, T3, T4, T5, T6>.M(T1, T2, T3, T5, T6)",
 @"{
   // Code size       62 (0x3e)
   .maxstack  1
@@ -887,15 +887,15 @@ class C<T1, T2, T3, T4, T5, T6>
   IL_0038:  call       ""void C<T1, T2, T3, T4, T5, T6>.F6(I<B>)""
   IL_003d:  ret
 }");
-        }
+    }
 
-        /// <summary>
-        /// 6.2.7
-        /// </summary>
-        [ClrOnlyFact]
-        public void EmitExplicitConversions()
-        {
-            var source =
+    /// <summary>
+    /// 6.2.7
+    /// </summary>
+    [ClrOnlyFact]
+    public void EmitExplicitConversions()
+    {
+        var source =
 @"interface I { }
 class C<T1, T2, T3, T4, T5>
     where T2 : I
@@ -918,8 +918,8 @@ class C<T1, T2, T3, T4, T5>
         F5((T5)d);
     }
 }";
-            var compilation = CompileAndVerify(source);
-            compilation.VerifyIL("C<T1, T2, T3, T4, T5>.M(object, I, T3, T4)",
+        var compilation = CompileAndVerify(source);
+        compilation.VerifyIL("C<T1, T2, T3, T4, T5>.M(object, I, T3, T4)",
 @"{
   // Code size       55 (0x37)
   .maxstack  1
@@ -939,12 +939,12 @@ class C<T1, T2, T3, T4, T5>
   IL_0031:  call       ""void C<T1, T2, T3, T4, T5>.F5(T5)""
   IL_0036:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ImplicitUserDefinedConversion()
-        {
-            var source =
+    [Fact]
+    public void ImplicitUserDefinedConversion()
+    {
+        var source =
 @"class C0 { }
 class C1
 {
@@ -967,17 +967,17 @@ class C
     // Implicit conversion to type parameter (error).
     static T F4<T>(C4<T> c) { return c; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (17,48): error CS0029: Cannot implicitly convert type 'T' to 'C0'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "C0").WithLocation(17, 48),
-                // (21,38): error CS0029: Cannot implicitly convert type 'C4<T>' to 'T'
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c").WithArguments("C4<T>", "T").WithLocation(21, 38));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (17,48): error CS0029: Cannot implicitly convert type 'T' to 'C0'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "C0").WithLocation(17, 48),
+            // (21,38): error CS0029: Cannot implicitly convert type 'C4<T>' to 'T'
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c").WithArguments("C4<T>", "T").WithLocation(21, 38));
+    }
 
-        [Fact]
-        public void ExplicitUserDefinedConversion()
-        {
-            var source =
+    [Fact]
+    public void ExplicitUserDefinedConversion()
+    {
+        var source =
 @"class C0 { }
 class C1
 {
@@ -1000,23 +1000,23 @@ class C
     // Explicit conversion to type parameter (error).
     static T F4<T>(C4<T> c) { return (T)c; }
 }";
-            // Note: Dev10 also reports "CS0030: Cannot convert type 'T' to 'C0'" in F1<T>(T),
-            // although there is an explicit conversion from C1 to C0.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (17,48): error CS0030: Cannot convert type 'T' to 'C0'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C0)t").WithArguments("T", "C0").WithLocation(17, 48),
-                // (21,38): error CS0030: Cannot convert type 'C4<T>' to 'T'
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)c").WithArguments("C4<T>", "T").WithLocation(21, 38));
-        }
+        // Note: Dev10 also reports "CS0030: Cannot convert type 'T' to 'C0'" in F1<T>(T),
+        // although there is an explicit conversion from C1 to C0.
+        CreateCompilation(source).VerifyDiagnostics(
+            // (17,48): error CS0030: Cannot convert type 'T' to 'C0'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C0)t").WithArguments("T", "C0").WithLocation(17, 48),
+            // (21,38): error CS0030: Cannot convert type 'C4<T>' to 'T'
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T)c").WithArguments("C4<T>", "T").WithLocation(21, 38));
+    }
 
-        /// <summary>
-        /// Dev10 does not report errors for implicit or explicit conversions between
-        /// base and derived types if one of those types is a type parameter.
-        /// </summary>
-        [Fact]
-        public void UserDefinedConversionsBaseToFromDerived()
-        {
-            var source =
+    /// <summary>
+    /// Dev10 does not report errors for implicit or explicit conversions between
+    /// base and derived types if one of those types is a type parameter.
+    /// </summary>
+    [Fact]
+    public void UserDefinedConversionsBaseToFromDerived()
+    {
+        var source =
 @"class A { }
 class B1 : A
 {
@@ -1050,15 +1050,14 @@ class C4<T> where T : C4<T>
 {
     public static explicit operator T(C4<T> c) { return null; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (4,37): error CS0553: 'B1.implicit operator A(B1)': user-defined conversions to or from a base type are not allowed
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B1.implicit operator A(B1)").WithLocation(4, 37),
-                // (8,37): error CS0553: 'B2.explicit operator A(B2)': user-defined conversions to or from a base type are not allowed
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B2.explicit operator A(B2)").WithLocation(8, 37),
-                // (12,37): error CS0553: 'B3.implicit operator B3(A)': user-defined conversions to or from a base type are not allowed
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "B3").WithArguments("B3.implicit operator B3(A)").WithLocation(12, 37),
-                // (16,37): error CS0553: 'B4.explicit operator B4(A)': user-defined conversions to or from a base type are not allowed
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "B4").WithArguments("B4.explicit operator B4(A)").WithLocation(16, 37));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,37): error CS0553: 'B1.implicit operator A(B1)': user-defined conversions to or from a base type are not allowed
+            Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B1.implicit operator A(B1)").WithLocation(4, 37),
+            // (8,37): error CS0553: 'B2.explicit operator A(B2)': user-defined conversions to or from a base type are not allowed
+            Diagnostic(ErrorCode.ERR_ConversionWithBase, "A").WithArguments("B2.explicit operator A(B2)").WithLocation(8, 37),
+            // (12,37): error CS0553: 'B3.implicit operator B3(A)': user-defined conversions to or from a base type are not allowed
+            Diagnostic(ErrorCode.ERR_ConversionWithBase, "B3").WithArguments("B3.implicit operator B3(A)").WithLocation(12, 37),
+            // (16,37): error CS0553: 'B4.explicit operator B4(A)': user-defined conversions to or from a base type are not allowed
+            Diagnostic(ErrorCode.ERR_ConversionWithBase, "B4").WithArguments("B4.explicit operator B4(A)").WithLocation(16, 37));
     }
 }

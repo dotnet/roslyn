@@ -5,15 +5,14 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Microsoft.CodeAnalysis.Interactive
-{
-    internal sealed class InteractiveWindowWorkspace : InteractiveWorkspace
-    {
-        public IInteractiveWindow? Window { get; set; }
+namespace Microsoft.CodeAnalysis.Interactive;
 
-        public InteractiveWindowWorkspace(HostServices hostServices)
-            : base(hostServices)
-        {
-        }
+internal sealed class InteractiveWindowWorkspace : InteractiveWorkspace
+{
+    public IInteractiveWindow? Window { get; set; }
+
+    public InteractiveWindowWorkspace(HostServices hostServices)
+        : base(hostServices)
+    {
     }
 }

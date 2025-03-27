@@ -6,22 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace BuildValidator
+namespace BuildValidator;
+
+internal sealed class FileNameEqualityComparer : IEqualityComparer<FileInfo>
 {
-    internal sealed class FileNameEqualityComparer : IEqualityComparer<FileInfo>
+    public const StringComparison StringComparison = System.StringComparison.OrdinalIgnoreCase;
+    public static readonly StringComparer StringComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly FileNameEqualityComparer Instance = new FileNameEqualityComparer();
+
+    private FileNameEqualityComparer()
     {
-        public const StringComparison StringComparison = System.StringComparison.OrdinalIgnoreCase;
-        public static readonly StringComparer StringComparer = StringComparer.OrdinalIgnoreCase;
-        public static readonly FileNameEqualityComparer Instance = new FileNameEqualityComparer();
-
-        private FileNameEqualityComparer()
-        {
-        }
-
-        public bool Equals(FileInfo? x, FileInfo? y)
-            => StringComparer.Equals(x?.Name, y?.Name);
-
-        public int GetHashCode(FileInfo? file)
-            => file?.Name.GetHashCode() ?? 0;
     }
+
+    public bool Equals(FileInfo? x, FileInfo? y)
+        => StringComparer.Equals(x?.Name, y?.Name);
+
+    public int GetHashCode(FileInfo? file)
+        => file?.Name.GetHashCode() ?? 0;
 }

@@ -6,15 +6,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents errors that occur while parsing RuleSet files.
+/// </summary>
+internal class InvalidRuleSetException : Exception
 {
-    /// <summary>
-    /// Represents errors that occur while parsing RuleSet files.
-    /// </summary>
-    internal class InvalidRuleSetException : Exception
-    {
-        public InvalidRuleSetException() { }
-        public InvalidRuleSetException(string message) : base(message) { }
-        public InvalidRuleSetException(string message, Exception inner) : base(message, inner) { }
-    }
+    public InvalidRuleSetException() { }
+    public InvalidRuleSetException(string message) : base(message) { }
+    public InvalidRuleSetException(string message, Exception inner) : base(message, inner) { }
 }

@@ -10,19 +10,19 @@ using System.Threading.Tasks;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
 
-namespace IdeBenchmarks.StackTraceExplorer
-{
-    [MemoryDiagnoser]
-    public class StackTraceExplorerBenchmarks
-    {
-        [Benchmark]
-        public async Task BenchmarkStackTraceParsing()
-        {
-            var result = await Microsoft.CodeAnalysis.StackTraceExplorer.StackTraceAnalyzer.AnalyzeAsync(Stack, CancellationToken.None);
-            Console.WriteLine($"Total {result.ParsedFrames.Length} items");
-        }
+namespace IdeBenchmarks.StackTraceExplorer;
 
-        private const string Stack = @"
+[MemoryDiagnoser]
+public class StackTraceExplorerBenchmarks
+{
+    [Benchmark]
+    public async Task BenchmarkStackTraceParsing()
+    {
+        var result = await Microsoft.CodeAnalysis.StackTraceExplorer.StackTraceAnalyzer.AnalyzeAsync(Stack, CancellationToken.None);
+        Console.WriteLine($"Total {result.ParsedFrames.Length} items");
+    }
+
+    private const string Stack = @"
 Stack overflow.
    at Microsoft.DotNet.Cli.ParseResultExtensions.ShowHelpOrErrorIfAppropriate(System.CommandLine.Parsing.ParseResult)
    at Microsoft.DotNet.Cli.CommandBase.ShowHelpOrErrorIfAppropriate(System.CommandLine.Parsing.ParseResult)
@@ -1766,5 +1766,4 @@ Stack overflow.
    at Microsoft.DotNet.Cli.Program.ProcessArgs(System.String[], System.TimeSpan, Microsoft.DotNet.Cli.Telemetry.ITelemetry)
    at Microsoft.DotNet.Cli.Program.Main(System.String[])";
 
-    }
 }

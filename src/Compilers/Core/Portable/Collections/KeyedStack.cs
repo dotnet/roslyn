@@ -10,36 +10,35 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Collections
+namespace Microsoft.CodeAnalysis.Collections;
+
+internal class KeyedStack<T, R>
+    where T : notnull
 {
-    internal class KeyedStack<T, R>
-        where T : notnull
+    private readonly Dictionary<T, Stack<R>> _dict = new Dictionary<T, Stack<R>>();
+
+    public void Push(T key, R value)
     {
-        private readonly Dictionary<T, Stack<R>> _dict = new Dictionary<T, Stack<R>>();
-
-        public void Push(T key, R value)
+        Stack<R>? store;
+        if (!_dict.TryGetValue(key, out store))
         {
-            Stack<R>? store;
-            if (!_dict.TryGetValue(key, out store))
-            {
-                store = new Stack<R>();
-                _dict.Add(key, store);
-            }
-
-            store.Push(value);
+            store = new Stack<R>();
+            _dict.Add(key, store);
         }
 
-        public bool TryPop(T key, [MaybeNullWhen(returnValue: false)] out R value)
-        {
-            Stack<R>? store;
-            if (_dict.TryGetValue(key, out store) && store.Count > 0)
-            {
-                value = store.Pop();
-                return true;
-            }
+        store.Push(value);
+    }
 
-            value = default(R)!;
-            return false;
+    public bool TryPop(T key, [MaybeNullWhen(returnValue: false)] out R value)
+    {
+        Stack<R>? store;
+        if (_dict.TryGetValue(key, out store) && store.Count > 0)
+        {
+            value = store.Pop();
+            return true;
         }
+
+        value = default(R)!;
+        return false;
     }
 }

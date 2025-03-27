@@ -15,232 +15,231 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal class SourceFixedFieldSymbol : SourceMemberFieldSymbolFromDeclarator
 {
-    internal class SourceFixedFieldSymbol : SourceMemberFieldSymbolFromDeclarator
+    private const int FixedSizeNotInitialized = -1;
+
+    // In a fixed-size field declaration, stores the fixed size of the buffer
+    private int _fixedSize = FixedSizeNotInitialized;
+
+    internal SourceFixedFieldSymbol(
+        SourceMemberContainerTypeSymbol containingType,
+        VariableDeclaratorSyntax declarator,
+        DeclarationModifiers modifiers,
+        bool modifierErrors,
+        BindingDiagnosticBag diagnostics)
+        : base(containingType, declarator, modifiers, modifierErrors, diagnostics)
     {
-        private const int FixedSizeNotInitialized = -1;
+        // Checked in parser: a fixed field declaration requires a length in square brackets
 
-        // In a fixed-size field declaration, stores the fixed size of the buffer
-        private int _fixedSize = FixedSizeNotInitialized;
+        Debug.Assert(this.IsFixedSizeBuffer);
+    }
 
-        internal SourceFixedFieldSymbol(
-            SourceMemberContainerTypeSymbol containingType,
-            VariableDeclaratorSyntax declarator,
-            DeclarationModifiers modifiers,
-            bool modifierErrors,
-            BindingDiagnosticBag diagnostics)
-            : base(containingType, declarator, modifiers, modifierErrors, diagnostics)
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+        var compilation = this.DeclaringCompilation;
+        var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
+        var intType = compilation.GetSpecialType(SpecialType.System_Int32);
+        var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
+        var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
+        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
+            WellKnownMember.System_Runtime_CompilerServices_FixedBufferAttribute__ctor,
+            ImmutableArray.Create<TypedConstant>(item1, item2)));
+    }
+
+    public sealed override int FixedSize
+    {
+        get
         {
-            // Checked in parser: a fixed field declaration requires a length in square brackets
-
-            Debug.Assert(this.IsFixedSizeBuffer);
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            var compilation = this.DeclaringCompilation;
-            var systemType = compilation.GetWellKnownType(WellKnownType.System_Type);
-            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
-            var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                WellKnownMember.System_Runtime_CompilerServices_FixedBufferAttribute__ctor,
-                ImmutableArray.Create<TypedConstant>(item1, item2)));
-        }
-
-        public sealed override int FixedSize
-        {
-            get
+            if (_fixedSize == FixedSizeNotInitialized)
             {
-                if (_fixedSize == FixedSizeNotInitialized)
-                {
-                    BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
-                    int size = 0;
+                BindingDiagnosticBag diagnostics = BindingDiagnosticBag.GetInstance();
+                int size = 0;
 
-                    VariableDeclaratorSyntax declarator = VariableDeclaratorNode;
-                    if (declarator.ArgumentList == null)
+                VariableDeclaratorSyntax declarator = VariableDeclaratorNode;
+                if (declarator.ArgumentList == null)
+                {
+                    // Diagnostic reported by parser.
+                }
+                else
+                {
+                    SeparatedSyntaxList<ArgumentSyntax> arguments = declarator.ArgumentList.Arguments;
+
+                    if (arguments.Count == 0 || arguments[0].Expression.Kind() == SyntaxKind.OmittedArraySizeExpression)
                     {
-                        // Diagnostic reported by parser.
+                        Debug.Assert(declarator.ArgumentList.ContainsDiagnostics, "The parser should have caught this.");
                     }
                     else
                     {
-                        SeparatedSyntaxList<ArgumentSyntax> arguments = declarator.ArgumentList.Arguments;
-
-                        if (arguments.Count == 0 || arguments[0].Expression.Kind() == SyntaxKind.OmittedArraySizeExpression)
+                        if (arguments.Count > 1)
                         {
-                            Debug.Assert(declarator.ArgumentList.ContainsDiagnostics, "The parser should have caught this.");
+                            diagnostics.Add(ErrorCode.ERR_FixedBufferTooManyDimensions, declarator.ArgumentList.Location);
                         }
-                        else
+
+                        ExpressionSyntax sizeExpression = arguments[0].Expression;
+
+                        BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(SyntaxTree);
+                        Binder binder = binderFactory.GetBinder(sizeExpression);
+                        binder = new ExecutableCodeBinder(sizeExpression, binder.ContainingMemberOrLambda, binder).GetBinder(sizeExpression);
+
+                        TypeSymbol intType = binder.GetSpecialType(SpecialType.System_Int32, diagnostics, sizeExpression);
+                        BoundExpression boundSizeExpression = binder.GenerateConversionForAssignment(
+                            intType,
+                            binder.BindValue(sizeExpression, diagnostics, Binder.BindValueKind.RValue),
+                            diagnostics);
+
+                        // GetAndValidateConstantValue doesn't generate a very intuitive-reading diagnostic
+                        // for this situation, but this is what the Dev10 compiler produces.
+                        ConstantValue sizeConstant = ConstantValueUtils.GetAndValidateConstantValue(boundSizeExpression, this, intType, sizeExpression, diagnostics);
+
+                        Debug.Assert(sizeConstant != null);
+                        Debug.Assert(sizeConstant.IsIntegral || diagnostics.HasAnyErrors() || sizeExpression.HasErrors);
+
+                        if (sizeConstant.IsIntegral)
                         {
-                            if (arguments.Count > 1)
+                            int int32Value = sizeConstant.Int32Value;
+                            if (int32Value > 0)
                             {
-                                diagnostics.Add(ErrorCode.ERR_FixedBufferTooManyDimensions, declarator.ArgumentList.Location);
+                                size = int32Value;
+
+                                TypeSymbol elementType = ((PointerTypeSymbol)this.Type).PointedAtType;
+                                int elementSize = elementType.FixedBufferElementSizeInBytes();
+                                long totalSize = elementSize * 1L * int32Value;
+                                if (totalSize > int.MaxValue)
+                                {
+                                    // Fixed size buffer of length '{0}' and type '{1}' is too big
+                                    diagnostics.Add(ErrorCode.ERR_FixedOverflow, sizeExpression.Location, int32Value, elementType);
+                                }
                             }
-
-                            ExpressionSyntax sizeExpression = arguments[0].Expression;
-
-                            BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(SyntaxTree);
-                            Binder binder = binderFactory.GetBinder(sizeExpression);
-                            binder = new ExecutableCodeBinder(sizeExpression, binder.ContainingMemberOrLambda, binder).GetBinder(sizeExpression);
-
-                            TypeSymbol intType = binder.GetSpecialType(SpecialType.System_Int32, diagnostics, sizeExpression);
-                            BoundExpression boundSizeExpression = binder.GenerateConversionForAssignment(
-                                intType,
-                                binder.BindValue(sizeExpression, diagnostics, Binder.BindValueKind.RValue),
-                                diagnostics);
-
-                            // GetAndValidateConstantValue doesn't generate a very intuitive-reading diagnostic
-                            // for this situation, but this is what the Dev10 compiler produces.
-                            ConstantValue sizeConstant = ConstantValueUtils.GetAndValidateConstantValue(boundSizeExpression, this, intType, sizeExpression, diagnostics);
-
-                            Debug.Assert(sizeConstant != null);
-                            Debug.Assert(sizeConstant.IsIntegral || diagnostics.HasAnyErrors() || sizeExpression.HasErrors);
-
-                            if (sizeConstant.IsIntegral)
+                            else
                             {
-                                int int32Value = sizeConstant.Int32Value;
-                                if (int32Value > 0)
-                                {
-                                    size = int32Value;
-
-                                    TypeSymbol elementType = ((PointerTypeSymbol)this.Type).PointedAtType;
-                                    int elementSize = elementType.FixedBufferElementSizeInBytes();
-                                    long totalSize = elementSize * 1L * int32Value;
-                                    if (totalSize > int.MaxValue)
-                                    {
-                                        // Fixed size buffer of length '{0}' and type '{1}' is too big
-                                        diagnostics.Add(ErrorCode.ERR_FixedOverflow, sizeExpression.Location, int32Value, elementType);
-                                    }
-                                }
-                                else
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_InvalidFixedArraySize, sizeExpression.Location);
-                                }
+                                diagnostics.Add(ErrorCode.ERR_InvalidFixedArraySize, sizeExpression.Location);
                             }
                         }
                     }
-
-                    // Winner writes diagnostics.
-                    if (Interlocked.CompareExchange(ref _fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                        state.NotePartComplete(CompletionPart.FixedSize);
-                    }
-
-                    diagnostics.Free();
                 }
 
-                Debug.Assert(_fixedSize != FixedSizeNotInitialized);
-                return _fixedSize;
-            }
-        }
+                // Winner writes diagnostics.
+                if (Interlocked.CompareExchange(ref _fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                    state.NotePartComplete(CompletionPart.FixedSize);
+                }
 
-        internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
-        {
-            return emitModule.SetFixedImplementationType(this);
+                diagnostics.Free();
+            }
+
+            Debug.Assert(_fixedSize != FixedSizeNotInitialized);
+            return _fixedSize;
         }
     }
 
-    internal sealed class FixedFieldImplementationType : SynthesizedContainer
+    internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
     {
-        internal const string FixedElementFieldName = "FixedElementField";
-
-        private readonly SourceMemberFieldSymbol _field;
-        private readonly MethodSymbol _constructor;
-        private readonly FieldSymbol _internalField;
-
-        public FixedFieldImplementationType(SourceMemberFieldSymbol field)
-            : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name))
-        {
-            _field = field;
-            _constructor = new SynthesizedInstanceConstructor(this);
-            _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
-        }
-
-        public override Symbol ContainingSymbol
-        {
-            get { return _field.ContainingType; }
-        }
-
-        public override TypeKind TypeKind
-        {
-            get { return TypeKind.Struct; }
-        }
-
-        internal override MethodSymbol Constructor
-        {
-            get { return _constructor; }
-        }
-
-        internal override TypeLayout Layout
-        {
-            get
-            {
-                int nElements = _field.FixedSize;
-                var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
-                int elementSize = elementType.FixedBufferElementSizeInBytes();
-                const int alignment = 0;
-                int totalSize = nElements * elementSize;
-                const LayoutKind layoutKind = LayoutKind.Sequential;
-                return new TypeLayout(layoutKind, totalSize, alignment);
-            }
-        }
-
-        internal override CharSet MarshallingCharSet
-        {
-            get
-            {
-                // We manually propagate the CharSet field of StructLayout attribute for fabricated structs implementing fixed buffers.
-                // See void AttrBind::EmitStructLayoutAttributeCharSet(AttributeNode *attr) in native codebase.
-                return _field.ContainingType.MarshallingCharSet;
-            }
-        }
-        internal override FieldSymbol FixedElementField
-        {
-            get { return _internalField; }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            var compilation = ContainingSymbol.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
-        }
-
-        public override IEnumerable<string> MemberNames
-        {
-            get { return SpecializedCollections.SingletonEnumerable(FixedElementFieldName); }
-        }
-
-        public override ImmutableArray<Symbol> GetMembers()
-        {
-            return ImmutableArray.Create<Symbol>(_constructor, _internalField);
-        }
-
-        public override ImmutableArray<Symbol> GetMembers(string name)
-        {
-            return
-                (name == _constructor.Name) ? ImmutableArray.Create<Symbol>(_constructor) :
-                (name == FixedElementFieldName) ? ImmutableArray.Create<Symbol>(_internalField) :
-                ImmutableArray<Symbol>.Empty;
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get { return Accessibility.Public; }
-        }
-
-        internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
-            => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
-
-        public sealed override bool AreLocalsZeroed
-            => throw ExceptionUtilities.Unreachable();
-
-        internal override bool IsRecord => false;
-        internal override bool IsRecordStruct => false;
-        internal override bool HasPossibleWellKnownCloneMethod() => false;
+        return emitModule.SetFixedImplementationType(this);
     }
+}
+
+internal sealed class FixedFieldImplementationType : SynthesizedContainer
+{
+    internal const string FixedElementFieldName = "FixedElementField";
+
+    private readonly SourceMemberFieldSymbol _field;
+    private readonly MethodSymbol _constructor;
+    private readonly FieldSymbol _internalField;
+
+    public FixedFieldImplementationType(SourceMemberFieldSymbol field)
+        : base(GeneratedNames.MakeFixedFieldImplementationName(field.Name))
+    {
+        _field = field;
+        _constructor = new SynthesizedInstanceConstructor(this);
+        _internalField = new SynthesizedFieldSymbol(this, ((PointerTypeSymbol)field.Type).PointedAtType, FixedElementFieldName, isPublic: true);
+    }
+
+    public override Symbol ContainingSymbol
+    {
+        get { return _field.ContainingType; }
+    }
+
+    public override TypeKind TypeKind
+    {
+        get { return TypeKind.Struct; }
+    }
+
+    internal override MethodSymbol Constructor
+    {
+        get { return _constructor; }
+    }
+
+    internal override TypeLayout Layout
+    {
+        get
+        {
+            int nElements = _field.FixedSize;
+            var elementType = ((PointerTypeSymbol)_field.Type).PointedAtType;
+            int elementSize = elementType.FixedBufferElementSizeInBytes();
+            const int alignment = 0;
+            int totalSize = nElements * elementSize;
+            const LayoutKind layoutKind = LayoutKind.Sequential;
+            return new TypeLayout(layoutKind, totalSize, alignment);
+        }
+    }
+
+    internal override CharSet MarshallingCharSet
+    {
+        get
+        {
+            // We manually propagate the CharSet field of StructLayout attribute for fabricated structs implementing fixed buffers.
+            // See void AttrBind::EmitStructLayoutAttributeCharSet(AttributeNode *attr) in native codebase.
+            return _field.ContainingType.MarshallingCharSet;
+        }
+    }
+    internal override FieldSymbol FixedElementField
+    {
+        get { return _internalField; }
+    }
+
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        var compilation = ContainingSymbol.DeclaringCompilation;
+        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
+    }
+
+    public override IEnumerable<string> MemberNames
+    {
+        get { return SpecializedCollections.SingletonEnumerable(FixedElementFieldName); }
+    }
+
+    public override ImmutableArray<Symbol> GetMembers()
+    {
+        return ImmutableArray.Create<Symbol>(_constructor, _internalField);
+    }
+
+    public override ImmutableArray<Symbol> GetMembers(string name)
+    {
+        return
+            (name == _constructor.Name) ? ImmutableArray.Create<Symbol>(_constructor) :
+            (name == FixedElementFieldName) ? ImmutableArray.Create<Symbol>(_internalField) :
+            ImmutableArray<Symbol>.Empty;
+    }
+
+    public override Accessibility DeclaredAccessibility
+    {
+        get { return Accessibility.Public; }
+    }
+
+    internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
+        => ContainingAssembly.GetSpecialType(SpecialType.System_ValueType);
+
+    public sealed override bool AreLocalsZeroed
+        => throw ExceptionUtilities.Unreachable();
+
+    internal override bool IsRecord => false;
+    internal override bool IsRecordStruct => false;
+    internal override bool HasPossibleWellKnownCloneMethod() => false;
 }

@@ -8,112 +8,111 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal static class OperationMapBuilder
 {
-    internal static class OperationMapBuilder
+    /// <summary>
+    /// Populates a empty dictionary of SyntaxNode->IOperation, where every key corresponds to an explicit IOperation node.
+    /// If there is a SyntaxNode with more than one explicit IOperation, this will throw.
+    /// </summary>
+    internal static void AddToMap(IOperation root, Dictionary<SyntaxNode, IOperation> dictionary)
     {
-        /// <summary>
-        /// Populates a empty dictionary of SyntaxNode->IOperation, where every key corresponds to an explicit IOperation node.
-        /// If there is a SyntaxNode with more than one explicit IOperation, this will throw.
-        /// </summary>
-        internal static void AddToMap(IOperation root, Dictionary<SyntaxNode, IOperation> dictionary)
+        Debug.Assert(dictionary.Count == 0);
+        Walker.Instance.Visit(root, dictionary);
+    }
+
+    private sealed class Walker : OperationWalker<Dictionary<SyntaxNode, IOperation>>
+    {
+        internal static readonly Walker Instance = new Walker();
+
+        public override object? DefaultVisit(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
         {
-            Debug.Assert(dictionary.Count == 0);
-            Walker.Instance.Visit(root, dictionary);
+            RecordOperation(operation, argument);
+            return base.DefaultVisit(operation, argument);
         }
 
-        private sealed class Walker : OperationWalker<Dictionary<SyntaxNode, IOperation>>
+        public override object? VisitBinaryOperator([DisallowNull] IBinaryOperation? operation, Dictionary<SyntaxNode, IOperation> argument)
         {
-            internal static readonly Walker Instance = new Walker();
-
-            public override object? DefaultVisit(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+            // In order to handle very large nested operators, we implement manual iteration here. Our operations are not order sensitive,
+            // so we don't need to maintain a stack, just iterate through every level.
+            while (true)
             {
                 RecordOperation(operation, argument);
-                return base.DefaultVisit(operation, argument);
-            }
-
-            public override object? VisitBinaryOperator([DisallowNull] IBinaryOperation? operation, Dictionary<SyntaxNode, IOperation> argument)
-            {
-                // In order to handle very large nested operators, we implement manual iteration here. Our operations are not order sensitive,
-                // so we don't need to maintain a stack, just iterate through every level.
-                while (true)
+                Visit(operation.RightOperand, argument);
+                if (operation.LeftOperand is IBinaryOperation nested)
                 {
-                    RecordOperation(operation, argument);
-                    Visit(operation.RightOperand, argument);
-                    if (operation.LeftOperand is IBinaryOperation nested)
-                    {
-                        operation = nested;
-                    }
-                    else
-                    {
-                        Visit(operation.LeftOperand, argument);
-                        break;
-                    }
+                    operation = nested;
                 }
-
-                return null;
-            }
-
-            public override object? VisitConditional(IConditionalOperation operation, Dictionary<SyntaxNode, IOperation> argument)
-            {
-                while (true)
+                else
                 {
-                    RecordOperation(operation, argument);
-                    Visit(operation.Condition, argument);
-                    Visit(operation.WhenTrue, argument);
-                    if (operation.WhenFalse is IConditionalOperation nested)
-                    {
-                        operation = nested;
-                    }
-                    else
-                    {
-                        Visit(operation.WhenFalse, argument);
-                        break;
-                    }
+                    Visit(operation.LeftOperand, argument);
+                    break;
                 }
-
-                return null;
             }
 
-            public override object? VisitBinaryPattern(IBinaryPatternOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+            return null;
+        }
+
+        public override object? VisitConditional(IConditionalOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+        {
+            while (true)
             {
-                // In order to handle very large nested patterns, we implement manual iteration here. Our operations are not order sensitive,
-                // so we don't need to maintain a stack, just iterate through every level.
-                while (true)
+                RecordOperation(operation, argument);
+                Visit(operation.Condition, argument);
+                Visit(operation.WhenTrue, argument);
+                if (operation.WhenFalse is IConditionalOperation nested)
                 {
-                    RecordOperation(operation, argument);
-                    Visit(operation.RightPattern, argument);
-                    if (operation.LeftPattern is IBinaryPatternOperation nested)
-                    {
-                        operation = nested;
-                    }
-                    else
-                    {
-                        Visit(operation.LeftPattern, argument);
-                        break;
-                    }
+                    operation = nested;
                 }
-
-                return null;
-            }
-
-            internal override object? VisitNoneOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
-            {
-                // OperationWalker skips these nodes by default, to avoid having public consumers deal with NoneOperation.
-                // we need to deal with it here, however, so delegate to DefaultVisit.
-                return DefaultVisit(operation, argument);
-            }
-
-            private static void RecordOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
-            {
-                if (!operation.IsImplicit)
+                else
                 {
-                    // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
-                    RoslynDebug.Assert(
-                        !argument.ContainsKey(operation.Syntax),
-                        $"Duplicate operation node for {operation.Syntax}. Existing node is {(argument.TryGetValue(operation.Syntax, out var original) ? (OperationKind?)original.Kind : null)}, new node is {operation.Kind}.");
-                    argument.Add(operation.Syntax, operation);
+                    Visit(operation.WhenFalse, argument);
+                    break;
                 }
+            }
+
+            return null;
+        }
+
+        public override object? VisitBinaryPattern(IBinaryPatternOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+        {
+            // In order to handle very large nested patterns, we implement manual iteration here. Our operations are not order sensitive,
+            // so we don't need to maintain a stack, just iterate through every level.
+            while (true)
+            {
+                RecordOperation(operation, argument);
+                Visit(operation.RightPattern, argument);
+                if (operation.LeftPattern is IBinaryPatternOperation nested)
+                {
+                    operation = nested;
+                }
+                else
+                {
+                    Visit(operation.LeftPattern, argument);
+                    break;
+                }
+            }
+
+            return null;
+        }
+
+        internal override object? VisitNoneOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+        {
+            // OperationWalker skips these nodes by default, to avoid having public consumers deal with NoneOperation.
+            // we need to deal with it here, however, so delegate to DefaultVisit.
+            return DefaultVisit(operation, argument);
+        }
+
+        private static void RecordOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+        {
+            if (!operation.IsImplicit)
+            {
+                // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
+                RoslynDebug.Assert(
+                    !argument.ContainsKey(operation.Syntax),
+                    $"Duplicate operation node for {operation.Syntax}. Existing node is {(argument.TryGetValue(operation.Syntax, out var original) ? (OperationKind?)original.Kind : null)}, new node is {operation.Kind}.");
+                argument.Add(operation.Syntax, operation);
             }
         }
     }

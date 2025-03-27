@@ -11,15 +11,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_ICoalesceOperation : SemanticModelTestBase
 {
-    public class IOperationTests_ICoalesceOperation : SemanticModelTestBase
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_01()
     {
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_01()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     void F(int? input, int alternative, int result)
@@ -28,14 +28,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'input ?? alternative')
   Expression: 
@@ -46,7 +46,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'input 
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -123,14 +123,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_02()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_02()
+    {
+        var source = @"
 class C
 {
     void F(int? input, long alternative, long result)
@@ -139,14 +139,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64) (Syntax: 'input ?? alternative')
   Expression: 
@@ -157,7 +157,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64) (Syntax: 'input 
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -238,14 +238,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_03()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_03()
+    {
+        var source = @"
 class C
 {
     void F(int? input, long? alternative, long? result)
@@ -254,14 +254,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64?) (Syntax: 'input ?? alternative')
   Expression: 
@@ -272,7 +272,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int64?) (Syntax: 'input
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int64?) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -353,14 +353,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_04()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_04()
+    {
+        var source = @"
 class C
 {
     void F(string input, object alternative, object result)
@@ -369,14 +369,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'input ?? alternative')
   Expression: 
@@ -387,7 +387,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Object) (Syntax: 'input
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -465,14 +465,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_05()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_05()
+    {
+        var source = @"
 class C
 {
     void F(int? input, System.DateTime alternative, object result)
@@ -481,18 +481,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,18): error CS0019: Operator '??' cannot be applied to operands of type 'int?' and 'DateTime'
-                //         result = input ?? alternative;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "input ?? alternative").WithArguments("??", "int?", "System.DateTime").WithLocation(6, 18)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,18): error CS0019: Operator '??' cannot be applied to operands of type 'int?' and 'DateTime'
+            //         result = input ?? alternative;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "input ?? alternative").WithArguments("??", "int?", "System.DateTime").WithLocation(6, 18)
+            );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'input ?? alternative')
   Expression: 
@@ -503,7 +503,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'input 
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.DateTime, IsInvalid) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -583,14 +583,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
-        public void CoalesceOperation_06()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+    public void CoalesceOperation_06()
+    {
+        var source = @"
 class C
 {
     void F(int? input, dynamic alternative, dynamic result)
@@ -598,14 +598,14 @@ class C
         result = input ?? alternative;
     }/*</bind>*/
 }";
-            var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
+        var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'input ?? alternative')
   Expression: 
@@ -616,7 +616,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'input ?? al
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -697,14 +697,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_07()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_07()
+    {
+        var source = @"
 class C
 {
     void F(dynamic alternative, dynamic result)
@@ -713,14 +713,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
+        var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'null ?? alternative')
   Expression: 
@@ -731,7 +731,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: dynamic) (Syntax: 'null ?? alt
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -809,14 +809,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_08()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_08()
+    {
+        var source = @"
 class C
 {
     void F(int alternative, int result)
@@ -825,18 +825,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,18): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and 'int'
-                //         result = null ?? alternative;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? alternative").WithArguments("??", "<null>", "int").WithLocation(6, 18)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,18): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and 'int'
+            //         result = null ?? alternative;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? alternative").WithArguments("??", "<null>", "int").WithLocation(6, 18)
+            );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'null ?? alternative')
   Expression: 
@@ -847,7 +847,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: ?, IsInvalid) (Syntax: 'null ?
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -927,14 +927,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_09()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_09()
+    {
+        var source = @"
 class C
 {
     void F(int? alternative, int? result)
@@ -943,14 +943,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'null ?? alternative')
   Expression: 
@@ -961,7 +961,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'null 
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1029,14 +1029,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_10()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_10()
+    {
+        var source = @"
 class C
 {
     void F(int? input, byte? alternative, int? result)
@@ -1045,14 +1045,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input ?? alternative')
   Expression: 
@@ -1066,7 +1066,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input
         IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Byte?) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1144,14 +1144,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_11()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_11()
+    {
+        var source = @"
 class C
 {
     void F(int? input, int? alternative, int? result)
@@ -1160,14 +1160,14 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+        var tree = compilation.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            compilation.VerifyOperationTree(node, expectedOperationTree:
+        compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
 ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input ?? alternative')
   Expression: 
@@ -1178,7 +1178,7 @@ ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32?) (Syntax: 'input
     IParameterReferenceOperation: alternative (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'alternative')
 ");
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1252,14 +1252,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_12()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_12()
+    {
+        var source = @"
 class C
 {
     void F(int? input1, int? alternative1, int? input2, int? alternative2, int? result)
@@ -1268,11 +1268,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1406,14 +1406,14 @@ Block[B11] - Exit
     Predecessors: [B10]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_13()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_13()
+    {
+        var source = @"
 class C
 {
     const string input = ""a"";
@@ -1424,11 +1424,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1508,14 +1508,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void CoalesceOperation_14()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void CoalesceOperation_14()
+    {
+        string source = @"
 class P
 {
     void M1(int? i, int j, int result)
@@ -1524,10 +1524,10 @@ class P
     }/*</bind>*/
 }
 ";
-            var compilation = CreateCompilationWithMscorlib461(source);
-            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+        var compilation = CreateCompilationWithMscorlib461(source);
+        compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1603,9 +1603,8 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
     }
 }

@@ -6,13 +6,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax;
+
+public enum XmlNameAttributeElementKind : byte
 {
-    public enum XmlNameAttributeElementKind : byte
-    {
-        Parameter = 0,
-        ParameterReference = 1,
-        TypeParameter = 2,
-        TypeParameterReference = 3,
-    }
+    Parameter = 0,
+    ParameterReference = 1,
+    TypeParameter = 2,
+    TypeParameterReference = 3,
 }

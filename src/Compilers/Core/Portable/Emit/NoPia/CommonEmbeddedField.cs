@@ -7,223 +7,222 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 
-namespace Microsoft.CodeAnalysis.Emit.NoPia
+namespace Microsoft.CodeAnalysis.Emit.NoPia;
+
+internal abstract partial class EmbeddedTypesManager<
+    TPEModuleBuilder,
+    TModuleCompilationState,
+    TEmbeddedTypesManager,
+    TSyntaxNode,
+    TAttributeData,
+    TSymbol,
+    TAssemblySymbol,
+    TNamedTypeSymbol,
+    TFieldSymbol,
+    TMethodSymbol,
+    TEventSymbol,
+    TPropertySymbol,
+    TParameterSymbol,
+    TTypeParameterSymbol,
+    TEmbeddedType,
+    TEmbeddedField,
+    TEmbeddedMethod,
+    TEmbeddedEvent,
+    TEmbeddedProperty,
+    TEmbeddedParameter,
+    TEmbeddedTypeParameter>
 {
-    internal abstract partial class EmbeddedTypesManager<
-        TPEModuleBuilder,
-        TModuleCompilationState,
-        TEmbeddedTypesManager,
-        TSyntaxNode,
-        TAttributeData,
-        TSymbol,
-        TAssemblySymbol,
-        TNamedTypeSymbol,
-        TFieldSymbol,
-        TMethodSymbol,
-        TEventSymbol,
-        TPropertySymbol,
-        TParameterSymbol,
-        TTypeParameterSymbol,
-        TEmbeddedType,
-        TEmbeddedField,
-        TEmbeddedMethod,
-        TEmbeddedEvent,
-        TEmbeddedProperty,
-        TEmbeddedParameter,
-        TEmbeddedTypeParameter>
+    internal abstract class CommonEmbeddedField : CommonEmbeddedMember<TFieldSymbol>, Cci.IFieldDefinition
     {
-        internal abstract class CommonEmbeddedField : CommonEmbeddedMember<TFieldSymbol>, Cci.IFieldDefinition
+        public readonly TEmbeddedType ContainingType;
+
+        protected CommonEmbeddedField(TEmbeddedType containingType, TFieldSymbol underlyingField) :
+            base(underlyingField)
         {
-            public readonly TEmbeddedType ContainingType;
+            this.ContainingType = containingType;
+        }
 
-            protected CommonEmbeddedField(TEmbeddedType containingType, TFieldSymbol underlyingField) :
-                base(underlyingField)
+        public TFieldSymbol UnderlyingField
+        {
+            get
             {
-                this.ContainingType = containingType;
+                return UnderlyingSymbol;
             }
+        }
 
-            public TFieldSymbol UnderlyingField
+        protected abstract MetadataConstant GetCompileTimeValue(EmitContext context);
+        protected abstract bool IsCompileTimeConstant { get; }
+        protected abstract bool IsNotSerialized { get; }
+        protected abstract bool IsReadOnly { get; }
+        protected abstract bool IsRuntimeSpecial { get; }
+        protected abstract bool IsSpecialName { get; }
+        protected abstract bool IsStatic { get; }
+        protected abstract bool IsMarshalledExplicitly { get; }
+        protected abstract Cci.IMarshallingInformation MarshallingInformation { get; }
+        protected abstract ImmutableArray<byte> MarshallingDescriptor { get; }
+        protected abstract int? TypeLayoutOffset { get; }
+        protected abstract Cci.TypeMemberVisibility Visibility { get; }
+        protected abstract string Name { get; }
+
+        MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+        {
+            return GetCompileTimeValue(context);
+        }
+
+        ImmutableArray<byte> Cci.IFieldDefinition.MappedData
+        {
+            get
             {
-                get
-                {
-                    return UnderlyingSymbol;
-                }
+                return default(ImmutableArray<byte>);
             }
+        }
 
-            protected abstract MetadataConstant GetCompileTimeValue(EmitContext context);
-            protected abstract bool IsCompileTimeConstant { get; }
-            protected abstract bool IsNotSerialized { get; }
-            protected abstract bool IsReadOnly { get; }
-            protected abstract bool IsRuntimeSpecial { get; }
-            protected abstract bool IsSpecialName { get; }
-            protected abstract bool IsStatic { get; }
-            protected abstract bool IsMarshalledExplicitly { get; }
-            protected abstract Cci.IMarshallingInformation MarshallingInformation { get; }
-            protected abstract ImmutableArray<byte> MarshallingDescriptor { get; }
-            protected abstract int? TypeLayoutOffset { get; }
-            protected abstract Cci.TypeMemberVisibility Visibility { get; }
-            protected abstract string Name { get; }
-
-            MetadataConstant Cci.IFieldDefinition.GetCompileTimeValue(EmitContext context)
+        bool Cci.IFieldDefinition.IsCompileTimeConstant
+        {
+            get
             {
-                return GetCompileTimeValue(context);
+                return IsCompileTimeConstant;
             }
+        }
 
-            ImmutableArray<byte> Cci.IFieldDefinition.MappedData
+        bool Cci.IFieldDefinition.IsNotSerialized
+        {
+            get
             {
-                get
-                {
-                    return default(ImmutableArray<byte>);
-                }
+                return IsNotSerialized;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsCompileTimeConstant
+        bool Cci.IFieldDefinition.IsReadOnly
+        {
+            get
             {
-                get
-                {
-                    return IsCompileTimeConstant;
-                }
+                return IsReadOnly;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsNotSerialized
+        bool Cci.IFieldDefinition.IsRuntimeSpecial
+        {
+            get
             {
-                get
-                {
-                    return IsNotSerialized;
-                }
+                return IsRuntimeSpecial;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsReadOnly
+        bool Cci.IFieldDefinition.IsSpecialName
+        {
+            get
             {
-                get
-                {
-                    return IsReadOnly;
-                }
+                return IsSpecialName;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsRuntimeSpecial
+        bool Cci.IFieldDefinition.IsStatic
+        {
+            get
             {
-                get
-                {
-                    return IsRuntimeSpecial;
-                }
+                return IsStatic;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsSpecialName
+        bool Cci.IFieldDefinition.IsMarshalledExplicitly
+        {
+            get
             {
-                get
-                {
-                    return IsSpecialName;
-                }
+                return IsMarshalledExplicitly;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsStatic
+        Cci.IMarshallingInformation Cci.IFieldDefinition.MarshallingInformation
+        {
+            get
             {
-                get
-                {
-                    return IsStatic;
-                }
+                return MarshallingInformation;
             }
+        }
 
-            bool Cci.IFieldDefinition.IsMarshalledExplicitly
+        ImmutableArray<byte> Cci.IFieldDefinition.MarshallingDescriptor
+        {
+            get
             {
-                get
-                {
-                    return IsMarshalledExplicitly;
-                }
+                return MarshallingDescriptor;
             }
+        }
 
-            Cci.IMarshallingInformation Cci.IFieldDefinition.MarshallingInformation
+        int Cci.IFieldDefinition.Offset
+        {
+            get
             {
-                get
-                {
-                    return MarshallingInformation;
-                }
+                return TypeLayoutOffset ?? 0;
             }
+        }
 
-            ImmutableArray<byte> Cci.IFieldDefinition.MarshallingDescriptor
-            {
-                get
-                {
-                    return MarshallingDescriptor;
-                }
-            }
-
-            int Cci.IFieldDefinition.Offset
-            {
-                get
-                {
-                    return TypeLayoutOffset ?? 0;
-                }
-            }
-
-            Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-            {
-                get
-                {
-                    return ContainingType;
-                }
-            }
-
-            Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-            {
-                get
-                {
-                    return Visibility;
-                }
-            }
-
-            Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
+        {
+            get
             {
                 return ContainingType;
             }
+        }
 
-            void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
+        {
+            get
             {
-                visitor.Visit((Cci.IFieldDefinition)this);
+                return Visibility;
             }
+        }
 
-            Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+        {
+            return ContainingType;
+        }
+
+        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+        {
+            visitor.Visit((Cci.IFieldDefinition)this);
+        }
+
+        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+        {
+            return this;
+        }
+
+        string Cci.INamedEntity.Name
+        {
+            get
             {
-                return this;
+                return Name;
             }
+        }
 
-            string Cci.INamedEntity.Name
+        Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
+        {
+            return UnderlyingField.GetType(context);
+        }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers => UnderlyingField.RefCustomModifiers;
+
+        bool Cci.IFieldReference.IsByReference => UnderlyingField.IsByReference;
+
+        Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
+        {
+            return this;
+        }
+
+        Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
+        {
+            get
             {
-                get
-                {
-                    return Name;
-                }
+                return null;
             }
+        }
 
-            Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
+        bool Cci.IFieldReference.IsContextualNamedEntity
+        {
+            get
             {
-                return UnderlyingField.GetType(context);
-            }
-
-            ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers => UnderlyingField.RefCustomModifiers;
-
-            bool Cci.IFieldReference.IsByReference => UnderlyingField.IsByReference;
-
-            Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
-            {
-                return this;
-            }
-
-            Cci.ISpecializedFieldReference Cci.IFieldReference.AsSpecializedFieldReference
-            {
-                get
-                {
-                    return null;
-                }
-            }
-
-            bool Cci.IFieldReference.IsContextualNamedEntity
-            {
-                get
-                {
-                    return false;
-                }
+                return false;
             }
         }
     }

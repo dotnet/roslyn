@@ -10,17 +10,17 @@ using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
+
+/// <summary>
+/// Tests for problems discovered feeding the compiler random trash.
+/// </summary>
+public class FuzzTests : CompilingTestBase
 {
-    /// <summary>
-    /// Tests for problems discovered feeding the compiler random trash.
-    /// </summary>
-    public class FuzzTests : CompilingTestBase
+    [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
+    public void CompileXmlAsSource()
     {
-        [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
-        public void CompileXmlAsSource()
-        {
-            var text = @"
+        var text = @"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,13 +47,12 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib461(text);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            foreach (var node in tree.GetRoot().DescendantNodes())
-            {
-                var _ = model.GetSymbolInfo(node);
-            }
+        var compilation = CreateCompilationWithMscorlib461(text);
+        var tree = compilation.SyntaxTrees[0];
+        var model = compilation.GetSemanticModel(tree);
+        foreach (var node in tree.GetRoot().DescendantNodes())
+        {
+            var _ = model.GetSymbolInfo(node);
         }
     }
 }

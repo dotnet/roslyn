@@ -10,25 +10,24 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 
-namespace AnalyzerRunner
+namespace AnalyzerRunner;
+
+[ExportWorkspaceService(typeof(IPersistentStorageConfiguration), ServiceLayer.Host)]
+[Shared]
+internal sealed class PersistentStorageConfiguration : IPersistentStorageConfiguration
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageConfiguration), ServiceLayer.Host)]
-    [Shared]
-    internal sealed class PersistentStorageConfiguration : IPersistentStorageConfiguration
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PersistentStorageConfiguration()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PersistentStorageConfiguration()
-        {
-        }
+    }
 
-        public bool ThrowOnFailure => true;
+    public bool ThrowOnFailure => true;
 
-        public string? TryGetStorageLocation(SolutionKey _)
-        {
-            var location = Path.Combine(Path.GetTempPath(), "RoslynTests", "AnalyzerRunner", "temp-db");
-            Directory.CreateDirectory(location);
-            return location;
-        }
+    public string? TryGetStorageLocation(SolutionKey _)
+    {
+        var location = Path.Combine(Path.GetTempPath(), "RoslynTests", "AnalyzerRunner", "temp-db");
+        Directory.CreateDirectory(location);
+        return location;
     }
 }

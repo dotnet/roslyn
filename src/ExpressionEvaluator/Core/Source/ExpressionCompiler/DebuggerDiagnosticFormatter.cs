@@ -6,24 +6,23 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+internal class DebuggerDiagnosticFormatter : DiagnosticFormatter
 {
-    internal class DebuggerDiagnosticFormatter : DiagnosticFormatter
+    public override string Format(Diagnostic diagnostic, IFormatProvider? formatter = null)
     {
-        public override string Format(Diagnostic diagnostic, IFormatProvider? formatter = null)
+        if (diagnostic == null)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
-            var culture = formatter as CultureInfo;
-
-            return string.Format(formatter, "{0}: {1}",
-                GetMessagePrefix(diagnostic),
-                diagnostic.GetMessage(culture));
+            throw new ArgumentNullException(nameof(diagnostic));
         }
 
-        internal static new readonly DebuggerDiagnosticFormatter Instance = new DebuggerDiagnosticFormatter();
+        var culture = formatter as CultureInfo;
+
+        return string.Format(formatter, "{0}: {1}",
+            GetMessagePrefix(diagnostic),
+            diagnostic.GetMessage(culture));
     }
+
+    internal static new readonly DebuggerDiagnosticFormatter Instance = new DebuggerDiagnosticFormatter();
 }

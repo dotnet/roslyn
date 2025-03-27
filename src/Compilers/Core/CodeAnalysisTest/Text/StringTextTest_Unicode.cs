@@ -10,17 +10,16 @@ using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class StreamTextTest_Unicode : StringTextTest_Default
 {
-    public class StreamTextTest_Unicode : StringTextTest_Default
+    protected override SourceText Create(string source)
     {
-        protected override SourceText Create(string source)
+        byte[] buffer = GetBytes(Encoding.Unicode, source);
+        using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
         {
-            byte[] buffer = GetBytes(Encoding.Unicode, source);
-            using (var stream = new MemoryStream(buffer, 0, buffer.Length, writable: false, publiclyVisible: true))
-            {
-                return EncodedStringText.Create(stream);
-            }
+            return EncodedStringText.Create(stream);
         }
     }
 }

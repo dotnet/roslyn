@@ -7,312 +7,311 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+internal class InheritedTypeParameter : IGenericTypeParameter
 {
-    internal class InheritedTypeParameter : IGenericTypeParameter
+    private readonly ushort _index;
+    private readonly ITypeDefinition _inheritingType;
+    private readonly IGenericTypeParameter _parentParameter;
+
+    internal InheritedTypeParameter(ushort index, ITypeDefinition inheritingType, IGenericTypeParameter parentParameter)
     {
-        private readonly ushort _index;
-        private readonly ITypeDefinition _inheritingType;
-        private readonly IGenericTypeParameter _parentParameter;
+        _index = index;
+        _inheritingType = inheritingType;
+        _parentParameter = parentParameter;
+    }
 
-        internal InheritedTypeParameter(ushort index, ITypeDefinition inheritingType, IGenericTypeParameter parentParameter)
+    #region IGenericTypeParameter Members
+
+    public ITypeDefinition DefiningType
+    {
+        get { return _inheritingType; }
+    }
+
+    #endregion
+
+    #region IGenericParameter Members
+
+    public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+    {
+        return _parentParameter.GetConstraints(context);
+    }
+
+    public bool MustBeReferenceType
+    {
+        get { return _parentParameter.MustBeReferenceType; }
+    }
+
+    public bool MustBeValueType
+    {
+        get { return _parentParameter.MustBeValueType; }
+    }
+
+    public bool AllowsRefLikeType
+    {
+        get { return _parentParameter.AllowsRefLikeType; }
+    }
+
+    public bool MustHaveDefaultConstructor
+    {
+        get { return _parentParameter.MustHaveDefaultConstructor; }
+    }
+
+    public TypeParameterVariance Variance
+    {
+        get { return _inheritingType.IsInterface || _inheritingType.IsDelegate ? _parentParameter.Variance : TypeParameterVariance.NonVariant; }
+    }
+
+    #endregion
+
+    #region ITypeDefinition Members
+
+    public bool IsEncDeleted
+        => false;
+
+    public ushort Alignment
+    {
+        get { return 0; }
+    }
+
+    public bool HasDeclarativeSecurity
+    {
+        get { return false; }
+    }
+
+    public bool IsEnum
+    {
+        get { return false; }
+    }
+
+    public IArrayTypeReference? AsArrayTypeReference
+    {
+        get
         {
-            _index = index;
-            _inheritingType = inheritingType;
-            _parentParameter = parentParameter;
+            return this as IArrayTypeReference;
         }
+    }
 
-        #region IGenericTypeParameter Members
-
-        public ITypeDefinition DefiningType
+    public IGenericMethodParameter? AsGenericMethodParameter
+    {
+        get
         {
-            get { return _inheritingType; }
+            return this as IGenericMethodParameter;
         }
+    }
 
-        #endregion
-
-        #region IGenericParameter Members
-
-        public IEnumerable<TypeReferenceWithAttributes> GetConstraints(EmitContext context)
+    public IGenericMethodParameterReference? AsGenericMethodParameterReference
+    {
+        get
         {
-            return _parentParameter.GetConstraints(context);
+            return this as IGenericMethodParameterReference;
         }
+    }
 
-        public bool MustBeReferenceType
+    public IGenericTypeInstanceReference? AsGenericTypeInstanceReference
+    {
+        get
         {
-            get { return _parentParameter.MustBeReferenceType; }
+            return this as IGenericTypeInstanceReference;
         }
+    }
 
-        public bool MustBeValueType
+    public IGenericTypeParameter? AsGenericTypeParameter
+    {
+        get
         {
-            get { return _parentParameter.MustBeValueType; }
+            return this as IGenericTypeParameter;
         }
+    }
 
-        public bool AllowsRefLikeType
+    public IGenericTypeParameterReference? AsGenericTypeParameterReference
+    {
+        get
         {
-            get { return _parentParameter.AllowsRefLikeType; }
+            return this as IGenericTypeParameterReference;
         }
+    }
 
-        public bool MustHaveDefaultConstructor
+    public INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context)
+    {
+        return this as INamespaceTypeDefinition;
+    }
+
+    public INamespaceTypeReference? AsNamespaceTypeReference
+    {
+        get
         {
-            get { return _parentParameter.MustHaveDefaultConstructor; }
+            return this as INamespaceTypeReference;
         }
+    }
 
-        public TypeParameterVariance Variance
+    public INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context)
+    {
+        return this as INestedTypeDefinition;
+    }
+
+    public INestedTypeReference? AsNestedTypeReference
+    {
+        get
         {
-            get { return _inheritingType.IsInterface || _inheritingType.IsDelegate ? _parentParameter.Variance : TypeParameterVariance.NonVariant; }
+            return this as INestedTypeReference;
         }
+    }
 
-        #endregion
-
-        #region ITypeDefinition Members
-
-        public bool IsEncDeleted
-            => false;
-
-        public ushort Alignment
+    public ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference
+    {
+        get
         {
-            get { return 0; }
+            return this as ISpecializedNestedTypeReference;
         }
+    }
 
-        public bool HasDeclarativeSecurity
+    public IModifiedTypeReference? AsModifiedTypeReference
+    {
+        get
         {
-            get { return false; }
+            return this as IModifiedTypeReference;
         }
+    }
 
-        public bool IsEnum
+    public IPointerTypeReference? AsPointerTypeReference
+    {
+        get
         {
-            get { return false; }
+            return this as IPointerTypeReference;
         }
+    }
 
-        public IArrayTypeReference? AsArrayTypeReference
+    public ITypeDefinition? AsTypeDefinition(EmitContext context)
+    {
+        return this as ITypeDefinition;
+    }
+
+    public IDefinition? AsDefinition(EmitContext context)
+    {
+        return this as IDefinition;
+    }
+
+    #endregion
+
+    #region IReference Members
+
+    CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+
+    public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+    {
+        return _parentParameter.GetAttributes(context);
+    }
+
+    public void Dispatch(MetadataVisitor visitor)
+    {
+    }
+
+    #endregion
+
+    #region ITypeReference Members
+
+    public TypeDefinitionHandle TypeDef
+    {
+        get
         {
-            get
-            {
-                return this as IArrayTypeReference;
-            }
+            return default(TypeDefinitionHandle);
         }
+    }
 
-        public IGenericMethodParameter? AsGenericMethodParameter
-        {
-            get
-            {
-                return this as IGenericMethodParameter;
-            }
-        }
+    public bool IsAlias
+    {
+        get { return false; }
+    }
 
-        public IGenericMethodParameterReference? AsGenericMethodParameterReference
-        {
-            get
-            {
-                return this as IGenericMethodParameterReference;
-            }
-        }
+    public bool IsValueType
+    {
+        get { return false; }
+    }
 
-        public IGenericTypeInstanceReference? AsGenericTypeInstanceReference
-        {
-            get
-            {
-                return this as IGenericTypeInstanceReference;
-            }
-        }
+    public ITypeDefinition GetResolvedType(EmitContext context)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public IGenericTypeParameter? AsGenericTypeParameter
-        {
-            get
-            {
-                return this as IGenericTypeParameter;
-            }
-        }
+    public PrimitiveTypeCode TypeCode
+    {
+        get { return PrimitiveTypeCode.NotPrimitive; }
+    }
 
-        public IGenericTypeParameterReference? AsGenericTypeParameterReference
-        {
-            get
-            {
-                return this as IGenericTypeParameterReference;
-            }
-        }
+    #endregion
 
-        public INamespaceTypeDefinition? AsNamespaceTypeDefinition(EmitContext context)
-        {
-            return this as INamespaceTypeDefinition;
-        }
+    #region IParameterListEntry Members
 
-        public INamespaceTypeReference? AsNamespaceTypeReference
-        {
-            get
-            {
-                return this as INamespaceTypeReference;
-            }
-        }
+    public ushort Index
+    {
+        get { return _index; }
+    }
 
-        public INestedTypeDefinition? AsNestedTypeDefinition(EmitContext context)
-        {
-            return this as INestedTypeDefinition;
-        }
+    #endregion
 
-        public INestedTypeReference? AsNestedTypeReference
-        {
-            get
-            {
-                return this as INestedTypeReference;
-            }
-        }
+    #region INamedEntity Members
 
-        public ISpecializedNestedTypeReference? AsSpecializedNestedTypeReference
-        {
-            get
-            {
-                return this as ISpecializedNestedTypeReference;
-            }
-        }
+    public string? Name
+    {
+        get { return _parentParameter.Name; }
+    }
 
-        public IModifiedTypeReference? AsModifiedTypeReference
-        {
-            get
-            {
-                return this as IModifiedTypeReference;
-            }
-        }
+    #endregion
 
-        public IPointerTypeReference? AsPointerTypeReference
-        {
-            get
-            {
-                return this as IPointerTypeReference;
-            }
-        }
+    #region IGenericTypeParameterReference Members
 
-        public ITypeDefinition? AsTypeDefinition(EmitContext context)
-        {
-            return this as ITypeDefinition;
-        }
+    ITypeReference IGenericTypeParameterReference.DefiningType
+    {
+        get { return _inheritingType; }
+    }
 
-        public IDefinition? AsDefinition(EmitContext context)
-        {
-            return this as IDefinition;
-        }
+    #endregion
 
-        #endregion
+    #region INamedTypeReference Members
 
-        #region IReference Members
+    public bool MangleName
+    {
+        get { return false; }
+    }
 
-        CodeAnalysis.Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
+    #endregion
 
-        public IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return _parentParameter.GetAttributes(context);
-        }
+    public bool IsNested
+    {
+        get { throw ExceptionUtilities.Unreachable(); }
+    }
 
-        public void Dispatch(MetadataVisitor visitor)
-        {
-        }
+    public bool IsSpecializedNested
+    {
+        get { throw ExceptionUtilities.Unreachable(); }
+    }
 
-        #endregion
+    public ITypeReference UnspecializedVersion
+    {
+        get { throw ExceptionUtilities.Unreachable(); }
+    }
 
-        #region ITypeReference Members
+    public bool IsNamespaceTypeReference
+    {
+        get { throw ExceptionUtilities.Unreachable(); }
+    }
 
-        public TypeDefinitionHandle TypeDef
-        {
-            get
-            {
-                return default(TypeDefinitionHandle);
-            }
-        }
+    public bool IsGenericTypeInstance
+    {
+        get { throw ExceptionUtilities.Unreachable(); }
+    }
 
-        public bool IsAlias
-        {
-            get { return false; }
-        }
+    public sealed override bool Equals(object? obj)
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public bool IsValueType
-        {
-            get { return false; }
-        }
-
-        public ITypeDefinition GetResolvedType(EmitContext context)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public PrimitiveTypeCode TypeCode
-        {
-            get { return PrimitiveTypeCode.NotPrimitive; }
-        }
-
-        #endregion
-
-        #region IParameterListEntry Members
-
-        public ushort Index
-        {
-            get { return _index; }
-        }
-
-        #endregion
-
-        #region INamedEntity Members
-
-        public string? Name
-        {
-            get { return _parentParameter.Name; }
-        }
-
-        #endregion
-
-        #region IGenericTypeParameterReference Members
-
-        ITypeReference IGenericTypeParameterReference.DefiningType
-        {
-            get { return _inheritingType; }
-        }
-
-        #endregion
-
-        #region INamedTypeReference Members
-
-        public bool MangleName
-        {
-            get { return false; }
-        }
-
-        #endregion
-
-        public bool IsNested
-        {
-            get { throw ExceptionUtilities.Unreachable(); }
-        }
-
-        public bool IsSpecializedNested
-        {
-            get { throw ExceptionUtilities.Unreachable(); }
-        }
-
-        public ITypeReference UnspecializedVersion
-        {
-            get { throw ExceptionUtilities.Unreachable(); }
-        }
-
-        public bool IsNamespaceTypeReference
-        {
-            get { throw ExceptionUtilities.Unreachable(); }
-        }
-
-        public bool IsGenericTypeInstance
-        {
-            get { throw ExceptionUtilities.Unreachable(); }
-        }
-
-        public sealed override bool Equals(object? obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
+    public sealed override int GetHashCode()
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
     }
 }

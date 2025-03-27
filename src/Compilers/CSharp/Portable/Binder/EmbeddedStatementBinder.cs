@@ -12,86 +12,85 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This binder owns the scope for an embedded statement.
+/// </summary>
+internal sealed class EmbeddedStatementBinder : LocalScopeBinder
 {
-    /// <summary>
-    /// This binder owns the scope for an embedded statement.
-    /// </summary>
-    internal sealed class EmbeddedStatementBinder : LocalScopeBinder
+    private readonly StatementSyntax _statement;
+
+    public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
+        : base(enclosing, enclosing.Flags)
     {
-        private readonly StatementSyntax _statement;
+        Debug.Assert(statement != null);
+        _statement = statement;
+    }
 
-        public EmbeddedStatementBinder(Binder enclosing, StatementSyntax statement)
-            : base(enclosing, enclosing.Flags)
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
+        BuildLocals(this, _statement, locals);
+        return locals.ToImmutableAndFree();
+    }
+
+    protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+    {
+        ArrayBuilder<LocalFunctionSymbol> locals = null;
+        BuildLocalFunctions(_statement, ref locals);
+        return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
+    }
+
+    internal override bool IsLocalFunctionsScopeBinder
+    {
+        get
         {
-            Debug.Assert(statement != null);
-            _statement = statement;
+            return true;
+        }
+    }
+
+    protected override ImmutableArray<LabelSymbol> BuildLabels()
+    {
+        ArrayBuilder<LabelSymbol> labels = null;
+        var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
+        BuildLabels(containingMethod, _statement, ref labels);
+        return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
+    }
+
+    internal override bool IsLabelsScopeBinder
+    {
+        get
+        {
+            return true;
+        }
+    }
+
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.Locals;
         }
 
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    internal override SyntaxNode ScopeDesignator
+    {
+        get
         {
-            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
-            BuildLocals(this, _statement, locals);
-            return locals.ToImmutableAndFree();
+            return _statement;
+        }
+    }
+
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.LocalFunctions;
         }
 
-        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
-        {
-            ArrayBuilder<LocalFunctionSymbol> locals = null;
-            BuildLocalFunctions(_statement, ref locals);
-            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
-        }
-
-        internal override bool IsLocalFunctionsScopeBinder
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        protected override ImmutableArray<LabelSymbol> BuildLabels()
-        {
-            ArrayBuilder<LabelSymbol> labels = null;
-            var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
-            BuildLabels(containingMethod, _statement, ref labels);
-            return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
-        }
-
-        internal override bool IsLabelsScopeBinder
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.Locals;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        internal override SyntaxNode ScopeDesignator
-        {
-            get
-            {
-                return _statement;
-            }
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.LocalFunctions;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
+        throw ExceptionUtilities.Unreachable();
     }
 }

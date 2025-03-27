@@ -6,210 +6,209 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed partial class LocalRewriter
 {
-    internal sealed partial class LocalRewriter
+    public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
     {
-        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        // Never returns null when used is true.
+        return RewriteConditionalAccess(node, used: true)!;
+    }
+
+    public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    // null when currently enclosing conditional access node
+    // is not supposed to be lowered.
+    private BoundExpression? _currentConditionalAccessTarget;
+    private int _currentConditionalAccessID;
+
+    private enum ConditionalAccessLoweringKind
+    {
+        LoweredConditionalAccess,
+        Conditional,
+        ConditionalCaptureReceiverByVal
+    }
+
+    // IL gen can generate more compact code for certain conditional accesses 
+    // by utilizing stack dup/pop instructions 
+    internal BoundExpression? RewriteConditionalAccess(BoundConditionalAccess node, bool used)
+    {
+        Debug.Assert(!_inExpressionLambda);
+        Debug.Assert(node.AccessExpression.Type is { });
+
+        var loweredReceiver = this.VisitExpression(node.Receiver);
+        Debug.Assert(loweredReceiver.Type is { });
+        var receiverType = loweredReceiver.Type;
+
+        // Check trivial case
+        if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
         {
-            // Never returns null when used is true.
-            return RewriteConditionalAccess(node, used: true)!;
+            return _factory.Default(node.Type);
         }
 
-        public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
+        ConditionalAccessLoweringKind loweringKind;
+        // dynamic receivers are not directly supported in codegen and need to be lowered to a conditional
+        var lowerToConditional = node.AccessExpression.Type.IsDynamic();
+
+        if (!lowerToConditional)
         {
-            throw ExceptionUtilities.Unreachable();
+            // trivial cases are directly supported in IL gen
+            loweringKind = ConditionalAccessLoweringKind.LoweredConditionalAccess;
+        }
+        else if (CanChangeValueBetweenReads(loweredReceiver))
+        {
+            // NOTE: dynamic operations historically do not propagate mutations
+            // to the receiver if that happens to be a value type
+            // so we can capture receiver by value in dynamic case regardless of 
+            // the type of receiver
+            // Nullable receivers are immutable so should be captured by value as well.
+            loweringKind = ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal;
+        }
+        else
+        {
+            loweringKind = ConditionalAccessLoweringKind.Conditional;
         }
 
-        // null when currently enclosing conditional access node
-        // is not supposed to be lowered.
-        private BoundExpression? _currentConditionalAccessTarget;
-        private int _currentConditionalAccessID;
+        var previousConditionalAccessTarget = _currentConditionalAccessTarget;
+        var currentConditionalAccessID = ++_currentConditionalAccessID;
 
-        private enum ConditionalAccessLoweringKind
+        LocalSymbol? temp = null;
+
+        switch (loweringKind)
         {
-            LoweredConditionalAccess,
-            Conditional,
-            ConditionalCaptureReceiverByVal
+            case ConditionalAccessLoweringKind.LoweredConditionalAccess:
+                _currentConditionalAccessTarget = new BoundConditionalReceiver(
+                    loweredReceiver.Syntax,
+                    currentConditionalAccessID,
+                    receiverType);
+
+                break;
+
+            case ConditionalAccessLoweringKind.Conditional:
+                _currentConditionalAccessTarget = loweredReceiver;
+                break;
+
+            case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
+                temp = _factory.SynthesizedLocal(receiverType);
+                _currentConditionalAccessTarget = _factory.Local(temp);
+                break;
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(loweringKind);
         }
 
-        // IL gen can generate more compact code for certain conditional accesses 
-        // by utilizing stack dup/pop instructions 
-        internal BoundExpression? RewriteConditionalAccess(BoundConditionalAccess node, bool used)
+        BoundExpression? loweredAccessExpression;
+
+        if (used)
         {
-            Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(node.AccessExpression.Type is { });
-
-            var loweredReceiver = this.VisitExpression(node.Receiver);
-            Debug.Assert(loweredReceiver.Type is { });
-            var receiverType = loweredReceiver.Type;
-
-            // Check trivial case
-            if (loweredReceiver.IsDefaultValue() && receiverType.IsReferenceType)
+            loweredAccessExpression = this.VisitExpression(node.AccessExpression);
+        }
+        else
+        {
+            loweredAccessExpression = this.VisitUnusedExpression(node.AccessExpression);
+            if (loweredAccessExpression == null)
             {
-                return _factory.Default(node.Type);
+                return null;
             }
+        }
 
-            ConditionalAccessLoweringKind loweringKind;
-            // dynamic receivers are not directly supported in codegen and need to be lowered to a conditional
-            var lowerToConditional = node.AccessExpression.Type.IsDynamic();
+        Debug.Assert(loweredAccessExpression != null);
+        Debug.Assert(loweredAccessExpression.Type is { });
+        _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
-            if (!lowerToConditional)
-            {
-                // trivial cases are directly supported in IL gen
-                loweringKind = ConditionalAccessLoweringKind.LoweredConditionalAccess;
-            }
-            else if (CanChangeValueBetweenReads(loweredReceiver))
-            {
-                // NOTE: dynamic operations historically do not propagate mutations
-                // to the receiver if that happens to be a value type
-                // so we can capture receiver by value in dynamic case regardless of 
-                // the type of receiver
-                // Nullable receivers are immutable so should be captured by value as well.
-                loweringKind = ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal;
-            }
-            else
-            {
-                loweringKind = ConditionalAccessLoweringKind.Conditional;
-            }
+        TypeSymbol type = this.VisitType(node.Type);
 
-            var previousConditionalAccessTarget = _currentConditionalAccessTarget;
-            var currentConditionalAccessID = ++_currentConditionalAccessID;
+        TypeSymbol nodeType = node.Type;
+        TypeSymbol accessExpressionType = loweredAccessExpression.Type;
 
-            LocalSymbol? temp = null;
+        if (accessExpressionType.IsVoidType())
+        {
+            type = nodeType = accessExpressionType;
+        }
 
-            switch (loweringKind)
-            {
-                case ConditionalAccessLoweringKind.LoweredConditionalAccess:
-                    _currentConditionalAccessTarget = new BoundConditionalReceiver(
-                        loweredReceiver.Syntax,
-                        currentConditionalAccessID,
-                        receiverType);
+        if (!TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) && nodeType.IsNullableType())
+        {
+            Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType.GetNullableUnderlyingType(), TypeCompareKind.ConsiderEverything2));
+            loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
+        }
+        else
+        {
+            Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
+                (nodeType.IsVoidType() && !used));
+        }
 
-                    break;
+        BoundExpression result;
 
-                case ConditionalAccessLoweringKind.Conditional:
-                    _currentConditionalAccessTarget = loweredReceiver;
-                    break;
+        switch (loweringKind)
+        {
+            case ConditionalAccessLoweringKind.LoweredConditionalAccess:
+                Debug.Assert(loweredReceiver.Type is { });
+                result = new BoundLoweredConditionalAccess(
+                    node.Syntax,
+                    loweredReceiver,
+                    receiverType.IsNullableType() ?
+                             UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
+                             null,
+                    loweredAccessExpression,
+                    null,
+                    currentConditionalAccessID,
+                    forceCopyOfNullableValueType: true,
+                    type);
 
-                case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
-                    temp = _factory.SynthesizedLocal(receiverType);
-                    _currentConditionalAccessTarget = _factory.Local(temp);
-                    break;
+                break;
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(loweringKind);
-            }
+            case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
+                // capture the receiver into a temp
+                Debug.Assert(temp is { });
+                loweredReceiver = _factory.MakeSequence(
+                                        _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
+                                        _factory.Local(temp));
 
-            BoundExpression? loweredAccessExpression;
+                goto case ConditionalAccessLoweringKind.Conditional;
 
-            if (used)
-            {
-                loweredAccessExpression = this.VisitExpression(node.AccessExpression);
-            }
-            else
-            {
-                loweredAccessExpression = this.VisitUnusedExpression(node.AccessExpression);
-                if (loweredAccessExpression == null)
+            case ConditionalAccessLoweringKind.Conditional:
                 {
-                    return null;
-                }
-            }
+                    // (object)r != null ? access : default(T)
+                    var condition = _factory.IsNotNullReference(loweredReceiver);
 
-            Debug.Assert(loweredAccessExpression != null);
-            Debug.Assert(loweredAccessExpression.Type is { });
-            _currentConditionalAccessTarget = previousConditionalAccessTarget;
+                    var consequence = loweredAccessExpression;
 
-            TypeSymbol type = this.VisitType(node.Type);
-
-            TypeSymbol nodeType = node.Type;
-            TypeSymbol accessExpressionType = loweredAccessExpression.Type;
-
-            if (accessExpressionType.IsVoidType())
-            {
-                type = nodeType = accessExpressionType;
-            }
-
-            if (!TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) && nodeType.IsNullableType())
-            {
-                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType.GetNullableUnderlyingType(), TypeCompareKind.ConsiderEverything2));
-                loweredAccessExpression = _factory.New((NamedTypeSymbol)nodeType, loweredAccessExpression);
-            }
-            else
-            {
-                Debug.Assert(TypeSymbol.Equals(accessExpressionType, nodeType, TypeCompareKind.ConsiderEverything2) ||
-                    (nodeType.IsVoidType() && !used));
-            }
-
-            BoundExpression result;
-
-            switch (loweringKind)
-            {
-                case ConditionalAccessLoweringKind.LoweredConditionalAccess:
-                    Debug.Assert(loweredReceiver.Type is { });
-                    result = new BoundLoweredConditionalAccess(
-                        node.Syntax,
-                        loweredReceiver,
-                        receiverType.IsNullableType() ?
-                                 UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
-                                 null,
-                        loweredAccessExpression,
+                    result = RewriteConditionalOperator(node.Syntax,
+                        condition,
+                        consequence,
+                        _factory.Default(nodeType),
                         null,
-                        currentConditionalAccessID,
-                        forceCopyOfNullableValueType: true,
-                        type);
+                        nodeType,
+                        isRef: false);
 
-                    break;
-
-                case ConditionalAccessLoweringKind.ConditionalCaptureReceiverByVal:
-                    // capture the receiver into a temp
-                    Debug.Assert(temp is { });
-                    loweredReceiver = _factory.MakeSequence(
-                                            _factory.AssignmentExpression(_factory.Local(temp), loweredReceiver),
-                                            _factory.Local(temp));
-
-                    goto case ConditionalAccessLoweringKind.Conditional;
-
-                case ConditionalAccessLoweringKind.Conditional:
+                    if (temp != null)
                     {
-                        // (object)r != null ? access : default(T)
-                        var condition = _factory.IsNotNullReference(loweredReceiver);
-
-                        var consequence = loweredAccessExpression;
-
-                        result = RewriteConditionalOperator(node.Syntax,
-                            condition,
-                            consequence,
-                            _factory.Default(nodeType),
-                            null,
-                            nodeType,
-                            isRef: false);
-
-                        if (temp != null)
-                        {
-                            result = _factory.MakeSequence(temp, result);
-                        }
+                        result = _factory.MakeSequence(temp, result);
                     }
-                    break;
+                }
+                break;
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(loweringKind);
-            }
-
-            return result;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(loweringKind);
         }
 
-        public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+        return result;
+    }
+
+    public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
+    {
+        var newtarget = _currentConditionalAccessTarget;
+        Debug.Assert(newtarget is { Type: { } });
+
+        if (newtarget.Type.IsNullableType())
         {
-            var newtarget = _currentConditionalAccessTarget;
-            Debug.Assert(newtarget is { Type: { } });
-
-            if (newtarget.Type.IsNullableType())
-            {
-                newtarget = MakeOptimizedGetValueOrDefault(node.Syntax, newtarget);
-            }
-
-            return newtarget;
+            newtarget = MakeOptimizedGetValueOrDefault(node.Syntax, newtarget);
         }
+
+        return newtarget;
     }
 }

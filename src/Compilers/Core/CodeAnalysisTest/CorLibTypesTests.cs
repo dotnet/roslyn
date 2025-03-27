@@ -10,253 +10,252 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class CorLibTypesAndConstantTests : TestBase
 {
-    public class CorLibTypesAndConstantTests : TestBase
+    [Fact]
+    public void IntegrityTest()
     {
-        [Fact]
-        public void IntegrityTest()
+        for (int i = 1; i < (int)InternalSpecialType.NextAvailable; i++)
         {
-            for (int i = 1; i < (int)InternalSpecialType.NextAvailable; i++)
-            {
-                string name = SpecialTypes.GetMetadataName((ExtendedSpecialType)i);
-                Assert.Equal((ExtendedSpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
-            }
-
-            for (int i = 0; i <= (int)SpecialType.Count; i++)
-            {
-                Cci.PrimitiveTypeCode code = SpecialTypes.GetTypeCode((SpecialType)i);
-
-                if (code != Cci.PrimitiveTypeCode.NotPrimitive)
-                {
-                    Assert.Equal((SpecialType)i, SpecialTypes.GetTypeFromMetadataName(code));
-                }
-            }
-
-            for (int i = 0; i <= (int)Cci.PrimitiveTypeCode.Invalid; i++)
-            {
-                SpecialType id = SpecialTypes.GetTypeFromMetadataName((Cci.PrimitiveTypeCode)i);
-
-                if (id != SpecialType.None)
-                {
-                    Assert.Equal((Cci.PrimitiveTypeCode)i, SpecialTypes.GetTypeCode(id));
-                }
-            }
-
-            Assert.Equal(SpecialType.System_Boolean, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Boolean));
-            Assert.Equal(SpecialType.System_Char, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Char));
-            Assert.Equal(SpecialType.System_Void, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Void));
-            Assert.Equal(SpecialType.System_String, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.String));
-            Assert.Equal(SpecialType.System_Int64, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int64));
-            Assert.Equal(SpecialType.System_Int32, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int32));
-            Assert.Equal(SpecialType.System_Int16, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int16));
-            Assert.Equal(SpecialType.System_SByte, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int8));
-            Assert.Equal(SpecialType.System_UInt64, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt64));
-            Assert.Equal(SpecialType.System_UInt32, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt32));
-            Assert.Equal(SpecialType.System_UInt16, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt16));
-            Assert.Equal(SpecialType.System_Byte, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt8));
-            Assert.Equal(SpecialType.System_Single, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Float32));
-            Assert.Equal(SpecialType.System_Double, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Float64));
-            Assert.Equal(SpecialType.System_IntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.IntPtr));
-            Assert.Equal(SpecialType.System_UIntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UIntPtr));
+            string name = SpecialTypes.GetMetadataName((ExtendedSpecialType)i);
+            Assert.Equal((ExtendedSpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
         }
 
-        [Fact]
-        public void SpecialTypeIsValueType()
+        for (int i = 0; i <= (int)SpecialType.Count; i++)
         {
-            var comp = CSharp.CSharpCompilation.Create(
-                "c",
-                options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
-                references: new[] { NetCoreApp.SystemRuntime });
+            Cci.PrimitiveTypeCode code = SpecialTypes.GetTypeCode((SpecialType)i);
 
-            var knownMissingTypes = new HashSet<SpecialType>()
+            if (code != Cci.PrimitiveTypeCode.NotPrimitive)
             {
-                SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
-            };
-
-            for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
-            {
-                var symbol = comp.GetSpecialType(specialType);
-                if (knownMissingTypes.Contains(specialType))
-                {
-                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
-                }
-                else
-                {
-                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
-                    Assert.Equal(symbol.IsValueType, specialType.IsValueType());
-                }
+                Assert.Equal((SpecialType)i, SpecialTypes.GetTypeFromMetadataName(code));
             }
         }
 
-        [Fact]
-        public void ConstantValueInvalidOperationTest01()
+        for (int i = 0; i <= (int)Cci.PrimitiveTypeCode.Invalid; i++)
         {
-            Assert.Throws<InvalidOperationException>(() => { ConstantValue.Create(null, ConstantValueTypeDiscriminator.Bad); });
+            SpecialType id = SpecialTypes.GetTypeFromMetadataName((Cci.PrimitiveTypeCode)i);
 
-            var cv1 = ConstantValue.Create(1);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.StringValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv1.DateTimeValue; });
-
-            var cv2 = ConstantValue.Create(2);
-            Assert.Throws<InvalidOperationException>(() => { var c = cv2.StringValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv2.CharValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cv2.DateTimeValue; });
-
-            var cvNull = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.BooleanValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DecimalValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DoubleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SingleValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SByteValue; });
-            Assert.Throws<InvalidOperationException>(() => { var c = cvNull.ByteValue; });
+            if (id != SpecialType.None)
+            {
+                Assert.Equal((Cci.PrimitiveTypeCode)i, SpecialTypes.GetTypeCode(id));
+            }
         }
 
-        [Fact]
-        public void ConstantValueOneTest01()
+        Assert.Equal(SpecialType.System_Boolean, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Boolean));
+        Assert.Equal(SpecialType.System_Char, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Char));
+        Assert.Equal(SpecialType.System_Void, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Void));
+        Assert.Equal(SpecialType.System_String, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.String));
+        Assert.Equal(SpecialType.System_Int64, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int64));
+        Assert.Equal(SpecialType.System_Int32, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int32));
+        Assert.Equal(SpecialType.System_Int16, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int16));
+        Assert.Equal(SpecialType.System_SByte, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Int8));
+        Assert.Equal(SpecialType.System_UInt64, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt64));
+        Assert.Equal(SpecialType.System_UInt32, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt32));
+        Assert.Equal(SpecialType.System_UInt16, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt16));
+        Assert.Equal(SpecialType.System_Byte, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UInt8));
+        Assert.Equal(SpecialType.System_Single, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Float32));
+        Assert.Equal(SpecialType.System_Double, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.Float64));
+        Assert.Equal(SpecialType.System_IntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.IntPtr));
+        Assert.Equal(SpecialType.System_UIntPtr, SpecialTypes.GetTypeFromMetadataName(Cci.PrimitiveTypeCode.UIntPtr));
+    }
+
+    [Fact]
+    public void SpecialTypeIsValueType()
+    {
+        var comp = CSharp.CSharpCompilation.Create(
+            "c",
+            options: new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel),
+            references: new[] { NetCoreApp.SystemRuntime });
+
+        var knownMissingTypes = new HashSet<SpecialType>()
         {
-            var cv1 = ConstantValue.Create(1);
-            Assert.True(cv1.IsOne);
+            SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
+        };
 
-            Assert.Equal(1, cv1.ByteValue);
-            Assert.Equal(1, cv1.SByteValue);
-            Assert.True(cv1.BooleanValue);
-            Assert.Equal(1, cv1.DoubleValue);
-            Assert.Equal(1, cv1.SingleValue);
-            Assert.Equal(1, cv1.DecimalValue);
-            Assert.Equal(1, cv1.Int16Value);
-            Assert.Equal(1, cv1.UInt16Value);
-            Assert.Equal(1, cv1.Int32Value);
-            Assert.Equal(1U, cv1.UInt32Value);
-            Assert.Equal(1, cv1.Int64Value);
-            Assert.Equal(1U, cv1.UInt64Value);
-            Assert.Equal(1, cv1.CharValue);
-        }
-
-        [Fact]
-        public void ConstantValueOneTest02()
+        for (var specialType = SpecialType.None + 1; specialType <= SpecialType.Count; specialType++)
         {
-            Assert.True(ConstantValue.Create((byte)1).IsOne);
-            Assert.True(ConstantValue.Create((sbyte)1).IsOne);
-            Assert.True(ConstantValue.Create(true).IsOne);
-            Assert.True(ConstantValue.Create((double)1).IsOne);
-            Assert.True(ConstantValue.Create((float)1).IsOne);
-            Assert.True(ConstantValue.Create((decimal)1).IsOne);
-            Assert.True(ConstantValue.Create((short)1).IsOne);
-            Assert.True(ConstantValue.Create((ushort)1).IsOne);
-            Assert.True(ConstantValue.Create((int)1).IsOne);
-            Assert.True(ConstantValue.Create((uint)1).IsOne);
-            Assert.True(ConstantValue.Create((long)1).IsOne);
-            Assert.True(ConstantValue.Create((ulong)1).IsOne);
-            Assert.True(ConstantValue.Create((char)1).IsOne);
+            var symbol = comp.GetSpecialType(specialType);
+            if (knownMissingTypes.Contains(specialType))
+            {
+                Assert.Equal(SymbolKind.ErrorType, symbol.Kind);
+            }
+            else
+            {
+                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                Assert.Equal(symbol.IsValueType, specialType.IsValueType());
+            }
         }
+    }
 
-        [Fact]
-        public void ConstantValuePropertiesTest01()
-        {
-            Assert.Equal(ConstantValue.Bad, ConstantValue.Default(ConstantValueTypeDiscriminator.Bad));
+    [Fact]
+    public void ConstantValueInvalidOperationTest01()
+    {
+        Assert.Throws<InvalidOperationException>(() => { ConstantValue.Create(null, ConstantValueTypeDiscriminator.Bad); });
 
-            var cv1 = ConstantValue.Create((sbyte)-1);
-            Assert.True(cv1.IsNegativeNumeric);
+        var cv1 = ConstantValue.Create(1);
+        Assert.Throws<InvalidOperationException>(() => { var c = cv1.StringValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cv1.DateTimeValue; });
 
-            var cv2 = ConstantValue.Create(-0.12345f);
-            Assert.True(cv2.IsNegativeNumeric);
+        var cv2 = ConstantValue.Create(2);
+        Assert.Throws<InvalidOperationException>(() => { var c = cv2.StringValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cv2.CharValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cv2.DateTimeValue; });
 
-            var cv3 = ConstantValue.Create((double)-1.234);
-            Assert.True(cv3.IsNegativeNumeric);
+        var cvNull = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.BooleanValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DecimalValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.DoubleValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SingleValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.SByteValue; });
+        Assert.Throws<InvalidOperationException>(() => { var c = cvNull.ByteValue; });
+    }
 
-            var cv4 = ConstantValue.Create((decimal)-12345m);
-            Assert.True(cv4.IsNegativeNumeric);
-            Assert.False(cv4.IsDateTime);
+    [Fact]
+    public void ConstantValueOneTest01()
+    {
+        var cv1 = ConstantValue.Create(1);
+        Assert.True(cv1.IsOne);
 
-            var cv5 = ConstantValue.Create(null);
-            Assert.False(cv5.IsNumeric);
-            Assert.False(cv5.IsBoolean);
-            Assert.False(cv5.IsFloating);
-        }
+        Assert.Equal(1, cv1.ByteValue);
+        Assert.Equal(1, cv1.SByteValue);
+        Assert.True(cv1.BooleanValue);
+        Assert.Equal(1, cv1.DoubleValue);
+        Assert.Equal(1, cv1.SingleValue);
+        Assert.Equal(1, cv1.DecimalValue);
+        Assert.Equal(1, cv1.Int16Value);
+        Assert.Equal(1, cv1.UInt16Value);
+        Assert.Equal(1, cv1.Int32Value);
+        Assert.Equal(1U, cv1.UInt32Value);
+        Assert.Equal(1, cv1.Int64Value);
+        Assert.Equal(1U, cv1.UInt64Value);
+        Assert.Equal(1, cv1.CharValue);
+    }
 
-        [Fact]
-        public void ConstantValueGetHashCodeTest01()
-        {
-            var cv11 = ConstantValue.Create((sbyte)-1);
-            var cv12 = ConstantValue.Create((sbyte)-1);
-            Assert.Equal(cv11.GetHashCode(), cv12.GetHashCode());
+    [Fact]
+    public void ConstantValueOneTest02()
+    {
+        Assert.True(ConstantValue.Create((byte)1).IsOne);
+        Assert.True(ConstantValue.Create((sbyte)1).IsOne);
+        Assert.True(ConstantValue.Create(true).IsOne);
+        Assert.True(ConstantValue.Create((double)1).IsOne);
+        Assert.True(ConstantValue.Create((float)1).IsOne);
+        Assert.True(ConstantValue.Create((decimal)1).IsOne);
+        Assert.True(ConstantValue.Create((short)1).IsOne);
+        Assert.True(ConstantValue.Create((ushort)1).IsOne);
+        Assert.True(ConstantValue.Create((int)1).IsOne);
+        Assert.True(ConstantValue.Create((uint)1).IsOne);
+        Assert.True(ConstantValue.Create((long)1).IsOne);
+        Assert.True(ConstantValue.Create((ulong)1).IsOne);
+        Assert.True(ConstantValue.Create((char)1).IsOne);
+    }
 
-            var cv21 = ConstantValue.Create((byte)255);
-            var cv22 = ConstantValue.Create((byte)255);
-            Assert.Equal(cv21.GetHashCode(), cv22.GetHashCode());
+    [Fact]
+    public void ConstantValuePropertiesTest01()
+    {
+        Assert.Equal(ConstantValue.Bad, ConstantValue.Default(ConstantValueTypeDiscriminator.Bad));
 
-            var cv31 = ConstantValue.Create((short)-32768);
-            var cv32 = ConstantValue.Create((short)-32768);
-            Assert.Equal(cv31.GetHashCode(), cv32.GetHashCode());
+        var cv1 = ConstantValue.Create((sbyte)-1);
+        Assert.True(cv1.IsNegativeNumeric);
 
-            var cv41 = ConstantValue.Create((ushort)65535);
-            var cv42 = ConstantValue.Create((ushort)65535);
-            Assert.Equal(cv41.GetHashCode(), cv42.GetHashCode());
-            // int
-            var cv51 = ConstantValue.Create(12345);
-            var cv52 = ConstantValue.Create(12345);
-            Assert.Equal(cv51.GetHashCode(), cv52.GetHashCode());
+        var cv2 = ConstantValue.Create(-0.12345f);
+        Assert.True(cv2.IsNegativeNumeric);
 
-            var cv61 = ConstantValue.Create(uint.MinValue);
-            var cv62 = ConstantValue.Create(uint.MinValue);
-            Assert.Equal(cv61.GetHashCode(), cv62.GetHashCode());
+        var cv3 = ConstantValue.Create((double)-1.234);
+        Assert.True(cv3.IsNegativeNumeric);
 
-            var cv71 = ConstantValue.Create(long.MaxValue);
-            var cv72 = ConstantValue.Create(long.MaxValue);
-            Assert.Equal(cv71.GetHashCode(), cv72.GetHashCode());
+        var cv4 = ConstantValue.Create((decimal)-12345m);
+        Assert.True(cv4.IsNegativeNumeric);
+        Assert.False(cv4.IsDateTime);
 
-            var cv81 = ConstantValue.Create((ulong)123456789);
-            var cv82 = ConstantValue.Create((ulong)123456789);
-            Assert.Equal(cv81.GetHashCode(), cv82.GetHashCode());
+        var cv5 = ConstantValue.Create(null);
+        Assert.False(cv5.IsNumeric);
+        Assert.False(cv5.IsBoolean);
+        Assert.False(cv5.IsFloating);
+    }
 
-            var cv91 = ConstantValue.Create(1.1m);
-            var cv92 = ConstantValue.Create(1.1m);
-            Assert.Equal(cv91.GetHashCode(), cv92.GetHashCode());
-        }
+    [Fact]
+    public void ConstantValueGetHashCodeTest01()
+    {
+        var cv11 = ConstantValue.Create((sbyte)-1);
+        var cv12 = ConstantValue.Create((sbyte)-1);
+        Assert.Equal(cv11.GetHashCode(), cv12.GetHashCode());
 
-        // In general, different values are not required to have different hash codes.
-        // But for perf reasons we want hash functions with a good distribution, 
-        // so we expect hash codes to differ if a single component is incremented.
-        // But program correctness should be preserved even with a null hash function,
-        // so we need a way to disable these tests during such correctness validation.
+        var cv21 = ConstantValue.Create((byte)255);
+        var cv22 = ConstantValue.Create((byte)255);
+        Assert.Equal(cv21.GetHashCode(), cv22.GetHashCode());
+
+        var cv31 = ConstantValue.Create((short)-32768);
+        var cv32 = ConstantValue.Create((short)-32768);
+        Assert.Equal(cv31.GetHashCode(), cv32.GetHashCode());
+
+        var cv41 = ConstantValue.Create((ushort)65535);
+        var cv42 = ConstantValue.Create((ushort)65535);
+        Assert.Equal(cv41.GetHashCode(), cv42.GetHashCode());
+        // int
+        var cv51 = ConstantValue.Create(12345);
+        var cv52 = ConstantValue.Create(12345);
+        Assert.Equal(cv51.GetHashCode(), cv52.GetHashCode());
+
+        var cv61 = ConstantValue.Create(uint.MinValue);
+        var cv62 = ConstantValue.Create(uint.MinValue);
+        Assert.Equal(cv61.GetHashCode(), cv62.GetHashCode());
+
+        var cv71 = ConstantValue.Create(long.MaxValue);
+        var cv72 = ConstantValue.Create(long.MaxValue);
+        Assert.Equal(cv71.GetHashCode(), cv72.GetHashCode());
+
+        var cv81 = ConstantValue.Create((ulong)123456789);
+        var cv82 = ConstantValue.Create((ulong)123456789);
+        Assert.Equal(cv81.GetHashCode(), cv82.GetHashCode());
+
+        var cv91 = ConstantValue.Create(1.1m);
+        var cv92 = ConstantValue.Create(1.1m);
+        Assert.Equal(cv91.GetHashCode(), cv92.GetHashCode());
+    }
+
+    // In general, different values are not required to have different hash codes.
+    // But for perf reasons we want hash functions with a good distribution, 
+    // so we expect hash codes to differ if a single component is incremented.
+    // But program correctness should be preserved even with a null hash function,
+    // so we need a way to disable these tests during such correctness validation.
 #if !DISABLE_GOOD_HASH_TESTS
 
-        [Fact]
-        public void ConstantValueGetHashCodeTest02()
-        {
-            var cv1 = ConstantValue.Create("1");
-            var cv2 = ConstantValue.Create("2");
+    [Fact]
+    public void ConstantValueGetHashCodeTest02()
+    {
+        var cv1 = ConstantValue.Create("1");
+        var cv2 = ConstantValue.Create("2");
 
-            Assert.NotEqual(cv1.GetHashCode(), cv2.GetHashCode());
-        }
+        Assert.NotEqual(cv1.GetHashCode(), cv2.GetHashCode());
+    }
 
 #endif
 
-        [Fact]
-        public void ConstantValueToStringTest01()
-        {
-            string value = (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
-                ? "Nothing"
-                : "Null";
+    [Fact]
+    public void ConstantValueToStringTest01()
+    {
+        string value = (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
+            ? "Nothing"
+            : "Null";
 
-            var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
+        var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
+        Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
 
-            cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
+        cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
+        Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
 
-            // Never hit "ConstantValueString(null: Null)"
+        // Never hit "ConstantValueString(null: Null)"
 
-            var strVal = "QC";
-            cv = ConstantValue.Create(strVal);
-            Assert.Equal(@"ConstantValueString(""QC"": String)", cv.ToString());
+        var strVal = "QC";
+        cv = ConstantValue.Create(strVal);
+        Assert.Equal(@"ConstantValueString(""QC"": String)", cv.ToString());
 
-            cv = ConstantValue.Create((sbyte)-128);
-            Assert.Equal("ConstantValueI8(-128: SByte)", cv.ToString());
+        cv = ConstantValue.Create((sbyte)-128);
+        Assert.Equal("ConstantValueI8(-128: SByte)", cv.ToString());
 
-            cv = ConstantValue.Create((ulong)123456789);
-            Assert.Equal("ConstantValueI64(123456789: UInt64)", cv.ToString());
-        }
+        cv = ConstantValue.Create((ulong)123456789);
+        Assert.Equal("ConstantValueI64(123456789: UInt64)", cv.ToString());
     }
 }

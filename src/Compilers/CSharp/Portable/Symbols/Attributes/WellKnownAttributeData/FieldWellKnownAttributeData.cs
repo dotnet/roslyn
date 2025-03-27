@@ -4,91 +4,90 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Information decoded from well-known custom attributes applied on a field.
+/// </summary>
+internal sealed class FieldWellKnownAttributeData : CommonFieldWellKnownAttributeData
 {
-    /// <summary>
-    /// Information decoded from well-known custom attributes applied on a field.
-    /// </summary>
-    internal sealed class FieldWellKnownAttributeData : CommonFieldWellKnownAttributeData
+    private bool _hasAllowNullAttribute;
+    public bool HasAllowNullAttribute
     {
-        private bool _hasAllowNullAttribute;
-        public bool HasAllowNullAttribute
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasAllowNullAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasAllowNullAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: true);
+            return _hasAllowNullAttribute;
         }
-
-        private bool _hasDisallowNullAttribute;
-        public bool HasDisallowNullAttribute
+        set
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasDisallowNullAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasDisallowNullAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: false);
+            _hasAllowNullAttribute = value;
+            SetDataStored();
         }
+    }
 
-        private bool _hasMaybeNullAttribute;
-        public bool HasMaybeNullAttribute
+    private bool _hasDisallowNullAttribute;
+    public bool HasDisallowNullAttribute
+    {
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasMaybeNullAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasMaybeNullAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: true);
+            return _hasDisallowNullAttribute;
         }
-
-        private bool? _maybeNullWhenAttribute;
-        public bool? MaybeNullWhenAttribute
+        set
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _maybeNullWhenAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _maybeNullWhenAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: false);
+            _hasDisallowNullAttribute = value;
+            SetDataStored();
         }
+    }
 
-        private bool _hasNotNullAttribute;
-        public bool HasNotNullAttribute
+    private bool _hasMaybeNullAttribute;
+    public bool HasMaybeNullAttribute
+    {
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasNotNullAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasNotNullAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: true);
+            return _hasMaybeNullAttribute;
+        }
+        set
+        {
+            VerifySealed(expected: false);
+            _hasMaybeNullAttribute = value;
+            SetDataStored();
+        }
+    }
+
+    private bool? _maybeNullWhenAttribute;
+    public bool? MaybeNullWhenAttribute
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _maybeNullWhenAttribute;
+        }
+        set
+        {
+            VerifySealed(expected: false);
+            _maybeNullWhenAttribute = value;
+            SetDataStored();
+        }
+    }
+
+    private bool _hasNotNullAttribute;
+    public bool HasNotNullAttribute
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _hasNotNullAttribute;
+        }
+        set
+        {
+            VerifySealed(expected: false);
+            _hasNotNullAttribute = value;
+            SetDataStored();
         }
     }
 }

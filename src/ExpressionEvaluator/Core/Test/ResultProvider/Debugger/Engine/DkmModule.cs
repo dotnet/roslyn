@@ -9,15 +9,14 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger.Symbols
-{
-    public class DkmModule
-    {
-        internal DkmModule(string name)
-        {
-            this.Name = name;
-        }
+namespace Microsoft.VisualStudio.Debugger.Symbols;
 
-        public readonly string Name;
+public class DkmModule
+{
+    internal DkmModule(string name)
+    {
+        this.Name = name;
     }
+
+    public readonly string Name;
 }

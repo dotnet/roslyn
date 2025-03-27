@@ -12,17 +12,17 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+/// <summary>
+/// Tests related to binding (but not lowering) lock statements.
+/// </summary>
+public class LockTests : CompilingTestBase
 {
-    /// <summary>
-    /// Tests related to binding (but not lowering) lock statements.
-    /// </summary>
-    public class LockTests : CompilingTestBase
+    [Fact]
+    public void SemanticModel()
     {
-        [Fact]
-        public void SemanticModel()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     static void Main()
@@ -36,32 +36,32 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
+        var compilation = CreateCompilation(source);
+        compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
 
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            Assert.Equal("o", localSymbol.Name);
-            Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
+        var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+        var localSymbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+        Assert.Equal("o", localSymbol.Name);
+        Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
 
-            var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
-            var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
-            Assert.NotEqual(default, lockExprInfo);
-            Assert.Equal(localSymbol, lockExprInfo.Symbol);
+        var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
+        var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
+        Assert.NotEqual(default, lockExprInfo);
+        Assert.Equal(localSymbol, lockExprInfo.Symbol);
 
-            var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
-            var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
-            Assert.NotEqual(default, memberAccessInfo);
-            Assert.Equal(localSymbol, memberAccessInfo.Symbol);
-        }
+        var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+        var memberAccessInfo = model.GetSymbolInfo(memberAccessExpression.Expression);
+        Assert.NotEqual(default, memberAccessInfo);
+        Assert.Equal(localSymbol, memberAccessInfo.Symbol);
+    }
 
-        [Fact]
-        public void MethodGroup()
-        {
-            var source = @"
+    [Fact]
+    public void MethodGroup()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -73,15 +73,15 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "Main").WithArguments("method group"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "Main").WithArguments("method group"));
+    }
 
-        [Fact]
-        public void Lambda()
-        {
-            var source = @"
+    [Fact]
+    public void Lambda()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -93,15 +93,15 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "x => x").WithArguments("lambda expression"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "x => x").WithArguments("lambda expression"));
+    }
 
-        [Fact]
-        public void Null()
-        {
-            var source = @"
+    [Fact]
+    public void Null()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -112,14 +112,14 @@ class C
     }
 }
 ";
-            // Dev10 allows this.
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        // Dev10 allows this.
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void EmbeddedStatement()
-        {
-            var source = @"
+    [Fact]
+    public void EmbeddedStatement()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -132,15 +132,15 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,53): warning CS0642: Possible mistaken empty statement
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,53): warning CS0642: Possible mistaken empty statement
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
+    }
 
-        [Fact]
-        public void ModifyLocalInLockExpression()
-        {
-            var source = @"
+    [Fact]
+    public void ModifyLocalInLockExpression()
+    {
+        var source = @"
 class C
 {
     void M()
@@ -159,21 +159,21 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (16,14): error CS0631: ref and out are not valid in this context
-                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
-                // (9,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
-                // (10,21): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
-                // (11,22): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (16,14): error CS0631: ref and out are not valid in this context
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
+            // (9,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+            // (10,21): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+            // (11,22): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"));
+    }
 
-        [Fact]
-        public void ModifyParameterInUsingExpression()
-        {
-            var source = @"
+    [Fact]
+    public void ModifyParameterInUsingExpression()
+    {
+        var source = @"
 class C
 {
     void M(C c)
@@ -191,21 +191,21 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (15,14): error CS0631: ref and out are not valid in this context
-                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
-                // (8,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
-                // (9,21): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
-                // (10,22): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
-                Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (15,14): error CS0631: ref and out are not valid in this context
+            Diagnostic(ErrorCode.ERR_IllegalRefParam, "out"),
+            // (8,13): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+            // (9,21): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"),
+            // (10,22): warning CS0728: Possibly incorrect assignment to local 'c' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.
+            Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "c").WithArguments("c"));
+    }
 
-        [Fact]
-        public void RequireRefType_1()
-        {
-            var source = @"
+    [Fact]
+    public void RequireRefType_1()
+    {
+        var source = @"
 class Program
 {
     static int x;
@@ -216,19 +216,19 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,15): error CS0185: 'int' is not a reference type as required by the lock statement
-                //         lock (x)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "x").WithArguments("int"),
-                // (4,16): warning CS0649: Field 'Program.x' is never assigned to, and will always have its default value 0
-                //     static int x;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.x", "0"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,15): error CS0185: 'int' is not a reference type as required by the lock statement
+            //         lock (x)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "x").WithArguments("int"),
+            // (4,16): warning CS0649: Field 'Program.x' is never assigned to, and will always have its default value 0
+            //     static int x;
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.x", "0"));
+    }
 
-        [Fact]
-        public void RequireRefType_2()
-        {
-            var source = @"
+    [Fact]
+    public void RequireRefType_2()
+    {
+        var source = @"
 struct Conv
 {
     public void TryMe()
@@ -237,16 +237,16 @@ struct Conv
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0185: 'Conv' is not a reference type as required by the lock statement
-                //         lock (this) { } 
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "this").WithArguments("Conv"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0185: 'Conv' is not a reference type as required by the lock statement
+            //         lock (this) { } 
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "this").WithArguments("Conv"));
+    }
 
-        [Fact]
-        public void RequireRefType_Nullable()
-        {
-            var source = @"
+    [Fact]
+    public void RequireRefType_Nullable()
+    {
+        var source = @"
 class C
 {
     public void goo()
@@ -258,16 +258,16 @@ class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,15): error CS0185: 'int?' is not a reference type as required by the lock statement
-                //         lock (a)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "a").WithArguments("int?"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,15): error CS0185: 'int?' is not a reference type as required by the lock statement
+            //         lock (a)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "a").WithArguments("int?"));
+    }
 
-        [Fact]
-        public void PartialMethod()
-        {
-            var source = @"
+    [Fact]
+    public void PartialMethod()
+    {
+        var source = @"
 partial class C
 {
     public static void Main()
@@ -286,20 +286,20 @@ partial class C
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
-                //         lock (PM)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM").WithArguments("method group"),
-                // (10,15): error CS0185: 'void' is not a reference type as required by the lock statement
-                //         lock (PM(1))
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM(1)").WithArguments("void"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0185: 'method group' is not a reference type as required by the lock statement
+            //         lock (PM)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM").WithArguments("method group"),
+            // (10,15): error CS0185: 'void' is not a reference type as required by the lock statement
+            //         lock (PM(1))
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "PM(1)").WithArguments("void"));
+    }
 
-        // Object could not declare in lock statement
-        [Fact]
-        public void ObjectDeclaredInLock()
-        {
-            var source = @"
+    // Object could not declare in lock statement
+    [Fact]
+    public void ObjectDeclaredInLock()
+    {
+        var source = @"
 class Test
 {
     public static void Main()
@@ -313,27 +313,27 @@ class Res
 {
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
-                                                        //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
-                // (6,33): error CS1002: ; expected
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (6,33): error CS1513: } expected
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
-                // (6,15): error CS0119: 'Res' is a type, which is not valid in the given context
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Res").WithArguments("Res", "type"),
-                // (6,19): error CS0103: The name 'd' does not exist in the current context
-                //         lock (Res d = new Res ())// Invalid
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(// (6,19): error CS1026: ) expected
+                                                    //         lock (Res d = new Res ())// Invalid
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "d"),
+            // (6,33): error CS1002: ; expected
+            //         lock (Res d = new Res ())// Invalid
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+            // (6,33): error CS1513: } expected
+            //         lock (Res d = new Res ())// Invalid
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
+            // (6,15): error CS0119: 'Res' is a type, which is not valid in the given context
+            //         lock (Res d = new Res ())// Invalid
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "Res").WithArguments("Res", "type"),
+            // (6,19): error CS0103: The name 'd' does not exist in the current context
+            //         lock (Res d = new Res ())// Invalid
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d"));
+    }
 
-        [Fact]
-        public void Lambda_1()
-        {
-            var source = @"
+    [Fact]
+    public void Lambda_1()
+    {
+        var source = @"
 class Test
 {
     public static void Main()
@@ -349,20 +349,20 @@ class Test
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
-                //         lock ((ref int y) => { y = y + 1; return y; })     // Invalid
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "(ref int y) => { y = y + 1; return y; }").WithArguments("lambda expression"),
-                // (10,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
-                //         lock (() => { })     // Invalid
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "() => { }").WithArguments("lambda expression"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
+            //         lock ((ref int y) => { y = y + 1; return y; })     // Invalid
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "(ref int y) => { y = y + 1; return y; }").WithArguments("lambda expression"),
+            // (10,15): error CS0185: 'lambda expression' is not a reference type as required by the lock statement
+            //         lock (() => { })     // Invalid
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "() => { }").WithArguments("lambda expression"));
+    }
 
-        // malformed 'lock' statement
-        [Fact]
-        public void MalformedLock()
-        {
-            var source = @"
+    // malformed 'lock' statement
+    [Fact]
+    public void MalformedLock()
+    {
+        var source = @"
 using System.Collections.Generic;
 class Test
 {
@@ -379,41 +379,41 @@ class Test
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (9,26): error CS1026: ) expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
-                // (9,26): error CS1026: ) expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
-                // (9,35): error CS1002: ; expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 35),
-                // (9,35): error CS1513: } expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 35),
-                // (9,47): error CS1002: ; expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 47),
-                // (9,47): error CS1513: } expected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 47),
-                // (9,20): error CS0103: The name 'yield' does not exist in the current context
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "yield").WithArguments("yield").WithLocation(9, 20),
-                // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
-                // (9,37): warning CS0162: Unreachable code detected
-                //         lock ((C + yield return +D).ToString())
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
-                );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,26): error CS1026: ) expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
+            // (9,26): error CS1026: ) expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "return").WithLocation(9, 26),
+            // (9,35): error CS1002: ; expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 35),
+            // (9,35): error CS1513: } expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 35),
+            // (9,47): error CS1002: ; expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 47),
+            // (9,47): error CS1513: } expected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 47),
+            // (9,20): error CS0103: The name 'yield' does not exist in the current context
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "yield").WithArguments("yield").WithLocation(9, 20),
+            // (9,26): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.ERR_ReturnInIterator, "return").WithLocation(9, 26),
+            // (9,37): warning CS0162: Unreachable code detected
+            //         lock ((C + yield return +D).ToString())
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "ToString").WithLocation(9, 37)
+            );
+    }
 
-        [Fact]
-        public void StatementInLock()
-        {
-            var source = @"
+    [Fact]
+    public void StatementInLock()
+    {
+        var source = @"
 class Test
 {
     public static void Main()
@@ -428,14 +428,14 @@ class Test
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"));
+    }
 
-        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
-        [Fact()]
-        public void MalformedLock_1()
-        {
-            var source = @"
+    [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
+    [Fact()]
+    public void MalformedLock_1()
+    {
+        var source = @"
 class D
 {
     public void goo()
@@ -446,32 +446,32 @@ class D
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,26): error CS1026: ) expected
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "object").WithLocation(6, 26),
-                // (6,32): error CS1001: Identifier expected
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 32),
-                // (6,32): error CS1003: Syntax error, ',' expected
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 32),
-                // (6,33): error CS1002: ; expected
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 33),
-                // (6,19): error CS0103: The name 'varnew' does not exist in the current context
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew").WithLocation(6, 19),
-                // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             lock (varnew object)
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, @"object)
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,26): error CS1026: ) expected
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "object").WithLocation(6, 26),
+            // (6,32): error CS1001: Identifier expected
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 32),
+            // (6,32): error CS1003: Syntax error, ',' expected
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 32),
+            // (6,33): error CS1002: ; expected
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 33),
+            // (6,19): error CS0103: The name 'varnew' does not exist in the current context
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "varnew").WithArguments("varnew").WithLocation(6, 19),
+            // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
+            //             lock (varnew object)
+            Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, @"object)
 ").WithLocation(6, 26));
-        }
+    }
 
-        [Fact]
-        public void LockNull()
-        {
-            var compilation = CreateCompilation(
+    [Fact]
+    public void LockNull()
+    {
+        var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -483,19 +483,19 @@ public class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
 
-            var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
+        var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
 
-            Assert.Null(model.GetSymbolInfo(lockStatements[0].Expression).Symbol);
-            Assert.Null(model.GetTypeInfo(lockStatements[0].Expression).Type);
-        }
+        Assert.Null(model.GetSymbolInfo(lockStatements[0].Expression).Symbol);
+        Assert.Null(model.GetTypeInfo(lockStatements[0].Expression).Type);
+    }
 
-        [Fact]
-        public void LockThis()
-        {
-            var compilation = CreateCompilation(
+    [Fact]
+    public void LockThis()
+    {
+        var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -507,14 +507,14 @@ public class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("Test");
-            VerifySemanticInfoForLockStatements(compilation, symbol);
-        }
+        var symbol = compilation.GetTypeByMetadataName("Test");
+        VerifySemanticInfoForLockStatements(compilation, symbol);
+    }
 
-        [Fact]
-        public void LockExpression()
-        {
-            var compilation = CreateCompilation(
+    [Fact]
+    public void LockExpression()
+    {
+        var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -526,14 +526,14 @@ public class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("Test");
-            VerifySemanticInfoForLockStatements(compilation, symbol);
-        }
+        var symbol = compilation.GetTypeByMetadataName("Test");
+        VerifySemanticInfoForLockStatements(compilation, symbol);
+    }
 
-        [Fact]
-        public void LockTypeParameterExpression()
-        {
-            var compilation = CreateCompilation(
+    [Fact]
+    public void LockTypeParameterExpression()
+    {
+        var compilation = CreateCompilation(
 @"
 public class Test
 {
@@ -545,17 +545,17 @@ public class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
-            var parameterSymbol = model.GetDeclaredSymbol(localDecl);
-            VerifySemanticInfoForLockStatements(compilation, parameterSymbol.GetSymbol());
-        }
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().Single();
+        var parameterSymbol = model.GetDeclaredSymbol(localDecl);
+        VerifySemanticInfoForLockStatements(compilation, parameterSymbol.GetSymbol());
+    }
 
-        [Fact]
-        public void LockQuery()
-        {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(
+    [Fact]
+    public void LockQuery()
+    {
+        var compilation = CreateCompilationWithMscorlib40AndSystemCore(
 @"
 using System.Linq;
 class Test
@@ -569,19 +569,19 @@ class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
 
-            var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
+        var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
 
-            Assert.Null(model.GetSymbolInfo(lockStatements[0].Expression).Symbol);
-            Assert.Equal(@"System.Collections.Generic.IEnumerable<char>", model.GetTypeInfo(lockStatements[0].Expression).Type.ToDisplayString());
-        }
+        Assert.Null(model.GetSymbolInfo(lockStatements[0].Expression).Symbol);
+        Assert.Equal(@"System.Collections.Generic.IEnumerable<char>", model.GetTypeInfo(lockStatements[0].Expression).Type.ToDisplayString());
+    }
 
-        [Fact]
-        public void LockDelegate()
-        {
-            var compilation = CreateCompilation(
+    [Fact]
+    public void LockDelegate()
+    {
+        var compilation = CreateCompilation(
 @"
 delegate void D(int p1);
 partial class Test
@@ -599,17 +599,17 @@ partial class Test
     }
 }
 ");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
-        }
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+        var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+        VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol(), isSymbolNull: true);
+    }
 
-        [Fact()]
-        public void LockAnonymousTypes()
-        {
-            var compilation = CreateCompilation(
+    [Fact()]
+    public void LockAnonymousTypes()
+    {
+        var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -623,17 +623,17 @@ class Test
 }
 ");
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
-            var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol());
-        }
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+        var symbol = (ILocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
+        VerifySemanticInfoForLockStatements(compilation, symbol.Type.GetSymbol());
+    }
 
-        [Fact()]
-        public void LockTypeOf()
-        {
-            var compilation = CreateCompilation(
+    [Fact()]
+    public void LockTypeOf()
+    {
+        var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -645,14 +645,14 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetTypeByMetadataName("System.Type");
-            VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
-        }
+        var symbol = compilation.GetTypeByMetadataName("System.Type");
+        VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
+    }
 
-        [Fact()]
-        public void LockString()
-        {
-            var compilation = CreateCompilation(
+    [Fact()]
+    public void LockString()
+    {
+        var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -664,14 +664,14 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetSpecialType(SpecialType.System_String);
-            VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
-        }
+        var symbol = compilation.GetSpecialType(SpecialType.System_String);
+        VerifySemanticInfoForLockStatements(compilation, symbol, isSymbolNull: true);
+    }
 
-        [Fact()]
-        public void AssignmentInLock()
-        {
-            var compilation = CreateCompilation(
+    [Fact()]
+    public void AssignmentInLock()
+    {
+        var compilation = CreateCompilation(
 @"
 class Test
 {
@@ -685,43 +685,43 @@ class Test
     }
 }
 ");
-            var symbol = compilation.GetSpecialType(SpecialType.System_String);
-            VerifySemanticInfoForLockStatements(compilation, symbol);
-        }
+        var symbol = compilation.GetSpecialType(SpecialType.System_String);
+        VerifySemanticInfoForLockStatements(compilation, symbol);
+    }
 
-        #region help method
+    #region help method
 
-        private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, Symbol symbol, int index = 1, bool isSymbolNull = false)
+    private static void VerifySemanticInfoForLockStatements(CSharpCompilation compilation, Symbol symbol, int index = 1, bool isSymbolNull = false)
+    {
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+
+        var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
+        var symbolInfo = model.GetSymbolInfo(lockStatements[index - 1].Expression);
+
+        if (isSymbolNull == true)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-
-            var lockStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().ToList();
-            var symbolInfo = model.GetSymbolInfo(lockStatements[index - 1].Expression);
-
-            if (isSymbolNull == true)
-            {
-                Assert.Null(symbolInfo.Symbol);
-            }
-            else
-            {
-                Assert.NotNull(symbolInfo.Symbol);
-            }
-            var typeInfo = model.GetTypeInfo(lockStatements[index - 1].Expression);
-            Assert.NotNull(typeInfo.Type);
-            Assert.NotNull(typeInfo.ConvertedType);
-
-            Assert.Equal(symbol, typeInfo.Type.GetSymbol());
-            Assert.Equal(symbol, typeInfo.ConvertedType.GetSymbol());
+            Assert.Null(symbolInfo.Symbol);
         }
-
-        #endregion
-
-        [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
-        [Fact]
-        public void EmbeddedDeclaration()
+        else
         {
-            var source = @"
+            Assert.NotNull(symbolInfo.Symbol);
+        }
+        var typeInfo = model.GetTypeInfo(lockStatements[index - 1].Expression);
+        Assert.NotNull(typeInfo.Type);
+        Assert.NotNull(typeInfo.ConvertedType);
+
+        Assert.Equal(symbol, typeInfo.Type.GetSymbol());
+        Assert.Equal(symbol, typeInfo.ConvertedType.GetSymbol());
+    }
+
+    #endregion
+
+    [WorkItem(543168, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543168")]
+    [Fact]
+    public void EmbeddedDeclaration()
+    {
+        var source = @"
 class C
 {
     static void Main()
@@ -731,17 +731,17 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,20): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,20): error CS1023: Embedded statement cannot be a declaration or labeled statement
+            Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "object o = new object();"));
+    }
 
-        [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
-        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
-        [Fact]
-        public void LockTypeGenericTypeParam()
-        {
-            var source = @"
+    [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
+    [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
+    [Fact]
+    public void LockTypeGenericTypeParam()
+    {
+        var source = @"
 class Gen1<T>
 {
     public static void Consumer(T monitor1)
@@ -771,25 +771,24 @@ class Gen3<T> where T : class
     }
 }
 ";
-            var regularCompilation = CreateCompilation(source);
-            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+        var regularCompilation = CreateCompilation(source);
+        var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
-            regularCompilation.VerifyDiagnostics(
-                // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (monitor2)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15)
-                );
-            strictCompilation.VerifyDiagnostics(
-                // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (monitor2)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15),
-                // (6,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (monitor1)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor1").WithArguments("T").WithLocation(6, 15),
-                // (9,15): error CS0185: '<null>' is not a reference type as required by the lock statement
-                //         lock (null) {}
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(9, 15)
-                );
-        }
+        regularCompilation.VerifyDiagnostics(
+            // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
+            //         lock (monitor2)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15)
+            );
+        strictCompilation.VerifyDiagnostics(
+            // (16,15): error CS0185: 'T' is not a reference type as required by the lock statement
+            //         lock (monitor2)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor2").WithArguments("T").WithLocation(16, 15),
+            // (6,15): error CS0185: 'T' is not a reference type as required by the lock statement
+            //         lock (monitor1)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "monitor1").WithArguments("T").WithLocation(6, 15),
+            // (9,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+            //         lock (null) {}
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(9, 15)
+            );
     }
 }

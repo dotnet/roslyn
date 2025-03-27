@@ -11,23 +11,23 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
-{
-    // See also VB and C# command line unit tests for additional coverage.
-    [Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
-    public class SarifV2ErrorLoggerTests : SarifErrorLoggerTests
-    {
-        internal override SarifErrorLogger CreateLogger(
-            Stream stream,
-            string toolName,
-            string toolFileVersion,
-            Version toolAssemblyVersion,
-            CultureInfo culture)
-        {
-            return new SarifV2ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture);
-        }
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
-        protected override string ExpectedOutputForAdditionalLocationsAsRelatedLocations =>
+// See also VB and C# command line unit tests for additional coverage.
+[Trait(Traits.Feature, Traits.Features.SarifErrorLogging)]
+public class SarifV2ErrorLoggerTests : SarifErrorLoggerTests
+{
+    internal override SarifErrorLogger CreateLogger(
+        Stream stream,
+        string toolName,
+        string toolFileVersion,
+        Version toolAssemblyVersion,
+        CultureInfo culture)
+    {
+        return new SarifV2ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture);
+    }
+
+    protected override string ExpectedOutputForAdditionalLocationsAsRelatedLocations =>
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
               ""physicalLocation"": {
                 ""artifactLocation"": {
                   ""uri"": """ + (PathUtilities.IsUnixLikePlatform
-                                    ? "Z:/Main%20Location.cs"
-                                    : "file:///Z:/Main%20Location.cs") + @"""
+                                ? "Z:/Main%20Location.cs"
+                                : "file:///Z:/Main%20Location.cs") + @"""
                 },
                 ""region"": {
                   ""startLine"": 1,
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
   ]
 }";
 
-        [Fact]
-        public void AdditionalLocationsAsRelatedLocations()
-        {
-            AdditionalLocationsAsRelatedLocationsImpl();
-        }
+    [Fact]
+    public void AdditionalLocationsAsRelatedLocations()
+    {
+        AdditionalLocationsAsRelatedLocationsImpl();
+    }
 
-        protected override string ExpectedOutputForDescriptorIdCollision =>
+    protected override string ExpectedOutputForDescriptorIdCollision =>
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
@@ -377,16 +377,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
   ]
 }";
 
-        [Fact]
-        public void DescriptorIdCollision()
-        {
-            DescriptorIdCollisionImpl();
-        }
+    [Fact]
+    public void DescriptorIdCollision()
+    {
+        DescriptorIdCollisionImpl();
+    }
 
-        [Fact]
-        public void PathToUri()
-        {
-            PathToUriImpl(@"{{
+    [Fact]
+    public void PathToUri()
+    {
+        PathToUriImpl(@"{{
   ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
   ""version"": ""2.1.0"",
   ""runs"": [
@@ -436,6 +436,5 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     }}
   ]
 }}");
-        }
     }
 }

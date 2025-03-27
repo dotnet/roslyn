@@ -14,122 +14,121 @@ using Microsoft.CodeAnalysis.CodeGen;
 using FieldSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.FieldSymbol;
 #endif
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
+namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia;
+
+internal sealed class EmbeddedField : EmbeddedTypesManager.CommonEmbeddedField
 {
-    internal sealed class EmbeddedField : EmbeddedTypesManager.CommonEmbeddedField
+    public EmbeddedField(EmbeddedType containingType, FieldSymbolAdapter underlyingField) :
+        base(containingType, underlyingField)
     {
-        public EmbeddedField(EmbeddedType containingType, FieldSymbolAdapter underlyingField) :
-            base(containingType, underlyingField)
+    }
+
+    internal override EmbeddedTypesManager TypeManager
+    {
+        get
         {
+            return ContainingType.TypeManager;
         }
+    }
 
-        internal override EmbeddedTypesManager TypeManager
+    protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    {
+        return UnderlyingField.AdaptedFieldSymbol.GetCustomAttributesToEmit(moduleBuilder);
+    }
+
+    protected override MetadataConstant GetCompileTimeValue(EmitContext context)
+    {
+        return UnderlyingField.GetMetadataConstantValue(context);
+    }
+
+    protected override bool IsCompileTimeConstant
+    {
+        get
         {
-            get
-            {
-                return ContainingType.TypeManager;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.IsMetadataConstant;
         }
+    }
 
-        protected override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    protected override bool IsNotSerialized
+    {
+        get
         {
-            return UnderlyingField.AdaptedFieldSymbol.GetCustomAttributesToEmit(moduleBuilder);
+            return UnderlyingField.AdaptedFieldSymbol.IsNotSerialized;
         }
+    }
 
-        protected override MetadataConstant GetCompileTimeValue(EmitContext context)
+    protected override bool IsReadOnly
+    {
+        get
         {
-            return UnderlyingField.GetMetadataConstantValue(context);
+            return UnderlyingField.AdaptedFieldSymbol.IsReadOnly;
         }
+    }
 
-        protected override bool IsCompileTimeConstant
+    protected override bool IsRuntimeSpecial
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.IsMetadataConstant;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.HasRuntimeSpecialName;
         }
+    }
 
-        protected override bool IsNotSerialized
+    protected override bool IsSpecialName
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.IsNotSerialized;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.HasSpecialName;
         }
+    }
 
-        protected override bool IsReadOnly
+    protected override bool IsStatic
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.IsReadOnly;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.IsStatic;
         }
+    }
 
-        protected override bool IsRuntimeSpecial
+    protected override bool IsMarshalledExplicitly
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.HasRuntimeSpecialName;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.IsMarshalledExplicitly;
         }
+    }
 
-        protected override bool IsSpecialName
+    protected override Cci.IMarshallingInformation MarshallingInformation
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.HasSpecialName;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.MarshallingInformation;
         }
+    }
 
-        protected override bool IsStatic
+    protected override ImmutableArray<byte> MarshallingDescriptor
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.IsStatic;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.MarshallingDescriptor;
         }
+    }
 
-        protected override bool IsMarshalledExplicitly
+    protected override int? TypeLayoutOffset
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.IsMarshalledExplicitly;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.TypeLayoutOffset;
         }
+    }
 
-        protected override Cci.IMarshallingInformation MarshallingInformation
+    protected override Cci.TypeMemberVisibility Visibility
+        => UnderlyingField.AdaptedFieldSymbol.MetadataVisibility;
+
+    protected override string Name
+    {
+        get
         {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.MarshallingInformation;
-            }
-        }
-
-        protected override ImmutableArray<byte> MarshallingDescriptor
-        {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.MarshallingDescriptor;
-            }
-        }
-
-        protected override int? TypeLayoutOffset
-        {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.TypeLayoutOffset;
-            }
-        }
-
-        protected override Cci.TypeMemberVisibility Visibility
-            => UnderlyingField.AdaptedFieldSymbol.MetadataVisibility;
-
-        protected override string Name
-        {
-            get
-            {
-                return UnderlyingField.AdaptedFieldSymbol.MetadataName;
-            }
+            return UnderlyingField.AdaptedFieldSymbol.MetadataName;
         }
     }
 }

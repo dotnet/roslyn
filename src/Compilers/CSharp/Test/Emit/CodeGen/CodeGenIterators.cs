@@ -10,15 +10,15 @@ using Roslyn.Test.Utilities;
 using System;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+[CompilerTrait(CompilerFeature.Iterator)]
+public class CodeGenIterators : CSharpTestBase
 {
-    [CompilerTrait(CompilerFeature.Iterator)]
-    public class CodeGenIterators : CSharpTestBase
+    [Fact]
+    public void TestSimpleIterator01()
     {
-        [Fact]
-        public void TestSimpleIterator01()
-        {
-            var source =
+        var source =
 @"using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -85,13 +85,13 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "123456789X");
-        }
+        var compilation = CompileAndVerify(source, expectedOutput: "123456789X");
+    }
 
-        [Fact]
-        public void TestSimpleIterator02()
-        {
-            var source =
+    [Fact]
+    public void TestSimpleIterator02()
+    {
+        var source =
 @"using System.Collections.Generic;
 using System;
 
@@ -122,13 +122,13 @@ class C
         foreach (var i in IE()) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
-        }
+        var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
+    }
 
-        [Fact]
-        public void TestSimpleIterator03()
-        {
-            var source =
+    [Fact]
+    public void TestSimpleIterator03()
+    {
+        var source =
 @"using System.Collections.Generic;
 using System;
 
@@ -168,9 +168,9 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
+        var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
 
-            compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
+        compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
   // Code size       84 (0x54)
   .maxstack  2
@@ -208,7 +208,7 @@ class Program
   IL_0052:  ldloc.0
   IL_0053:  ret
 }");
-            compilation.VerifyIL("S.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
+        compilation.VerifyIL("S.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
   // Code size       84 (0x54)
   .maxstack  2
@@ -246,12 +246,12 @@ class Program
   IL_0052:  ldloc.0
   IL_0053:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestSimpleIterator04()
-        {
-            var source =
+    [Fact]
+    public void TestSimpleIterator04()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -302,9 +302,9 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
+        var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
 
-            compilation.VerifyIL("Program.<Int0>d__0.System.Collections.IEnumerator.MoveNext()", @"
+        compilation.VerifyIL("Program.<Int0>d__0.System.Collections.IEnumerator.MoveNext()", @"
 {
   // Code size      303 (0x12f)
   .maxstack  2
@@ -444,7 +444,7 @@ class Program
   IL_012e:  ret
 }
 ");
-            compilation.VerifyIL("Program.<Int0>d__0.System.IDisposable.Dispose()", @"
+        compilation.VerifyIL("Program.<Int0>d__0.System.IDisposable.Dispose()", @"
 {
   // Code size       84 (0x54)
   .maxstack  2
@@ -517,12 +517,12 @@ class Program
   IL_0053:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void TestIteratorWithBaseAccess()
-        {
-            var source = @"
+    [Fact]
+    public void TestIteratorWithBaseAccess()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -558,13 +558,13 @@ class Derived: Base
         yield return this.Func();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "Base.Func;Derived.Func;");
-        }
+        CompileAndVerify(source, expectedOutput: "Base.Func;Derived.Func;");
+    }
 
-        [Fact]
-        public void TestIteratorWithBaseAccessInLambda()
-        {
-            var source = @"
+    [Fact]
+    public void TestIteratorWithBaseAccessInLambda()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -630,13 +630,13 @@ static class M1
         (new D<int>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;B1::F;");
-        }
+        CompileAndVerify(source, expectedOutput: "B1::F;D::F;B1::F;");
+    }
 
-        [Fact]
-        public void TestIteratorWithBaseAccessInLambda2()
-        {
-            var source = @"
+    [Fact]
+    public void TestIteratorWithBaseAccessInLambda2()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -680,14 +680,14 @@ class C: Base
         yield return dd();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "444888");
-        }
+        CompileAndVerify(source, expectedOutput: "444888");
+    }
 
-        [WorkItem(543165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
-        [Fact]
-        public void TestIteratorWithLambda()
-        {
-            var source = @"
+    [WorkItem(543165, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543165")]
+    [Fact]
+    public void TestIteratorWithLambda()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -719,13 +719,13 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "36");
-        }
+        CompileAndVerify(source, expectedOutput: "36");
+    }
 
-        [Fact]
-        public void Legacy_basic_itr_block010()
-        {
-            var source = @"using System.Collections.Generic;
+    [Fact]
+    public void Legacy_basic_itr_block010()
+    {
+        var source = @"using System.Collections.Generic;
 using System.Collections;
 using System;
 
@@ -759,14 +759,14 @@ class Program
         foreach (var i in y) Console.Write(i);
     }
 }";
-            CompileAndVerify(source, expectedOutput: "ab01");
-        }
+        CompileAndVerify(source, expectedOutput: "ab01");
+    }
 
-        [WorkItem(543178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
-        [Fact]
-        public void TestIteratorWithLambda02()
-        {
-            var source = @"
+    [WorkItem(543178, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543178")]
+    [Fact]
+    public void TestIteratorWithLambda02()
+    {
+        var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -793,14 +793,14 @@ public class A
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "abc");
-        }
+        CompileAndVerify(source, expectedOutput: "abc");
+    }
 
-        [WorkItem(543373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
-        [Fact]
-        public void TestIteratorWithNestedForEachAndThrow()
-        {
-            var source = @"
+    [WorkItem(543373, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543373")]
+    [Fact]
+    public void TestIteratorWithNestedForEachAndThrow()
+    {
+        var source = @"
 using System.Collections.Generic;
 using System;
 
@@ -869,14 +869,14 @@ public class MyEnumerator : IEnumerator<int>
     void System.Collections.IEnumerator.Reset() { index = -1; }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
-        }
+        CompileAndVerify(source, expectedOutput: "InnerOuterExInner");
+    }
 
-        [WorkItem(543542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
-        [Fact]
-        public void TestIteratorWithSwitchBreak()
-        {
-            var source = @"
+    [WorkItem(543542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543542")]
+    [Fact]
+    public void TestIteratorWithSwitchBreak()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 
@@ -906,14 +906,14 @@ class Test
     } // Iter2
 }
 ";
-            CompileAndVerify(source, expectedOutput: "234");
-        }
+        CompileAndVerify(source, expectedOutput: "234");
+    }
 
-        [WorkItem(546128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
-        [Fact]
-        public void TestIteratorWithCapturedStruct()
-        {
-            var source =
+    [WorkItem(546128, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546128")]
+    [Fact]
+    public void TestIteratorWithCapturedStruct()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -946,13 +946,13 @@ struct B
     public int N;
     public B(int n) { this.N = n; }
 }";
-            CompileAndVerify(source, expectedOutput: "3210");
-        }
+        CompileAndVerify(source, expectedOutput: "3210");
+    }
 
-        [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
-        public void TestIteratorWithNullableAsCollectionVariable_NonNull()
-        {
-            var source = @"
+    [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+    public void TestIteratorWithNullableAsCollectionVariable_NonNull()
+    {
+        var source = @"
 using System;
 using System.Collections;
 
@@ -978,7 +978,7 @@ struct S : IEnumerable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1").VerifyIL("Program.Main", @"
+        CompileAndVerify(source, expectedOutput: "1").VerifyIL("Program.Main", @"
 {
   // Code size       90 (0x5a)
   .maxstack  2
@@ -1031,13 +1031,13 @@ struct S : IEnumerable
   IL_0054:  call       ""void System.Console.Write(int)""
   IL_0059:  ret
 }");
-        }
+    }
 
-        [ConditionalFact(typeof(DesktopOnly))]
-        [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
-        public void TestIteratorWithNullableAsCollectionVariable_Null()
-        {
-            var source = @"
+    [ConditionalFact(typeof(DesktopOnly))]
+    [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+    public void TestIteratorWithNullableAsCollectionVariable_Null()
+    {
+        var source = @"
 using System;
 using System.Collections;
 
@@ -1078,8 +1078,8 @@ struct S : IEnumerable
     }
 }
 ";
-            CompileAndVerifyException<InvalidOperationException>(source, expectedMessage: "Nullable object must have a value.").
-                VerifyIL("Program.Test", @"
+        CompileAndVerifyException<InvalidOperationException>(source, expectedMessage: "Nullable object must have a value.").
+            VerifyIL("Program.Test", @"
 {
   // Code size       82 (0x52)
   .maxstack  2
@@ -1129,13 +1129,13 @@ struct S : IEnumerable
   IL_004c:  call       ""void System.Console.Write(int)""
   IL_0051:  ret
 }");
-        }
+    }
 
-        [Fact]
-        [WorkItem(545650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545650")]
-        public void TestIteratorWithUsing()
-        {
-            var source =
+    [Fact]
+    [WorkItem(545650, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545650")]
+    public void TestIteratorWithUsing()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
  
@@ -1156,13 +1156,13 @@ class T
     {
     }
 }";
-            CompileAndVerify(source, expectedOutput: "");
-        }
+        CompileAndVerify(source, expectedOutput: "");
+    }
 
-        [Fact, WorkItem(545767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
-        public void DoNotCaptureUnusedParameters_Release()
-        {
-            var source = @"
+    [Fact, WorkItem(545767, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545767")]
+    public void DoNotCaptureUnusedParameters_Release()
+    {
+        var source = @"
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1177,16 +1177,16 @@ class Program
         yield return x;
     }
 }";
-            var rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        var rel = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        {
+            AssertEx.Equal(new[]
             {
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current"
-                }, module.GetFieldNames("Program.<M>d__1"));
-            });
+                "<>1__state",
+                "<>2__current"
+            }, module.GetFieldNames("Program.<M>d__1"));
+        });
 
-            rel.VerifyIL("Program.M", @"
+        rel.VerifyIL("Program.M", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1194,18 +1194,18 @@ class Program
   IL_0001:  newobj     ""Program.<M>d__1..ctor(int)""
   IL_0006:  ret
 }");
-            var dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        var dbg = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        {
+            AssertEx.Equal(new[]
             {
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "items",
-                    "<x>5__1",
-                }, module.GetFieldNames("Program.<M>d__1"));
-            });
+                "<>1__state",
+                "<>2__current",
+                "items",
+                "<x>5__1",
+            }, module.GetFieldNames("Program.<M>d__1"));
+        });
 
-            dbg.VerifyIL("Program.M", @"
+        dbg.VerifyIL("Program.M", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
@@ -1216,12 +1216,12 @@ class Program
   IL_0008:  stfld      ""System.Collections.Generic.IEnumerable<int> Program.<M>d__1.items""
   IL_000d:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void HoistedParameters_Enumerable()
-        {
-            var source = @"
+    [Fact]
+    public void HoistedParameters_Enumerable()
+    {
+        var source = @"
 using System.Collections.Generic;
 
 struct Test
@@ -1233,44 +1233,44 @@ struct Test
         y = 1;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
-            {
-                // consider: we don't really need to hoist "x" and "z", we could store the values of "<>3__x" and "<>3__z" to locals at the beginning of MoveNext.
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "<>l__initialThreadId",
-                    "x",
-                    "<>3__x",
-                    "z",
-                    "<>3__z",
-                    "y",
-                    "<>3__y",
-                }, module.GetFieldNames("Test.<F>d__0"));
-            });
-
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
-            {
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "<>l__initialThreadId",
-                    "x",
-                    "<>3__x",
-                    "y",
-                    "<>3__y",
-                    "z",
-                    "<>3__z",
-                }, module.GetFieldNames("Test.<F>d__0"));
-            });
-        }
-
-        [Fact]
-        public void HoistedParameters_Enumerator()
+        CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
         {
-            var source = @"
+            // consider: we don't really need to hoist "x" and "z", we could store the values of "<>3__x" and "<>3__z" to locals at the beginning of MoveNext.
+            AssertEx.Equal(new[]
+            {
+                "<>1__state",
+                "<>2__current",
+                "<>l__initialThreadId",
+                "x",
+                "<>3__x",
+                "z",
+                "<>3__z",
+                "y",
+                "<>3__y",
+            }, module.GetFieldNames("Test.<F>d__0"));
+        });
+
+        CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        {
+            AssertEx.Equal(new[]
+            {
+                "<>1__state",
+                "<>2__current",
+                "<>l__initialThreadId",
+                "x",
+                "<>3__x",
+                "y",
+                "<>3__y",
+                "z",
+                "<>3__z",
+            }, module.GetFieldNames("Test.<F>d__0"));
+        });
+    }
+
+    [Fact]
+    public void HoistedParameters_Enumerator()
+    {
+        var source = @"
 using System.Collections.Generic;
 
 struct Test
@@ -1282,35 +1282,35 @@ struct Test
         y = 1;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
-            {
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "x",
-                    "z",
-                    "y",
-                }, module.GetFieldNames("Test.<F>d__0"));
-            });
-
-            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
-            {
-                AssertEx.Equal(new[]
-                {
-                    "<>1__state",
-                    "<>2__current",
-                    "x",
-                    "y",
-                    "z",
-                }, module.GetFieldNames("Test.<F>d__0"));
-            });
-        }
-
-        [Fact]
-        public void IteratorForEach()
+        CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
         {
-            var source =
+            AssertEx.Equal(new[]
+            {
+                "<>1__state",
+                "<>2__current",
+                "x",
+                "z",
+                "y",
+            }, module.GetFieldNames("Test.<F>d__0"));
+        });
+
+        CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+        {
+            AssertEx.Equal(new[]
+            {
+                "<>1__state",
+                "<>2__current",
+                "x",
+                "y",
+                "z",
+            }, module.GetFieldNames("Test.<F>d__0"));
+        });
+    }
+
+    [Fact]
+    public void IteratorForEach()
+    {
+        var source =
 @"
 using System;
 using System.Collections.Generic;
@@ -1333,8 +1333,8 @@ class Test
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "abcdef").
-                VerifyIL("Test.<M>d__0<T>.System.Collections.IEnumerator.MoveNext()",
+        CompileAndVerify(source, expectedOutput: "abcdef").
+            VerifyIL("Test.<M>d__0<T>.System.Collections.IEnumerator.MoveNext()",
 @"{
   // Code size      129 (0x81)
   .maxstack  2
@@ -1404,13 +1404,13 @@ class Test
   IL_007f:  ldloc.0
   IL_0080:  ret
 }");
-        }
+    }
 
-        [Fact]
-        [WorkItem(563925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563925")]
-        public void CaptureRefLocalNoParts()
-        {
-            var source =
+    [Fact]
+    [WorkItem(563925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/563925")]
+    public void CaptureRefLocalNoParts()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -1437,14 +1437,14 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "012");
-        }
+        CompileAndVerify(source, expectedOutput: "012");
+    }
 
-        [Fact]
-        [WorkItem(590712, "DevDiv")]
-        public void MultipassAnalysisWithRefLocal()
-        {
-            var source =
+    [Fact]
+    [WorkItem(590712, "DevDiv")]
+    public void MultipassAnalysisWithRefLocal()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -1472,14 +1472,14 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "012");
-        }
+        CompileAndVerify(source, expectedOutput: "012");
+    }
 
-        [Fact]
-        [WorkItem(620862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620862")]
-        public void DelegateCreationInIterator()
-        {
-            var source =
+    [Fact]
+    [WorkItem(620862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/620862")]
+    public void DelegateCreationInIterator()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -1503,13 +1503,13 @@ class Program1
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "12");
-        }
+        CompileAndVerify(source, expectedOutput: "12");
+    }
 
-        [Fact]
-        public void ForwardBranchInFinally()
-        {
-            var source =
+    [Fact]
+    public void ForwardBranchInFinally()
+    {
+        var source =
 @"
 using System;
 using System.Collections.Generic;
@@ -1580,13 +1580,13 @@ class Program
 
 
 ";
-            CompileAndVerify(source, expectedOutput: "1TryNestedTryNestedFinally2Finally");
-        }
+        CompileAndVerify(source, expectedOutput: "1TryNestedTryNestedFinally2Finally");
+    }
 
-        [Fact]
-        public void MultiLevelGoto()
-        {
-            var source =
+    [Fact]
+    public void MultiLevelGoto()
+    {
+        var source =
 @"
 using System;
 using System.Collections.Generic;
@@ -1672,13 +1672,13 @@ class Program
 
 
 ";
-            CompileAndVerify(source, expectedOutput: "12345Finally5Finally4Finally3Finally2L1Finally1");
-        }
+        CompileAndVerify(source, expectedOutput: "12345Finally5Finally4Finally3Finally2L1Finally1");
+    }
 
-        [Fact]
-        public void MultiLevelGoto001()
-        {
-            var source =
+    [Fact]
+    public void MultiLevelGoto001()
+    {
+        var source =
 @"
 using System;
 using System.Collections.Generic;
@@ -1771,7 +1771,7 @@ class Program
 }
 
 ";
-            CompileAndVerify(source, expectedOutput: @"
+        CompileAndVerify(source, expectedOutput: @"
 L1
 Finally10Finally2L1
 Finally101Finally3Finally2L1
@@ -1779,12 +1779,12 @@ Finally1012Finally4Finally3Finally2L1
 Finally10123Finally5Finally4Finally3Finally2L1
 Finally101234Finally5Finally4Finally3Finally2L1
 Finally1");
-        }
+    }
 
-        [Fact]
-        public void Switch001()
-        {
-            var source =
+    [Fact]
+    public void Switch001()
+    {
+        var source =
 @"
 using System;
 using System.Diagnostics;
@@ -1879,13 +1879,13 @@ class S<T1, T2>
 
 
 ";
-            CompileAndVerify(source, expectedOutput: @"M");
-        }
+        CompileAndVerify(source, expectedOutput: @"M");
+    }
 
-        [Fact]
-        public void AssignedInFinally()
-        {
-            var source =
+    [Fact]
+    public void AssignedInFinally()
+    {
+        var source =
 @"
 using System;
 using System.Collections.Generic;
@@ -1918,16 +1918,16 @@ class A
 }
 
 ";
-            CompileAndVerify(source, expectedOutput: @"5
+        CompileAndVerify(source, expectedOutput: @"5
 42");
-        }
+    }
 
-        [Fact]
-        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
-        public void VerifyHelpers()
-        {
-            var source =
-                @"
+    [Fact]
+    [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
+    public void VerifyHelpers()
+    {
+        var source =
+            @"
 using System.Collections.Generic;
 
 class Program
@@ -1938,20 +1938,20 @@ class Program
     }
 }
 ";
-            //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib461(parsed);
-            var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
-        }
+        //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
+        var parsed = new[] { Parse(source) };
+        var comp = CreateCompilationWithMscorlib461(parsed);
+        var verifier = this.CompileAndVerify(comp);
+        var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+        Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
+    }
 
-        [Fact]
-        [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
-        public void VerifyHelpers001()
-        {
-            var source =
-                @"
+    [Fact]
+    [WorkItem(703361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703361")]
+    public void VerifyHelpers001()
+    {
+        var source =
+            @"
 using System.Collections.Generic;
 
 class Program
@@ -1971,18 +1971,18 @@ namespace System
 }
 
 ";
-            var parsed = new[] { Parse(source) };
-            var comp = CreateCompilation(parsed);
-            comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
-            var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
-            Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
-        }
+        var parsed = new[] { Parse(source) };
+        var comp = CreateCompilation(parsed);
+        comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
+        var verifier = this.CompileAndVerify(comp);
+        var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+        Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
+    }
 
-        [Fact]
-        public void UnreachableExit()
-        {
-            var source =
+    [Fact]
+    public void UnreachableExit()
+    {
+        var source =
 @"
 using System.Collections.Generic;
 using System;
@@ -2007,13 +2007,13 @@ class Program
 }
 
 ";
-            CompileAndVerify(source, expectedOutput: @"DONE");
-        }
+        CompileAndVerify(source, expectedOutput: @"DONE");
+    }
 
-        [Fact]
-        public void Regress709127()
-        {
-            var source =
+    [Fact]
+    public void Regress709127()
+    {
+        var source =
 @"
     using System.Collections;
     using System.Collections.Generic;
@@ -2087,14 +2087,14 @@ class Program
         }
 
     }";
-            CompileAndVerify(source, expectedOutput: @"");
-        }
+        CompileAndVerify(source, expectedOutput: @"");
+    }
 
-        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
-        [Fact]
-        public void Regress718498a()
-        {
-            var source =
+    [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+    [Fact]
+    public void Regress718498a()
+    {
+        var source =
 @"using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -2128,14 +2128,14 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"12");
-        }
+        CompileAndVerify(source, expectedOutput: @"12");
+    }
 
-        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
-        [Fact]
-        public void Regress718498b()
-        {
-            var source =
+    [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+    [Fact]
+    public void Regress718498b()
+    {
+        var source =
 @"using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -2173,14 +2173,14 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"12");
-        }
+        CompileAndVerify(source, expectedOutput: @"12");
+    }
 
-        [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
-        [Fact]
-        public void Regress718498c()
-        {
-            var source =
+    [WorkItem(718498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718498")]
+    [Fact]
+    public void Regress718498c()
+    {
+        var source =
 @"using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -2211,18 +2211,18 @@ class Program
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"12");
-        }
+        CompileAndVerify(source, expectedOutput: @"12");
+    }
 
-        /// <summary>
-        /// Name of public fields for spill temps must start with
-        /// "&lt;&gt;[c]__" so the fields are hidden in the debugger.
-        /// </summary>
-        [WorkItem(808600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808600")]
-        [Fact]
-        public void SpillFieldName()
-        {
-            var source =
+    /// <summary>
+    /// Name of public fields for spill temps must start with
+    /// "&lt;&gt;[c]__" so the fields are hidden in the debugger.
+    /// </summary>
+    [WorkItem(808600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808600")]
+    [Fact]
+    public void SpillFieldName()
+    {
+        var source =
 @"class C<T>
 {
     static System.Collections.Generic.IEnumerable<T> F(System.IDisposable x, T[] y)
@@ -2236,8 +2236,8 @@ class Program
         }
     }
 }";
-            string expectedIL;
-            CompileAndVerify(source).VerifyIL("C<T>.<F>d__0.System.Collections.IEnumerator.MoveNext()", expectedIL =
+        string expectedIL;
+        CompileAndVerify(source).VerifyIL("C<T>.<F>d__0.System.Collections.IEnumerator.MoveNext()", expectedIL =
 @"{
   // Code size      176 (0xb0)
   .maxstack  3
@@ -2327,14 +2327,14 @@ class Program
   IL_00ae:  ldloc.0
   IL_00af:  ret
 }");
-            Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
-        }
+        Assert.True(expectedIL.IndexOf("<>_", StringComparison.Ordinal) < 0);
+    }
 
-        [Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")]
-        public void IteratorShouldCompileWithoutOptionalAttributes()
-        {
-            #region IL for corlib without CompilerGeneratedAttribute or DebuggerNonUserCodeAttribute
-            var corlib = @"
+    [Fact, WorkItem(9167, "https://github.com/dotnet/roslyn/issues/9167")]
+    public void IteratorShouldCompileWithoutOptionalAttributes()
+    {
+        #region IL for corlib without CompilerGeneratedAttribute or DebuggerNonUserCodeAttribute
+        var corlib = @"
 namespace System
 {
     public class Object { }
@@ -2379,9 +2379,9 @@ namespace System.Collections
         }
     }
 }";
-            #endregion
+        #endregion
 
-            var source = @"
+        var source = @"
 public class C
 {
     public System.Collections.IEnumerable SomeNumbers()
@@ -2389,22 +2389,22 @@ public class C
         yield return 42;
     }
 }";
-            // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
-            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: parseOptions), Parse(corlib, options: parseOptions) });
-            // PEVerify: System.Enum must extend System.ValueType.
-            var verifier = CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
-            verifier.VerifyDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
-        }
+        // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
+        var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+        var compilation = CreateEmptyCompilation(new[] { Parse(source, options: parseOptions), Parse(corlib, options: parseOptions) });
+        // PEVerify: System.Enum must extend System.ValueType.
+        var verifier = CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
+        verifier.VerifyDiagnostics(
+            // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+    }
 
-        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
-        public void IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
-        {
-            // Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
-            // Also, IEnumerator<T> doesn't have a get accessor
-            var source = @"
+    [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
+    public void IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+    {
+        // Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
+        // Also, IEnumerator<T> doesn't have a get accessor
+        var source = @"
 namespace System
 {
     public class Object { }
@@ -2436,43 +2436,43 @@ public class C
 {
     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
+        var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
 
-            compilation.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (31,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(31, 57),
-                // (31,57): error CS0154: The property or indexer 'IEnumerator<T>.Current' cannot be used in this context because it lacks the get accessor
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator<T>.Current").WithLocation(31, 57),
-                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Current'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Current").WithLocation(31, 57),
-                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(31, 57),
-                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(31, 57),
-                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerable.GetEnumerator'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerable", "GetEnumerator").WithLocation(31, 57),
-                // (31,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerable`1' is not defined or imported
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1").WithLocation(31, 57),
-                // (31,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerable`1.GetEnumerator'
-                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1", "GetEnumerator").WithLocation(31, 57));
-        }
+        compilation.VerifyEmitDiagnostics(
+            // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+            // (31,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(31, 57),
+            // (31,57): error CS0154: The property or indexer 'IEnumerator<T>.Current' cannot be used in this context because it lacks the get accessor
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator<T>.Current").WithLocation(31, 57),
+            // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Current'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Current").WithLocation(31, 57),
+            // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(31, 57),
+            // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(31, 57),
+            // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerable.GetEnumerator'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerable", "GetEnumerator").WithLocation(31, 57),
+            // (31,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerable`1' is not defined or imported
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1").WithLocation(31, 57),
+            // (31,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerable`1.GetEnumerator'
+            //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1", "GetEnumerator").WithLocation(31, 57));
+    }
 
-        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
-        public void IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
-        {
-            // Note that IDisposable.Dispose and other types are missing
-            // Also IEnumerator.Current lacks a get accessor
-            var source = @"
+    [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
+    public void IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+    {
+        // Note that IDisposable.Dispose and other types are missing
+        // Also IEnumerator.Current lacks a get accessor
+        var source = @"
 namespace System
 {
     public class Object { }
@@ -2500,37 +2500,37 @@ public class C
 {
     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
+        var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
 
-            // No error about IEnumerable
-            compilation.VerifyEmitDiagnostics(
-                // (27,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(27, 57),
-                // (27,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerator`1' is not defined or imported
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1").WithLocation(27, 57),
-                // (27,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerator`1.Current'
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1", "Current").WithLocation(27, 57),
-                // (27,57): error CS0154: The property or indexer 'IEnumerator.Current' cannot be used in this context because it lacks the get accessor
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator.Current").WithLocation(27, 57),
-                // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(27, 57),
-                // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
-                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(27, 57),
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
-        }
+        // No error about IEnumerable
+        compilation.VerifyEmitDiagnostics(
+            // (27,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(27, 57),
+            // (27,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerator`1' is not defined or imported
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1").WithLocation(27, 57),
+            // (27,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerator`1.Current'
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1", "Current").WithLocation(27, 57),
+            // (27,57): error CS0154: The property or indexer 'IEnumerator.Current' cannot be used in this context because it lacks the get accessor
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator.Current").WithLocation(27, 57),
+            // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(27, 57),
+            // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
+            //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(27, 57),
+            // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+            Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+    }
 
-        [Fact, WorkItem(21077, "https://github.com/dotnet/roslyn/issues/21077")]
-        public void NoExtraCapturing_01()
-        {
-            // Note that the variable i is not captured in any of these three async methods.
-            var source =
+    [Fact, WorkItem(21077, "https://github.com/dotnet/roslyn/issues/21077")]
+    public void NoExtraCapturing_01()
+    {
+        // Note that the variable i is not captured in any of these three async methods.
+        var source =
 @"using System.Threading.Tasks;
 
 class Program
@@ -2570,8 +2570,8 @@ class Program
         }
     }
 }";
-            var v = CompileAndVerify(source, options: TestOptions.ReleaseDll);
-            v.VerifyIL("Program.<Method1>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+        var v = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+        v.VerifyIL("Program.<Method1>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
   // Code size      148 (0x94)
   .maxstack  3
@@ -2645,7 +2645,7 @@ class Program
   IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0093:  ret
 }");
-            v.VerifyIL("Program.<Method2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+        v.VerifyIL("Program.<Method2>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
   // Code size      260 (0x104)
   .maxstack  3
@@ -2762,7 +2762,7 @@ class Program
   IL_00fe:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0103:  ret
 }");
-            v.VerifyIL("Program.<Method3>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+        v.VerifyIL("Program.<Method3>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
   // Code size      260 (0x104)
   .maxstack  3
@@ -2879,12 +2879,12 @@ class Program
   IL_00fe:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_0103:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(5062, "https://github.com/dotnet/roslyn/issues/5062")]
-        public void LocalLiftingVsSwitch()
-        {
-            var source =
+    [Fact, WorkItem(5062, "https://github.com/dotnet/roslyn/issues/5062")]
+    public void LocalLiftingVsSwitch()
+    {
+        var source =
 @"using System;
 using System.Collections.Generic;
 
@@ -2919,8 +2919,8 @@ class Program
         yield return result.ToString();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "FalseTrueFalseTrue", options: TestOptions.ReleaseExe);
-            compilation.VerifyIL("Program.<Iter1>d__1.System.Collections.IEnumerator.MoveNext()", @"{
+        var compilation = CompileAndVerify(source, expectedOutput: "FalseTrueFalseTrue", options: TestOptions.ReleaseExe);
+        compilation.VerifyIL("Program.<Iter1>d__1.System.Collections.IEnumerator.MoveNext()", @"{
   // Code size       69 (0x45)
   .maxstack  2
   .locals init (int V_0,
@@ -2962,7 +2962,7 @@ class Program
   IL_0043:  ldc.i4.0
   IL_0044:  ret
 }");
-            compilation.VerifyIL("Program.<Iter2>d__2.System.Collections.IEnumerator.MoveNext()", @"{
+        compilation.VerifyIL("Program.<Iter2>d__2.System.Collections.IEnumerator.MoveNext()", @"{
   // Code size       69 (0x45)
   .maxstack  2
   .locals init (int V_0,
@@ -3004,12 +3004,12 @@ class Program
   IL_0043:  ldc.i4.0
   IL_0044:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_IntLocal()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_IntLocal()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3026,8 +3026,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3037,12 +3037,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3062,8 +3062,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3076,12 +3076,12 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal_YieldBreak()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal_YieldBreak()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3102,8 +3102,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3116,12 +3116,12 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_IntArrayLocal()
-        {
-            string source = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_IntArrayLocal()
+    {
+        string source = """
 using System.Linq;
 using System.Reflection;
 
@@ -3142,9 +3142,9 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: "100 100 True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var comp = CreateCompilation(source);
+        var verifier = CompileAndVerify(comp, expectedOutput: "100 100 True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3157,12 +3157,12 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal()
+    {
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true);
@@ -3199,8 +3199,8 @@ public class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3213,12 +3213,12 @@ public class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_YieldBreak()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_YieldBreak()
+    {
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true);
@@ -3255,8 +3255,8 @@ public class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3269,12 +3269,12 @@ public class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_ThrownException()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_ThrownException()
+    {
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true);
@@ -3310,13 +3310,13 @@ public class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "42 value True").VerifyDiagnostics();
-        }
+        CompileAndVerify(src, expectedOutput: "42 value True").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_IntParameter()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_IntParameter()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce(42);
@@ -3333,8 +3333,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3344,12 +3344,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringParameter()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringParameter()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce("value ");
@@ -3366,8 +3366,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value value value").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "value value value").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3377,12 +3377,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_ClosureOverLocal()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_ClosureOverLocal()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3406,8 +3406,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42 42").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3417,12 +3417,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_ClosureOverThis()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_ClosureOverThis()
+    {
+        string src = """
 using System.Reflection;
 
 class C
@@ -3447,8 +3447,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__2.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "42").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__2.System.IDisposable.Dispose()", """
  {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3458,12 +3458,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_InTryFinally()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_InTryFinally()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3490,8 +3490,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value value ran True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "value value ran True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -3525,12 +3525,12 @@ class C
   IL_0029:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_InTryFinally_WithThrow()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_InTryFinally_WithThrow()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3566,8 +3566,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value value exception True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "value value exception True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       42 (0x2a)
   .maxstack  2
@@ -3601,12 +3601,12 @@ class C
   IL_0029:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_InTryFinally_WithThrow_EarlyIterationExit()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_InTryFinally_WithThrow_EarlyIterationExit()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3640,14 +3640,14 @@ class C
     }
 }
 """;
-            // Note: nested hoisted local does not get cleared when an exception is thrown during disposal
-            CompileAndVerify(src, expectedOutput: "exception value").VerifyDiagnostics();
-        }
+        // Note: nested hoisted local does not get cleared when an exception is thrown during disposal
+        CompileAndVerify(src, expectedOutput: "exception value").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal_WithThrownException()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal_WithThrownException()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce(true);
@@ -3674,13 +3674,13 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "exception True").VerifyDiagnostics();
-        }
+        CompileAndVerify(src, expectedOutput: "exception True").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedUnmanagedTypeParameterLocal()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedUnmanagedTypeParameterLocal()
+    {
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true, 42);
@@ -3717,8 +3717,8 @@ public class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "10 42 42").VerifyDiagnostics();
-            verifier.VerifyIL("C.<M>d__0<T>.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "10 42 42").VerifyDiagnostics();
+        verifier.VerifyIL("C.<M>d__0<T>.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3728,20 +3728,20 @@ public class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedLocalWithStructFromAnotherCompilation()
-        {
-            var libSrc = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedLocalWithStructFromAnotherCompilation()
+    {
+        var libSrc = """
 public struct S
 {
     public int field;
     public override string ToString() => field.ToString();
 }
 """;
-            var libComp = CreateCompilation(libSrc);
-            var src = """
+        var libComp = CreateCompilation(libSrc);
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true, new S { field = 42 });
@@ -3779,8 +3779,8 @@ public class C
 }
 """;
 
-            var verifier = CompileAndVerify(src, expectedOutput: "10 42 42", references: [libComp.EmitToImageReference()]).VerifyDiagnostics();
-            verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "10 42 42", references: [libComp.EmitToImageReference()]).VerifyDiagnostics();
+        verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3790,12 +3790,12 @@ public class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedUnmanagedWithGenericsLocal()
-        {
-            var src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedUnmanagedWithGenericsLocal()
+    {
+        var src = """
 using System.Reflection;
 
 var enumerable = C.M(true, 42);
@@ -3836,13 +3836,13 @@ public class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
-        }
+        CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal_EarlyIterationExit()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal_EarlyIterationExit()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3866,13 +3866,13 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "value True").VerifyDiagnostics();
-        }
+        CompileAndVerify(src, expectedOutput: "value True").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NestedStringLocal_Reused()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NestedStringLocal_Reused()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3899,8 +3899,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "values2 values2 values3 values3 True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "values2 values2 values3 values3 True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -3913,12 +3913,12 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_Parameters()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_Parameters()
+    {
+        string src = """
 string s = "ran ";
 var values = C.Produce(s);
 foreach (int value in values) { }
@@ -3933,8 +3933,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran ran").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "ran ran").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -3944,12 +3944,12 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_NotCleanedTooSoon()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_NotCleanedTooSoon()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -3983,8 +3983,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value value outer True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "value value outer True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       63 (0x3f)
   .maxstack  2
@@ -4037,12 +4037,12 @@ class C
   IL_003e:  ret
 }
 """);
-        }
+    }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void AddVariableCleanup_HoistedFromRefExpression()
-        {
-            var src = """
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void AddVariableCleanup_HoistedFromRefExpression()
+    {
+        var src = """
 using System.Reflection;
 
 C c = new C();
@@ -4082,9 +4082,9 @@ public struct Buffer4<T>
     private T _element0;
 }
 """;
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue", verify: Verification.Skipped).VerifyDiagnostics();
-            verifier.VerifyIL("Program.<Test>d__1.System.IDisposable.Dispose()", """
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+        var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrue", verify: Verification.Skipped).VerifyDiagnostics();
+        verifier.VerifyIL("Program.<Test>d__1.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -4097,12 +4097,12 @@ public struct Buffer4<T>
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal_IEnumerator()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal_IEnumerator()
+    {
+        string src = """
 using System.Reflection;
 
 var values = C.Produce();
@@ -4125,8 +4125,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
-            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
+        verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -4139,26 +4139,26 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact]
-        public void AddVariableCleanup_Unmanaged_UseSiteError()
-        {
-            var missingLibS1 = CreateCompilation(@"
+    [Fact]
+    public void AddVariableCleanup_Unmanaged_UseSiteError()
+    {
+        var missingLibS1 = CreateCompilation(@"
 public struct S1
 {
     public int i;
 }
 ", assemblyName: "libS1").ToMetadataReference();
 
-            var libS2 = CreateCompilation(@"
+        var libS2 = CreateCompilation(@"
 public struct S2
 {
     public S1 s1;
 }
 ", references: [missingLibS1], assemblyName: "libS2").ToMetadataReference();
 
-            var source = @"
+        var source = @"
 class C
 {
     System.Collections.Generic.IEnumerable<int> M1()
@@ -4171,21 +4171,21 @@ class C
     S2 M2() => default;
 }
 ";
-            var comp = CreateCompilation(source, references: [libS2]);
-            comp.VerifyEmitDiagnostics(
-                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
-                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+        var comp = CreateCompilation(source, references: [libS2]);
+        comp.VerifyEmitDiagnostics(
+            // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+            // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: [libS2, missingLibS1]);
-            comp.VerifyEmitDiagnostics();
-        }
+        comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: [libS2, missingLibS1]);
+        comp.VerifyEmitDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_StringLocal_MoveNextAfterDispose()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+    public void AddVariableCleanup_StringLocal_MoveNextAfterDispose()
+    {
+        string src = """
 var values = new C<string>([" one ", " two "]);
 var enumerator = values.GetEnumerator();
 System.Console.Write(enumerator.MoveNext());
@@ -4244,8 +4244,8 @@ class C<T>
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True two disposing disposed False two").VerifyDiagnostics();
-            verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "True two disposing disposed False two").VerifyDiagnostics();
+        verifier.VerifyIL("C<T>.<GetEnumerator>d__4.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -4258,14 +4258,14 @@ class C<T>
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldReturn()
-        {
-            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
-            // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldReturn()
+    {
+        // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+        // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
+        string src = """
 var enumerator = C.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
@@ -4286,8 +4286,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
+        verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -4297,14 +4297,14 @@ class C
   IL_0008:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldReturn_IEnumerable()
-        {
-            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
-            // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldReturn_IEnumerable()
+    {
+        // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+        // If the state of the enumerator object is suspended, invoking Dispose: ... Changes the state to after.
+        string src = """
 var enumerator = C.Produce().GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
@@ -4325,10 +4325,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one disposed False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4356,14 +4356,14 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrueTrueTrue").VerifyDiagnostics();
-        }
+        CompileAndVerify(src2, expectedOutput: "TrueTrueTrueTrueTrueTrue").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_DisposeTwice()
-        {
-            // If the state of the enumerator object is after, invoking Dispose has no affect.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_DisposeTwice()
+    {
+        // If the state of the enumerator object is after, invoking Dispose has no affect.
+        string src = """
 var enumerator = C.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
@@ -4388,9 +4388,9 @@ class C
     }
 }
 """;
-            // Note: we actually set the state to "after"/"finished" and cleanup hoisted locals again
-            var verifier = CompileAndVerify(src, expectedOutput: "True one disposed disposed2 False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+        // Note: we actually set the state to "after"/"finished" and cleanup hoisted locals again
+        var verifier = CompileAndVerify(src, expectedOutput: "True one disposed disposed2 False one").VerifyDiagnostics();
+        verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       16 (0x10)
   .maxstack  2
@@ -4403,13 +4403,13 @@ class C
   IL_000f:  ret
 }
 """);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldBreak()
-        {
-            // When a yield break statement is encountered ... The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldBreak()
+    {
+        // When a yield break statement is encountered ... The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4431,10 +4431,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one False one False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
@@ -4454,16 +4454,16 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_EndOfBody()
-        {
-            // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_EndOfBody()
+    {
+        // When the end of the iterator body is encountered ... The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4484,10 +4484,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one done False one False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
@@ -4505,16 +4505,16 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_ThrowException()
-        {
-            // When an exception is thrown and propagated out of the iterator block ... The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_ThrowException()
+    {
+        // When an exception is thrown and propagated out of the iterator block ... The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4543,10 +4543,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one exception one False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4574,22 +4574,22 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueFalseTrue").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "TrueTrueFalseTrue").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldReturn_InTryFinally()
-        {
-            // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldReturn_InTryFinally()
+    {
+        // When a yield return statement is encountered ... The state of the enumerator object is changed to suspended.
 
-            // If the state of the enumerator object is suspended, invoking Dispose:
-            // ...
-            // Executes any finally blocks as if the last executed yield return statement were a yield break statement.
-            //   If this causes an exception to be thrown and propagated out of the iterator body,
-            //   the state of the enumerator object is set to after and the exception is propagated to the caller of the Dispose method.
-            string src = """
+        // If the state of the enumerator object is suspended, invoking Dispose:
+        // ...
+        // Executes any finally blocks as if the last executed yield return statement were a yield break statement.
+        //   If this causes an exception to be thrown and propagated out of the iterator body,
+        //   the state of the enumerator object is set to after and the exception is propagated to the caller of the Dispose method.
+        string src = """
 var enumerator = C.GetEnumerator();
 
 System.Console.Write(enumerator.MoveNext());
@@ -4624,8 +4624,8 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "True one disposing exception disposed False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+        var verifier = CompileAndVerify(src, expectedOutput: "True one disposing exception disposed False one").VerifyDiagnostics();
+        verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -4656,7 +4656,7 @@ class C
   IL_0022:  ret
 }
 """);
-            verifier.VerifyIL("C.<GetEnumerator>d__0.<>m__Finally1()", """
+        verifier.VerifyIL("C.<GetEnumerator>d__0.<>m__Finally1()", """
 {
   // Code size       18 (0x12)
   .maxstack  2
@@ -4669,8 +4669,8 @@ class C
 }
 """);
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4701,18 +4701,18 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldBreak_InTryFinally()
-        {
-            // When a yield break statement is encountered:
-            // If the yield break statement is within one or more try blocks, the associated finally blocks are executed.
-            // The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldBreak_InTryFinally()
+    {
+        // When a yield break statement is encountered:
+        // If the yield break statement is within one or more try blocks, the associated finally blocks are executed.
+        // The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4741,10 +4741,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one finally False one False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce(true);
 var enumerator = enumerable.GetEnumerator();
 
@@ -4771,16 +4771,16 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "TrueTrue finally TrueFalse").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "TrueTrue finally TrueFalse").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_ThrowException_InTryFinally()
-        {
-            // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_ThrowException_InTryFinally()
+    {
+        // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4821,10 +4821,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one finally exception one False one False one").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -4858,16 +4858,16 @@ class C
     }
 }
 """;
-            // We're not setting the state to "after"/"finished"
-            // Tracked by https://github.com/dotnet/roslyn/issues/76089
-            CompileAndVerify(src2, expectedOutput: "True finally FalseTrue").VerifyDiagnostics();
-        }
+        // We're not setting the state to "after"/"finished"
+        // Tracked by https://github.com/dotnet/roslyn/issues/76089
+        CompileAndVerify(src2, expectedOutput: "True finally FalseTrue").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_ThrowException_InTryFinally_WithYieldInTry()
-        {
-            // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_ThrowException_InTryFinally_WithYieldInTry()
+    {
+        // When an exception is thrown and propagated out of the iterator block: ... The state of the enumerator object is changed to after.
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -4903,9 +4903,9 @@ class C
     }
 }
 """;
-            // Note: we generate a `fault { Dispose(); }`, but only if there is a `yield` in a `try`, which is surprising
-            var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
+        // Note: we generate a `fault { Dispose(); }`, but only if there is a `yield` in a `try`, which is surprising
+        var verifier = CompileAndVerify(src, expectedOutput: "True one finally exception one False one").VerifyDiagnostics();
+        verifier.VerifyIL("C.<GetEnumerator>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
   // Code size      101 (0x65)
   .maxstack  2
@@ -4965,7 +4965,7 @@ class C
 }
 """);
 
-            verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
+        verifier.VerifyIL("C.<GetEnumerator>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -4997,8 +4997,8 @@ class C
 }
 """);
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -5029,13 +5029,13 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "True finally True").VerifyDiagnostics();
-        }
+        CompileAndVerify(src2, expectedOutput: "True finally True").VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
-        public void StateAfterMoveNext_YieldReturn_AfterTryFinally()
-        {
-            string src = """
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76078")]
+    public void StateAfterMoveNext_YieldReturn_AfterTryFinally()
+    {
+        string src = """
 var enumerator = C.GetEnumerator(true);
 
 System.Console.Write(enumerator.MoveNext());
@@ -5067,10 +5067,10 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "True one finally True two False two").VerifyDiagnostics();
 
-            // Verify GetEnumerator
-            string src2 = """
+        // Verify GetEnumerator
+        string src2 = """
 var enumerable = C.Produce();
 var enumerator = enumerable.GetEnumerator();
 
@@ -5098,7 +5098,6 @@ class C
     }
 }
 """;
-            CompileAndVerify(src2, expectedOutput: "True finally TrueTrue").VerifyDiagnostics();
-        }
+        CompileAndVerify(src2, expectedOutput: "True finally TrueTrue").VerifyDiagnostics();
     }
 }

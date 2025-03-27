@@ -8,15 +8,14 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
-{
-    internal partial class DirectiveTriviaSyntax
-    {
-        internal override DirectiveStack ApplyDirectives(DirectiveStack stack)
-        {
-            return stack.Add(new Directive(this));
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 
-        public sealed override bool IsDirective => true;
+internal partial class DirectiveTriviaSyntax
+{
+    internal override DirectiveStack ApplyDirectives(DirectiveStack stack)
+    {
+        return stack.Add(new Directive(this));
     }
+
+    public sealed override bool IsDirective => true;
 }

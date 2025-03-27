@@ -7,22 +7,21 @@
 using Moq;
 using System.Linq;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public static class MoqExtensions
 {
-    public static class MoqExtensions
+    public static void VerifyAndClear(this IInvocationList invocations, params (string Name, object[] Args)[] expectedInvocations)
     {
-        public static void VerifyAndClear(this IInvocationList invocations, params (string Name, object[] Args)[] expectedInvocations)
+        AssertEx.Equal(
+            expectedInvocations.Select(i => $"{i.Name}: {string.Join(",", i.Args)}"),
+            invocations.Select(i => $"{i.Method.Name}: {string.Join(",", i.Arguments)}"));
+
+        for (int i = 0; i < expectedInvocations.Length; i++)
         {
-            AssertEx.Equal(
-                expectedInvocations.Select(i => $"{i.Name}: {string.Join(",", i.Args)}"),
-                invocations.Select(i => $"{i.Method.Name}: {string.Join(",", i.Arguments)}"));
-
-            for (int i = 0; i < expectedInvocations.Length; i++)
-            {
-                AssertEx.Equal(expectedInvocations[i].Args, invocations[i].Arguments);
-            }
-
-            invocations.Clear();
+            AssertEx.Equal(expectedInvocations[i].Args, invocations[i].Arguments);
         }
+
+        invocations.Clear();
     }
 }

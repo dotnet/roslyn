@@ -5,28 +5,27 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This binder keeps track of the type for which we are trying to
+/// determine whether it is a valid 'params' collection type.
+/// </summary>
+internal sealed class ParamsCollectionTypeInProgressBinder : Binder
 {
-    /// <summary>
-    /// This binder keeps track of the type for which we are trying to
-    /// determine whether it is a valid 'params' collection type.
-    /// </summary>
-    internal sealed class ParamsCollectionTypeInProgressBinder : Binder
+    private readonly NamedTypeSymbol _inProgress;
+    private readonly MethodSymbol? _constructorInProgress;
+
+    internal ParamsCollectionTypeInProgressBinder(NamedTypeSymbol inProgress, Binder next, MethodSymbol? constructorInProgress = null)
+        : base(next, next.Flags | BinderFlags.CollectionExpressionConversionValidation)
     {
-        private readonly NamedTypeSymbol _inProgress;
-        private readonly MethodSymbol? _constructorInProgress;
+        Debug.Assert(inProgress is not null);
 
-        internal ParamsCollectionTypeInProgressBinder(NamedTypeSymbol inProgress, Binder next, MethodSymbol? constructorInProgress = null)
-            : base(next, next.Flags | BinderFlags.CollectionExpressionConversionValidation)
-        {
-            Debug.Assert(inProgress is not null);
-
-            _inProgress = inProgress;
-            _constructorInProgress = constructorInProgress;
-        }
-
-        internal override NamedTypeSymbol ParamsCollectionTypeInProgress => _inProgress;
-
-        internal override MethodSymbol? ParamsCollectionConstructorInProgress => _constructorInProgress;
+        _inProgress = inProgress;
+        _constructorInProgress = constructorInProgress;
     }
+
+    internal override NamedTypeSymbol ParamsCollectionTypeInProgress => _inProgress;
+
+    internal override MethodSymbol? ParamsCollectionConstructorInProgress => _constructorInProgress;
 }

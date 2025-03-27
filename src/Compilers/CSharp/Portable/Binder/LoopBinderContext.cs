@@ -8,34 +8,33 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal abstract class LoopBinder : LocalScopeBinder
 {
-    internal abstract class LoopBinder : LocalScopeBinder
+    private readonly GeneratedLabelSymbol _breakLabel;
+    private readonly GeneratedLabelSymbol _continueLabel;
+
+    protected LoopBinder(Binder enclosing)
+        : base(enclosing)
     {
-        private readonly GeneratedLabelSymbol _breakLabel;
-        private readonly GeneratedLabelSymbol _continueLabel;
+        _breakLabel = new GeneratedLabelSymbol("break");
+        _continueLabel = new GeneratedLabelSymbol("continue");
+    }
 
-        protected LoopBinder(Binder enclosing)
-            : base(enclosing)
+    internal override GeneratedLabelSymbol BreakLabel
+    {
+        get
         {
-            _breakLabel = new GeneratedLabelSymbol("break");
-            _continueLabel = new GeneratedLabelSymbol("continue");
+            return _breakLabel;
         }
+    }
 
-        internal override GeneratedLabelSymbol BreakLabel
+    internal override GeneratedLabelSymbol ContinueLabel
+    {
+        get
         {
-            get
-            {
-                return _breakLabel;
-            }
-        }
-
-        internal override GeneratedLabelSymbol ContinueLabel
-        {
-            get
-            {
-                return _continueLabel;
-            }
+            return _continueLabel;
         }
     }
 }

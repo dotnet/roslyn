@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Symbols
+namespace Microsoft.CodeAnalysis.Symbols;
+
+internal interface IParameterSymbolInternal : ISymbolInternal
 {
-    internal interface IParameterSymbolInternal : ISymbolInternal
-    {
-        ITypeSymbolInternal Type { get; }
-        RefKind RefKind { get; }
-    }
+    ITypeSymbolInternal Type { get; }
+    RefKind RefKind { get; }
 }

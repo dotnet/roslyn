@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class UsingStatementTests : EmitMetadataTestBase
 {
-    public class UsingStatementTests : EmitMetadataTestBase
-    {
-        #region "From UsingStatementTests"
-        private const string DisposableClass = @"
+    #region "From UsingStatementTests"
+    private const string DisposableClass = @"
 public class DisposableClass : System.IDisposable
 {
     private readonly string name;
@@ -31,7 +31,7 @@ public class DisposableClass : System.IDisposable
 }
 ";
 
-        private const string DisposableStruct = @"
+    private const string DisposableStruct = @"
 public struct DisposableStruct : System.IDisposable
 {
     private readonly string name;
@@ -49,10 +49,10 @@ public struct DisposableStruct : System.IDisposable
 }
 ";
 
-        [Fact]
-        public void UsingExpressionNull()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionNull()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -68,10 +68,10 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -83,12 +83,12 @@ After");
   IL_0019:  call       ""void System.Console.WriteLine(string)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingExpressionNullConstant()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionNullConstant()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -105,10 +105,10 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -120,12 +120,12 @@ After");
   IL_0019:  call       ""void System.Console.WriteLine(string)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingExpressionNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -141,12 +141,12 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -174,12 +174,12 @@ After");
   IL_0030:  call       ""void System.Console.WriteLine(string)""
   IL_0035:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingExpressionNonNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionNonNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -195,12 +195,12 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -227,12 +227,12 @@ After");
   IL_0035:  call       ""void System.Console.WriteLine(string)""
   IL_003a:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingExpressionUnconstrainedTypeParameter()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionUnconstrainedTypeParameter()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -255,9 +255,9 @@ public class Test
     }
 }
 " + DisposableClass
-  + DisposableStruct;
++ DisposableStruct;
 
-            string expected = @"Creating A
+        string expected = @"Creating A
 Before
 In
 Disposing A
@@ -271,8 +271,8 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
-            verifier.VerifyIL("Test.M<T>", @"
+        var verifier = CompileAndVerify(text, expectedOutput: expected);
+        verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
   .maxstack  1
@@ -301,12 +301,12 @@ After";
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingExpressionNonNullableTypeParameter()
-        {
-            var text =
+    [Fact]
+    public void UsingExpressionNonNullableTypeParameter()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -327,12 +327,12 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+        var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.M<T>", @"
+        verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       49 (0x31)
   .maxstack  1
@@ -358,12 +358,12 @@ After");
   IL_002b:  call       ""void System.Console.WriteLine(string)""
   IL_0030:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNull()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNull()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -379,10 +379,10 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -394,12 +394,12 @@ After");
   IL_0019:  call       ""void System.Console.WriteLine(string)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNullConstant()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNullConstant()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -416,10 +416,10 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -431,12 +431,12 @@ After");
   IL_0019:  call       ""void System.Console.WriteLine(string)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -452,12 +452,12 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -485,12 +485,12 @@ After");
   IL_0030:  call       ""void System.Console.WriteLine(string)""
   IL_0035:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNonNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNonNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -506,12 +506,12 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  2
@@ -538,12 +538,12 @@ After");
   IL_0035:  call       ""void System.Console.WriteLine(string)""
   IL_003a:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNullableTypeParameter()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNullableTypeParameter()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -566,9 +566,9 @@ public class Test
     }
 }
 " + DisposableClass
-  + DisposableStruct;
++ DisposableStruct;
 
-            string expected = @"Creating A
+        string expected = @"Creating A
 Before
 In
 Disposing A
@@ -582,8 +582,8 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
-            verifier.VerifyIL("Test.M<T>", @"
+        var verifier = CompileAndVerify(text, expectedOutput: expected);
+        verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
   .maxstack  1
@@ -612,12 +612,12 @@ After";
   IL_0033:  call       ""void System.Console.WriteLine(string)""
   IL_0038:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationNonNullableTypeParameter()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationNonNullableTypeParameter()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -638,12 +638,12 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+        var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
 After");
-            verifier.VerifyIL("Test.M<T>", @"
+        verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       49 (0x31)
   .maxstack  1
@@ -669,12 +669,12 @@ After");
   IL_002b:  call       ""void System.Console.WriteLine(string)""
   IL_0030:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationMultipleNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationMultipleNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -690,7 +690,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -699,7 +699,7 @@ Disposing C
 Disposing B
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       96 (0x60)
   .maxstack  1
@@ -757,12 +757,12 @@ After");
   IL_005a:  call       ""void System.Console.WriteLine(string)""
   IL_005f:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationMultipleNonNullable()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationMultipleNonNullable()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -778,7 +778,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -787,7 +787,7 @@ Disposing C
 Disposing B
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size      109 (0x6d)
   .maxstack  2
@@ -842,12 +842,12 @@ After");
   IL_0067:  call       ""void System.Console.WriteLine(string)""
   IL_006c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationMultipleSomeNull()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationMultipleSomeNull()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -864,14 +864,14 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating C
 In
 Disposing C
 Disposing A
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       75 (0x4b)
   .maxstack  1
@@ -914,12 +914,12 @@ After");
   IL_0045:  call       ""void System.Console.WriteLine(string)""
   IL_004a:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void UsingDeclarationMultipleAllNull()
-        {
-            var text =
+    [Fact]
+    public void UsingDeclarationMultipleAllNull()
+    {
+        var text =
 @"
 using System;
 public class Test
@@ -936,10 +936,10 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+        var verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
-            verifier.VerifyIL("Test.Main", @"
+        verifier.VerifyIL("Test.Main", @"
 {
   // Code size       31 (0x1f)
   .maxstack  1
@@ -951,12 +951,12 @@ After");
   IL_0019:  call       ""void System.Console.WriteLine(string)""
   IL_001e:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(543249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543249")]
-        public void UsingInCatchBlock()
-        {
-            var text = @"
+    [Fact, WorkItem(543249, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543249")]
+    public void UsingInCatchBlock()
+    {
+        var text = @"
 class Test
 {
     static void Main()
@@ -977,15 +977,15 @@ class Test
         public void Dispose() { System.Console.Write(""1""); }
     }
 }";
-            CompileAndVerify(text, expectedOutput: "12");
-        }
-        #endregion
+        CompileAndVerify(text, expectedOutput: "12");
+    }
+    #endregion
 
-        // The object could be created inside the "using" statement 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
-        public void ObjectCreateInsideUsing()
-        {
-            var source = @"
+    // The object could be created inside the "using" statement 
+    [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+    public void ObjectCreateInsideUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1004,7 +1004,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       25 (0x19)
   .maxstack  1
@@ -1033,12 +1033,12 @@ class Program
   // sequence point: }
   IL_0018:  ret
 }", sequencePoints: "Program.Main", source: source);
-        }
+    }
 
-        [Fact]
-        public void UsingPatternTest()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternTest()
+    {
+        var source = @"
 using System;
 ref struct S1
 {
@@ -1057,7 +1057,7 @@ class C2
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
+        CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1077,12 +1077,12 @@ class C2
   IL_0012:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void UsingPatternDiffParameterOverloadTest()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternDiffParameterOverloadTest()
+    {
+        var source = @"
 using System;
 ref struct S1
 {
@@ -1105,7 +1105,7 @@ class C2
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
+        CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C2.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1125,13 +1125,13 @@ class C2
   IL_0012:  ret
 }
 "
-            );
-        }
+        );
+    }
 
-        [Fact]
-        public void UsingPatternExtensionMethodTest()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternExtensionMethodTest()
+    {
+        var source = @"
 ref struct S1
 {
 }
@@ -1152,18 +1152,18 @@ class C3
         }
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (17,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
-                //         using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(17, 16)
-                );
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (17,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            //         using (S1 s = new S1())
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(17, 16)
+            );
+    }
 
-        [Fact]
-        public void UsingPatternExtensionMethodResolutionTest()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternExtensionMethodResolutionTest()
+    {
+        var source = @"
 using System;
 ref struct S1
 {
@@ -1190,7 +1190,7 @@ class C3
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C3.Main()", @"
+        CompileAndVerify(source, expectedOutput: "S1.Dispose()").VerifyIL("C3.Main()", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1210,12 +1210,12 @@ class C3
   IL_0012:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void UsingPatternExtensionMethodWithDefaultArguments()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternExtensionMethodWithDefaultArguments()
+    {
+        var source = @"
 ref struct S1
 {
 }
@@ -1234,18 +1234,18 @@ class C3
        }
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
-                //        using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
-                );
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            //        using (S1 s = new S1())
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
+            );
+    }
 
-        [Fact]
-        public void UsingPatternExtensionMethodWithParams()
-        {
-            var source = @"
+    [Fact]
+    public void UsingPatternExtensionMethodWithParams()
+    {
+        var source = @"
 ref struct S1
 {
 }
@@ -1264,19 +1264,19 @@ class C3
        }
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
-                //        using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
-                );
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            //        using (S1 s = new S1())
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
+            );
+    }
 
-        // The object could be created outside the "using" statement 
-        [Fact]
-        public void ObjectCreateOutsideUsing()
-        {
-            var source = @"
+    // The object could be created outside the "using" statement 
+    [Fact]
+    public void ObjectCreateOutsideUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1296,7 +1296,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1322,13 +1322,13 @@ class Program
 }
   IL_001a:  ret
 }");
-        }
+    }
 
-        // The object could both be created outside the "using" statement 
-        [Fact]
-        public void NoVarNameInsideUsing()
-        {
-            var source = @"
+    // The object could both be created outside the "using" statement 
+    [Fact]
+    public void NoVarNameInsideUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1348,7 +1348,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1374,13 +1374,13 @@ class Program
 }
   IL_001a:  ret
 }");
-        }
+    }
 
-        // Take the type parameter as object
-        [Fact]
-        public void TypeParameterAsUsingResource()
-        {
-            var source = @"
+    // Take the type parameter as object
+    [Fact]
+    public void TypeParameterAsUsingResource()
+    {
+        var source = @"
 class Gen<T>
 {
 	public static void TestUsing(T obj)
@@ -1391,13 +1391,13 @@ class Gen<T>
 	}
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "obj").WithArguments("T"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "obj").WithArguments("T"));
+    }
 
-        [Fact]
-        public void TypeParameterAsUsingResource_2()
-        {
-            var source = @"
+    [Fact]
+    public void TypeParameterAsUsingResource_2()
+    {
+        var source = @"
 using System;
 using System.Collections.Generic;
 class Test<T>
@@ -1426,20 +1426,20 @@ class Gen<T> where T : new()
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (13,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
-                //         using (val)
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
-                // (24,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
-                //         using (T disp = new T()) // Invalid
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "T disp = new T()").WithArguments("T"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (13,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
+            //         using (val)
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
+            // (24,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
+            //         using (T disp = new T()) // Invalid
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "T disp = new T()").WithArguments("T"));
+    }
 
-        // Take the out parameter as object
-        [Fact]
-        public void OutParameterAsUsingResource()
-        {
-            var source = @"
+    // Take the out parameter as object
+    [Fact]
+    public void OutParameterAsUsingResource()
+    {
+        var source = @"
 class Program
 {
     static void goo(ref MyManagedClass x, out MyManagedClass y)
@@ -1460,14 +1460,14 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_UseDefViolationOut, "y").WithArguments("y"));
+    }
 
-        // Doesn't implement IDisposable, but has a Dispose() function
-        [Fact]
-        public void NotImplementIDispose()
-        {
-            var source = @"
+    // Doesn't implement IDisposable, but has a Dispose() function
+    [Fact]
+    public void NotImplementIDispose()
+    {
+        var source = @"
 class Program
 {
     static void goo()
@@ -1484,17 +1484,17 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
-                //         using (res) // Invalid
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
-                );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
+            //         using (res) // Invalid
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+            );
+    }
 
-        [Fact]
-        public void NotImplementIDispose_Struct()
-        {
-            var source = @"
+    [Fact]
+    public void NotImplementIDispose_Struct()
+    {
+        var source = @"
 class Program
 {
     static void goo()
@@ -1511,18 +1511,18 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
-                //         using (res) // Invalid
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
-                );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
+            //         using (res) // Invalid
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
+            );
+    }
 
-        // Implicit implement IDisposable
-        [Fact]
-        public void ImplicitImplementIDispose()
-        {
-            var source = @"
+    // Implicit implement IDisposable
+    [Fact]
+    public void ImplicitImplementIDispose()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1540,7 +1540,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.goo", @"
+        CompileAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1561,12 +1561,12 @@ class Program
 }
   IL_0012:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ImplicitImplementIDispose_Struct()
-        {
-            var source = @"
+    [Fact]
+    public void ImplicitImplementIDispose_Struct()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1584,7 +1584,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1606,13 +1606,13 @@ class Program
 }
   IL_001a:  ret
 }");
-        }
+    }
 
-        // Explicit implement IDisposable
-        [Fact]
-        public void ExplicitImplementIDispose()
-        {
-            var source = @"
+    // Explicit implement IDisposable
+    [Fact]
+    public void ExplicitImplementIDispose()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1630,7 +1630,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.goo", @"
+        CompileAndVerify(source).VerifyIL("Program.goo", @"
 {
   // Code size       19 (0x13)
   .maxstack  1
@@ -1651,12 +1651,12 @@ class Program
 }
   IL_0012:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ExplicitImplementIDispose_Struct()
-        {
-            var source = @"
+    [Fact]
+    public void ExplicitImplementIDispose_Struct()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1674,7 +1674,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       27 (0x1b)
   .maxstack  1
@@ -1696,13 +1696,13 @@ class Program
 }
   IL_001a:  ret
 }");
-        }
+    }
 
-        // The variable declared out of  using is not read-only
-        [Fact]
-        public void VarDeclaredOutsideIsNotReadOnly()
-        {
-            var source = @"
+    // The variable declared out of  using is not read-only
+    [Fact]
+    public void VarDeclaredOutsideIsNotReadOnly()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1721,7 +1721,7 @@ class Res : IDisposable
     { }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1744,13 +1744,13 @@ class Res : IDisposable
 }
   IL_001c:  ret
 }");
-        }
+    }
 
-        // The used variable is nulled-out in the using block
-        [Fact]
-        public void NulledVarDeclaredInUsing()
-        {
-            var source = @"
+    // The used variable is nulled-out in the using block
+    [Fact]
+    public void NulledVarDeclaredInUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1772,7 +1772,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       35 (0x23)
   .maxstack  1
@@ -1797,13 +1797,13 @@ class MyManagedClass : IDisposable
 }
   IL_0022:  ret
 }");
-        }
+    }
 
-        // Dispose() not called if the object(Reference type) not created
-        [Fact]
-        public void ResourceIsNull_ReferenceType()
-        {
-            var source = @"
+    // Dispose() not called if the object(Reference type) not created
+    [Fact]
+    public void ResourceIsNull_ReferenceType()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1824,7 +1824,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "InUsing").VerifyIL("Program.Main", @"
+        CompileAndVerify(source, expectedOutput: "InUsing").VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1847,12 +1847,12 @@ class MyManagedClass : IDisposable
 }
   IL_001c:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ResourceIsNull_ReferenceType_2()
-        {
-            var source = @"
+    [Fact]
+    public void ResourceIsNull_ReferenceType_2()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1873,7 +1873,7 @@ class MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "").VerifyIL("Program.Main", @"
+        CompileAndVerify(source, expectedOutput: "").VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -1896,13 +1896,13 @@ class MyManagedClass : IDisposable
 }
   IL_001c:  ret
 }");
-        }
+    }
 
-        // Dispose() called if the object(Value type) not created
-        [Fact]
-        public void ResourceIsNull_ValueType()
-        {
-            var source = @"
+    // Dispose() called if the object(Value type) not created
+    [Fact]
+    public void ResourceIsNull_ValueType()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1923,7 +1923,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"InUsing
+        CompileAndVerify(source, expectedOutput: @"InUsing
 Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
@@ -1946,12 +1946,12 @@ Dispose").VerifyIL("Program.Main", @"
 }
   IL_0020:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ResourceIsNull_ValueType_2()
-        {
-            var source = @"
+    [Fact]
+    public void ResourceIsNull_ValueType_2()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -1972,7 +1972,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Dispose").VerifyIL("Program.Main", @"
+        CompileAndVerify(source, expectedOutput: "Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -1994,13 +1994,13 @@ struct MyManagedClass : IDisposable
 }
   IL_0021:  ret
 }");
-        }
+    }
 
-        // Dispose() Not called if the object(Nullable type) not created 
-        [Fact]
-        public void ResourceIsNull_NullableType()
-        {
-            var source = @"
+    // Dispose() Not called if the object(Nullable type) not created 
+    [Fact]
+    public void ResourceIsNull_NullableType()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2021,25 +2021,25 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            // This is not the same IL as is generated by the native compiler; the native compiler
-            // generates the finally block with both a HasValue check *and* a boxing conversion:
-            //
-            // if (temp.HasValue) {((IDisposable) temp).Dispose(); }
-            //
-            // this is correct but slightly odd; if you're going to box then why not generate
-            // 
-            // IDisposable temp2 = temp as IDisposable; if(temp2 != null) temp2.Dispose();
-            //
-            // and if you're going to call HasValue then why not generate
-            //
-            // if (temp.HasValue) temp.GetValueOrDefault().Dispose();
-            //
-            // without boxing?
-            //
-            // Roslyn does the latter.
+        // This is not the same IL as is generated by the native compiler; the native compiler
+        // generates the finally block with both a HasValue check *and* a boxing conversion:
+        //
+        // if (temp.HasValue) {((IDisposable) temp).Dispose(); }
+        //
+        // this is correct but slightly odd; if you're going to box then why not generate
+        // 
+        // IDisposable temp2 = temp as IDisposable; if(temp2 != null) temp2.Dispose();
+        //
+        // and if you're going to call HasValue then why not generate
+        //
+        // if (temp.HasValue) temp.GetValueOrDefault().Dispose();
+        //
+        // without boxing?
+        //
+        // Roslyn does the latter.
 
-            var comp = CompileAndVerify(source, expectedOutput: @"InUsing");
-            comp.VerifyIL("Program.Main", @"
+        var comp = CompileAndVerify(source, expectedOutput: @"InUsing");
+        comp.VerifyIL("Program.Main", @"
 {
   // Code size       50 (0x32)
   .maxstack  1
@@ -2068,12 +2068,12 @@ struct MyManagedClass : IDisposable
 }
   IL_0031:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ResourceIsNull_NullableType_2()
-        {
-            var source = @"
+    [Fact]
+    public void ResourceIsNull_NullableType_2()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2094,14 +2094,14 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "");
+        var comp = CompileAndVerify(source, expectedOutput: "");
 
-            // Note that changing the value of the expression does not cause the
-            // Dispose to be called; we dispose the original value, not the new value.
-            //
-            // See comments in previous test regarding this codegen.
+        // Note that changing the value of the expression does not cause the
+        // Dispose to be called; we dispose the original value, not the new value.
+        //
+        // See comments in previous test regarding this codegen.
 
-            comp.VerifyIL("Program.Main", @"
+        comp.VerifyIL("Program.Main", @"
 {
   // Code size       59 (0x3b)
   .maxstack  1
@@ -2133,12 +2133,12 @@ struct MyManagedClass : IDisposable
 }
   IL_003a:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void ResourceIsNull_NullableType_3()
-        {
-            var source = @"
+    [Fact]
+    public void ResourceIsNull_NullableType_3()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2159,17 +2159,17 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            string expected = @"Func
+        string expected = @"Func
 Dispose";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+        var comp = CompileAndVerify(source, expectedOutput: expected);
 
-            // Note that changing the value of the expression does not cause the
-            // Dispose to be called; we dispose the original value, not the new value.
-            //
-            // See comments in previous test regarding this codegen.
+        // Note that changing the value of the expression does not cause the
+        // Dispose to be called; we dispose the original value, not the new value.
+        //
+        // See comments in previous test regarding this codegen.
 
-            comp.VerifyIL("Program.Main", @"
+        comp.VerifyIL("Program.Main", @"
 {
   // Code size       55 (0x37)
   .maxstack  1
@@ -2201,13 +2201,13 @@ Dispose";
 }
   IL_0036:  ret
 }");
-        }
+    }
 
-        // Dispose() called for nested using
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
-        public void DisposeCalled_NestedUsing()
-        {
-            var source = @"
+    // Dispose() called for nested using
+    [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+    public void DisposeCalled_NestedUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2233,7 +2233,7 @@ struct MyManagedClass1 : IDisposable
     public void Throw() { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"1:Dispose
+        CompileAndVerify(source, expectedOutput: @"1:Dispose
 1:Dispose").VerifyIL("Program.Main", @"
 {
   // Code size       50 (0x32)
@@ -2274,13 +2274,13 @@ struct MyManagedClass1 : IDisposable
 }
   IL_0031:  ret
 }");
-        }
+    }
 
-        // Dispose() called after throw
-        [Fact]
-        public void DisposeCalledAfterThrow_ReferenceType()
-        {
-            var source = @"
+    // Dispose() called after throw
+    [Fact]
+    public void DisposeCalledAfterThrow_ReferenceType()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2301,7 +2301,7 @@ class MyManagedClass : IDisposable
     { throw (new Exception(""Res1"")); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -2324,13 +2324,13 @@ class MyManagedClass : IDisposable
 }
   IL_001c:  ret
 }");
-        }
+    }
 
-        // Dispose() called after throw
-        [Fact]
-        public void DisposeCalledAfterThrow_ValueType()
-        {
-            var source = @"
+    // Dispose() called after throw
+    [Fact]
+    public void DisposeCalledAfterThrow_ValueType()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2351,7 +2351,7 @@ struct MyManagedClass : IDisposable
     { throw (new Exception(""Res1"")); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -2373,13 +2373,13 @@ struct MyManagedClass : IDisposable
 }
   IL_0020:  ret
 }");
-        }
+    }
 
-        // Dispose() called for first objects with exception thrown after second block
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
-        public void DisposeCalledAfterThrow_NestedUsing()
-        {
-            var source = @"
+    // Dispose() called for first objects with exception thrown after second block
+    [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+    public void DisposeCalledAfterThrow_NestedUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2406,7 +2406,7 @@ struct  MyManagedClass : IDisposable
     { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       70 (0x46)
   .maxstack  1
@@ -2446,12 +2446,12 @@ struct  MyManagedClass : IDisposable
 }
   IL_0045:  ret
 }");
-        }
+    }
 
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
-        public void DisposeCalledAfterThrow_NestedUsing_2()
-        {
-            var source = @"
+    [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+    public void DisposeCalledAfterThrow_NestedUsing_2()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2474,7 +2474,7 @@ struct  MyManagedClass : IDisposable
     { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       54 (0x36)
   .maxstack  1
@@ -2509,13 +2509,13 @@ struct  MyManagedClass : IDisposable
 }
   IL_0035:  ret
 }");
-        }
+    }
 
-        // Multiple objects can be used in with a using statement, but they must be declared inside the using statement
-        [Fact]
-        public void MultipleResourceInUsing()
-        {
-            var source = @"
+    // Multiple objects can be used in with a using statement, but they must be declared inside the using statement
+    [Fact]
+    public void MultipleResourceInUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2533,26 +2533,26 @@ struct  MyManagedClass : IDisposable
     {  }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (8,18): error CS1026: ) expected
-                //         using (r1;r2) // Invalid
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
-                // (8,18): warning CS0642: Possible mistaken empty statement
-                //         using (r1;r2) // Invalid
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (8,21): error CS1002: ; expected
-                //         using (r1;r2) // Invalid
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-                // (8,21): error CS1513: } expected
-                //         using (r1;r2) // Invalid
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,18): error CS1026: ) expected
+            //         using (r1;r2) // Invalid
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, ";"),
+            // (8,18): warning CS0642: Possible mistaken empty statement
+            //         using (r1;r2) // Invalid
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
+            // (8,21): error CS1002: ; expected
+            //         using (r1;r2) // Invalid
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
+            // (8,21): error CS1513: } expected
+            //         using (r1;r2) // Invalid
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+    }
 
-        // Multiple objects can be used in with a using statement, but they must be declared inside the using statement
-        [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
-        public void MultipleResourceInUsing_2()
-        {
-            var source = @"
+    // Multiple objects can be used in with a using statement, but they must be declared inside the using statement
+    [Fact, WorkItem(542982, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542982")]
+    public void MultipleResourceInUsing_2()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2569,14 +2569,14 @@ struct MyManagedClass1 : IDisposable
     { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FixedMustInit, "res2"));
+    }
 
-        // Dispose() called for both objects when exception thrown in compound case
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
-        public void DisposeCalledForMultiResources()
-        {
-            var source = @"
+    // Dispose() called for both objects when exception thrown in compound case
+    [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+    public void DisposeCalledForMultiResources()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2598,7 +2598,7 @@ struct MyManagedClass1 : IDisposable
     public void Throw() { throw new Exception(); }
 }
 ";
-            CompileAndVerify(source).VerifyIL("Program.Main", @"
+        CompileAndVerify(source).VerifyIL("Program.Main", @"
 {
   // Code size       53 (0x35)
   .maxstack  2
@@ -2635,14 +2635,14 @@ struct MyManagedClass1 : IDisposable
 }
   IL_0034:  ret
 }");
-        }
+    }
 
-        // Dangling using keyword
-        [WorkItem(528933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528933")]
-        [Fact]
-        public void DanglingUsing()
-        {
-            var source = @"
+    // Dangling using keyword
+    [WorkItem(528933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528933")]
+    [Fact]
+    public void DanglingUsing()
+    {
+        var source = @"
 class A
 {
     void B()
@@ -2651,26 +2651,26 @@ class A
 	}
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,8): error CS1031: Type expected
-                // 		using
-                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(6, 8),
-                // (6,8): error CS1001: Identifier expected
-                // 		using
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 8),
-                // (6,8): error CS1002: ; expected
-                // 		using
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 8),
-                // (7,1): error CS0210: You must provide an initializer in a fixed or using statement declaration
-                // 	}
-                Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(7, 1));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,8): error CS1031: Type expected
+            // 		using
+            Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(6, 8),
+            // (6,8): error CS1001: Identifier expected
+            // 		using
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(6, 8),
+            // (6,8): error CS1002: ; expected
+            // 		using
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 8),
+            // (7,1): error CS0210: You must provide an initializer in a fixed or using statement declaration
+            // 	}
+            Diagnostic(ErrorCode.ERR_FixedMustInit, "").WithLocation(7, 1));
+    }
 
-        // If statement directly following a using ()
-        [Fact]
-        public void IfFollowingUsing()
-        {
-            var source = @"
+    // If statement directly following a using ()
+    [Fact]
+    public void IfFollowingUsing()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2687,14 +2687,14 @@ class MyManagedClass1 : IDisposable
     {  }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        // Query expression in using statement
-        [Fact]
-        public void QueryAsUsing()
-        {
-            var source = @"
+    // Query expression in using statement
+    [Fact]
+    public void QueryAsUsing()
+    {
+        var source = @"
 using System.Linq;
 class Program
 {
@@ -2706,14 +2706,14 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "from x in new int[] { 1 } select x").WithArguments("System.Collections.Generic.IEnumerable<int>"));
-        }
+        CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "from x in new int[] { 1 } select x").WithArguments("System.Collections.Generic.IEnumerable<int>"));
+    }
 
-        // Error when using a lambda in a using()
-        [Fact]
-        public void LambdaAsUsing()
-        {
-            var source = @"
+    // Error when using a lambda in a using()
+    [Fact]
+    public void LambdaAsUsing()
+    {
+        var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2730,23 +2730,23 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
-                //         using (x => x)     // err
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
-                // (9,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
-                //         using (() => { })     // err
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "() => { }").WithArguments("lambda expression"),
-                // (12,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
-                //         using ((int @int) => { return @int; })     // err
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "(int @int) => { return @int; }").WithArguments("lambda expression"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
+            //         using (x => x)     // err
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
+            // (9,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
+            //         using (() => { })     // err
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "() => { }").WithArguments("lambda expression"),
+            // (12,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
+            //         using ((int @int) => { return @int; })     // err
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "(int @int) => { return @int; }").WithArguments("lambda expression"));
+    }
 
-        // Anonymous types cannot appear in using
-        [Fact]
-        public void AnonymousAsUsing()
-        {
-            var source = @"
+    // Anonymous types cannot appear in using
+    [Fact]
+    public void AnonymousAsUsing()
+    {
+        var source = @"
 class Program
 {
     static void Main(string[] args)
@@ -2770,30 +2770,30 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
-    //         using (var a = new { })
-    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
-    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must implement 'System.IDisposable'.
-    //         using (var b = new { p1 = 10 })
-    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
-    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must implement 'System.IDisposable'.
-    //         using (var c = new { p1 = 10.0, p2 = 'a' })
-    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
-    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
-    //         using (new { })
-    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
-    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must implement 'System.IDisposable'.
-    //         using (new { f1 = "12345", f2 = 'S' })
-    Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
-    );
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+// (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
+//         using (var a = new { })
+Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
+// (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must implement 'System.IDisposable'.
+//         using (var b = new { p1 = 10 })
+Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
+// (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must implement 'System.IDisposable'.
+//         using (var c = new { p1 = 10.0, p2 = 'a' })
+Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
+// (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
+//         using (new { })
+Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
+// (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must implement 'System.IDisposable'.
+//         using (new { f1 = "12345", f2 = 'S' })
+Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
+);
+    }
 
-        // User-defined Conversions
-        [Fact]
-        public void UserDefinedConversions()
-        {
-            var source = @"
+    // User-defined Conversions
+    [Fact]
+    public void UserDefinedConversions()
+    {
+        var source = @"
 using System;
 struct MyManagedClass1 : IDisposable
 {
@@ -2827,14 +2827,14 @@ class Program
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"");
-        }
+        var comp = CompileAndVerify(source, expectedOutput: @"");
+    }
 
-        // Anonymous Delegate in using block
-        [Fact]
-        public void AnonymousDelegateInUsing()
-        {
-            var source = @"
+    // Anonymous Delegate in using block
+    [Fact]
+    public void AnonymousDelegateInUsing()
+    {
+        var source = @"
 using System;
 delegate T D1<T>(T t);
 class A1
@@ -2851,14 +2851,14 @@ class A1
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
-        }
+        CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics();
+    }
 
-        // Put the using around the try
-        [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
-        public void UsingAroundTry()
-        {
-            var source = @"
+    // Put the using around the try
+    [Fact, WorkItem(528943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528943")]
+    public void UsingAroundTry()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2887,7 +2887,7 @@ public class MyManagedClass1 : IDisposable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"Try
+        CompileAndVerify(source, expectedOutput: @"Try
 Catch
 Dispose()").VerifyIL("Program.Main", @"
 {
@@ -2921,13 +2921,13 @@ Dispose()").VerifyIL("Program.Main", @"
 }
   IL_0027:  ret
 }");
-        }
+    }
 
-        // Put the using in the try
-        [Fact]
-        public void UsingInTry()
-        {
-            var source = @"
+    // Put the using in the try
+    [Fact]
+    public void UsingInTry()
+    {
+        var source = @"
 using System;
 class Program
 {
@@ -2955,7 +2955,7 @@ public class MyManagedClass1 : IDisposable
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: @"Try
+        CompileAndVerify(source, expectedOutput: @"Try
 Dispose()
 Catch").VerifyIL("Program.Main", @"
 {
@@ -2996,12 +2996,12 @@ Catch").VerifyIL("Program.Main", @"
 }
   IL_0031:  ret
 }");
-        }
+    }
 
-        [Fact]
-        public void TestValueTypeUsingVariableCanBeMutatedByInstanceMethods()
-        {
-            const string source = @"
+    [Fact]
+    public void TestValueTypeUsingVariableCanBeMutatedByInstanceMethods()
+    {
+        const string source = @"
 struct A : System.IDisposable
 {
     int field;
@@ -3023,13 +3023,13 @@ struct A : System.IDisposable
     }  
 }";
 
-            CompileAndVerify(source, expectedOutput: "5");
-        }
+        CompileAndVerify(source, expectedOutput: "5");
+    }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
-        public void TestValueTypeUsingVariableFieldsAreReadonly()
-        {
-            const string source = @"
+    [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+    public void TestValueTypeUsingVariableFieldsAreReadonly()
+    {
+        const string source = @"
 struct B
 {
     public int field;
@@ -3056,13 +3056,13 @@ struct A : System.IDisposable
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
-        }
+        CompileAndVerify(source, expectedOutput: "0");
+    }
 
-        [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
-        public void TestValueTypeUsingVariableFieldsAreReadonly2()
-        {
-            const string source = @"
+    [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
+    public void TestValueTypeUsingVariableFieldsAreReadonly2()
+    {
+        const string source = @"
 struct C
 {
     public int field;
@@ -3094,183 +3094,182 @@ struct A : System.IDisposable
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "0");
-        }
+        CompileAndVerify(source, expectedOutput: "0");
+    }
 
-        [Theory, CombinatorialData]
-        public void OptionalParameter([CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
-        {
-            var source = $$"""
-                using System;
-                using (var s = new S())
-                {
-                    Console.Write("1");
-                }
-                ref struct S
-                {
-                    public void Dispose({{modifier}} int x = 2) => Console.Write(x);
-                }
-                """;
-            if (modifier == "ref")
+    [Theory, CombinatorialData]
+    public void OptionalParameter([CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+    {
+        var source = $$"""
+            using System;
+            using (var s = new S())
             {
-                CreateCompilation(source).VerifyDiagnostics(
-                    // (2,8): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
-                    // using (var s = new S())
-                    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(2, 8),
-                    // (8,25): error CS1741: A ref or out parameter cannot have a default value
-                    //     public void Dispose(ref int x = 2) => Console.Write(x);
-                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(8, 25));
+                Console.Write("1");
+            }
+            ref struct S
+            {
+                public void Dispose({{modifier}} int x = 2) => Console.Write(x);
+            }
+            """;
+        if (modifier == "ref")
+        {
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,8): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
+                // using (var s = new S())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(2, 8),
+                // (8,25): error CS1741: A ref or out parameter cannot have a default value
+                //     public void Dispose(ref int x = 2) => Console.Write(x);
+                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(8, 25));
+        }
+        else
+        {
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            if (modifier == "ref readonly")
+            {
+                verifier.VerifyDiagnostics(
+                    // (8,46): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                    //     public void Dispose(ref readonly int x = 2) => Console.Write(x);
+                    Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(8, 46));
             }
             else
             {
-                var verifier = CompileAndVerify(source, expectedOutput: "12");
-                if (modifier == "ref readonly")
-                {
-                    verifier.VerifyDiagnostics(
-                        // (8,46): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
-                        //     public void Dispose(ref readonly int x = 2) => Console.Write(x);
-                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(8, 46));
-                }
-                else
-                {
-                    verifier.VerifyDiagnostics();
-                }
+                verifier.VerifyDiagnostics();
             }
         }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
-        public void MutatingThroughRefFields_01(
-            [CombinatorialValues("readonly", "")] string vReadonly)
-        {
-            var source = $$"""
-                using System;
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+    public void MutatingThroughRefFields_01(
+        [CombinatorialValues("readonly", "")] string vReadonly)
+    {
+        var source = $$"""
+            using System;
 
-                V v = default;
+            V v = default;
 
-                using (var d = new R(ref v))
-                {
-                    d.V.F++;
-                }
+            using (var d = new R(ref v))
+            {
+                d.V.F++;
+            }
 
-                Console.Write(v.F);
+            Console.Write(v.F);
 
-                ref struct R(ref V v)
-                {
-                    public {{vReadonly}} ref V V = ref v;
-                    public void Dispose() { }
-                }
+            ref struct R(ref V v)
+            {
+                public {{vReadonly}} ref V V = ref v;
+                public void Dispose() { }
+            }
 
-                struct V
-                {
-                    public int F;
-                }
-                """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
-                verify: Verification.FailsPEVerify,
-                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
-        }
+            struct V
+            {
+                public int F;
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
-        public void MutatingThroughRefFields_02(
-            [CombinatorialValues("readonly", "")] string vReadonly)
-        {
-            var source = $$"""
-                using System;
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+    public void MutatingThroughRefFields_02(
+        [CombinatorialValues("readonly", "")] string vReadonly)
+    {
+        var source = $$"""
+            using System;
 
-                V v = default;
+            V v = default;
 
-                using (var d = new R(ref v))
-                {
-                    d.V.F += 2;
-                }
+            using (var d = new R(ref v))
+            {
+                d.V.F += 2;
+            }
 
-                Console.Write(v.F);
+            Console.Write(v.F);
 
-                ref struct R(ref V v)
-                {
-                    public {{vReadonly}} ref V V = ref v;
-                    public void Dispose() { }
-                }
+            ref struct R(ref V v)
+            {
+                public {{vReadonly}} ref V V = ref v;
+                public void Dispose() { }
+            }
 
-                struct V
-                {
-                    public int F;
-                }
-                """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
-                verify: Verification.FailsPEVerify,
-                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "2").VerifyDiagnostics();
-        }
+            struct V
+            {
+                public int F;
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "2").VerifyDiagnostics();
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
-        public void MutatingThroughRefFields_03(
-            [CombinatorialValues("readonly", "")] string vReadonly)
-        {
-            var source = $$"""
-                using System;
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+    public void MutatingThroughRefFields_03(
+        [CombinatorialValues("readonly", "")] string vReadonly)
+    {
+        var source = $$"""
+            using System;
 
-                V v = default;
+            V v = default;
 
-                using (var d = new R(ref v))
-                {
-                    d.V.S.Inc();
-                }
+            using (var d = new R(ref v))
+            {
+                d.V.S.Inc();
+            }
 
-                Console.Write(v.S.F);
+            Console.Write(v.S.F);
 
-                ref struct R(ref V v)
-                {
-                    public {{vReadonly}} ref V V = ref v;
-                    public void Dispose() { }
-                }
-                                
-                struct V
-                {
-                    public S S;
-                }
+            ref struct R(ref V v)
+            {
+                public {{vReadonly}} ref V V = ref v;
+                public void Dispose() { }
+            }
+                            
+            struct V
+            {
+                public S S;
+            }
 
-                struct S
-                {
-                    public int F;
-                    public void Inc() => F++;
-                }
-                """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
-                verify: Verification.FailsPEVerify,
-                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
-        }
+            struct S
+            {
+                public int F;
+                public void Inc() => F++;
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
-        public void MutatingThroughRefFields_04(
-            [CombinatorialValues("readonly", "")] string vReadonly)
-        {
-            var source = $$"""
-                using System;
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+    public void MutatingThroughRefFields_04(
+        [CombinatorialValues("readonly", "")] string vReadonly)
+    {
+        var source = $$"""
+            using System;
 
-                V v = default;
+            V v = default;
 
-                using (var d = new R(ref v))
-                {
-                    d.V.F++;
-                }
+            using (var d = new R(ref v))
+            {
+                d.V.F++;
+            }
 
-                Console.Write(v.F);
+            Console.Write(v.F);
 
-                ref struct R(ref V v)
-                {
-                    public {{vReadonly}} ref readonly V V = ref v;
-                    public void Dispose() { }
-                }
+            ref struct R(ref V v)
+            {
+                public {{vReadonly}} ref readonly V V = ref v;
+                public void Dispose() { }
+            }
 
-                struct V
-                {
-                    public int F;
-                }
-                """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
-                // (7,5): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     d.V.F++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "d.V.F").WithArguments("field", "V").WithLocation(7, 5));
-        }
+            struct V
+            {
+                public int F;
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+            // (7,5): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
+            //     d.V.F++;
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "d.V.F").WithArguments("field", "V").WithLocation(7, 5));
     }
 }

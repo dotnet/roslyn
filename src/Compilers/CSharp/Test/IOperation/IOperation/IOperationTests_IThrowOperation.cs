@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IOperationTests_IThrowOperation : SemanticModelTestBase
-    {
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_01()
-        {
-            var source = @"
+public class IOperationTests_IThrowOperation : SemanticModelTestBase
+{
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_01()
+    {
+        var source = @"
 class C
 {
     void F()
@@ -27,15 +27,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
-                //         throw;
-                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(6, 9)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+            //         throw;
+            Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(6, 9)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -47,14 +47,14 @@ Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_02()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_02()
+    {
+        var source = @"
 class C
 {
     void F(int x)
@@ -65,18 +65,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (7,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
-                //         throw;
-                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(7, 9),
-                // (8,9): warning CS0162: Unreachable code detected
-                //         x = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(8, 9)
-                );
+        compilation.VerifyDiagnostics(
+            // (7,9): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+            //         throw;
+            Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(7, 9),
+            // (8,9): warning CS0162: Unreachable code detected
+            //         x = 2;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(8, 9)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -108,14 +108,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_03()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_03()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception ex)
@@ -124,11 +124,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -141,14 +141,14 @@ Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_04()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_04()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception ex)
@@ -159,18 +159,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (8,9): warning CS0162: Unreachable code detected
-                //         x = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(8, 9),
-                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         int x = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (8,9): warning CS0162: Unreachable code detected
+            //         x = 2;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(8, 9),
+            // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+            //         int x = 1;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -209,14 +209,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_05()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_05()
+    {
+        var source = @"
 class C
 {
     void F(int x, System.Exception ex)
@@ -225,18 +225,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,13): error CS8115: A throw expression is not allowed in this context.
-                //         x = throw ex + x;
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 13),
-                // (6,19): error CS0019: Operator '+' cannot be applied to operands of type 'Exception' and 'int'
-                //         x = throw ex + x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "ex + x").WithArguments("+", "System.Exception", "int").WithLocation(6, 19)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,13): error CS8115: A throw expression is not allowed in this context.
+            //         x = throw ex + x;
+            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 13),
+            // (6,19): error CS0019: Operator '+' cannot be applied to operands of type 'Exception' and 'int'
+            //         x = throw ex + x;
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "ex + x").WithArguments("+", "System.Exception", "int").WithLocation(6, 19)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
     Block[B0] - Entry
         Statements (0)
         Next (Regular) Block[B1]
@@ -283,14 +283,14 @@ class C
         Predecessors: [B2]
         Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_06()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_06()
+    {
+        var source = @"
 class C
 {
     void F(int x, System.Exception ex)
@@ -299,15 +299,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,14): error CS8115: A throw expression is not allowed in this context.
-                //         x = (throw ex) + x;
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 14)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,14): error CS8115: A throw expression is not allowed in this context.
+            //         x = (throw ex) + x;
+            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 14)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -354,14 +354,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_07()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_07()
+    {
+        var source = @"
 class C
 {
     void F(int x, System.Exception ex)
@@ -370,15 +370,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,17): error CS1525: Invalid expression term 'throw'
-                //         x = x + throw ex;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw ex").WithArguments("throw").WithLocation(6, 17)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,17): error CS1525: Invalid expression term 'throw'
+            //         x = x + throw ex;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw ex").WithArguments("throw").WithLocation(6, 17)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -429,14 +429,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_08()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_08()
+    {
+        var source = @"
 class C
 {
     void F(int x, System.Exception ex)
@@ -445,15 +445,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,18): error CS8115: A throw expression is not allowed in this context.
-                //         x = x + (throw ex);
-                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 18)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,18): error CS8115: A throw expression is not allowed in this context.
+            //         x = x + (throw ex);
+            Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(6, 18)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -504,14 +504,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_09()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_09()
+    {
+        var source = @"
 class C
 {
     void F(object x, object y, System.Exception ex)
@@ -520,11 +520,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -574,14 +574,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_10()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_10()
+    {
+        var source = @"
 class C
 {
     void F(object x, object y, object z, System.Exception ex)
@@ -592,11 +592,11 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -657,14 +657,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_11()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_11()
+    {
+        var source = @"
 class C
 {
     void F(int u)
@@ -682,11 +682,11 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -720,14 +720,14 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_12()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_12()
+    {
+        var source = @"
 class C
 {
     void F(int u)
@@ -747,15 +747,15 @@ class C
     static void M(object x, object y, object z){}
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (14,13): warning CS0162: Unreachable code detected
-                //             u = 3;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "u").WithLocation(14, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (14,13): warning CS0162: Unreachable code detected
+            //             u = 3;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "u").WithLocation(14, 13)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -810,14 +810,14 @@ Block[B4] - Exit
     Predecessors: [B1] [B3]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_13()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_13()
+    {
+        var source = @"
 class C
 {
     void F(object x, object y, object z, int u)
@@ -836,15 +836,15 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (12,29): error CS1525: Invalid expression term ')'
-                //             M(x, (y ?? throw), z);
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 29)
-                );
+        compilation.VerifyDiagnostics(
+            // (12,29): error CS1525: Invalid expression term ')'
+            //             M(x, (y ?? throw), z);
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 29)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -944,14 +944,14 @@ Block[B8] - Exit
     Predecessors: [B1] [B7]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_14()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_14()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception ex)
@@ -963,11 +963,11 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -992,14 +992,14 @@ Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_15()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_15()
+    {
+        var source = @"
 class C
 {
     void F(int x)
@@ -1018,11 +1018,11 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1064,14 +1064,14 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_16()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_16()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception ex, bool a)
@@ -1082,11 +1082,11 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1106,14 +1106,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_17()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_17()
+    {
+        var source = @"
 class C
 {
     void F(int x, bool a)
@@ -1131,11 +1131,11 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1172,14 +1172,14 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_18()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_18()
+    {
+        var source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class C
@@ -1194,11 +1194,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1229,14 +1229,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_19()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_19()
+    {
+        var source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class C
@@ -1258,11 +1258,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1312,14 +1312,14 @@ Block[B4] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_20()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_20()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception ex, int x)
@@ -1338,15 +1338,15 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (14,13): warning CS0162: Unreachable code detected
-                //             x = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(14, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (14,13): warning CS0162: Unreachable code detected
+            //             x = 2;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(14, 13)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1393,14 +1393,14 @@ Block[B4] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_21()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_21()
+    {
+        var source = @"
 class C
 {
     void F(int x)
@@ -1419,15 +1419,15 @@ label1:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (14,13): warning CS0162: Unreachable code detected
-                //             x = 2;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(14, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (14,13): warning CS0162: Unreachable code detected
+            //             x = 2;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(14, 13)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1473,14 +1473,14 @@ Block[B4] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_22()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_22()
+    {
+        var source = @"
 class C
 {
     int F(bool a, System.Exception ex1, System.Exception ex2)
@@ -1495,11 +1495,11 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1524,14 +1524,14 @@ Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_23()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_23()
+    {
+        var source = @"
 class C
 {
     void F(int x, System.Exception ex1, System.Exception ex2, bool a)
@@ -1546,11 +1546,11 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1583,14 +1583,14 @@ Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_24()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_24()
+    {
+        var source = @"
 class C
 {
     void F(int x, bool a)
@@ -1612,11 +1612,11 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1661,14 +1661,14 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_25()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_25()
+    {
+        var source = @"
 class C
 {
     void F(int x, bool a)
@@ -1690,11 +1690,11 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1740,14 +1740,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_26()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_26()
+    {
+        var source = @"
 class C
 {
     void F(int x, bool a)
@@ -1769,11 +1769,11 @@ label2:
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1819,14 +1819,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_27()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_27()
+    {
+        var source = @"
 class C
 {
     void F(int u)
@@ -1842,15 +1842,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (12,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
-                //             throw;
-                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(12, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (12,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+            //             throw;
+            Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(12, 13)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1885,14 +1885,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_28()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_28()
+    {
+        var source = @"
 class C
 {
     void F(int u, System.Exception ex)
@@ -1908,11 +1908,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1948,14 +1948,14 @@ Block[B3] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_29()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_29()
+    {
+        var source = @"
 class C
 {
     void F(System.Exception a, System.Exception b)
@@ -1964,11 +1964,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2024,14 +2024,14 @@ Block[B5] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_30()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_30()
+    {
+        var source = @"
 class C
 {
     void F(bool x, bool y, bool z, System.Exception ex)
@@ -2040,11 +2040,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2088,14 +2088,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_31()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_31()
+    {
+        var source = @"
 class C
 {
     void F(bool x, bool y, bool z, System.Exception ex)
@@ -2104,11 +2104,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2152,14 +2152,14 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_32_Regular8()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_32_Regular8()
+    {
+        var source = @"
 class C
 {
     void F(bool x, bool y, System.Exception ex1, System.Exception ex2)
@@ -2168,15 +2168,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+        var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
 
-            compilation.VerifyDiagnostics(
-                // (6,13): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between '<throw expression>' and '<throw expression>'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
-                //         x = y ? throw ex1 : throw ex2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "y ? throw ex1 : throw ex2").WithArguments("8.0", "<throw expression>", "<throw expression>", "9.0").WithLocation(6, 13)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,13): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between '<throw expression>' and '<throw expression>'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
+            //         x = y ? throw ex1 : throw ex2;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "y ? throw ex1 : throw ex2").WithArguments("8.0", "<throw expression>", "<throw expression>", "9.0").WithLocation(6, 13)
+            );
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x = y ? thr ...  throw ex2;')
     Expression: 
@@ -2203,9 +2203,9 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                       IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex2')
                         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex2')
 ";
-            VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
+        VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2257,14 +2257,14 @@ Block[B5] - Exit [UnReachable]
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_32_TargetTypedConditional()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_32_TargetTypedConditional()
+    {
+        var source = @"
 class C
 {
     void F(bool x, bool y, System.Exception ex1, System.Exception ex2)
@@ -2273,9 +2273,9 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
-            compilation.VerifyDiagnostics();
-            string expectedOperationTree = @"
+        var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
+        compilation.VerifyDiagnostics();
+        string expectedOperationTree = @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = y ? thr ...  throw ex2;')
     Expression: 
@@ -2302,9 +2302,9 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
                       IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex2')
                         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
 ";
-            VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
+        VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2356,14 +2356,14 @@ Block[B5] - Exit [UnReachable]
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_33()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_33()
+    {
+        var source = @"
 class C
 {
     void F(object x, bool y, object u, object v, System.Exception ex)
@@ -2372,11 +2372,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2458,14 +2458,14 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ThrowFlow_34()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ThrowFlow_34()
+    {
+        var source = @"
 class C
 {
     void F(object x, bool y, object u, object v, System.Exception ex)
@@ -2474,11 +2474,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2560,7 +2560,6 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
     }
 }

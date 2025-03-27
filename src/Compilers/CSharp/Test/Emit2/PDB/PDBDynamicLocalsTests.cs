@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
+
+public class PDBDynamicLocalsTests : CSharpTestBase
 {
-    public class PDBDynamicLocalsTests : CSharpTestBase
+    [Fact]
+    public void EmitPDBDynamicObjectVariable1()
     {
-        [Fact]
-        public void EmitPDBDynamicObjectVariable1()
-        {
-            string source = WithWindowsLineBreaks(@"
+        string source = WithWindowsLineBreaks(@"
 partial class Helper
 {
 	int x;
@@ -46,8 +46,8 @@ partial class Helper
 	public Helper(long y){}
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { CSharpRef }, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { CSharpRef }, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -126,12 +126,12 @@ partial class Helper
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBLangConstructsLocals1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBLangConstructsLocals1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -144,8 +144,8 @@ class Test
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -190,12 +190,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicConstVariable()
-        {
-            string source = @"
+    [Fact]
+    public void EmitPDBDynamicConstVariable()
+    {
+        string source = @"
 class Test
 {
 	public static void Main(string[] args)
@@ -210,8 +210,8 @@ class Test
         }
 	}
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -249,12 +249,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicDuplicateName()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBDynamicDuplicateName()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Test
 {
 	public static void Main(string[] args)
@@ -269,8 +269,8 @@ class Test
         }
 	}
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -318,12 +318,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicVariableNameTooLong()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBDynamicVariableNameTooLong()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Test
 {
 	public static void Main(string[] args)
@@ -334,8 +334,8 @@ class Test
         dynamic d12345678901234567890123456789012345678901234567890123456789012 = null; // 63 chars
 	}
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -370,12 +370,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicArrayVariable()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBDynamicArrayVariable()
+    {
+        string source = WithWindowsLineBreaks(@"
 class ArrayTest
 {
 	int x;
@@ -390,8 +390,8 @@ class Test
   }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -430,12 +430,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicCollectionVariable()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBDynamicCollectionVariable()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 class Test
 {
@@ -448,8 +448,8 @@ class Test
 		dynamic d2 = new Dictionary<int,int>();
   }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -496,12 +496,12 @@ class Test
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBDynamicObjectVariable2()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBDynamicObjectVariable2()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Helper
 {
 	int x;
@@ -524,8 +524,8 @@ class Test
 		dynamic d3 = new D(staticObj.goo);
   }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -590,12 +590,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBClassConstructorDynamicLocals()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBClassConstructorDynamicLocals()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Test
 {
 	public Test()
@@ -606,8 +606,8 @@ class Test
 	{
 	}
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -647,12 +647,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBClassPropertyDynamicLocals()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBClassPropertyDynamicLocals()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Test
 {
     string field;
@@ -673,8 +673,8 @@ class Test
     {
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -733,12 +733,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBClassOverloadedOperatorDynamicLocals()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBClassOverloadedOperatorDynamicLocals()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Complex
 {
     int real;
@@ -761,8 +761,8 @@ class Test
     {
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -814,12 +814,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBClassIndexerDynamicLocal()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBClassIndexerDynamicLocal()
+    {
+        string source = WithWindowsLineBreaks(@"
 class Test
 {
     dynamic[] arr;
@@ -841,8 +841,8 @@ class Test
     {
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -902,12 +902,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBClassEventHandlerDynamicLocal()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBClassEventHandlerDynamicLocal()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 class Sample
 {
@@ -923,8 +923,8 @@ class Sample
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -970,12 +970,12 @@ class Sample
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBStructDynamicLocals()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBStructDynamicLocals()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 struct Test
 {
@@ -1009,8 +1009,8 @@ struct Test
         dynamic d5;
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1117,12 +1117,12 @@ struct Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBAnonymousFunctionLocals()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBAnonymousFunctionLocals()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -1135,8 +1135,8 @@ class Test
         D1 obj3 = (dynamic d6) => { return d6; };
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1215,12 +1215,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBLangConstructsLocalVariables()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBLangConstructsLocalVariables()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1283,8 +1283,8 @@ class Test
             select score;
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"<symbols>
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -1467,12 +1467,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBLangConstructsLocalConstants()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBLangConstructsLocalConstants()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1532,8 +1532,8 @@ class Test
     }
 }");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1679,13 +1679,13 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
-        [Fact]
-        public void VariablesAndConstantsInUnreachableCode()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17947, "https://github.com/dotnet/roslyn/issues/17947")]
+    [Fact]
+    public void VariablesAndConstantsInUnreachableCode()
+    {
+        string source = WithWindowsLineBreaks(@"
 class C
 {
     void F()
@@ -1705,9 +1705,9 @@ class C
     }
 }
 ");
-            var c = CreateCompilation(source, options: TestOptions.DebugDll);
-            var v = CompileAndVerify(c);
-            v.VerifyIL("C.F", @"
+        var c = CreateCompilation(source, options: TestOptions.DebugDll);
+        var v = CompileAndVerify(c);
+        v.VerifyIL("C.F", @"
 {
   // Code size       10 (0xa)
   .maxstack  1
@@ -1722,7 +1722,7 @@ class C
   IL_0009:  throw
 }");
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1760,12 +1760,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBVarVariableLocal()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBVarVariableLocal()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -1775,8 +1775,8 @@ class Test
 		var v = d;
 	}
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1810,12 +1810,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void EmitPDBGenericDynamicNonLocal()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void EmitPDBGenericDynamicNonLocal()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 class dynamic<T>
 {
@@ -1829,8 +1829,8 @@ class Test
 		obj.field = ""1"";
 	}
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1861,13 +1861,13 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_1()         //With 2 normal dynamic locals
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_1()         //With 2 normal dynamic locals
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -1879,8 +1879,8 @@ class Program
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1914,13 +1914,13 @@ class Program
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_2()         //With 1 normal dynamic local and 1 containing dynamic local
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_2()         //With 1 normal dynamic local and 1 containing dynamic local
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -1937,8 +1937,8 @@ class Goo<T>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1972,13 +1972,13 @@ class Goo<T>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_3()         //With 1 normal dynamic local and 1 containing(more than one) dynamic local
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_3()         //With 1 normal dynamic local and 1 containing(more than one) dynamic local
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -1995,8 +1995,8 @@ class Goo<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2030,13 +2030,13 @@ class Goo<T,V>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_4()         //With 1 normal dynamic local, 1 containing dynamic local with a normal local variable
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_4()         //With 1 normal dynamic local, 1 containing dynamic local with a normal local variable
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2054,8 +2054,8 @@ class Goo<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2092,13 +2092,13 @@ class Goo<T,V>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_5_Just_Long()           //Dynamic local with dynamic attribute of length 63 above which the flag is emitted empty
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_5_Just_Long()           //Dynamic local with dynamic attribute of length 63 above which the flag is emitted empty
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2114,8 +2114,8 @@ class F<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2146,13 +2146,13 @@ class F<T,V>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_6_Too_Long()            //The limitation of the previous testcase with dynamic attribute length 64 and not emitted
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_6_Too_Long()            //The limitation of the previous testcase with dynamic attribute length 64 and not emitted
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2168,8 +2168,8 @@ class F<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2197,13 +2197,13 @@ class F<T,V>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_7()         //Corner case dynamic locals with normal locals
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_7()         //Corner case dynamic locals with normal locals
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2223,8 +2223,8 @@ class F<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2262,13 +2262,13 @@ class F<T,V>
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_8_Mixed_Corner_Cases()          //Mixed case with one more limitation. If identifier length is greater than 63 then the info is not emitted
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_8_Mixed_Corner_Cases()          //Mixed case with one more limitation. If identifier length is greater than 63 then the info is not emitted
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2287,8 +2287,8 @@ class F<T,V>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2325,13 +2325,13 @@ class F<T,V>
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_9()            //Check corner case with only corner cases
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_9()            //Check corner case with only corner cases
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2349,8 +2349,8 @@ class F<T>
 
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2385,13 +2385,13 @@ class F<T>
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(17390, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void EmitPDBForDynamicLocals_TwoScope()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(17390, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void EmitPDBForDynamicLocals_TwoScope()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 class Program
@@ -2409,8 +2409,8 @@ class Program
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"<symbols>
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -2474,13 +2474,13 @@ class Program
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
-        [Fact]
-        public void DynamicLocalOptimizedAway()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [WorkItem(637465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/637465")]
+    [Fact]
+    public void DynamicLocalOptimizedAway()
+    {
+        string source = WithWindowsLineBreaks(@"
 class C
 {
     public static void Main()
@@ -2494,8 +2494,8 @@ class C
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -2523,6 +2523,5 @@ class C
   </methods>
 </symbols>
 ");
-        }
     }
 }

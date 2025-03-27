@@ -9,15 +9,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_IWhileUntilLoopStatement : SemanticModelTestBase
 {
-    public class IOperationTests_IWhileUntilLoopStatement : SemanticModelTestBase
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_DoWhileLoopsTest()
     {
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_DoWhileLoopsTest()
-        {
-            string source = @"
+        string source = @"
 class Program
 {
     static void Main()
@@ -35,7 +35,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'do ... le (i < 4);')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 4')
@@ -66,14 +66,14 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<DoStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<DoStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileLoopsTest()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileLoopsTest()
+    {
+        string source = @"
 class Program
 {
     static int SumWhile()
@@ -92,7 +92,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (i <  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
@@ -119,14 +119,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileConditionTrue()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileConditionTrue()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -146,7 +146,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (cond ... }')
   Condition: 
     ILocalReferenceOperation: condition (OperationKind.LocalReference, Type: System.Boolean) (Syntax: 'condition')
@@ -185,14 +185,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithBreak()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithBreak()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -213,7 +213,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -266,14 +266,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithThrow()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithThrow()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -293,7 +293,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -344,14 +344,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithAssignment()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithAssignment()
+    {
+        string source = @"
 using System;
 
 class Program
@@ -368,7 +368,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while ((i = ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: '(i = value) >= 0')
@@ -414,14 +414,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileInvalidCondition()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileInvalidCondition()
+    {
+        string source = @"
 class Program
 {
     static void Main()
@@ -433,7 +433,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while (numb ... }')
   Condition: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'number')
@@ -445,14 +445,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithReturn()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithReturn()
+    {
+        string source = @"
 class Program
 {
     static void Main()
@@ -474,7 +474,7 @@ class Program
 }
 ";
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -506,14 +506,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithGoto()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithGoto()
+    {
+        string source = @"
 class Program
 {
     static void Main()
@@ -535,7 +535,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (true ... }')
   Condition: 
     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
@@ -570,14 +570,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileMissingCondition()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileMissingCondition()
+    {
+        string source = @"
 class Program
 {
     static void Main()
@@ -595,7 +595,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null, IsInvalid) (Syntax: 'while () ... }')
   Condition: 
     IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
@@ -635,14 +635,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileMissingStatement()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileMissingStatement()
+    {
+        string source = @"
 class ContinueTest
 {
     static void Main()
@@ -655,7 +655,7 @@ class ContinueTest
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i <= 10')
@@ -668,14 +668,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithContinue()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithContinue()
+    {
+        string source = @"
 class ContinueTest
 {
     static void Main()
@@ -693,7 +693,7 @@ class ContinueTest
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i <=  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i <= 10')
@@ -733,14 +733,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileNested()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileNested()
+    {
+        string source = @"
 class Test
 {
     static void Main()
@@ -760,7 +760,7 @@ class Test
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i<10')
@@ -824,14 +824,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileChangeOuterInnerValue()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileChangeOuterInnerValue()
+    {
+        string source = @"
 class Test
 {
     static void Main()
@@ -852,7 +852,7 @@ class Test
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while(i<10) ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i<10')
@@ -927,14 +927,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithDynamic()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithDynamic()
+    {
+        string source = @"
 class C
 {
     static void Main(string[] args)
@@ -973,7 +973,7 @@ public class MyWhile
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (d.Do ... }')
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'd.Done')
@@ -998,14 +998,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileIncrementInCondition()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileIncrementInCondition()
+    {
+        string source = @"
 class Program
 {
     static void Main(string[] args)
@@ -1019,7 +1019,7 @@ class Program
 }
 
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while ( ++i ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: '++i < 5')
@@ -1044,14 +1044,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileInfiniteLoop()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileInfiniteLoop()
+    {
+        string source = @"
 class C
 {
     static void Main(string[] args)
@@ -1063,7 +1063,7 @@ class C
         }/*</bind>*/
     }
 }";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (i >  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i > 0')
@@ -1081,14 +1081,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileConstantCheck()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileConstantCheck()
+    {
+        string source = @"
 class Program
 {
     bool foo()
@@ -1101,7 +1101,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (b == ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, Constant: True) (Syntax: 'b == b')
@@ -1117,14 +1117,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithTryCatch()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithTryCatch()
+    {
+        string source = @"
 public class TryCatchFinally
 {
     public void TryMethod()
@@ -1145,7 +1145,7 @@ public class TryCatchFinally
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (x--  ... }')
   Condition: 
     IBinaryOperation (BinaryOperatorKind.GreaterThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x-- > 0')
@@ -1191,14 +1191,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_WhileWithOutVar()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_WhileWithOutVar()
+    {
+        string source = @"
 public class X
 {
     public static void Main()
@@ -1225,7 +1225,7 @@ public class X
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'while (Dumm ... }')
   Locals: Local_1: System.Int32 x1
   Condition: 
@@ -1291,14 +1291,14 @@ IWhileLoopOperation (ConditionIsTop: True, ConditionIsUntil: False) (LoopKind.Wh
   IgnoredCondition: 
     null
 ";
-            VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IWhileUntilLoopStatement_DoWithOutVar()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
+    public void IWhileUntilLoopStatement_DoWithOutVar()
+    {
+        string source = @"
 class X
 {
     public static void Main()
@@ -1324,7 +1324,7 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.While, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'do ...  x1), x1));')
   Locals: Local_1: System.Int32 x1
   Condition: 
@@ -1380,16 +1380,16 @@ IWhileLoopOperation (ConditionIsTop: False, ConditionIsUntil: False) (LoopKind.W
   IgnoredCondition: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<DoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<DoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void WhileFlow_01()
-        {
-            string source1 = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void WhileFlow_01()
+    {
+        string source1 = @"
 class P
 {
     void M(bool condition1, bool condition2)
@@ -1401,7 +1401,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string source2 = @"
+        string source2 = @"
 class P
 {
     void M(bool condition1, bool condition2)
@@ -1411,7 +1411,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1445,17 +1445,17 @@ Block[B4] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source1, expectedGraph, expectedDiagnostics);
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source1, expectedGraph, expectedDiagnostics);
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source2, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_01()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_01()
+    {
+        string source = @"
 class P
 {
     void M(bool condition)
@@ -1468,7 +1468,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1491,16 +1491,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_02()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_02()
+    {
+        string source = @"
 class P
 {
     void M(bool condition)
@@ -1512,7 +1512,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1527,16 +1527,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void WhileFlow_02()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void WhileFlow_02()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1551,7 +1551,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1586,16 +1586,16 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void WhileFlow_03()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void WhileFlow_03()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1609,7 +1609,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1624,16 +1624,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void WhileFlow_04()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void WhileFlow_04()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1649,7 +1649,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1703,16 +1703,16 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void WhileFlow_05()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void WhileFlow_05()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1727,7 +1727,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1763,16 +1763,16 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_03()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_03()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1788,7 +1788,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1824,16 +1824,16 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_04()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_04()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1848,7 +1848,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1863,16 +1863,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_05()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_05()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1889,7 +1889,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1943,16 +1943,16 @@ Block[B4] - Exit
     Predecessors: [B3]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void DoFlow_06()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void DoFlow_06()
+    {
+        string source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class P
@@ -1968,7 +1968,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2004,9 +2004,8 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
     }
 }

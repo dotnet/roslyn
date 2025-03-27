@@ -7,131 +7,130 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Represents a custom modifier (modopt/modreq).
+/// </summary>
+internal abstract partial class CSharpCustomModifier : CustomModifier
 {
-    /// <summary>
-    /// Represents a custom modifier (modopt/modreq).
-    /// </summary>
-    internal abstract partial class CSharpCustomModifier : CustomModifier
+    protected readonly NamedTypeSymbol modifier;
+
+    private CSharpCustomModifier(NamedTypeSymbol modifier)
     {
-        protected readonly NamedTypeSymbol modifier;
+        Debug.Assert((object)modifier != null);
+        this.modifier = modifier;
+    }
 
-        private CSharpCustomModifier(NamedTypeSymbol modifier)
+    /// <summary>
+    /// A type used as a tag that indicates which type of modification applies.
+    /// </summary>
+    public override INamedTypeSymbol Modifier
+    {
+        get
         {
-            Debug.Assert((object)modifier != null);
-            this.modifier = modifier;
+            return modifier.GetPublicSymbol();
         }
+    }
 
-        /// <summary>
-        /// A type used as a tag that indicates which type of modification applies.
-        /// </summary>
-        public override INamedTypeSymbol Modifier
+    public NamedTypeSymbol ModifierSymbol
+    {
+        get
+        {
+            return modifier;
+        }
+    }
+
+    public abstract override int GetHashCode();
+
+    public abstract override bool Equals(object obj);
+
+    internal static CustomModifier CreateOptional(NamedTypeSymbol modifier)
+    {
+        return new OptionalCustomModifier(modifier);
+    }
+
+    internal static CustomModifier CreateRequired(NamedTypeSymbol modifier)
+    {
+        return new RequiredCustomModifier(modifier);
+    }
+
+    internal static ImmutableArray<CustomModifier> Convert(ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+    {
+        if (customModifiers.IsDefault)
+        {
+            return ImmutableArray<CustomModifier>.Empty;
+        }
+        return customModifiers.SelectAsArray(Convert);
+    }
+
+    private static CustomModifier Convert(ModifierInfo<TypeSymbol> customModifier)
+    {
+        var modifier = (NamedTypeSymbol)customModifier.Modifier;
+        return customModifier.IsOptional ? CreateOptional(modifier) : CreateRequired(modifier);
+    }
+
+    private class OptionalCustomModifier : CSharpCustomModifier
+    {
+        public OptionalCustomModifier(NamedTypeSymbol modifier)
+            : base(modifier)
+        { }
+
+        public override bool IsOptional
         {
             get
             {
-                return modifier.GetPublicSymbol();
+                return true;
             }
         }
 
-        public NamedTypeSymbol ModifierSymbol
+        public override int GetHashCode()
+        {
+            return modifier.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            OptionalCustomModifier other = obj as OptionalCustomModifier;
+
+            return other != null && other.modifier.Equals(this.modifier);
+        }
+    }
+
+    private class RequiredCustomModifier : CSharpCustomModifier
+    {
+        public RequiredCustomModifier(NamedTypeSymbol modifier)
+            : base(modifier)
+        { }
+
+        public override bool IsOptional
         {
             get
             {
-                return modifier;
+                return false;
             }
         }
 
-        public abstract override int GetHashCode();
-
-        public abstract override bool Equals(object obj);
-
-        internal static CustomModifier CreateOptional(NamedTypeSymbol modifier)
+        public override int GetHashCode()
         {
-            return new OptionalCustomModifier(modifier);
+            return modifier.GetHashCode();
         }
 
-        internal static CustomModifier CreateRequired(NamedTypeSymbol modifier)
+        public override bool Equals(object obj)
         {
-            return new RequiredCustomModifier(modifier);
-        }
-
-        internal static ImmutableArray<CustomModifier> Convert(ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
-        {
-            if (customModifiers.IsDefault)
+            if (ReferenceEquals(this, obj))
             {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-            return customModifiers.SelectAsArray(Convert);
-        }
-
-        private static CustomModifier Convert(ModifierInfo<TypeSymbol> customModifier)
-        {
-            var modifier = (NamedTypeSymbol)customModifier.Modifier;
-            return customModifier.IsOptional ? CreateOptional(modifier) : CreateRequired(modifier);
-        }
-
-        private class OptionalCustomModifier : CSharpCustomModifier
-        {
-            public OptionalCustomModifier(NamedTypeSymbol modifier)
-                : base(modifier)
-            { }
-
-            public override bool IsOptional
-            {
-                get
-                {
-                    return true;
-                }
+                return true;
             }
 
-            public override int GetHashCode()
-            {
-                return modifier.GetHashCode();
-            }
+            RequiredCustomModifier other = obj as RequiredCustomModifier;
 
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(this, obj))
-                {
-                    return true;
-                }
-
-                OptionalCustomModifier other = obj as OptionalCustomModifier;
-
-                return other != null && other.modifier.Equals(this.modifier);
-            }
-        }
-
-        private class RequiredCustomModifier : CSharpCustomModifier
-        {
-            public RequiredCustomModifier(NamedTypeSymbol modifier)
-                : base(modifier)
-            { }
-
-            public override bool IsOptional
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public override int GetHashCode()
-            {
-                return modifier.GetHashCode();
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (ReferenceEquals(this, obj))
-                {
-                    return true;
-                }
-
-                RequiredCustomModifier other = obj as RequiredCustomModifier;
-
-                return other != null && other.modifier.Equals(this.modifier);
-            }
+            return other != null && other.modifier.Equals(this.modifier);
         }
     }
 }

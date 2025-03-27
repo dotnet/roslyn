@@ -8,153 +8,152 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+/// <summary>
+/// a simple Lisp-like immutable list.  Good to use when lists are always accessed from the head.
+/// </summary>
+internal class ConsList<T> : IEnumerable<T>
 {
-    /// <summary>
-    /// a simple Lisp-like immutable list.  Good to use when lists are always accessed from the head.
-    /// </summary>
-    internal class ConsList<T> : IEnumerable<T>
+    public static readonly ConsList<T> Empty = new();
+
+    private readonly T? _head;
+    private readonly ConsList<T>? _tail;
+
+    internal struct Enumerator : IEnumerator<T>
     {
-        public static readonly ConsList<T> Empty = new();
+        private T? _current;
+        private ConsList<T> _tail;
 
-        private readonly T? _head;
-        private readonly ConsList<T>? _tail;
-
-        internal struct Enumerator : IEnumerator<T>
+        internal Enumerator(ConsList<T> list)
         {
-            private T? _current;
-            private ConsList<T> _tail;
-
-            internal Enumerator(ConsList<T> list)
-            {
-                _current = default;
-                _tail = list;
-            }
-
-            public T Current
-            {
-                get
-                {
-                    Debug.Assert(_tail != null);
-
-                    // This never returns null after a proper call to `MoveNext` returned true.
-                    return _current!;
-                }
-            }
-
-            public bool MoveNext()
-            {
-                var currentTail = _tail;
-                var newTail = currentTail._tail;
-
-                if (newTail != null)
-                {
-                    // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
-                    // https://github.com/dotnet/roslyn/issues/38926
-                    _current = currentTail._head!;
-                    _tail = newTail;
-                    return true;
-                }
-
-                _current = default;
-                return false;
-            }
-
-            public void Dispose()
-            {
-            }
-
-            object? IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
-
-            public void Reset()
-            {
-                throw new NotSupportedException();
-            }
+            _current = default;
+            _tail = list;
         }
 
-        private ConsList()
-        {
-            _head = default;
-            _tail = null;
-        }
-
-        public ConsList(T head, ConsList<T> tail)
-        {
-            Debug.Assert(tail != null);
-
-            _head = head;
-            _tail = tail;
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public T Head
+        public T Current
         {
             get
             {
-                Debug.Assert(this != Empty);
-                return _head!;
+                Debug.Assert(_tail != null);
+
+                // This never returns null after a proper call to `MoveNext` returned true.
+                return _current!;
             }
         }
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        public ConsList<T> Tail
+        public bool MoveNext()
+        {
+            var currentTail = _tail;
+            var newTail = currentTail._tail;
+
+            if (newTail != null)
+            {
+                // Suppress false positive CS8717 reported for MaybeNull assignment to AllowNull
+                // https://github.com/dotnet/roslyn/issues/38926
+                _current = currentTail._head!;
+                _tail = newTail;
+                return true;
+            }
+
+            _current = default;
+            return false;
+        }
+
+        public void Dispose()
+        {
+        }
+
+        object? IEnumerator.Current
         {
             get
             {
-                Debug.Assert(this != Empty);
-                RoslynDebug.Assert(_tail is object);
-                return _tail;
+                return this.Current;
             }
         }
 
-        public bool Any()
+        public void Reset()
         {
-            return this != Empty;
+            throw new NotSupportedException();
         }
+    }
 
-        public ConsList<T> Push(T value)
+    private ConsList()
+    {
+        _head = default;
+        _tail = null;
+    }
+
+    public ConsList(T head, ConsList<T> tail)
+    {
+        Debug.Assert(tail != null);
+
+        _head = head;
+        _tail = tail;
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public T Head
+    {
+        get
         {
-            return new ConsList<T>(value, this);
+            Debug.Assert(this != Empty);
+            return _head!;
         }
+    }
 
-        IEnumerator IEnumerable.GetEnumerator()
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    public ConsList<T> Tail
+    {
+        get
         {
-            return GetEnumerator();
+            Debug.Assert(this != Empty);
+            RoslynDebug.Assert(_tail is object);
+            return _tail;
         }
+    }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    public bool Any()
+    {
+        return this != Empty;
+    }
 
-        public Enumerator GetEnumerator()
-        {
-            return new Enumerator(this);
-        }
+    public ConsList<T> Push(T value)
+    {
+        return new ConsList<T>(value, this);
+    }
 
-        public override string ToString()
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
+    }
+
+    public override string ToString()
+    {
+        StringBuilder result = new StringBuilder("ConsList[");
+        bool any = false;
+        for (ConsList<T> list = this; list._tail != null; list = list._tail)
         {
-            StringBuilder result = new StringBuilder("ConsList[");
-            bool any = false;
-            for (ConsList<T> list = this; list._tail != null; list = list._tail)
+            if (any)
             {
-                if (any)
-                {
-                    result.Append(", ");
-                }
-
-                result.Append(list.Head);
-                any = true;
+                result.Append(", ");
             }
 
-            result.Append(']');
-            return result.ToString();
+            result.Append(list.Head);
+            any = true;
         }
+
+        result.Append(']');
+        return result.ToString();
     }
 }

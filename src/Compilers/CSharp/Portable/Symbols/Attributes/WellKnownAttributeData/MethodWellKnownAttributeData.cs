@@ -5,149 +5,148 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Information decoded from well-known custom attributes applied on a method.
+/// </summary>
+internal sealed class MethodWellKnownAttributeData : CommonMethodWellKnownAttributeData, ISkipLocalsInitAttributeTarget, IMemberNotNullAttributeTarget
 {
-    /// <summary>
-    /// Information decoded from well-known custom attributes applied on a method.
-    /// </summary>
-    internal sealed class MethodWellKnownAttributeData : CommonMethodWellKnownAttributeData, ISkipLocalsInitAttributeTarget, IMemberNotNullAttributeTarget
+    private bool _hasDoesNotReturnAttribute;
+    public bool HasDoesNotReturnAttribute
     {
-        private bool _hasDoesNotReturnAttribute;
-        public bool HasDoesNotReturnAttribute
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasDoesNotReturnAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasDoesNotReturnAttribute = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: true);
+            return _hasDoesNotReturnAttribute;
         }
-
-        private bool _hasSkipLocalsInitAttribute;
-        public bool HasSkipLocalsInitAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasSkipLocalsInitAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasSkipLocalsInitAttribute = value;
-                SetDataStored();
-            }
-        }
-
-        private bool _hasUnscopedRefAttribute;
-        public bool HasUnscopedRefAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasUnscopedRefAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasUnscopedRefAttribute = value;
-                SetDataStored();
-            }
-        }
-
-        private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
-
-        public void AddNotNullMember(string memberName)
+        set
         {
             VerifySealed(expected: false);
-            _memberNotNullAttributeData = _memberNotNullAttributeData.Add(memberName);
+            _hasDoesNotReturnAttribute = value;
             SetDataStored();
         }
+    }
 
-        public void AddNotNullMember(ArrayBuilder<string> memberNames)
+    private bool _hasSkipLocalsInitAttribute;
+    public bool HasSkipLocalsInitAttribute
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _hasSkipLocalsInitAttribute;
+        }
+        set
         {
             VerifySealed(expected: false);
-            _memberNotNullAttributeData = _memberNotNullAttributeData.AddRange(memberNames);
+            _hasSkipLocalsInitAttribute = value;
             SetDataStored();
         }
+    }
 
-        public ImmutableArray<string> NotNullMembers
+    private bool _hasUnscopedRefAttribute;
+    public bool HasUnscopedRefAttribute
+    {
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _memberNotNullAttributeData;
-            }
+            VerifySealed(expected: true);
+            return _hasUnscopedRefAttribute;
         }
-
-        private ImmutableArray<string> _memberNotNullWhenTrueAttributeData = ImmutableArray<string>.Empty;
-        private ImmutableArray<string> _memberNotNullWhenFalseAttributeData = ImmutableArray<string>.Empty;
-
-        public void AddNotNullWhenMember(bool sense, string memberName)
+        set
         {
             VerifySealed(expected: false);
-            if (sense)
-            {
-                _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.Add(memberName);
-            }
-            else
-            {
-                _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.Add(memberName);
-            }
+            _hasUnscopedRefAttribute = value;
             SetDataStored();
         }
+    }
 
-        public void AddNotNullWhenMember(bool sense, ArrayBuilder<string> memberNames)
+    private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
+
+    public void AddNotNullMember(string memberName)
+    {
+        VerifySealed(expected: false);
+        _memberNotNullAttributeData = _memberNotNullAttributeData.Add(memberName);
+        SetDataStored();
+    }
+
+    public void AddNotNullMember(ArrayBuilder<string> memberNames)
+    {
+        VerifySealed(expected: false);
+        _memberNotNullAttributeData = _memberNotNullAttributeData.AddRange(memberNames);
+        SetDataStored();
+    }
+
+    public ImmutableArray<string> NotNullMembers
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _memberNotNullAttributeData;
+        }
+    }
+
+    private ImmutableArray<string> _memberNotNullWhenTrueAttributeData = ImmutableArray<string>.Empty;
+    private ImmutableArray<string> _memberNotNullWhenFalseAttributeData = ImmutableArray<string>.Empty;
+
+    public void AddNotNullWhenMember(bool sense, string memberName)
+    {
+        VerifySealed(expected: false);
+        if (sense)
+        {
+            _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.Add(memberName);
+        }
+        else
+        {
+            _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.Add(memberName);
+        }
+        SetDataStored();
+    }
+
+    public void AddNotNullWhenMember(bool sense, ArrayBuilder<string> memberNames)
+    {
+        VerifySealed(expected: false);
+        if (sense)
+        {
+            _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.AddRange(memberNames);
+        }
+        else
+        {
+            _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.AddRange(memberNames);
+        }
+        SetDataStored();
+    }
+
+    public ImmutableArray<string> NotNullWhenTrueMembers
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _memberNotNullWhenTrueAttributeData;
+        }
+    }
+
+    public ImmutableArray<string> NotNullWhenFalseMembers
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _memberNotNullWhenFalseAttributeData;
+        }
+    }
+
+    private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
+    public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _unmanagedCallersOnlyAttributeData;
+        }
+        set
         {
             VerifySealed(expected: false);
-            if (sense)
-            {
-                _memberNotNullWhenTrueAttributeData = _memberNotNullWhenTrueAttributeData.AddRange(memberNames);
-            }
-            else
-            {
-                _memberNotNullWhenFalseAttributeData = _memberNotNullWhenFalseAttributeData.AddRange(memberNames);
-            }
+            _unmanagedCallersOnlyAttributeData = value;
             SetDataStored();
-        }
-
-        public ImmutableArray<string> NotNullWhenTrueMembers
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _memberNotNullWhenTrueAttributeData;
-            }
-        }
-
-        public ImmutableArray<string> NotNullWhenFalseMembers
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _memberNotNullWhenFalseAttributeData;
-            }
-        }
-
-        private UnmanagedCallersOnlyAttributeData? _unmanagedCallersOnlyAttributeData;
-        public UnmanagedCallersOnlyAttributeData? UnmanagedCallersOnlyAttributeData
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _unmanagedCallersOnlyAttributeData;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _unmanagedCallersOnlyAttributeData = value;
-                SetDataStored();
-            }
         }
     }
 }

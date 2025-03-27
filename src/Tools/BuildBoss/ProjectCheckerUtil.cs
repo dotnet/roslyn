@@ -9,269 +9,268 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace BuildBoss
+namespace BuildBoss;
+
+internal sealed class ProjectCheckerUtil : ICheckerUtil
 {
-    internal sealed class ProjectCheckerUtil : ICheckerUtil
+    private readonly ProjectData _data;
+    private readonly ProjectUtil _projectUtil;
+    private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
+    private readonly bool _isPrimarySolution;
+
+    internal ProjectFileType ProjectType => _data.ProjectFileType;
+    internal string ProjectFilePath => _data.FilePath;
+
+    internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, bool isPrimarySolution)
     {
-        private readonly ProjectData _data;
-        private readonly ProjectUtil _projectUtil;
-        private readonly Dictionary<ProjectKey, ProjectData> _solutionMap;
-        private readonly bool _isPrimarySolution;
+        _data = data;
+        _projectUtil = data.ProjectUtil;
+        _solutionMap = solutionMap;
+        _isPrimarySolution = isPrimarySolution;
+    }
 
-        internal ProjectFileType ProjectType => _data.ProjectFileType;
-        internal string ProjectFilePath => _data.FilePath;
-
-        internal ProjectCheckerUtil(ProjectData data, Dictionary<ProjectKey, ProjectData> solutionMap, bool isPrimarySolution)
+    public bool Check(TextWriter textWriter)
+    {
+        var allGood = true;
+        if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
         {
-            _data = data;
-            _projectUtil = data.ProjectUtil;
-            _solutionMap = solutionMap;
-            _isPrimarySolution = isPrimarySolution;
-        }
-
-        public bool Check(TextWriter textWriter)
-        {
-            var allGood = true;
-            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
+            if (!_projectUtil.IsNewSdk())
             {
-                if (!_projectUtil.IsNewSdk())
-                {
-                    textWriter.WriteLine($"Project must new .NET SDK based");
-                    allGood = false;
-                }
-
-                // Properties that aren't related to build but instead artifacts of Visual Studio.
-                allGood &= CheckForProperty(textWriter, "RestorePackages");
-                allGood &= CheckForProperty(textWriter, "SolutionDir");
-                allGood &= CheckForProperty(textWriter, "FileAlignment");
-                allGood &= CheckForProperty(textWriter, "FileUpgradeFlags");
-                allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
-                allGood &= CheckForProperty(textWriter, "OldToolsVersion");
-                allGood &= CheckForProperty(textWriter, "SchemaVersion");
-
-                // Centrally controlled properties
-                allGood &= CheckForProperty(textWriter, "Configuration");
-                allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
-                allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
-                allGood &= CheckForProperty(textWriter, "Deterministic");
-                allGood &= CheckForProperty(textWriter, "HighEntropyVA");
-                allGood &= CheckForProperty(textWriter, "DocumentationFile");
-
-                // Items which are not necessary anymore in the new SDK
-                allGood &= CheckForProperty(textWriter, "ProjectGuid");
-                allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
-                allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
-
-                allGood &= CheckTargetFrameworks(textWriter);
-                allGood &= CheckProjectReferences(textWriter);
-
-                if (_isPrimarySolution)
-                {
-                    allGood &= CheckInternalsVisibleTo(textWriter);
-                }
-
-                allGood &= CheckDeploymentSettings(textWriter);
-            }
-
-            return allGood;
-        }
-
-        private bool CheckForProperty(TextWriter textWriter, string propertyName)
-        {
-            foreach (var element in _projectUtil.GetAllPropertyGroupElements())
-            {
-                if (element.Name.LocalName == propertyName)
-                {
-                    textWriter.WriteLine($"\tDo not use {propertyName}");
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool CheckProjectReferences(TextWriter textWriter)
-        {
-            var allGood = true;
-
-            var declaredEntryList = _projectUtil.GetDeclaredProjectReferences();
-            var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
-            allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
-            allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
-            allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
-
-            return allGood;
-        }
-
-        private bool CheckNoGuidsOnProjectReferences(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
-        {
-            var allGood = true;
-            foreach (var entry in entryList)
-            {
-                if (entry.Project != null)
-                {
-                    textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private bool CheckInternalsVisibleTo(TextWriter textWriter)
-        {
-            var allGood = true;
-            foreach (var internalsVisibleTo in _projectUtil.GetInternalsVisibleTo())
-            {
-                if (string.Equals(internalsVisibleTo.LoadsWithinVisualStudio, "false", StringComparison.OrdinalIgnoreCase))
-                {
-                    // IVTs explicitly declared with LoadsWithinVisualStudio="false" are allowed
-                    continue;
-                }
-
-                if (_projectUtil.Key.FileName.StartsWith("Microsoft.CodeAnalysis.ExternalAccess."))
-                {
-                    // External access layer may have external IVTs
-                    continue;
-                }
-
-                if (!string.IsNullOrEmpty(internalsVisibleTo.WorkItem))
-                {
-                    if (!Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
-                    {
-                        textWriter.WriteLine($"InternalsVisibleTo for external assembly '{internalsVisibleTo.TargetAssembly}' does not have a valid URI specified for {nameof(InternalsVisibleTo.WorkItem)}.");
-                        allGood = false;
-                    }
-
-                    // A work item is tracking elimination of this IVT
-                    continue;
-                }
-
-                var builtByThisRepository = _solutionMap.Values.Any(projectData => GetAssemblyName(projectData) == internalsVisibleTo.TargetAssembly);
-                if (!builtByThisRepository)
-                {
-                    textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-
-            // Local functions
-            static string GetAssemblyName(ProjectData projectData)
-            {
-                return projectData.ProjectUtil.FindSingleProperty("AssemblyName")?.Value.Trim()
-                    ?? Path.GetFileNameWithoutExtension(projectData.FileName);
-            }
-        }
-
-        private bool CheckDeploymentSettings(TextWriter textWriter)
-        {
-            var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
-            allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
-            return allGood;
-        }
-
-        /// <summary>
-        /// It's important that every reference be included in the solution.  MSBuild does not necessarily
-        /// apply all configuration entries to projects which are compiled via references but not included
-        /// in the solution.
-        /// </summary>
-        private bool CheckProjectReferencesComplete(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
-        {
-            var allGood = true;
-            foreach (var key in declaredReferences)
-            {
-                if (!_solutionMap.ContainsKey(key))
-                {
-                    textWriter.WriteLine($"Project reference {key.FileName} is not included in the solution");
-                    allGood = false;
-                }
-            }
-            return allGood;
-        }
-
-        /// <summary>
-        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be
-        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up
-        /// putting two copies of the unit test DLL into the UnitTest folder:
-        ///
-        ///     1. UnitTests\Current\TheUnitTest\TheUnitTest.dll
-        ///     2. UnitTests\Current\TheOtherTests\
-        ///             TheUnitTests.dll
-        ///             TheOtherTests.dll
-        ///
-        /// This is problematic as all of our tools do directory based searches for unit test DLLs.  Hence they end up
-        /// getting counted twice.
-        ///
-        /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
-        /// much every repo has this practice.
-        /// </summary>
-        private bool CheckUnitTestReferenceRestriction(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
-        {
-            if (!_data.IsTestProject)
-            {
-                return true;
-            }
-
-            var allGood = true;
-            foreach (var key in declaredReferences)
-            {
-                if (!_solutionMap.TryGetValue(key, out var projectData))
-                {
-                    continue;
-                }
-
-                if (projectData.ProjectUtil.IsTestProject)
-                {
-                    textWriter.WriteLine($"Cannot reference {key.FileName} as it is another unit test project");
-                    allGood = false;
-                }
-            }
-
-            return allGood;
-        }
-
-        private bool CheckTargetFrameworks(TextWriter textWriter)
-        {
-            var allGood = true;
-            foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
-            {
-                // !!!NOTE!!!
-                // This check ensures that projects match the target framework expectations laid out in 
-                // Target Framework Strategy.md. Before changing this list, even simply adding a new 
-                // tfm, please consult with the infrastructure team so they can validate the change is in
-                // line with how the product is constructed.
-                switch (targetFramework)
-                {
-                    case "net472":
-                    case "netstandard2.0":
-                    case "$(NetRoslyn)":
-                    case "$(NetRoslynNext)":
-                    case "$(NetRoslynSourceBuild)":
-                    case "$(NetRoslynToolset)":
-                    case "$(NetRoslynAll)":
-                    case "$(NetVS)":
-                    case "$(NetVS)-windows":
-                    case "$(NetVSCode)":
-                    case "$(NetVSShared)":
-                        continue;
-
-                    case "$(NetRoslynBuildHostNetCoreVersion)":
-                        {
-                            // This property should only be used in one specific project
-                            if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
-                                continue;
-                            else
-                                break;
-                        }
-                }
-
-                textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+                textWriter.WriteLine($"Project must new .NET SDK based");
                 allGood = false;
             }
 
-            return allGood;
+            // Properties that aren't related to build but instead artifacts of Visual Studio.
+            allGood &= CheckForProperty(textWriter, "RestorePackages");
+            allGood &= CheckForProperty(textWriter, "SolutionDir");
+            allGood &= CheckForProperty(textWriter, "FileAlignment");
+            allGood &= CheckForProperty(textWriter, "FileUpgradeFlags");
+            allGood &= CheckForProperty(textWriter, "UpgradeBackupLocation");
+            allGood &= CheckForProperty(textWriter, "OldToolsVersion");
+            allGood &= CheckForProperty(textWriter, "SchemaVersion");
+
+            // Centrally controlled properties
+            allGood &= CheckForProperty(textWriter, "Configuration");
+            allGood &= CheckForProperty(textWriter, "CheckForOverflowUnderflow");
+            allGood &= CheckForProperty(textWriter, "RemoveIntegerChecks");
+            allGood &= CheckForProperty(textWriter, "Deterministic");
+            allGood &= CheckForProperty(textWriter, "HighEntropyVA");
+            allGood &= CheckForProperty(textWriter, "DocumentationFile");
+
+            // Items which are not necessary anymore in the new SDK
+            allGood &= CheckForProperty(textWriter, "ProjectGuid");
+            allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
+            allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
+
+            allGood &= CheckTargetFrameworks(textWriter);
+            allGood &= CheckProjectReferences(textWriter);
+
+            if (_isPrimarySolution)
+            {
+                allGood &= CheckInternalsVisibleTo(textWriter);
+            }
+
+            allGood &= CheckDeploymentSettings(textWriter);
         }
+
+        return allGood;
+    }
+
+    private bool CheckForProperty(TextWriter textWriter, string propertyName)
+    {
+        foreach (var element in _projectUtil.GetAllPropertyGroupElements())
+        {
+            if (element.Name.LocalName == propertyName)
+            {
+                textWriter.WriteLine($"\tDo not use {propertyName}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool CheckProjectReferences(TextWriter textWriter)
+    {
+        var allGood = true;
+
+        var declaredEntryList = _projectUtil.GetDeclaredProjectReferences();
+        var declaredList = declaredEntryList.Select(x => x.ProjectKey).ToList();
+        allGood &= CheckProjectReferencesComplete(textWriter, declaredList);
+        allGood &= CheckUnitTestReferenceRestriction(textWriter, declaredList);
+        allGood &= CheckNoGuidsOnProjectReferences(textWriter, declaredEntryList);
+
+        return allGood;
+    }
+
+    private bool CheckNoGuidsOnProjectReferences(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+    {
+        var allGood = true;
+        foreach (var entry in entryList)
+        {
+            if (entry.Project != null)
+            {
+                textWriter.WriteLine($"Project reference for {entry.ProjectKey.FileName} should not have a GUID");
+                allGood = false;
+            }
+        }
+
+        return allGood;
+    }
+
+    private bool CheckInternalsVisibleTo(TextWriter textWriter)
+    {
+        var allGood = true;
+        foreach (var internalsVisibleTo in _projectUtil.GetInternalsVisibleTo())
+        {
+            if (string.Equals(internalsVisibleTo.LoadsWithinVisualStudio, "false", StringComparison.OrdinalIgnoreCase))
+            {
+                // IVTs explicitly declared with LoadsWithinVisualStudio="false" are allowed
+                continue;
+            }
+
+            if (_projectUtil.Key.FileName.StartsWith("Microsoft.CodeAnalysis.ExternalAccess."))
+            {
+                // External access layer may have external IVTs
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(internalsVisibleTo.WorkItem))
+            {
+                if (!Uri.TryCreate(internalsVisibleTo.WorkItem, UriKind.Absolute, out _))
+                {
+                    textWriter.WriteLine($"InternalsVisibleTo for external assembly '{internalsVisibleTo.TargetAssembly}' does not have a valid URI specified for {nameof(InternalsVisibleTo.WorkItem)}.");
+                    allGood = false;
+                }
+
+                // A work item is tracking elimination of this IVT
+                continue;
+            }
+
+            var builtByThisRepository = _solutionMap.Values.Any(projectData => GetAssemblyName(projectData) == internalsVisibleTo.TargetAssembly);
+            if (!builtByThisRepository)
+            {
+                textWriter.WriteLine($"InternalsVisibleTo not allowed for external assembly '{internalsVisibleTo.TargetAssembly}' that may load within Visual Studio.");
+                allGood = false;
+            }
+        }
+
+        return allGood;
+
+        // Local functions
+        static string GetAssemblyName(ProjectData projectData)
+        {
+            return projectData.ProjectUtil.FindSingleProperty("AssemblyName")?.Value.Trim()
+                ?? Path.GetFileNameWithoutExtension(projectData.FileName);
+        }
+    }
+
+    private bool CheckDeploymentSettings(TextWriter textWriter)
+    {
+        var allGood = CheckForProperty(textWriter, "CopyNuGetImplementations");
+        allGood &= CheckForProperty(textWriter, "UseCommonOutputDirectory");
+        return allGood;
+    }
+
+    /// <summary>
+    /// It's important that every reference be included in the solution.  MSBuild does not necessarily
+    /// apply all configuration entries to projects which are compiled via references but not included
+    /// in the solution.
+    /// </summary>
+    private bool CheckProjectReferencesComplete(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
+    {
+        var allGood = true;
+        foreach (var key in declaredReferences)
+        {
+            if (!_solutionMap.ContainsKey(key))
+            {
+                textWriter.WriteLine($"Project reference {key.FileName} is not included in the solution");
+                allGood = false;
+            }
+        }
+        return allGood;
+    }
+
+    /// <summary>
+    /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be
+    /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up
+    /// putting two copies of the unit test DLL into the UnitTest folder:
+    ///
+    ///     1. UnitTests\Current\TheUnitTest\TheUnitTest.dll
+    ///     2. UnitTests\Current\TheOtherTests\
+    ///             TheUnitTests.dll
+    ///             TheOtherTests.dll
+    ///
+    /// This is problematic as all of our tools do directory based searches for unit test DLLs.  Hence they end up
+    /// getting counted twice.
+    ///
+    /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
+    /// much every repo has this practice.
+    /// </summary>
+    private bool CheckUnitTestReferenceRestriction(TextWriter textWriter, IEnumerable<ProjectKey> declaredReferences)
+    {
+        if (!_data.IsTestProject)
+        {
+            return true;
+        }
+
+        var allGood = true;
+        foreach (var key in declaredReferences)
+        {
+            if (!_solutionMap.TryGetValue(key, out var projectData))
+            {
+                continue;
+            }
+
+            if (projectData.ProjectUtil.IsTestProject)
+            {
+                textWriter.WriteLine($"Cannot reference {key.FileName} as it is another unit test project");
+                allGood = false;
+            }
+        }
+
+        return allGood;
+    }
+
+    private bool CheckTargetFrameworks(TextWriter textWriter)
+    {
+        var allGood = true;
+        foreach (var targetFramework in _projectUtil.GetAllTargetFrameworks())
+        {
+            // !!!NOTE!!!
+            // This check ensures that projects match the target framework expectations laid out in 
+            // Target Framework Strategy.md. Before changing this list, even simply adding a new 
+            // tfm, please consult with the infrastructure team so they can validate the change is in
+            // line with how the product is constructed.
+            switch (targetFramework)
+            {
+                case "net472":
+                case "netstandard2.0":
+                case "$(NetRoslyn)":
+                case "$(NetRoslynNext)":
+                case "$(NetRoslynSourceBuild)":
+                case "$(NetRoslynToolset)":
+                case "$(NetRoslynAll)":
+                case "$(NetVS)":
+                case "$(NetVS)-windows":
+                case "$(NetVSCode)":
+                case "$(NetVSShared)":
+                    continue;
+
+                case "$(NetRoslynBuildHostNetCoreVersion)":
+                    {
+                        // This property should only be used in one specific project
+                        if (_data.FileName == "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj")
+                            continue;
+                        else
+                            break;
+                    }
+            }
+
+            textWriter.WriteLine($"TargetFramework {targetFramework} is not supported in this build");
+            allGood = false;
+        }
+
+        return allGood;
     }
 }

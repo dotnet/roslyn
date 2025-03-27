@@ -4,26 +4,25 @@
 
 using System.Collections;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal partial class SpecializedCollections
 {
-    internal partial class SpecializedCollections
+    private partial class ReadOnly
     {
-        private partial class ReadOnly
+        internal class Enumerable<TUnderlying> : IEnumerable
+            where TUnderlying : IEnumerable
         {
-            internal class Enumerable<TUnderlying> : IEnumerable
-                where TUnderlying : IEnumerable
+            protected readonly TUnderlying Underlying;
+
+            public Enumerable(TUnderlying underlying)
             {
-                protected readonly TUnderlying Underlying;
+                this.Underlying = underlying;
+            }
 
-                public Enumerable(TUnderlying underlying)
-                {
-                    this.Underlying = underlying;
-                }
-
-                public IEnumerator GetEnumerator()
-                {
-                    return this.Underlying.GetEnumerator();
-                }
+            public IEnumerator GetEnumerator()
+            {
+                return this.Underlying.GetEnumerator();
             }
         }
     }

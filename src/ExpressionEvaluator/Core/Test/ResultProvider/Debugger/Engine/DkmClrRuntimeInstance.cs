@@ -20,128 +20,127 @@ using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
-namespace Microsoft.VisualStudio.Debugger.Clr
+namespace Microsoft.VisualStudio.Debugger.Clr;
+
+internal delegate DkmClrValue GetMemberValueDelegate(DkmClrValue value, string memberName);
+
+internal delegate DkmClrModuleInstance GetModuleDelegate(DkmClrRuntimeInstance runtime, Assembly assembly);
+
+public class DkmClrRuntimeInstance : DkmRuntimeInstance
 {
-    internal delegate DkmClrValue GetMemberValueDelegate(DkmClrValue value, string memberName);
+    internal static readonly DkmClrRuntimeInstance DefaultRuntime = new DkmClrRuntimeInstance(new Assembly[0]);
 
-    internal delegate DkmClrModuleInstance GetModuleDelegate(DkmClrRuntimeInstance runtime, Assembly assembly);
+    internal readonly Assembly[] Assemblies;
+    internal readonly DkmClrModuleInstance[] Modules;
+    private readonly Dictionary<string, DkmClrObjectFavoritesInfo> _favoritesByTypeName;
+    internal readonly GetMemberValueDelegate GetMemberValue;
 
-    public class DkmClrRuntimeInstance : DkmRuntimeInstance
+    internal DkmClrRuntimeInstance(Assembly assembly) : this([assembly])
+    { }
+
+    internal DkmClrRuntimeInstance(
+        Assembly[] assemblies,
+        GetModuleDelegate getModule = null,
+        GetMemberValueDelegate getMemberValue = null,
+        bool enableNativeDebugging = false)
+        : base(enableNativeDebugging)
     {
-        internal static readonly DkmClrRuntimeInstance DefaultRuntime = new DkmClrRuntimeInstance(new Assembly[0]);
+        getModule ??= (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
+        this.Assemblies = assemblies;
+        this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
+        DefaultModule = getModule(this, null);
+        DefaultAppDomain = new DkmClrAppDomain(this);
+        this.GetMemberValue = getMemberValue;
+    }
 
-        internal readonly Assembly[] Assemblies;
-        internal readonly DkmClrModuleInstance[] Modules;
-        private readonly Dictionary<string, DkmClrObjectFavoritesInfo> _favoritesByTypeName;
-        internal readonly GetMemberValueDelegate GetMemberValue;
+    internal DkmClrRuntimeInstance(Assembly[] assemblies, Dictionary<string, DkmClrObjectFavoritesInfo> favoritesByTypeName)
+        : this(assemblies)
+    {
+        _favoritesByTypeName = favoritesByTypeName;
+    }
 
-        internal DkmClrRuntimeInstance(Assembly assembly) : this([assembly])
-        { }
+    internal DkmClrModuleInstance DefaultModule { get; }
 
-        internal DkmClrRuntimeInstance(
-            Assembly[] assemblies,
-            GetModuleDelegate getModule = null,
-            GetMemberValueDelegate getMemberValue = null,
-            bool enableNativeDebugging = false)
-            : base(enableNativeDebugging)
+    internal DkmClrAppDomain DefaultAppDomain { get; }
+
+    internal DkmClrType GetType(Type type)
+    {
+        var assembly = ((AssemblyImpl)type.Assembly).Assembly;
+        var module = this.Modules.FirstOrDefault(m => m.Assembly == assembly) ?? DefaultModule;
+        return new DkmClrType(module, DefaultAppDomain, type, GetObjectFavoritesInfo(type));
+    }
+
+    internal DkmClrType GetType(System.Type type)
+    {
+        var assembly = type.Assembly;
+        var module = this.Modules.First(m => m.Assembly == assembly);
+        return new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
+    }
+
+    internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
+    {
+        foreach (var module in WithMscorlibLast(this.Modules))
         {
-            getModule ??= (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
-            this.Assemblies = assemblies;
-            this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
-            DefaultModule = getModule(this, null);
-            DefaultAppDomain = new DkmClrAppDomain(this);
-            this.GetMemberValue = getMemberValue;
-        }
-
-        internal DkmClrRuntimeInstance(Assembly[] assemblies, Dictionary<string, DkmClrObjectFavoritesInfo> favoritesByTypeName)
-            : this(assemblies)
-        {
-            _favoritesByTypeName = favoritesByTypeName;
-        }
-
-        internal DkmClrModuleInstance DefaultModule { get; }
-
-        internal DkmClrAppDomain DefaultAppDomain { get; }
-
-        internal DkmClrType GetType(Type type)
-        {
-            var assembly = ((AssemblyImpl)type.Assembly).Assembly;
-            var module = this.Modules.FirstOrDefault(m => m.Assembly == assembly) ?? DefaultModule;
-            return new DkmClrType(module, DefaultAppDomain, type, GetObjectFavoritesInfo(type));
-        }
-
-        internal DkmClrType GetType(System.Type type)
-        {
-            var assembly = type.Assembly;
-            var module = this.Modules.First(m => m.Assembly == assembly);
-            return new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
-        }
-
-        internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
-        {
-            foreach (var module in WithMscorlibLast(this.Modules))
+            var assembly = module.Assembly;
+            var type = assembly.GetType(typeName);
+            if (type != null)
             {
-                var assembly = module.Assembly;
-                var type = assembly.GetType(typeName);
-                if (type != null)
+                var result = new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
+                if (typeArguments.Length > 0)
                 {
-                    var result = new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
-                    if (typeArguments.Length > 0)
-                    {
-                        result = result.MakeGenericType(typeArguments.Select(this.GetType).ToArray());
-                    }
-                    return result;
+                    result = result.MakeGenericType(typeArguments.Select(this.GetType).ToArray());
                 }
-            }
-            return null;
-        }
-
-        private static IEnumerable<DkmClrModuleInstance> WithMscorlibLast(DkmClrModuleInstance[] list)
-        {
-            DkmClrModuleInstance mscorlib = null;
-            foreach (var module in list)
-            {
-                if (IsMscorlib(module.Assembly))
-                {
-                    Debug.Assert(mscorlib == null);
-                    mscorlib = module;
-                }
-                else
-                {
-                    yield return module;
-                }
-            }
-            if (mscorlib != null)
-            {
-                yield return mscorlib;
+                return result;
             }
         }
+        return null;
+    }
 
-        private static bool IsMscorlib(Assembly assembly)
+    private static IEnumerable<DkmClrModuleInstance> WithMscorlibLast(DkmClrModuleInstance[] list)
+    {
+        DkmClrModuleInstance mscorlib = null;
+        foreach (var module in list)
         {
-            return assembly.GetReferencedAssemblies().Length == 0 && (object)assembly.GetType("System.Object") != null;
-        }
-
-        internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
-        {
-            return this.Modules.FirstOrDefault(m => m.Mvid == mvid) ?? DefaultModule;
-        }
-
-        private DkmClrObjectFavoritesInfo GetObjectFavoritesInfo(Type type)
-        {
-            DkmClrObjectFavoritesInfo favorites = null;
-
-            if (_favoritesByTypeName != null)
+            if (IsMscorlib(module.Assembly))
             {
-                if (type.IsGenericType)
-                {
-                    type = type.GetGenericTypeDefinition();
-                }
+                Debug.Assert(mscorlib == null);
+                mscorlib = module;
+            }
+            else
+            {
+                yield return module;
+            }
+        }
+        if (mscorlib != null)
+        {
+            yield return mscorlib;
+        }
+    }
 
-                _favoritesByTypeName.TryGetValue(type.FullName, out favorites);
+    private static bool IsMscorlib(Assembly assembly)
+    {
+        return assembly.GetReferencedAssemblies().Length == 0 && (object)assembly.GetType("System.Object") != null;
+    }
+
+    internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
+    {
+        return this.Modules.FirstOrDefault(m => m.Mvid == mvid) ?? DefaultModule;
+    }
+
+    private DkmClrObjectFavoritesInfo GetObjectFavoritesInfo(Type type)
+    {
+        DkmClrObjectFavoritesInfo favorites = null;
+
+        if (_favoritesByTypeName != null)
+        {
+            if (type.IsGenericType)
+            {
+                type = type.GetGenericTypeDefinition();
             }
 
-            return favorites;
+            _favoritesByTypeName.TryGetValue(type.FullName, out favorites);
         }
+
+        return favorites;
     }
 }

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Required by <see cref="SymbolDisplayPartKind"/>.
+/// </summary>
+internal static class IErrorTypeSymbol
 {
-    /// <summary>
-    /// Required by <see cref="SymbolDisplayPartKind"/>.
-    /// </summary>
-    internal static class IErrorTypeSymbol
-    {
-    }
 }

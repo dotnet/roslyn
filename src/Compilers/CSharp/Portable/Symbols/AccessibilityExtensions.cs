@@ -6,22 +6,21 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
-{
-    internal static class AccessibilityExtensions
-    {
-        public static bool HasProtected(this Accessibility accessibility)
-        {
-            switch (accessibility)
-            {
-                case Accessibility.Protected:
-                case Accessibility.ProtectedOrInternal:
-                case Accessibility.ProtectedAndInternal:
-                    return true;
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
 
-                default:
-                    return false;
-            }
+internal static class AccessibilityExtensions
+{
+    public static bool HasProtected(this Accessibility accessibility)
+    {
+        switch (accessibility)
+        {
+            case Accessibility.Protected:
+            case Accessibility.ProtectedOrInternal:
+            case Accessibility.ProtectedAndInternal:
+                return true;
+
+            default:
+                return false;
         }
     }
 }

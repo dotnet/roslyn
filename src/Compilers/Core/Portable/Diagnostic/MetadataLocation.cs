@@ -7,44 +7,43 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// A program location in metadata.
+/// </summary>
+internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation?>
 {
-    /// <summary>
-    /// A program location in metadata.
-    /// </summary>
-    internal sealed class MetadataLocation : Location, IEquatable<MetadataLocation?>
+    private readonly IModuleSymbolInternal _module;
+
+    internal MetadataLocation(IModuleSymbolInternal module)
     {
-        private readonly IModuleSymbolInternal _module;
+        RoslynDebug.Assert(module != null);
+        _module = module;
+    }
 
-        internal MetadataLocation(IModuleSymbolInternal module)
-        {
-            RoslynDebug.Assert(module != null);
-            _module = module;
-        }
+    public override LocationKind Kind
+    {
+        get { return LocationKind.MetadataFile; }
+    }
 
-        public override LocationKind Kind
-        {
-            get { return LocationKind.MetadataFile; }
-        }
+    internal override IModuleSymbolInternal MetadataModuleInternal
+    {
+        get { return _module; }
+    }
 
-        internal override IModuleSymbolInternal MetadataModuleInternal
-        {
-            get { return _module; }
-        }
+    public override int GetHashCode()
+    {
+        return _module.GetHashCode();
+    }
 
-        public override int GetHashCode()
-        {
-            return _module.GetHashCode();
-        }
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as MetadataLocation);
+    }
 
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as MetadataLocation);
-        }
-
-        public bool Equals(MetadataLocation? other)
-        {
-            return other is object && other._module == _module;
-        }
+    public bool Equals(MetadataLocation? other)
+    {
+        return other is object && other._module == _module;
     }
 }

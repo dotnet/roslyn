@@ -7,54 +7,53 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+[SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
+[DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
+internal readonly struct SequencePoint
 {
-    [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    internal readonly struct SequencePoint
+    public const int HiddenLine = 0xfeefee;
+
+    public readonly int Offset;
+    public readonly int StartLine;
+    public readonly int EndLine;
+    public readonly ushort StartColumn;
+    public readonly ushort EndColumn;
+    public readonly DebugSourceDocument Document;
+
+    public SequencePoint(
+        DebugSourceDocument document,
+        int offset,
+        int startLine,
+        ushort startColumn,
+        int endLine,
+        ushort endColumn)
     {
-        public const int HiddenLine = 0xfeefee;
+        RoslynDebug.Assert(document != null);
 
-        public readonly int Offset;
-        public readonly int StartLine;
-        public readonly int EndLine;
-        public readonly ushort StartColumn;
-        public readonly ushort EndColumn;
-        public readonly DebugSourceDocument Document;
+        Offset = offset;
+        StartLine = startLine;
+        StartColumn = startColumn;
+        EndLine = endLine;
+        EndColumn = endColumn;
+        Document = document;
+    }
 
-        public SequencePoint(
-            DebugSourceDocument document,
-            int offset,
-            int startLine,
-            ushort startColumn,
-            int endLine,
-            ushort endColumn)
-        {
-            RoslynDebug.Assert(document != null);
+    public bool IsHidden => StartLine == HiddenLine;
 
-            Offset = offset;
-            StartLine = startLine;
-            StartColumn = startColumn;
-            EndLine = endLine;
-            EndColumn = endColumn;
-            Document = document;
-        }
+    public override int GetHashCode()
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public bool IsHidden => StartLine == HiddenLine;
+    public override bool Equals(object? obj)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public override int GetHashCode()
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            return IsHidden ? "<hidden>" : $"{Offset}: ({StartLine}, {StartColumn}) - ({EndLine}, {EndColumn})";
-        }
+    private string GetDebuggerDisplay()
+    {
+        return IsHidden ? "<hidden>" : $"{Offset}: ({StartLine}, {StartColumn}) - ({EndLine}, {EndColumn})";
     }
 }

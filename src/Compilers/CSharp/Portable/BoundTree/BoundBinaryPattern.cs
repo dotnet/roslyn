@@ -4,25 +4,24 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    internal partial class BoundBinaryPattern
-    {
-        private partial void Validate()
-        {
-            Debug.Assert(Left.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
+namespace Microsoft.CodeAnalysis.CSharp;
 
-            if (Disjunction)
-            {
-                Debug.Assert(Right.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
-                // Is it worth asserting that NarrowedType is either the InputType, or or the NarrowedType
-                // of one of the leaves in the Disjunction hierarchy?
-            }
-            else
-            {
-                Debug.Assert(Right.InputType.Equals(Left.NarrowedType, TypeCompareKind.AllIgnoreOptions));
-                Debug.Assert(NarrowedType.Equals(Right.NarrowedType, TypeCompareKind.AllIgnoreOptions));
-            }
+internal partial class BoundBinaryPattern
+{
+    private partial void Validate()
+    {
+        Debug.Assert(Left.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
+
+        if (Disjunction)
+        {
+            Debug.Assert(Right.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
+            // Is it worth asserting that NarrowedType is either the InputType, or or the NarrowedType
+            // of one of the leaves in the Disjunction hierarchy?
+        }
+        else
+        {
+            Debug.Assert(Right.InputType.Equals(Left.NarrowedType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(NarrowedType.Equals(Right.NarrowedType, TypeCompareKind.AllIgnoreOptions));
         }
     }
 }

@@ -10,35 +10,34 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections
+namespace Microsoft.CodeAnalysis.UnitTests.Collections;
+
+public class GenericParameterHelper
 {
-    public class GenericParameterHelper
+    public GenericParameterHelper()
     {
-        public GenericParameterHelper()
+        this.Data = new Random().Next();
+    }
+
+    public GenericParameterHelper(int data)
+    {
+        this.Data = data;
+    }
+
+    public int Data { get; set; }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is GenericParameterHelper other)
         {
-            this.Data = new Random().Next();
+            return this.Data == other.Data;
         }
 
-        public GenericParameterHelper(int data)
-        {
-            this.Data = data;
-        }
+        return false;
+    }
 
-        public int Data { get; set; }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is GenericParameterHelper other)
-            {
-                return this.Data == other.Data;
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return this.Data;
-        }
+    public override int GetHashCode()
+    {
+        return this.Data;
     }
 }

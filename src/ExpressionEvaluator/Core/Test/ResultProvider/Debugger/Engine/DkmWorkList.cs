@@ -12,48 +12,47 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.VisualStudio.Debugger
+namespace Microsoft.VisualStudio.Debugger;
+
+/// <summary>
+/// This mock of DkmWorkList doesn't really reflect the details of the *real* implementation.
+/// It simply serves as a useful mechanism for testing async calls (in a way that resembles
+/// the Concord dispatcher).
+/// </summary>
+public sealed class DkmWorkList
 {
+    private readonly Queue<Action> _workList;
+
     /// <summary>
-    /// This mock of DkmWorkList doesn't really reflect the details of the *real* implementation.
-    /// It simply serves as a useful mechanism for testing async calls (in a way that resembles
-    /// the Concord dispatcher).
+    /// internal helper for testing only (not available on *real* DkmWorkList)...
     /// </summary>
-    public sealed class DkmWorkList
+    internal DkmWorkList()
     {
-        private readonly Queue<Action> _workList;
+        _workList = new Queue<Action>(1);
+    }
 
-        /// <summary>
-        /// internal helper for testing only (not available on *real* DkmWorkList)...
-        /// </summary>
-        internal DkmWorkList()
-        {
-            _workList = new Queue<Action>(1);
-        }
+    /// <summary>
+    /// internal helper for testing only (not available on *real* DkmWorkList)...
+    /// </summary>
+    internal void AddWork(Action item)
+    {
+        _workList.Enqueue(item);
+    }
 
-        /// <summary>
-        /// internal helper for testing only (not available on *real* DkmWorkList)...
-        /// </summary>
-        internal void AddWork(Action item)
-        {
-            _workList.Enqueue(item);
-        }
+    /// <summary>
+    /// internal helper for testing only (not available on *real* DkmWorkList)...
+    /// </summary>
+    internal int Length
+    {
+        get { return _workList.Count; }
+    }
 
-        /// <summary>
-        /// internal helper for testing only (not available on *real* DkmWorkList)...
-        /// </summary>
-        internal int Length
+    public void Execute()
+    {
+        while (_workList.Count > 0)
         {
-            get { return _workList.Count; }
-        }
-
-        public void Execute()
-        {
-            while (_workList.Count > 0)
-            {
-                var item = _workList.Dequeue();
-                item.Invoke();
-            }
+            var item = _workList.Dequeue();
+            item.Invoke();
         }
     }
 }

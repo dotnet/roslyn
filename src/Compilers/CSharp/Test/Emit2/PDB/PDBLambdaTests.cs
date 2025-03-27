@@ -11,15 +11,15 @@ using Xunit;
 
 using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
+
+public class PDBLambdaTests : CSharpPDBTestBase
 {
-    public class PDBLambdaTests : CSharpPDBTestBase
+    [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
+    [Fact]
+    public void SequencePoints_Body()
     {
-        [WorkItem(539898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539898")]
-        [Fact]
-        public void SequencePoints_Body()
-        {
-            var source = WithWindowsLineBreaks(@"
+        var source = WithWindowsLineBreaks(@"
 using System;
 delegate void D();
 class C
@@ -32,8 +32,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -73,13 +73,13 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
-        [Fact]
-        public void Nested()
-        {
-            var source = MarkedSource(WithWindowsLineBreaks(@"
+    [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+    [Fact]
+    public void Nested()
+    {
+        var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -106,16 +106,16 @@ class Test
 }
 "), removeTags: true); // We're validating offsets so need to remove tags entirely
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.Tree, options: TestOptions.DebugDll);
+        var compilation = CreateCompilationWithMscorlib40AndSystemCore(source.Tree, options: TestOptions.DebugDll);
 
-            compilation.VerifyPdbLambdasAndClosures(source);
-        }
+        compilation.VerifyPdbLambdasAndClosures(source);
+    }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
-        [Fact]
-        public void InitialSequencePoints()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+    [Fact]
+    public void InitialSequencePoints()
+    {
+        var source = WithWindowsLineBreaks(@"
 class Test
 {
     void Goo(int p)
@@ -125,9 +125,9 @@ class Test
     }
 }
 ");
-            // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -170,13 +170,13 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
-        [Fact]
-        public void Nested_InitialSequencePoints()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [WorkItem(543479, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543479")]
+    [Fact]
+    public void Nested_InitialSequencePoints()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 class Test
 {
@@ -199,9 +199,9 @@ class Test
     }
 }
 ");
-            // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
+        // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -294,12 +294,12 @@ class Test
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void FieldAndPropertyInitializers()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void FieldAndPropertyInitializers()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -316,10 +316,10 @@ class C : B
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -409,12 +409,12 @@ class C : B
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void ClosuresInCtor()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ClosuresInCtor()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -436,10 +436,10 @@ class C : B
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -529,12 +529,12 @@ class C : B
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void Queries1()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void Queries1()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -550,10 +550,10 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
  <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -615,12 +615,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void Queries_GroupBy1()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void Queries_GroupBy1()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System.Linq;
 
 class C
@@ -635,10 +635,10 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -722,12 +722,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void ForEachStatement_Array()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForEachStatement_Array()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -745,11 +745,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -801,12 +801,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForEachStatement_MultidimensionalArray()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForEachStatement_MultidimensionalArray()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -824,11 +824,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -886,12 +886,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForEachStatement_String()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForEachStatement_String()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -909,11 +909,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -965,12 +965,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForEachStatement_Enumerable()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForEachStatement_Enumerable()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 using System.Collections.Generic;
 
@@ -989,11 +989,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1044,12 +1044,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForStatement1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForStatement1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1065,11 +1065,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1119,12 +1119,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void SwitchStatement1()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchStatement1()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1153,10 +1153,10 @@ class C
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb("C.F", @"
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1205,12 +1205,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1226,8 +1226,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1276,12 +1276,12 @@ class C
         </method>
       </methods>
     </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda2()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda2()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1298,8 +1298,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1353,12 +1353,12 @@ class C
         </method>
       </methods>
     </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda3()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda3()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1374,8 +1374,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1418,12 +1418,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda4()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda4()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1444,8 +1444,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1494,12 +1494,12 @@ class C
         </method>
       </methods>
     </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda5()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda5()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1520,8 +1520,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1574,12 +1574,12 @@ class C
         </method>
       </methods>
     </symbols>");
-        }
+    }
 
-        [Fact]
-        public void SwitchExpressionWithLambda6()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchExpressionWithLambda6()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1596,8 +1596,8 @@ class C
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M",
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyPdb("C.M",
 @"<symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1646,12 +1646,12 @@ class C
         </method>
       </methods>
     </symbols>");
-        }
+    }
 
-        [Fact]
-        public void UsingStatement1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void UsingStatement1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -1672,11 +1672,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1737,12 +1737,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void IfStatement1()
-        {
-            string source = @"
+    [Fact]
+    public void IfStatement1()
+    {
+        string source = @"
 class C
 {
     static void F()
@@ -1756,9 +1756,9 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+        var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            v.VerifyIL("C.<>c.<F>b__0_0", @"
+        v.VerifyIL("C.<>c.<F>b__0_0", @"
 {
   // Code size       16 (0x10)
   .maxstack  1
@@ -1777,12 +1777,12 @@ class C
  -IL_000f:  ret
 }
 ", sequencePoints: "C+<>c.<F>b__0_0");
-        }
+    }
 
-        [Fact]
-        public void IfStatement2()
-        {
-            string source = @"
+    [Fact]
+    public void IfStatement2()
+    {
+        string source = @"
 class C
 {
     static void F()
@@ -1798,9 +1798,9 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+        var v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            v.VerifyIL("C.<>c.<F>b__0_0", @"
+        v.VerifyIL("C.<>c.<F>b__0_0", @"
 {
   // Code size       18 (0x12)
   .maxstack  1
@@ -1821,12 +1821,12 @@ class C
  -IL_0011:  ret
 }
 ", sequencePoints: "C+<>c.<F>b__0_0");
-        }
+    }
 
-        [Fact]
-        public void WithExpression()
-        {
-            var source = MarkedSource(WithWindowsLineBreaks(@"
+    [Fact]
+    public void WithExpression()
+    {
+        var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 record R(int X);
 
@@ -1843,16 +1843,16 @@ class Test
 }
 "), removeTags: true); // We're validating offsets so need to remove tags entirely
 
-            // Use NetCoreApp in order to use records
-            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+        // Use NetCoreApp in order to use records
+        var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
-            compilation.VerifyPdbLambdasAndClosures(source);
-        }
+        compilation.VerifyPdbLambdasAndClosures(source);
+    }
 
-        [Fact]
-        public void WithExpression_2()
-        {
-            var source = MarkedSource(WithWindowsLineBreaks(@"
+    [Fact]
+    public void WithExpression_2()
+    {
+        var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 record R(int X, int Y);
 
@@ -1871,16 +1871,16 @@ class Test
 }
 "), removeTags: true); // We're validating offsets so need to remove tags entirely
 
-            // Use NetCoreApp in order to use records
-            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+        // Use NetCoreApp in order to use records
+        var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
-            compilation.VerifyPdbLambdasAndClosures(source);
-        }
+        compilation.VerifyPdbLambdasAndClosures(source);
+    }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/52068")]
-        public void WithExpression_3()
-        {
-            var source = MarkedSource(WithWindowsLineBreaks(@"
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/52068")]
+    public void WithExpression_3()
+    {
+        var source = MarkedSource(WithWindowsLineBreaks(@"
 using System;
 record R(int X, int Y);
 record Z(int A, R R);
@@ -1905,16 +1905,16 @@ class Test
 }
 "), removeTags: true); // We're validating offsets so need to remove tags entirely
 
-            // Use NetCoreApp in order to use records
-            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+        // Use NetCoreApp in order to use records
+        var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
-            compilation.VerifyPdbLambdasAndClosures(source);
-        }
+        compilation.VerifyPdbLambdasAndClosures(source);
+    }
 
-        [Fact]
-        public void LiftedPrimaryParameter_Record()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void LiftedPrimaryParameter_Record()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 record D(int X)
 {
@@ -1922,10 +1922,10 @@ record D(int X)
 }
 ");
 
-            // Use NetCoreApp in order to use records
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+        // Use NetCoreApp in order to use records
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
-            compilation.VerifyPdb(@"
+        compilation.VerifyPdb(@"
     <symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -1995,12 +1995,12 @@ record D(int X)
         </method>
       </methods>
     </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
-        }
+    }
 
-        [Fact]
-        public void PrimaryBaseInitializer()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void PrimaryBaseInitializer()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 record C(int X)
 {
@@ -2020,11 +2020,11 @@ record D(int X) : C(F(X, out int z), () => z)
 }
 ");
 
-            // Use NetCoreApp in order to use records
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
-            compilation.VerifyDiagnostics();
+        // Use NetCoreApp in order to use records
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+        compilation.VerifyDiagnostics();
 
-            compilation.VerifyPdb(@"
+        compilation.VerifyPdb(@"
     <symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -2123,13 +2123,13 @@ record D(int X) : C(F(X, out int z), () => z)
         </method>
       </methods>
     </symbols>", format: CodeAnalysis.Emit.DebugInformationFormat.Pdb);
-        }
+    }
 
-        [Fact]
-        [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
-        public void ClosureAllocationSequencePoints()
-        {
-            var source = @"
+    [Fact]
+    [WorkItem(32352, "https://github.com/dotnet/roslyn/issues/32352")]
+    public void ClosureAllocationSequencePoints()
+    {
+        var source = @"
 using System;
 
 class C
@@ -2143,13 +2143,13 @@ class C
         }
     }
 }";
-            var c = CompileAndVerify(source, options: TestOptions.DebugDll);
+        var c = CompileAndVerify(source, options: TestOptions.DebugDll);
 
-            // TODO: https://github.com/dotnet/roslyn/issues/32352
-            // The inner closure allocation on IL_0018 should be within the sequence point associated with opening brace of the if statement.
-            // This sequence point is currently on  IL_0025, which causes NRE when the instruction pointer is moved to the opening brace.
+        // TODO: https://github.com/dotnet/roslyn/issues/32352
+        // The inner closure allocation on IL_0018 should be within the sequence point associated with opening brace of the if statement.
+        // This sequence point is currently on  IL_0025, which causes NRE when the instruction pointer is moved to the opening brace.
 
-            c.VerifyIL("C.F", @"
+        c.VerifyIL("C.F", @"
 {
   // Code size       60 (0x3c)
   .maxstack  2
@@ -2195,6 +2195,5 @@ class C
   IL_003b:  ret
 }
 ", sequencePoints: "C.F", source: source);
-        }
     }
 }

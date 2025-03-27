@@ -15,93 +15,92 @@ using System.Reflection.Metadata;
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+
+internal sealed class PEGlobalNamespaceSymbol
+    : PENamespaceSymbol
 {
-    internal sealed class PEGlobalNamespaceSymbol
-        : PENamespaceSymbol
+    /// <summary>
+    /// The module containing the namespace.
+    /// </summary>
+    /// <remarks></remarks>
+    private readonly PEModuleSymbol _moduleSymbol;
+
+    internal PEGlobalNamespaceSymbol(PEModuleSymbol moduleSymbol)
     {
-        /// <summary>
-        /// The module containing the namespace.
-        /// </summary>
-        /// <remarks></remarks>
-        private readonly PEModuleSymbol _moduleSymbol;
+        Debug.Assert((object)moduleSymbol != null);
+        _moduleSymbol = moduleSymbol;
+    }
 
-        internal PEGlobalNamespaceSymbol(PEModuleSymbol moduleSymbol)
+    public override Symbol ContainingSymbol
+    {
+        get
         {
-            Debug.Assert((object)moduleSymbol != null);
-            _moduleSymbol = moduleSymbol;
+            return _moduleSymbol;
         }
+    }
 
-        public override Symbol ContainingSymbol
+    internal override PEModuleSymbol ContainingPEModule
+    {
+        get
         {
-            get
+            return _moduleSymbol;
+        }
+    }
+
+    public override string Name
+    {
+        get
+        {
+            return string.Empty;
+        }
+    }
+
+    public override bool IsGlobalNamespace
+    {
+        get
+        {
+            return true;
+        }
+    }
+
+    public override AssemblySymbol ContainingAssembly
+    {
+        get
+        {
+            return _moduleSymbol.ContainingAssembly;
+        }
+    }
+
+    internal override ModuleSymbol ContainingModule
+    {
+        get
+        {
+            return _moduleSymbol;
+        }
+    }
+
+    protected override void EnsureAllMembersLoaded()
+    {
+        if (Volatile.Read(ref lazyTypes) == null || Volatile.Read(ref lazyNamespaces) == null)
+        {
+            IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
+
+            try
             {
-                return _moduleSymbol;
+                groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
             }
-        }
-
-        internal override PEModuleSymbol ContainingPEModule
-        {
-            get
+            catch (BadImageFormatException)
             {
-                return _moduleSymbol;
+                groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeDefinitionHandle>>();
             }
+
+            LoadAllMembers(groups);
         }
+    }
 
-        public override string Name
-        {
-            get
-            {
-                return string.Empty;
-            }
-        }
-
-        public override bool IsGlobalNamespace
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public override AssemblySymbol ContainingAssembly
-        {
-            get
-            {
-                return _moduleSymbol.ContainingAssembly;
-            }
-        }
-
-        internal override ModuleSymbol ContainingModule
-        {
-            get
-            {
-                return _moduleSymbol;
-            }
-        }
-
-        protected override void EnsureAllMembersLoaded()
-        {
-            if (Volatile.Read(ref lazyTypes) == null || Volatile.Read(ref lazyNamespaces) == null)
-            {
-                IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
-
-                try
-                {
-                    groups = _moduleSymbol.Module.GroupTypesByNamespaceOrThrow(System.StringComparer.Ordinal);
-                }
-                catch (BadImageFormatException)
-                {
-                    groups = SpecializedCollections.EmptyEnumerable<IGrouping<string, TypeDefinitionHandle>>();
-                }
-
-                LoadAllMembers(groups);
-            }
-        }
-
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-        {
-            get { return null; }
-        }
+    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+    {
+        get { return null; }
     }
 }

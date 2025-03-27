@@ -13,190 +13,189 @@ using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class PEAssembly
 {
-    internal sealed class PEAssembly
+    /// <summary>
+    /// All assemblies this assembly references.
+    /// </summary>
+    /// <remarks>
+    /// A concatenation of assemblies referenced by each module in the order they are listed in <see cref="_modules"/>.
+    /// </remarks>
+    internal readonly ImmutableArray<AssemblyIdentity> AssemblyReferences;
+
+    /// <summary>
+    /// The number of assemblies referenced by each module in <see cref="_modules"/>.
+    /// </summary>
+    internal readonly ImmutableArray<int> ModuleReferenceCounts;
+
+    private readonly ImmutableArray<PEModule> _modules;
+
+    /// <summary>
+    /// Assembly identity read from Assembly table, or null if the table is empty.
+    /// </summary>
+    private readonly AssemblyIdentity _identity;
+
+    /// <summary>
+    /// Using <see cref="ThreeState"/> for atomicity.
+    /// </summary>
+    private ThreeState _lazyContainsNoPiaLocalTypes;
+
+    private ThreeState _lazyDeclaresTheObjectClass;
+
+    /// <summary>
+    /// We need to store reference to the assembly metadata to keep the metadata alive while 
+    /// symbols have reference to PEAssembly.
+    /// </summary>
+    private readonly AssemblyMetadata _owner;
+
+    //Maps from simple name to list of public keys. If an IVT attribute specifies no public
+    //key, the list contains one element with an empty value
+    private Dictionary<string, List<ImmutableArray<byte>>> _lazyInternalsVisibleToMap;
+
+    /// <exception cref="BadImageFormatException"/>
+    internal PEAssembly(AssemblyMetadata owner, ImmutableArray<PEModule> modules)
     {
-        /// <summary>
-        /// All assemblies this assembly references.
-        /// </summary>
-        /// <remarks>
-        /// A concatenation of assemblies referenced by each module in the order they are listed in <see cref="_modules"/>.
-        /// </remarks>
-        internal readonly ImmutableArray<AssemblyIdentity> AssemblyReferences;
+        Debug.Assert(!modules.IsDefault);
+        Debug.Assert(modules.Length > 0);
 
-        /// <summary>
-        /// The number of assemblies referenced by each module in <see cref="_modules"/>.
-        /// </summary>
-        internal readonly ImmutableArray<int> ModuleReferenceCounts;
+        _identity = modules[0].ReadAssemblyIdentityOrThrow();
 
-        private readonly ImmutableArray<PEModule> _modules;
+        // Pre-calculate size to ensure this code only requires a single array allocation.
+        var totalRefCount = modules.Sum(static module => module.ReferencedAssemblies.Length);
+        var refCounts = ArrayBuilder<int>.GetInstance(modules.Length);
 
-        /// <summary>
-        /// Assembly identity read from Assembly table, or null if the table is empty.
-        /// </summary>
-        private readonly AssemblyIdentity _identity;
+        var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(totalRefCount);
 
-        /// <summary>
-        /// Using <see cref="ThreeState"/> for atomicity.
-        /// </summary>
-        private ThreeState _lazyContainsNoPiaLocalTypes;
-
-        private ThreeState _lazyDeclaresTheObjectClass;
-
-        /// <summary>
-        /// We need to store reference to the assembly metadata to keep the metadata alive while 
-        /// symbols have reference to PEAssembly.
-        /// </summary>
-        private readonly AssemblyMetadata _owner;
-
-        //Maps from simple name to list of public keys. If an IVT attribute specifies no public
-        //key, the list contains one element with an empty value
-        private Dictionary<string, List<ImmutableArray<byte>>> _lazyInternalsVisibleToMap;
-
-        /// <exception cref="BadImageFormatException"/>
-        internal PEAssembly(AssemblyMetadata owner, ImmutableArray<PEModule> modules)
+        for (int i = 0; i < modules.Length; i++)
         {
-            Debug.Assert(!modules.IsDefault);
-            Debug.Assert(modules.Length > 0);
-
-            _identity = modules[0].ReadAssemblyIdentityOrThrow();
-
-            // Pre-calculate size to ensure this code only requires a single array allocation.
-            var totalRefCount = modules.Sum(static module => module.ReferencedAssemblies.Length);
-            var refCounts = ArrayBuilder<int>.GetInstance(modules.Length);
-
-            var refs = ArrayBuilder<AssemblyIdentity>.GetInstance(totalRefCount);
-
-            for (int i = 0; i < modules.Length; i++)
-            {
-                ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
-                refCounts.Add(refsForModule.Length);
-                refs.AddRange(refsForModule);
-            }
-
-            _modules = modules;
-            this.AssemblyReferences = refs.ToImmutableAndFree();
-            this.ModuleReferenceCounts = refCounts.ToImmutableAndFree();
-            _owner = owner;
+            ImmutableArray<AssemblyIdentity> refsForModule = modules[i].ReferencedAssemblies;
+            refCounts.Add(refsForModule.Length);
+            refs.AddRange(refsForModule);
         }
 
-        internal EntityHandle Handle
-        {
-            get
-            {
-                return EntityHandle.AssemblyDefinition;
-            }
-        }
+        _modules = modules;
+        this.AssemblyReferences = refs.ToImmutableAndFree();
+        this.ModuleReferenceCounts = refCounts.ToImmutableAndFree();
+        _owner = owner;
+    }
 
-        internal PEModule ManifestModule
+    internal EntityHandle Handle
+    {
+        get
         {
-            get { return Modules[0]; }
+            return EntityHandle.AssemblyDefinition;
         }
+    }
 
-        internal ImmutableArray<PEModule> Modules
+    internal PEModule ManifestModule
+    {
+        get { return Modules[0]; }
+    }
+
+    internal ImmutableArray<PEModule> Modules
+    {
+        get
         {
-            get
-            {
-                return _modules;
-            }
+            return _modules;
         }
+    }
 
-        internal AssemblyIdentity Identity
+    internal AssemblyIdentity Identity
+    {
+        get
         {
-            get
-            {
-                return _identity;
-            }
+            return _identity;
         }
+    }
 
-        internal bool ContainsNoPiaLocalTypes()
+    internal bool ContainsNoPiaLocalTypes()
+    {
+        if (_lazyContainsNoPiaLocalTypes == ThreeState.Unknown)
         {
-            if (_lazyContainsNoPiaLocalTypes == ThreeState.Unknown)
+            foreach (PEModule module in Modules)
             {
-                foreach (PEModule module in Modules)
+                if (module.ContainsNoPiaLocalTypes())
                 {
-                    if (module.ContainsNoPiaLocalTypes())
-                    {
-                        _lazyContainsNoPiaLocalTypes = ThreeState.True;
-                        return true;
-                    }
+                    _lazyContainsNoPiaLocalTypes = ThreeState.True;
+                    return true;
                 }
-
-                _lazyContainsNoPiaLocalTypes = ThreeState.False;
             }
 
-            return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+            _lazyContainsNoPiaLocalTypes = ThreeState.False;
         }
 
-        private Dictionary<string, List<ImmutableArray<byte>>> BuildInternalsVisibleToMap()
+        return _lazyContainsNoPiaLocalTypes == ThreeState.True;
+    }
+
+    private Dictionary<string, List<ImmutableArray<byte>>> BuildInternalsVisibleToMap()
+    {
+        var ivtMap = new Dictionary<string, List<ImmutableArray<byte>>>(StringComparer.OrdinalIgnoreCase);
+        foreach (string attrVal in Modules[0].GetInternalsVisibleToAttributeValues(Handle))
         {
-            var ivtMap = new Dictionary<string, List<ImmutableArray<byte>>>(StringComparer.OrdinalIgnoreCase);
-            foreach (string attrVal in Modules[0].GetInternalsVisibleToAttributeValues(Handle))
+            AssemblyIdentity identity;
+            if (AssemblyIdentity.TryParseDisplayName(attrVal, out identity))
             {
-                AssemblyIdentity identity;
-                if (AssemblyIdentity.TryParseDisplayName(attrVal, out identity))
-                {
-                    List<ImmutableArray<byte>> keys;
-                    if (ivtMap.TryGetValue(identity.Name, out keys))
-                        keys.Add(identity.PublicKey);
-                    else
-                    {
-                        keys = new List<ImmutableArray<byte>>();
-                        keys.Add(identity.PublicKey);
-                        ivtMap[identity.Name] = keys;
-                    }
-                }
+                List<ImmutableArray<byte>> keys;
+                if (ivtMap.TryGetValue(identity.Name, out keys))
+                    keys.Add(identity.PublicKey);
                 else
                 {
-                    // Dev10 C# reports WRN_InvalidAssemblyName and Dev10 VB reports ERR_FriendAssemblyNameInvalid but
-                    // we have no way to do that from here.  Since the absence of these diagnostics does not impact the
-                    // user experience enough to justify the work required to produce them, we will simply omit them
-                    // (DevDiv #15099, #14348).
+                    keys = new List<ImmutableArray<byte>>();
+                    keys.Add(identity.PublicKey);
+                    ivtMap[identity.Name] = keys;
                 }
             }
-
-            return ivtMap;
-        }
-
-        internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
-        {
-            EnsureInternalsVisibleToMapInitialized();
-
-            List<ImmutableArray<byte>> result;
-
-            _lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
-
-            return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
-        }
-
-        internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
-        {
-            EnsureInternalsVisibleToMapInitialized();
-
-            return _lazyInternalsVisibleToMap.Keys;
-        }
-
-        private void EnsureInternalsVisibleToMapInitialized()
-        {
-            if (_lazyInternalsVisibleToMap == null)
-                Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
-        }
-
-        internal bool DeclaresTheObjectClass
-        {
-            get
+            else
             {
-                if (_lazyDeclaresTheObjectClass == ThreeState.Unknown)
-                {
-                    var value = _modules[0].MetadataReader.DeclaresTheObjectClass();
-                    _lazyDeclaresTheObjectClass = value.ToThreeState();
-                }
-
-                return _lazyDeclaresTheObjectClass == ThreeState.True;
+                // Dev10 C# reports WRN_InvalidAssemblyName and Dev10 VB reports ERR_FriendAssemblyNameInvalid but
+                // we have no way to do that from here.  Since the absence of these diagnostics does not impact the
+                // user experience enough to justify the work required to produce them, we will simply omit them
+                // (DevDiv #15099, #14348).
             }
         }
 
-        public AssemblyMetadata GetNonDisposableMetadata() => _owner.Copy();
+        return ivtMap;
     }
+
+    internal IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName)
+    {
+        EnsureInternalsVisibleToMapInitialized();
+
+        List<ImmutableArray<byte>> result;
+
+        _lazyInternalsVisibleToMap.TryGetValue(simpleName, out result);
+
+        return result ?? SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
+    }
+
+    internal IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+    {
+        EnsureInternalsVisibleToMapInitialized();
+
+        return _lazyInternalsVisibleToMap.Keys;
+    }
+
+    private void EnsureInternalsVisibleToMapInitialized()
+    {
+        if (_lazyInternalsVisibleToMap == null)
+            Interlocked.CompareExchange(ref _lazyInternalsVisibleToMap, BuildInternalsVisibleToMap(), null);
+    }
+
+    internal bool DeclaresTheObjectClass
+    {
+        get
+        {
+            if (_lazyDeclaresTheObjectClass == ThreeState.Unknown)
+            {
+                var value = _modules[0].MetadataReader.DeclaresTheObjectClass();
+                _lazyDeclaresTheObjectClass = value.ToThreeState();
+            }
+
+            return _lazyDeclaresTheObjectClass == ThreeState.True;
+        }
+    }
+
+    public AssemblyMetadata GetNonDisposableMetadata() => _owner.Copy();
 }

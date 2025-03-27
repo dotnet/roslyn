@@ -12,18 +12,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+public class DictionaryAnalyzerConfigOptionsTests
 {
-    public class DictionaryAnalyzerConfigOptionsTests
+    [Fact]
+    public void BackwardCompatibility()
     {
-        [Fact]
-        public void BackwardCompatibility()
-        {
-            // Note: Older versions of analyzers access this field via reflection.
-            // https://github.com/dotnet/roslyn/blob/8e3d62a30b833631baaa4e84c5892298f16a8c9e/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Options/EditorConfig/EditorConfigStorageLocationExtensions.cs#L21
-            Assert.Equal(
-                typeof(ImmutableDictionary<string, string>),
-                typeof(DictionaryAnalyzerConfigOptions).GetField("Options", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType);
-        }
+        // Note: Older versions of analyzers access this field via reflection.
+        // https://github.com/dotnet/roslyn/blob/8e3d62a30b833631baaa4e84c5892298f16a8c9e/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Options/EditorConfig/EditorConfigStorageLocationExtensions.cs#L21
+        Assert.Equal(
+            typeof(ImmutableDictionary<string, string>),
+            typeof(DictionaryAnalyzerConfigOptions).GetField("Options", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType);
     }
 }

@@ -8,48 +8,47 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
-{
-    internal readonly struct Address
-    {
-        internal readonly Module Module;
-        internal readonly int Token;
-        internal readonly int Version;
-        internal readonly int ILOffset;
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
 
-        internal Address(Module module, int token, int version, int ilOffset)
-        {
-            Module = module;
-            Token = token;
-            Version = version;
-            ILOffset = ilOffset;
-        }
+internal readonly struct Address
+{
+    internal readonly Module Module;
+    internal readonly int Token;
+    internal readonly int Version;
+    internal readonly int ILOffset;
+
+    internal Address(Module module, int token, int version, int ilOffset)
+    {
+        Module = module;
+        Token = token;
+        Version = version;
+        ILOffset = ilOffset;
+    }
+}
+
+internal sealed class Request
+{
+    private readonly List<Address> _resolvedAddresses;
+
+    internal Request(string moduleName, RequestSignature signature, Guid languageId = default(Guid))
+    {
+        ModuleName = moduleName;
+        Signature = signature;
+        LanguageId = languageId;
+        _resolvedAddresses = new List<Address>();
     }
 
-    internal sealed class Request
+    internal readonly string ModuleName;
+    internal readonly RequestSignature Signature;
+    internal readonly Guid LanguageId;
+
+    internal void OnFunctionResolved(Module module, int token, int version, int ilOffset)
     {
-        private readonly List<Address> _resolvedAddresses;
+        _resolvedAddresses.Add(new Address(module, token, version, ilOffset));
+    }
 
-        internal Request(string moduleName, RequestSignature signature, Guid languageId = default(Guid))
-        {
-            ModuleName = moduleName;
-            Signature = signature;
-            LanguageId = languageId;
-            _resolvedAddresses = new List<Address>();
-        }
-
-        internal readonly string ModuleName;
-        internal readonly RequestSignature Signature;
-        internal readonly Guid LanguageId;
-
-        internal void OnFunctionResolved(Module module, int token, int version, int ilOffset)
-        {
-            _resolvedAddresses.Add(new Address(module, token, version, ilOffset));
-        }
-
-        internal ImmutableArray<Address> GetResolvedAddresses()
-        {
-            return ImmutableArray.CreateRange(_resolvedAddresses);
-        }
+    internal ImmutableArray<Address> GetResolvedAddresses()
+    {
+        return ImmutableArray.CreateRange(_resolvedAddresses);
     }
 }

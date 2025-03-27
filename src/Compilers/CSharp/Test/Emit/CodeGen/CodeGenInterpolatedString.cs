@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
+
+public class InterpolatedStringTests : CSharpTestBase
 {
-    public class InterpolatedStringTests : CSharpTestBase
+    [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+    public void AlternateVerbatimString()
     {
-        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
-        public void AlternateVerbatimString()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     static void Main()
@@ -29,31 +29,31 @@ class C
         var s2 = $@"""";
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: @"42
+        var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp, expectedOutput: @"42
 42");
 
-            var tree = comp.SyntaxTrees.Single();
-            var interpolatedStrings = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
-            var token1 = interpolatedStrings[0].StringStartToken;
-            Assert.Equal("@$\"", token1.Text);
-            Assert.Equal("@$\"", token1.ValueText);
+        var tree = comp.SyntaxTrees.Single();
+        var interpolatedStrings = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+        var token1 = interpolatedStrings[0].StringStartToken;
+        Assert.Equal("@$\"", token1.Text);
+        Assert.Equal("@$\"", token1.ValueText);
 
-            var token2 = interpolatedStrings[1].StringStartToken;
-            Assert.Equal("$@\"", token2.Text);
-            Assert.Equal("$@\"", token2.ValueText);
+        var token2 = interpolatedStrings[1].StringStartToken;
+        Assert.Equal("$@\"", token2.Text);
+        Assert.Equal("$@\"", token2.ValueText);
 
-            foreach (var token in tree.GetRoot().DescendantTokens().Where(t => t.Kind() != SyntaxKind.EndOfFileToken))
-            {
-                Assert.False(string.IsNullOrEmpty(token.Text));
-                Assert.False(string.IsNullOrEmpty(token.ValueText));
-            }
-        }
-
-        [Fact]
-        public void ConstInterpolations()
+        foreach (var token in tree.GetRoot().DescendantTokens().Where(t => t.Kind() != SyntaxKind.EndOfFileToken))
         {
-            var source = @"
+            Assert.False(string.IsNullOrEmpty(token.Text));
+            Assert.False(string.IsNullOrEmpty(token.ValueText));
+        }
+    }
+
+    [Fact]
+    public void ConstInterpolations()
+    {
+        var source = @"
 using System;
 
 public class Test
@@ -72,7 +72,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"
+        var comp = CompileAndVerify(source, expectedOutput: @"
 ABC
 abc
 
@@ -80,8 +80,8 @@ abc
 (abc)()
 ");
 
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Test.Main", @"
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.Main", @"
 {
   // Code size       61 (0x3d)
   .maxstack  1
@@ -100,12 +100,12 @@ abc
   IL_003c:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void InterpolatedStringIsNeverNull()
-        {
-            var source = @"
+    [Fact]
+    public void InterpolatedStringIsNeverNull()
+    {
+        var source = @"
 using System;
 
 public class Test
@@ -120,12 +120,12 @@ public class Test
 
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"True
+        var comp = CompileAndVerify(source, expectedOutput: @"True
 abc
 ");
 
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Test.M6", @"
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.M6", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -137,12 +137,12 @@ abc
   IL_000a:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ConcatenatedStringInterpolations()
-        {
-            var source = @"
+    [Fact]
+    public void ConcatenatedStringInterpolations()
+    {
+        var source = @"
 using System;
 
 public class Test
@@ -162,7 +162,7 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a: a
+        var comp = CompileAndVerify(source, expectedOutput: @"a: a
 ab
 ab
 a: a, b: b
@@ -171,8 +171,8 @@ a: a
 a: a, b: b
 ");
 
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Test.Main", @"
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.Main", @"
 {
   // Code size      134 (0x86)
   .maxstack  4
@@ -218,12 +218,12 @@ a: a, b: b
   IL_0085:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void NonConcatenatedInterpolations()
-        {
-            var source = @"
+    [Fact]
+    public void NonConcatenatedInterpolations()
+    {
+        var source = @"
 using System;
 
 public class Test
@@ -237,12 +237,12 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a
+        var comp = CompileAndVerify(source, expectedOutput: @"a
 a: a
 ");
 
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("Test.Main", @"
+        comp.VerifyDiagnostics();
+        comp.VerifyIL("Test.Main", @"
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -260,12 +260,12 @@ a: a
   IL_0026:  ret
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void ExpressionsAreNotOptimized()
-        {
-            var source = @"
+    [Fact]
+    public void ExpressionsAreNotOptimized()
+    {
+        var source = @"
 using System;
 using System.Linq.Expressions;
 
@@ -279,9 +279,8 @@ public class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0}"", a)");
+        var comp = CompileAndVerify(source, expectedOutput: @"a => Format(""a: {0}"", a)");
 
-            comp.VerifyDiagnostics();
-        }
+        comp.VerifyDiagnostics();
     }
 }

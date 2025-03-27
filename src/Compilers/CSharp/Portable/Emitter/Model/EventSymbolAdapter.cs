@@ -9,203 +9,202 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
-{
-    internal partial class
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal partial class
 #if DEBUG
-        EventSymbolAdapter : SymbolAdapter,
+    EventSymbolAdapter : SymbolAdapter,
 #else
-        EventSymbol :
+    EventSymbol :
 #endif 
-        Cci.IEventDefinition
+    Cci.IEventDefinition
+{
+    bool Cci.IDefinition.IsEncDeleted
+        => false;
+
+    #region IEventDefinition Members
+
+    IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
     {
-        bool Cci.IDefinition.IsEncDeleted
-            => false;
+        CheckDefinitionInvariant();
 
-        #region IEventDefinition Members
+        var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
+        RoslynDebug.Assert((object?)addMethod != null);
+        if (addMethod.ShouldInclude(context))
+        {
+            yield return addMethod;
+        }
 
-        IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
+        var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
+        RoslynDebug.Assert((object?)removeMethod != null);
+        if (removeMethod.ShouldInclude(context))
+        {
+            yield return removeMethod;
+        }
+    }
+
+    Cci.IMethodReference Cci.IEventDefinition.Adder
+    {
+        get
         {
             CheckDefinitionInvariant();
-
             var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
             RoslynDebug.Assert((object?)addMethod != null);
-            if (addMethod.ShouldInclude(context))
-            {
-                yield return addMethod;
-            }
+            return addMethod;
+        }
+    }
 
+    Cci.IMethodReference Cci.IEventDefinition.Remover
+    {
+        get
+        {
+            CheckDefinitionInvariant();
             var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
             RoslynDebug.Assert((object?)removeMethod != null);
-            if (removeMethod.ShouldInclude(context))
-            {
-                yield return removeMethod;
-            }
+            return removeMethod;
         }
+    }
 
-        Cci.IMethodReference Cci.IEventDefinition.Adder
+    bool Cci.IEventDefinition.IsRuntimeSpecial
+    {
+        get
         {
-            get
-            {
-                CheckDefinitionInvariant();
-                var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
-                RoslynDebug.Assert((object?)addMethod != null);
-                return addMethod;
-            }
+            CheckDefinitionInvariant();
+            return AdaptedEventSymbol.HasRuntimeSpecialName;
         }
+    }
 
-        Cci.IMethodReference Cci.IEventDefinition.Remover
+    bool Cci.IEventDefinition.IsSpecialName
+    {
+        get
         {
-            get
-            {
-                CheckDefinitionInvariant();
-                var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
-                RoslynDebug.Assert((object?)removeMethod != null);
-                return removeMethod;
-            }
+            CheckDefinitionInvariant();
+            return AdaptedEventSymbol.HasSpecialName;
         }
+    }
 
-        bool Cci.IEventDefinition.IsRuntimeSpecial
+    Cci.IMethodReference? Cci.IEventDefinition.Caller
+    {
+        get
         {
-            get
-            {
-                CheckDefinitionInvariant();
-                return AdaptedEventSymbol.HasRuntimeSpecialName;
-            }
+            CheckDefinitionInvariant();
+            return null; // C# doesn't use the raise/fire accessor
         }
+    }
 
-        bool Cci.IEventDefinition.IsSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return AdaptedEventSymbol.HasSpecialName;
-            }
-        }
+    Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
+    {
+        return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
+    }
 
-        Cci.IMethodReference? Cci.IEventDefinition.Caller
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return null; // C# doesn't use the raise/fire accessor
-            }
-        }
+    #endregion
 
-        Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
-        {
-            return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
-        }
+    #region ITypeDefinitionMember Members
 
-        #endregion
-
-        #region ITypeDefinitionMember Members
-
-        Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return AdaptedEventSymbol.ContainingType.GetCciAdapter();
-            }
-        }
-
-        Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return AdaptedEventSymbol.MetadataVisibility;
-            }
-        }
-
-        #endregion
-
-        #region ITypeMemberReference Members
-
-        Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+    Cci.ITypeDefinition Cci.ITypeDefinitionMember.ContainingTypeDefinition
+    {
+        get
         {
             CheckDefinitionInvariant();
             return AdaptedEventSymbol.ContainingType.GetCciAdapter();
         }
+    }
 
-        #endregion
-
-        #region IReference Members
-
-        void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+    Cci.TypeMemberVisibility Cci.ITypeDefinitionMember.Visibility
+    {
+        get
         {
             CheckDefinitionInvariant();
-            visitor.Visit((Cci.IEventDefinition)this);
+            return AdaptedEventSymbol.MetadataVisibility;
         }
+    }
 
-        Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+    #endregion
+
+    #region ITypeMemberReference Members
+
+    Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
+    {
+        CheckDefinitionInvariant();
+        return AdaptedEventSymbol.ContainingType.GetCciAdapter();
+    }
+
+    #endregion
+
+    #region IReference Members
+
+    void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
+    {
+        CheckDefinitionInvariant();
+        visitor.Visit((Cci.IEventDefinition)this);
+    }
+
+    Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
+    {
+        CheckDefinitionInvariant();
+        return this;
+    }
+
+    #endregion
+
+    #region INamedEntity Members
+
+    string Cci.INamedEntity.Name
+    {
+        get
         {
             CheckDefinitionInvariant();
-            return this;
-        }
-
-        #endregion
-
-        #region INamedEntity Members
-
-        string Cci.INamedEntity.Name
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return AdaptedEventSymbol.MetadataName;
-            }
-        }
-
-        #endregion
-    }
-
-    internal partial class EventSymbol
-    {
-#if DEBUG
-        private EventSymbolAdapter? _lazyAdapter;
-
-        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
-
-        internal new EventSymbolAdapter GetCciAdapter()
-        {
-            if (_lazyAdapter is null)
-            {
-                return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
-            }
-
-            return _lazyAdapter;
-        }
-#else
-        internal EventSymbol AdaptedEventSymbol => this;
-
-        internal new EventSymbol GetCciAdapter()
-        {
-            return this;
-        }
-#endif
-
-        internal virtual bool HasRuntimeSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
-            }
+            return AdaptedEventSymbol.MetadataName;
         }
     }
 
-#if DEBUG
-    internal partial class EventSymbolAdapter
-    {
-        internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
-        {
-            AdaptedEventSymbol = underlyingEventSymbol;
-        }
-
-        internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
-        internal EventSymbol AdaptedEventSymbol { get; }
-    }
-#endif
+    #endregion
 }
+
+internal partial class EventSymbol
+{
+#if DEBUG
+    private EventSymbolAdapter? _lazyAdapter;
+
+    protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+    internal new EventSymbolAdapter GetCciAdapter()
+    {
+        if (_lazyAdapter is null)
+        {
+            return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
+        }
+
+        return _lazyAdapter;
+    }
+#else
+    internal EventSymbol AdaptedEventSymbol => this;
+
+    internal new EventSymbol GetCciAdapter()
+    {
+        return this;
+    }
+#endif
+
+    internal virtual bool HasRuntimeSpecialName
+    {
+        get
+        {
+            CheckDefinitionInvariant();
+            return false;
+        }
+    }
+}
+
+#if DEBUG
+internal partial class EventSymbolAdapter
+{
+    internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
+    {
+        AdaptedEventSymbol = underlyingEventSymbol;
+    }
+
+    internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
+    internal EventSymbol AdaptedEventSymbol { get; }
+}
+#endif

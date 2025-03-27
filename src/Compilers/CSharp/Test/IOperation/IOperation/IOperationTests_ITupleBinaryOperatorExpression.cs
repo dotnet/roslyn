@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+[CompilerTrait(CompilerFeature.IOperation)]
+public class IOperationTests_ITupleBinaryOperatorExpression : SemanticModelTestBase
 {
-    [CompilerTrait(CompilerFeature.IOperation)]
-    public class IOperationTests_ITupleBinaryOperatorExpression : SemanticModelTestBase
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator()
     {
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator()
-        {
-            var source = @"
+        var source = @"
 class C
 {
     bool F((int, int) x, (int, int) y)
@@ -27,7 +27,7 @@ class C
     }
 }";
 
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x == y')
   Left: 
@@ -36,13 +36,13 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Ty
     IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'y')
 ";
 
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator_WithTupleLiteral()
-        {
-            var source = @"
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator_WithTupleLiteral()
+    {
+        var source = @"
 class C
 {
     bool F((int, int) x)
@@ -51,7 +51,7 @@ class C
     }
 }";
 
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x == (1, 2)')
   Left: 
@@ -64,13 +64,13 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Ty
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
 
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator_WithNotEquals()
-        {
-            var source = @"
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator_WithNotEquals()
+    {
+        var source = @"
 class C
 {
     bool F((long, byte) y)
@@ -79,7 +79,7 @@ class C
     }
 }";
 
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(1, 2) != y')
   Left: 
@@ -98,13 +98,13 @@ ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.TupleBinary,
         IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int64, System.Byte)) (Syntax: 'y')
 ";
 
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator_WithNullsAndConversions()
-        {
-            var source = @"
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator_WithNullsAndConversions()
+    {
+        var source = @"
 class C
 {
     bool F()
@@ -113,7 +113,7 @@ class C
     }
 }";
 
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
   Left: 
@@ -144,13 +144,13 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Ty
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 ";
 
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator_WithDefault()
-        {
-            var source = @"
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator_WithDefault()
+    {
+        var source = @"
 class C
 {
     bool F((int, string) y)
@@ -159,7 +159,7 @@ class C
     }
 }";
 
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'y == default')
   Left: 
@@ -171,13 +171,13 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Ty
         IDefaultValueOperation (OperationKind.DefaultValue, Type: (System.Int32, System.String)) (Syntax: 'default')
 ";
 
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact]
-        public void VerifyTupleEqualityBinaryOperator_VerifyChildren()
-        {
-            string source = @"
+    [Fact]
+    public void VerifyTupleEqualityBinaryOperator_VerifyChildren()
+    {
+        string source = @"
 class C
 {
     void M1((int, int) t1, long l)
@@ -186,7 +186,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree =
+        string expectedOperationTree =
 @"
 ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 't1 == (l, l)')
     Left: 
@@ -201,13 +201,13 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Ty
             IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
             IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
 ";
-            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
-        }
+        VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_NoControlFlow()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_NoControlFlow()
+    {
+        var source = @"
 class C
 {
     void F((int, int) x, (int, int) y, bool b)
@@ -217,7 +217,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -242,15 +242,15 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_ControlFlowInLeftOperand()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_ControlFlowInLeftOperand()
+    {
+        var source = @"
 class C
 {
     void F((int, int)? x1, (int, int) x2, (int, int) y, bool b)
@@ -260,7 +260,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -342,15 +342,15 @@ Block[B6] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_ControlFlowInRightOperand()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_ControlFlowInRightOperand()
+    {
+        var source = @"
 class C
 {
     void F((int, int)? x1, (int, int) x2, (int, int) y, bool b)
@@ -360,7 +360,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -446,15 +446,15 @@ Block[B6] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_ControlFlowInBothOperands()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_ControlFlowInBothOperands()
+    {
+        var source = @"
 class C
 {
     void F((int, int)? x1, (int, int) x2, (int, int)? y1, (int, int) y2, bool b)
@@ -464,7 +464,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -588,15 +588,15 @@ Block[B9] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_TupleExpressions_NoControlFlow()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_TupleExpressions_NoControlFlow()
+    {
+        var source = @"
 class C
 {
     void F(int i1, int i2, int i3, int i4, bool b)
@@ -606,7 +606,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -639,15 +639,15 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_TupleExpressions_ControlFlowInLeftOperand()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_TupleExpressions_ControlFlowInLeftOperand()
+    {
+        var source = @"
 class C
 {
     void F(int i1, int? i2, int i3, int i4, int i5, bool b)
@@ -657,7 +657,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -751,15 +751,15 @@ Block[B6] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_TupleExpressions_ControlFlowInRightOperand()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_TupleExpressions_ControlFlowInRightOperand()
+    {
+        var source = @"
 class C
 {
     void F(int i1, int i2, int i3, int? i4, int i5, bool b)
@@ -769,7 +769,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -871,15 +871,15 @@ Block[B6] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void TupleBinaryOperator_TupleExpressions_ControlFlowInBothOperands()
-        {
-            var source = @"
+    [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    public void TupleBinaryOperator_TupleExpressions_ControlFlowInBothOperands()
+    {
+        var source = @"
 class C
 {
     void F(int? i1, int i2, int i3, int? i4, int i5, int i6, bool b)
@@ -889,7 +889,7 @@ class C
     }/*</bind>*/
 }";
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1032,9 +1032,8 @@ Block[B10] - Exit
     Statements (0)
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 }

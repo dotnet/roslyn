@@ -5,51 +5,50 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Options passed to a <see cref="GeneratorDriver"/> during creation.
+/// </summary>
+public readonly struct GeneratorDriverOptions
 {
+    public readonly IncrementalGeneratorOutputKind DisabledOutputs;
+
+    public readonly bool TrackIncrementalGeneratorSteps;
+
     /// <summary>
-    /// Options passed to a <see cref="GeneratorDriver"/> during creation.
+    /// Absolute path to directory that generated source file paths are rooted with, or null to use relative paths for the generated files.
+    /// Usually the project's output directory unless <see cref="CommandLineArguments.GeneratedFilesOutputDirectory"/> is specified.
     /// </summary>
-    public readonly struct GeneratorDriverOptions
+    public string? BaseDirectory { get; }
+
+    public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
+        : this(disabledOutputs, false)
     {
-        public readonly IncrementalGeneratorOutputKind DisabledOutputs;
+    }
 
-        public readonly bool TrackIncrementalGeneratorSteps;
+    public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps)
+    {
+        DisabledOutputs = disabledOutputs;
+        TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
+    }
 
-        /// <summary>
-        /// Absolute path to directory that generated source file paths are rooted with, or null to use relative paths for the generated files.
-        /// Usually the project's output directory unless <see cref="CommandLineArguments.GeneratedFilesOutputDirectory"/> is specified.
-        /// </summary>
-        public string? BaseDirectory { get; }
-
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
-            : this(disabledOutputs, false)
+    /// <summary>
+    /// Creates <see cref="GeneratorDriverOptions"/>.
+    /// </summary>
+    /// <param name="disabledOutputs"></param>
+    /// <param name="trackIncrementalGeneratorSteps"></param>
+    /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
+    /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
+    public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null)
+    {
+        if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
         {
+            throw new ArgumentException(message: CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
         }
 
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps)
-        {
-            DisabledOutputs = disabledOutputs;
-            TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
-        }
-
-        /// <summary>
-        /// Creates <see cref="GeneratorDriverOptions"/>.
-        /// </summary>
-        /// <param name="disabledOutputs"></param>
-        /// <param name="trackIncrementalGeneratorSteps"></param>
-        /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
-        /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
-        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null)
-        {
-            if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
-            {
-                throw new ArgumentException(message: CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
-            }
-
-            DisabledOutputs = disabledOutputs;
-            TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
-            BaseDirectory = baseDirectory;
-        }
+        DisabledOutputs = disabledOutputs;
+        TrackIncrementalGeneratorSteps = trackIncrementalGeneratorSteps;
+        BaseDirectory = baseDirectory;
     }
 }

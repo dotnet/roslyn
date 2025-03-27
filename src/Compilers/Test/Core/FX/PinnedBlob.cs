@@ -8,35 +8,34 @@ using System;
 using System.Buffers;
 using System.Collections.Immutable;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+internal class PinnedBlob : IDisposable
 {
-    internal class PinnedBlob : IDisposable
+    // non-readonly as Dispose() mutates
+    private MemoryHandle _handle;
+    public IntPtr Pointer;
+    public int Size;
+
+    public PinnedBlob(ImmutableArray<byte> blob)
+        : this(blob.AsMemory())
+    { }
+
+    public PinnedBlob(byte[] blob)
+        : this(blob.AsMemory())
+    { }
+
+    public unsafe PinnedBlob(ReadOnlyMemory<byte> blob)
     {
-        // non-readonly as Dispose() mutates
-        private MemoryHandle _handle;
-        public IntPtr Pointer;
-        public int Size;
+        _handle = blob.Pin();
+        this.Size = blob.Length;
+        this.Pointer = (IntPtr)_handle.Pointer;
+    }
 
-        public PinnedBlob(ImmutableArray<byte> blob)
-            : this(blob.AsMemory())
-        { }
-
-        public PinnedBlob(byte[] blob)
-            : this(blob.AsMemory())
-        { }
-
-        public unsafe PinnedBlob(ReadOnlyMemory<byte> blob)
-        {
-            _handle = blob.Pin();
-            this.Size = blob.Length;
-            this.Pointer = (IntPtr)_handle.Pointer;
-        }
-
-        public virtual void Dispose()
-        {
-            _handle.Dispose();
-            Pointer = IntPtr.Zero;
-            Size = 0;
-        }
+    public virtual void Dispose()
+    {
+        _handle.Dispose();
+        Pointer = IntPtr.Zero;
+        Size = 0;
     }
 }

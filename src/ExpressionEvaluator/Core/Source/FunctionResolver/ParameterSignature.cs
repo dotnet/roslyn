@@ -4,17 +4,16 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
-{
-    internal sealed class ParameterSignature
-    {
-        internal ParameterSignature(TypeSignature type, bool isByRef)
-        {
-            Type = type;
-            IsByRef = isByRef;
-        }
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-        internal readonly TypeSignature Type;
-        internal readonly bool IsByRef;
+internal sealed class ParameterSignature
+{
+    internal ParameterSignature(TypeSignature type, bool isByRef)
+    {
+        Type = type;
+        IsByRef = isByRef;
     }
+
+    internal readonly TypeSignature Type;
+    internal readonly bool IsByRef;
 }

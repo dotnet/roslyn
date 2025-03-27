@@ -9,65 +9,64 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-namespace TestResources
+namespace TestResources;
+
+internal static class ResourceLoader
 {
-    internal static class ResourceLoader
+    private static Stream GetResourceStream(string name)
     {
-        private static Stream GetResourceStream(string name)
+        var assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
+
+        var stream = assembly.GetManifestResourceStream(name);
+        if (stream == null)
         {
-            var assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
-
-            var stream = assembly.GetManifestResourceStream(name);
-            if (stream == null)
-            {
-                throw new InvalidOperationException($"Resource '{name}' not found in {assembly.FullName}.");
-            }
-
-            return stream;
+            throw new InvalidOperationException($"Resource '{name}' not found in {assembly.FullName}.");
         }
 
-        public static byte[] GetResourceBlob(string name)
-        {
-            using (var stream = GetResourceStream(name))
-            {
-                var bytes = new byte[stream.Length];
-                using (var memoryStream = new MemoryStream(bytes))
-                {
-                    stream.CopyTo(memoryStream);
-                }
+        return stream;
+    }
 
-                return bytes;
-            }
-        }
-
-        public static byte[] GetOrCreateResource(ref byte[] resource, string name)
+    public static byte[] GetResourceBlob(string name)
+    {
+        using (var stream = GetResourceStream(name))
         {
-            if (resource == null)
+            var bytes = new byte[stream.Length];
+            using (var memoryStream = new MemoryStream(bytes))
             {
-                resource = GetResourceBlob(name);
+                stream.CopyTo(memoryStream);
             }
 
-            return resource;
+            return bytes;
+        }
+    }
+
+    public static byte[] GetOrCreateResource(ref byte[] resource, string name)
+    {
+        if (resource == null)
+        {
+            resource = GetResourceBlob(name);
         }
 
-        public static string GetOrCreateResource(ref string resource, string name)
-        {
-            if (resource == null)
-            {
-                resource = GetResource(name);
-            }
+        return resource;
+    }
 
-            return resource;
+    public static string GetOrCreateResource(ref string resource, string name)
+    {
+        if (resource == null)
+        {
+            resource = GetResource(name);
         }
 
-        public static string GetResource(string name)
+        return resource;
+    }
+
+    public static string GetResource(string name)
+    {
+        using (var stream = GetResourceStream(name))
         {
-            using (var stream = GetResourceStream(name))
+            using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
             {
-                using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
-                {
-                    return streamReader.ReadToEnd();
-                }
+                return streamReader.ReadToEnd();
             }
         }
     }

@@ -8,17 +8,16 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.SourceGeneration;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal interface ISyntaxSelectionStrategy<T>
 {
-    internal interface ISyntaxSelectionStrategy<T>
-    {
-        ISyntaxInputBuilder GetBuilder(StateTableStore tableStore, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
-    }
+    ISyntaxInputBuilder GetBuilder(StateTableStore tableStore, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
+}
 
-    internal interface ISyntaxInputBuilder
-    {
-        void VisitTree(Lazy<SyntaxNode> root, EntryState state, Lazy<SemanticModel>? model, CancellationToken cancellationToken);
+internal interface ISyntaxInputBuilder
+{
+    void VisitTree(Lazy<SyntaxNode> root, EntryState state, Lazy<SemanticModel>? model, CancellationToken cancellationToken);
 
-        void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
-    }
+    void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
 }

@@ -6,10 +6,9 @@
 // References\Debugger\v2.0\Microsoft.VisualStudio.Debugger.Engine.dll
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger
+namespace Microsoft.VisualStudio.Debugger;
+
+public class DkmDataItem
 {
-    public class DkmDataItem
-    {
-        protected virtual void OnClose() { }
-    }
+    protected virtual void OnClose() { }
 }

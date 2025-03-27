@@ -7,32 +7,31 @@ using Microsoft.MetadataReader;
 
 #nullable enable
 
-namespace Microsoft.VisualStudio.Debugger.Clr
+namespace Microsoft.VisualStudio.Debugger.Clr;
+
+/// <summary>
+/// Wrapper around a <see cref="Microsoft.MetadataReader.IMetadataImport"/> interface
+/// reference that provides a easy way to release the reference to the underlying
+/// COM object. Instances of this struct should always be disposed.
+/// </summary>
+public readonly struct DkmMetadataImportHolder : IDisposable
 {
     /// <summary>
-    /// Wrapper around a <see cref="Microsoft.MetadataReader.IMetadataImport"/> interface
-    /// reference that provides a easy way to release the reference to the underlying
-    /// COM object. Instances of this struct should always be disposed.
+    /// The underlying IMetaDataImport interface reference
     /// </summary>
-    public readonly struct DkmMetadataImportHolder : IDisposable
+    public IMetadataImport Value { get; }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="DkmMetadataImportHolder"/>.
+    /// </summary>
+    /// <param name="value">[In] Implementation of IMetadataImport to wrap</param>
+    public DkmMetadataImportHolder(IMetadataImport value)
     {
-        /// <summary>
-        /// The underlying IMetaDataImport interface reference
-        /// </summary>
-        public IMetadataImport Value { get; }
+        this.Value = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="DkmMetadataImportHolder"/>.
-        /// </summary>
-        /// <param name="value">[In] Implementation of IMetadataImport to wrap</param>
-        public DkmMetadataImportHolder(IMetadataImport value)
-        {
-            this.Value = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        void IDisposable.Dispose()
-        {
-            // Mock implementation does nothing
-        }
+    void IDisposable.Dispose()
+    {
+        // Mock implementation does nothing
     }
 }

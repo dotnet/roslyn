@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Diagnostics
-{
-    internal abstract class CompilationEvent
-    {
-        internal CompilationEvent(Compilation compilation)
-        {
-            this.Compilation = compilation;
-        }
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-        public Compilation Compilation { get; }
+internal abstract class CompilationEvent
+{
+    internal CompilationEvent(Compilation compilation)
+    {
+        this.Compilation = compilation;
     }
+
+    public Compilation Compilation { get; }
 }

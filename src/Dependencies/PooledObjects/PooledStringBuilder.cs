@@ -5,95 +5,94 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.PooledObjects
+namespace Microsoft.CodeAnalysis.PooledObjects;
+
+/// <summary>
+/// The usage is:
+///        var inst = PooledStringBuilder.GetInstance();
+///        var sb = inst.builder;
+///        ... Do Stuff...
+///        ... sb.ToString() ...
+///        inst.Free();
+/// </summary>
+internal sealed partial class PooledStringBuilder
 {
-    /// <summary>
-    /// The usage is:
-    ///        var inst = PooledStringBuilder.GetInstance();
-    ///        var sb = inst.builder;
-    ///        ... Do Stuff...
-    ///        ... sb.ToString() ...
-    ///        inst.Free();
-    /// </summary>
-    internal sealed partial class PooledStringBuilder
+    public readonly StringBuilder Builder = new();
+    private readonly ObjectPool<PooledStringBuilder> _pool;
+
+    private PooledStringBuilder(ObjectPool<PooledStringBuilder> pool)
     {
-        public readonly StringBuilder Builder = new();
-        private readonly ObjectPool<PooledStringBuilder> _pool;
+        Debug.Assert(pool != null);
+        _pool = pool!;
+    }
 
-        private PooledStringBuilder(ObjectPool<PooledStringBuilder> pool)
+    public int Length
+    {
+        get { return this.Builder.Length; }
+    }
+
+    public void Free()
+    {
+        var builder = this.Builder;
+
+        // do not store builders that are too large.
+        if (builder.Capacity <= 1024)
         {
-            Debug.Assert(pool != null);
-            _pool = pool!;
+            builder.Clear();
+            _pool.Free(this);
         }
-
-        public int Length
+        else
         {
-            get { return this.Builder.Length; }
+            _pool.ForgetTrackedObject(this);
         }
+    }
 
-        public void Free()
-        {
-            var builder = this.Builder;
+    [System.Obsolete("Consider calling ToStringAndFree instead.")]
+    public new string ToString()
+    {
+        return this.Builder.ToString();
+    }
 
-            // do not store builders that are too large.
-            if (builder.Capacity <= 1024)
-            {
-                builder.Clear();
-                _pool.Free(this);
-            }
-            else
-            {
-                _pool.ForgetTrackedObject(this);
-            }
-        }
+    public string ToStringAndFree()
+    {
+        var result = this.Builder.ToString();
+        this.Free();
 
-        [System.Obsolete("Consider calling ToStringAndFree instead.")]
-        public new string ToString()
-        {
-            return this.Builder.ToString();
-        }
+        return result;
+    }
 
-        public string ToStringAndFree()
-        {
-            var result = this.Builder.ToString();
-            this.Free();
+    public string ToStringAndFree(int startIndex, int length)
+    {
+        var result = this.Builder.ToString(startIndex, length);
+        this.Free();
 
-            return result;
-        }
+        return result;
+    }
 
-        public string ToStringAndFree(int startIndex, int length)
-        {
-            var result = this.Builder.ToString(startIndex, length);
-            this.Free();
+    // global pool
+    private static readonly ObjectPool<PooledStringBuilder> s_poolInstance = CreatePool();
 
-            return result;
-        }
+    // if someone needs to create a private pool;
+    /// <summary>
+    /// If someone need to create a private pool
+    /// </summary>
+    /// <param name="size">The size of the pool.</param>
+    public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
+    {
+        ObjectPool<PooledStringBuilder>? pool = null;
+        pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool!), size);
+        return pool;
+    }
 
-        // global pool
-        private static readonly ObjectPool<PooledStringBuilder> s_poolInstance = CreatePool();
+    public static PooledStringBuilder GetInstance()
+    {
+        var builder = s_poolInstance.Allocate();
+        Debug.Assert(builder.Builder.Length == 0);
+        return builder;
+    }
 
-        // if someone needs to create a private pool;
-        /// <summary>
-        /// If someone need to create a private pool
-        /// </summary>
-        /// <param name="size">The size of the pool.</param>
-        public static ObjectPool<PooledStringBuilder> CreatePool(int size = 32)
-        {
-            ObjectPool<PooledStringBuilder>? pool = null;
-            pool = new ObjectPool<PooledStringBuilder>(() => new PooledStringBuilder(pool!), size);
-            return pool;
-        }
-
-        public static PooledStringBuilder GetInstance()
-        {
-            var builder = s_poolInstance.Allocate();
-            Debug.Assert(builder.Builder.Length == 0);
-            return builder;
-        }
-
-        public static implicit operator StringBuilder(PooledStringBuilder obj)
-        {
-            return obj.Builder;
-        }
+    public static implicit operator StringBuilder(PooledStringBuilder obj)
+    {
+        return obj.Builder;
     }
 }

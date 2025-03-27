@@ -10,29 +10,28 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 
-namespace IdeBenchmarks
+namespace IdeBenchmarks;
+
+internal class Program
 {
-    internal class Program
+
+    public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
+
+    public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
     {
+        //This file is located at [Roslyn]\src\Tools\IdeBenchmarks\Program.cs
+        return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
+    }
 
-        public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
-
-        public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
-        {
-            //This file is located at [Roslyn]\src\Tools\IdeBenchmarks\Program.cs
-            return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
-        }
-
-        private static void Main(string[] args)
-        {
+    private static void Main(string[] args)
+    {
 #if DEBUG
-            var config = new DebugInProcessConfig();
+        var config = new DebugInProcessConfig();
 #else
-            IConfig config = null;
+        IConfig config = null;
 #endif
 
-            Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args, config);
-        }
+        Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
+        new BenchmarkSwitcher(typeof(Program).Assembly).Run(args, config);
     }
 }

@@ -11,58 +11,57 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class CatchClauseBinder : LocalScopeBinder
 {
-    internal sealed class CatchClauseBinder : LocalScopeBinder
+    private readonly CatchClauseSyntax _syntax;
+
+    public CatchClauseBinder(Binder enclosing, CatchClauseSyntax syntax)
+        : base(enclosing, (enclosing.Flags | BinderFlags.InCatchBlock) & ~BinderFlags.InNestedFinallyBlock)
     {
-        private readonly CatchClauseSyntax _syntax;
+        Debug.Assert(syntax != null);
+        _syntax = syntax;
+    }
 
-        public CatchClauseBinder(Binder enclosing, CatchClauseSyntax syntax)
-            : base(enclosing, (enclosing.Flags | BinderFlags.InCatchBlock) & ~BinderFlags.InNestedFinallyBlock)
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+
+        var declarationOpt = _syntax.Declaration;
+        if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
         {
-            Debug.Assert(syntax != null);
-            _syntax = syntax;
+            locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, allowRefKind: false, allowScoped: false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable, initializer: null));
         }
 
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
+        if (_syntax.Filter != null)
         {
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-
-            var declarationOpt = _syntax.Declaration;
-            if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
-            {
-                locals.Add(SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, allowRefKind: false, allowScoped: false, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable, initializer: null));
-            }
-
-            if (_syntax.Filter != null)
-            {
-                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Filter.FilterExpression);
-            }
-
-            return locals.ToImmutableAndFree();
+            ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Filter.FilterExpression);
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            if (_syntax == scopeDesignator)
-            {
-                return this.Locals;
-            }
+        return locals.ToImmutableAndFree();
+    }
 
-            throw ExceptionUtilities.Unreachable();
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        if (_syntax == scopeDesignator)
+        {
+            return this.Locals;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        internal override SyntaxNode ScopeDesignator
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    internal override SyntaxNode ScopeDesignator
+    {
+        get
         {
-            get
-            {
-                return _syntax;
-            }
+            return _syntax;
         }
     }
 }

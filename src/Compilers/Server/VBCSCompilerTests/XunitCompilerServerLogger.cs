@@ -5,21 +5,20 @@
 using Microsoft.CodeAnalysis.CommandLine;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
+
+internal sealed class XunitCompilerServerLogger : ICompilerServerLogger
 {
-    internal sealed class XunitCompilerServerLogger : ICompilerServerLogger
+    public ITestOutputHelper TestOutputHelper { get; }
+    public bool IsLogging => true;
+
+    public XunitCompilerServerLogger(ITestOutputHelper testOutputHelper)
     {
-        public ITestOutputHelper TestOutputHelper { get; }
-        public bool IsLogging => true;
+        TestOutputHelper = testOutputHelper;
+    }
 
-        public XunitCompilerServerLogger(ITestOutputHelper testOutputHelper)
-        {
-            TestOutputHelper = testOutputHelper;
-        }
-
-        public void Log(string message)
-        {
-            TestOutputHelper.WriteLine(message);
-        }
+    public void Log(string message)
+    {
+        TestOutputHelper.WriteLine(message);
     }
 }

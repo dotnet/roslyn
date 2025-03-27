@@ -10,51 +10,50 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Represents region analysis context attributes such as compilation, region, etc...
+/// </summary>
+internal readonly struct RegionAnalysisContext
 {
+    /// <summary> Compilation to use </summary>
+    public readonly CSharpCompilation Compilation;
+    /// <summary> Containing symbol if available, null otherwise </summary>
+    public readonly Symbol Member;
+    /// <summary> Bound node, not null </summary>
+    public readonly BoundNode BoundNode;
+    /// <summary> Region to be used </summary>
+    public readonly BoundNode FirstInRegion, LastInRegion;
+    /// <summary> True if the input was bad, such as no first and last nodes </summary>
+    public readonly bool Failed;
+
     /// <summary>
-    /// Represents region analysis context attributes such as compilation, region, etc...
+    /// Construct context
     /// </summary>
-    internal readonly struct RegionAnalysisContext
+    public RegionAnalysisContext(CSharpCompilation compilation, Symbol member, BoundNode boundNode, BoundNode firstInRegion, BoundNode lastInRegion)
     {
-        /// <summary> Compilation to use </summary>
-        public readonly CSharpCompilation Compilation;
-        /// <summary> Containing symbol if available, null otherwise </summary>
-        public readonly Symbol Member;
-        /// <summary> Bound node, not null </summary>
-        public readonly BoundNode BoundNode;
-        /// <summary> Region to be used </summary>
-        public readonly BoundNode FirstInRegion, LastInRegion;
-        /// <summary> True if the input was bad, such as no first and last nodes </summary>
-        public readonly bool Failed;
+        this.Compilation = compilation;
+        this.Member = member;
+        this.BoundNode = boundNode;
+        this.FirstInRegion = firstInRegion;
+        this.LastInRegion = lastInRegion;
+        this.Failed =
+            boundNode == null ||
+            firstInRegion == null ||
+            lastInRegion == null ||
+            firstInRegion.Syntax.SpanStart > lastInRegion.Syntax.Span.End;
 
-        /// <summary>
-        /// Construct context
-        /// </summary>
-        public RegionAnalysisContext(CSharpCompilation compilation, Symbol member, BoundNode boundNode, BoundNode firstInRegion, BoundNode lastInRegion)
+        if (!this.Failed && ReferenceEquals(firstInRegion, lastInRegion))
         {
-            this.Compilation = compilation;
-            this.Member = member;
-            this.BoundNode = boundNode;
-            this.FirstInRegion = firstInRegion;
-            this.LastInRegion = lastInRegion;
-            this.Failed =
-                boundNode == null ||
-                firstInRegion == null ||
-                lastInRegion == null ||
-                firstInRegion.Syntax.SpanStart > lastInRegion.Syntax.Span.End;
-
-            if (!this.Failed && ReferenceEquals(firstInRegion, lastInRegion))
+            switch (firstInRegion.Kind)
             {
-                switch (firstInRegion.Kind)
-                {
-                    case BoundKind.NamespaceExpression:
-                    case BoundKind.TypeExpression:
+                case BoundKind.NamespaceExpression:
+                case BoundKind.TypeExpression:
 
-                        // Some bound nodes are still considered to be invalid for flow analysis
-                        this.Failed = true;
-                        break;
-                }
+                    // Some bound nodes are still considered to be invalid for flow analysis
+                    this.Failed = true;
+                    break;
             }
         }
     }

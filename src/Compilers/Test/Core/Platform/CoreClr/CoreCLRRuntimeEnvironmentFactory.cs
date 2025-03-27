@@ -10,12 +10,11 @@ using System;
 using System.Collections.Generic;
 using Roslyn.Test.Utilities;
 
-namespace Roslyn.Test.Utilities.CoreClr
+namespace Roslyn.Test.Utilities.CoreClr;
+
+public sealed class CoreCLRRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
 {
-    public sealed class CoreCLRRuntimeEnvironmentFactory : IRuntimeEnvironmentFactory
-    {
-        public IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies)
-            => new CoreCLRRuntimeEnvironment(additionalDependencies);
-    }
+    public IRuntimeEnvironment Create(IEnumerable<ModuleData> additionalDependencies)
+        => new CoreCLRRuntimeEnvironment(additionalDependencies);
 }
 #endif

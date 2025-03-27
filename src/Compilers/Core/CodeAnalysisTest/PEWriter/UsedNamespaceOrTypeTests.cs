@@ -13,137 +13,136 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
+namespace Microsoft.CodeAnalysis.UnitTests.PEWriter;
+
+public sealed class UsedNamespaceOrTypeTests
 {
-    public sealed class UsedNamespaceOrTypeTests
+    public class EqualsProxy
     {
-        public class EqualsProxy
+        public readonly string Name;
+
+        public EqualsProxy(string name)
         {
-            public readonly string Name;
-
-            public EqualsProxy(string name)
-            {
-                Name = name;
-            }
-
-            public override int GetHashCode() => Name.GetHashCode();
-            public override bool Equals(object obj) => (obj as EqualsProxy)?.Name.Equals(Name) == true;
+            Name = name;
         }
 
-        private static Mock<T> CreateEqualsInterface<T>(string name) where T : class
-        {
-            var mock = new Mock<EqualsProxy>(name) { CallBase = true };
-            return mock.As<T>();
-        }
+        public override int GetHashCode() => Name.GetHashCode();
+        public override bool Equals(object obj) => (obj as EqualsProxy)?.Name.Equals(Name) == true;
+    }
 
-        private static void RunAll(EqualityUnit<UsedNamespaceOrType> unit)
-        {
-            EqualityUtil.RunAll(unit);
-        }
+    private static Mock<T> CreateEqualsInterface<T>(string name) where T : class
+    {
+        var mock = new Mock<EqualsProxy>(name) { CallBase = true };
+        return mock.As<T>();
+    }
 
-        [Fact]
-        public void EqualsTargetTypeSameObject()
-        {
-            var ref1 = CreateEqualsInterface<ITypeReference>("ref1");
-            var ref2 = CreateEqualsInterface<ITypeReference>("ref2");
+    private static void RunAll(EqualityUnit<UsedNamespaceOrType> unit)
+    {
+        EqualityUtil.RunAll(unit);
+    }
 
-            var value = UsedNamespaceOrType.CreateType(ref1.Object, "alias");
-            var unit = EqualityUnit
-                .Create(value)
-                .WithEqualValues(
-                    value,
-                    UsedNamespaceOrType.CreateType(ref1.Object, "alias"))
-                .WithNotEqualValues(
-                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object),
-                    UsedNamespaceOrType.CreateType(ref2.Object, "alias"),
-                    UsedNamespaceOrType.CreateType(ref1.Object, "different alias"));
-            RunAll(unit);
-        }
+    [Fact]
+    public void EqualsTargetTypeSameObject()
+    {
+        var ref1 = CreateEqualsInterface<ITypeReference>("ref1");
+        var ref2 = CreateEqualsInterface<ITypeReference>("ref2");
 
-        [WorkItem(7015, "https://github.com/dotnet/roslyn/issues/7015")]
-        [Fact]
-        public void EqualsTargetTypeSameValue()
-        {
-            var type1 = CreateEqualsInterface<ITypeReference>("type name");
-            var type2 = CreateEqualsInterface<ITypeReference>("type name");
-            var type3 = CreateEqualsInterface<ITypeReference>("other type name");
+        var value = UsedNamespaceOrType.CreateType(ref1.Object, "alias");
+        var unit = EqualityUnit
+            .Create(value)
+            .WithEqualValues(
+                value,
+                UsedNamespaceOrType.CreateType(ref1.Object, "alias"))
+            .WithNotEqualValues(
+                UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object),
+                UsedNamespaceOrType.CreateType(ref2.Object, "alias"),
+                UsedNamespaceOrType.CreateType(ref1.Object, "different alias"));
+        RunAll(unit);
+    }
 
-            Assert.True(type1.Object.Equals(type2.Object));
-            Assert.False(type1.Object.Equals(type3.Object));
-            Assert.True(object.Equals(type1.Object, type2.Object));
+    [WorkItem(7015, "https://github.com/dotnet/roslyn/issues/7015")]
+    [Fact]
+    public void EqualsTargetTypeSameValue()
+    {
+        var type1 = CreateEqualsInterface<ITypeReference>("type name");
+        var type2 = CreateEqualsInterface<ITypeReference>("type name");
+        var type3 = CreateEqualsInterface<ITypeReference>("other type name");
 
-            var value = UsedNamespaceOrType.CreateType(type1.Object, "alias");
-            var unit = EqualityUnit
-                .Create(value)
-                .WithEqualValues(
-                    value,
-                    UsedNamespaceOrType.CreateType(type1.Object, "alias"),
-                    UsedNamespaceOrType.CreateType(type2.Object, "alias"))
-                .WithNotEqualValues(
-                    UsedNamespaceOrType.CreateType(type1.Object, "different alias"),
-                    UsedNamespaceOrType.CreateType(type2.Object, "different alias"),
-                    UsedNamespaceOrType.CreateType(type3.Object, "alias"),
-                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object));
-            RunAll(unit);
-        }
+        Assert.True(type1.Object.Equals(type2.Object));
+        Assert.False(type1.Object.Equals(type3.Object));
+        Assert.True(object.Equals(type1.Object, type2.Object));
 
-        [Fact]
-        public void EqualsExternAlias()
-        {
-            var value = UsedNamespaceOrType.CreateExternAlias("alias1");
-            var unit = EqualityUnit
-                .Create(value)
-                .WithEqualValues(
-                    value,
-                    UsedNamespaceOrType.CreateExternAlias("alias1"))
-                .WithNotEqualValues(UsedNamespaceOrType.CreateExternAlias("alias2"));
-            RunAll(unit);
-        }
+        var value = UsedNamespaceOrType.CreateType(type1.Object, "alias");
+        var unit = EqualityUnit
+            .Create(value)
+            .WithEqualValues(
+                value,
+                UsedNamespaceOrType.CreateType(type1.Object, "alias"),
+                UsedNamespaceOrType.CreateType(type2.Object, "alias"))
+            .WithNotEqualValues(
+                UsedNamespaceOrType.CreateType(type1.Object, "different alias"),
+                UsedNamespaceOrType.CreateType(type2.Object, "different alias"),
+                UsedNamespaceOrType.CreateType(type3.Object, "alias"),
+                UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object));
+        RunAll(unit);
+    }
 
-        [Fact]
-        public void EqualsNamespace()
-        {
-            var ns1 = CreateEqualsInterface<INamespace>("namespace");
-            var ns2 = CreateEqualsInterface<INamespace>("namespace");
-            var ns3 = CreateEqualsInterface<INamespace>("other namespace");
+    [Fact]
+    public void EqualsExternAlias()
+    {
+        var value = UsedNamespaceOrType.CreateExternAlias("alias1");
+        var unit = EqualityUnit
+            .Create(value)
+            .WithEqualValues(
+                value,
+                UsedNamespaceOrType.CreateExternAlias("alias1"))
+            .WithNotEqualValues(UsedNamespaceOrType.CreateExternAlias("alias2"));
+        RunAll(unit);
+    }
 
-            var value = UsedNamespaceOrType.CreateNamespace(ns1.Object);
-            var unit = EqualityUnit
-                .Create(value)
-                .WithEqualValues(
-                    value,
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object),
-                    UsedNamespaceOrType.CreateNamespace(ns2.Object))
-                .WithNotEqualValues(
-                    UsedNamespaceOrType.CreateExternAlias("alias"),
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object, CreateEqualsInterface<IAssemblyReference>("a").Object),
-                    UsedNamespaceOrType.CreateNamespace(ns3.Object));
-            RunAll(unit);
-        }
+    [Fact]
+    public void EqualsNamespace()
+    {
+        var ns1 = CreateEqualsInterface<INamespace>("namespace");
+        var ns2 = CreateEqualsInterface<INamespace>("namespace");
+        var ns3 = CreateEqualsInterface<INamespace>("other namespace");
 
-        [Fact]
-        public void EqualsNamespaceAndAssembly()
-        {
-            var assembly1 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly2 = CreateEqualsInterface<IAssemblyReference>("assembly");
-            var assembly3 = CreateEqualsInterface<IAssemblyReference>("other assembly");
-            var ns1 = CreateEqualsInterface<INamespace>("namespace");
-            var ns2 = CreateEqualsInterface<INamespace>("namespace");
-            var ns3 = CreateEqualsInterface<INamespace>("other namespace");
+        var value = UsedNamespaceOrType.CreateNamespace(ns1.Object);
+        var unit = EqualityUnit
+            .Create(value)
+            .WithEqualValues(
+                value,
+                UsedNamespaceOrType.CreateNamespace(ns1.Object),
+                UsedNamespaceOrType.CreateNamespace(ns2.Object))
+            .WithNotEqualValues(
+                UsedNamespaceOrType.CreateExternAlias("alias"),
+                UsedNamespaceOrType.CreateNamespace(ns1.Object, CreateEqualsInterface<IAssemblyReference>("a").Object),
+                UsedNamespaceOrType.CreateNamespace(ns3.Object));
+        RunAll(unit);
+    }
 
-            var value = UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly1.Object);
-            var unit = EqualityUnit
-                .Create(value)
-                .WithEqualValues(
-                    value,
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly1.Object),
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly2.Object),
-                    UsedNamespaceOrType.CreateNamespace(ns2.Object, assembly1.Object))
-                .WithNotEqualValues(
-                    UsedNamespaceOrType.CreateExternAlias("alias"),
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object, new Mock<IAssemblyReference>(MockBehavior.Strict).Object),
-                    UsedNamespaceOrType.CreateNamespace(ns3.Object));
-            RunAll(unit);
-        }
+    [Fact]
+    public void EqualsNamespaceAndAssembly()
+    {
+        var assembly1 = CreateEqualsInterface<IAssemblyReference>("assembly");
+        var assembly2 = CreateEqualsInterface<IAssemblyReference>("assembly");
+        var assembly3 = CreateEqualsInterface<IAssemblyReference>("other assembly");
+        var ns1 = CreateEqualsInterface<INamespace>("namespace");
+        var ns2 = CreateEqualsInterface<INamespace>("namespace");
+        var ns3 = CreateEqualsInterface<INamespace>("other namespace");
+
+        var value = UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly1.Object);
+        var unit = EqualityUnit
+            .Create(value)
+            .WithEqualValues(
+                value,
+                UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly1.Object),
+                UsedNamespaceOrType.CreateNamespace(ns1.Object, assembly2.Object),
+                UsedNamespaceOrType.CreateNamespace(ns2.Object, assembly1.Object))
+            .WithNotEqualValues(
+                UsedNamespaceOrType.CreateExternAlias("alias"),
+                UsedNamespaceOrType.CreateNamespace(ns1.Object, new Mock<IAssemblyReference>(MockBehavior.Strict).Object),
+                UsedNamespaceOrType.CreateNamespace(ns3.Object));
+        RunAll(unit);
     }
 }

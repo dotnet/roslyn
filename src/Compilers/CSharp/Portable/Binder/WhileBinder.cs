@@ -12,81 +12,80 @@ using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal sealed class WhileBinder : LoopBinder
 {
-    internal sealed class WhileBinder : LoopBinder
+    private readonly StatementSyntax _syntax;
+
+    public WhileBinder(Binder enclosing, StatementSyntax syntax)
+        : base(enclosing)
     {
-        private readonly StatementSyntax _syntax;
+        Debug.Assert(syntax != null && (syntax.IsKind(SyntaxKind.WhileStatement) || syntax.IsKind(SyntaxKind.DoStatement)));
+        _syntax = syntax;
+    }
 
-        public WhileBinder(Binder enclosing, StatementSyntax syntax)
-            : base(enclosing)
+    internal override BoundWhileStatement BindWhileParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
+    {
+        var node = (WhileStatementSyntax)_syntax;
+
+        var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
+        var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+        Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
+        return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
+    }
+
+    internal override BoundDoStatement BindDoParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
+    {
+        var node = (DoStatementSyntax)_syntax;
+
+        var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
+        var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+        Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
+        return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
+    }
+
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+        ExpressionSyntax condition;
+
+        switch (_syntax.Kind())
         {
-            Debug.Assert(syntax != null && (syntax.IsKind(SyntaxKind.WhileStatement) || syntax.IsKind(SyntaxKind.DoStatement)));
-            _syntax = syntax;
+            case SyntaxKind.WhileStatement:
+                condition = ((WhileStatementSyntax)_syntax).Condition;
+                break;
+            case SyntaxKind.DoStatement:
+                condition = ((DoStatementSyntax)_syntax).Condition;
+                break;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
         }
 
-        internal override BoundWhileStatement BindWhileParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
-        {
-            var node = (WhileStatementSyntax)_syntax;
+        ExpressionVariableFinder.FindExpressionVariables(this, locals, node: condition);
+        return locals.ToImmutableAndFree();
+    }
 
-            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
-            return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        if (_syntax == scopeDesignator)
+        {
+            return this.Locals;
         }
 
-        internal override BoundDoStatement BindDoParts(BindingDiagnosticBag diagnostics, Binder originalBinder)
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    internal override SyntaxNode ScopeDesignator
+    {
+        get
         {
-            var node = (DoStatementSyntax)_syntax;
-
-            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
-            return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
-        }
-
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
-            ExpressionSyntax condition;
-
-            switch (_syntax.Kind())
-            {
-                case SyntaxKind.WhileStatement:
-                    condition = ((WhileStatementSyntax)_syntax).Condition;
-                    break;
-                case SyntaxKind.DoStatement:
-                    condition = ((DoStatementSyntax)_syntax).Condition;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(_syntax.Kind());
-            }
-
-            ExpressionVariableFinder.FindExpressionVariables(this, locals, node: condition);
-            return locals.ToImmutableAndFree();
-        }
-
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            if (_syntax == scopeDesignator)
-            {
-                return this.Locals;
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        internal override SyntaxNode ScopeDesignator
-        {
-            get
-            {
-                return _syntax;
-            }
+            return _syntax;
         }
     }
 }

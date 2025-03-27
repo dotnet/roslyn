@@ -5,37 +5,36 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+// Wrapper around Guid to ensure callers have asked for the correct id
+// rather than simply using the ModuleVersionId (which is unnecessary
+// when the Compilation references all loaded assemblies).
+internal readonly struct MetadataContextId : IEquatable<MetadataContextId>
 {
-    // Wrapper around Guid to ensure callers have asked for the correct id
-    // rather than simply using the ModuleVersionId (which is unnecessary
-    // when the Compilation references all loaded assemblies).
-    internal readonly struct MetadataContextId : IEquatable<MetadataContextId>
+    internal readonly Guid ModuleVersionId;
+
+    internal MetadataContextId(Guid moduleVersionId)
     {
-        internal readonly Guid ModuleVersionId;
+        ModuleVersionId = moduleVersionId;
+    }
 
-        internal MetadataContextId(Guid moduleVersionId)
+    public bool Equals(MetadataContextId other)
+        => ModuleVersionId.Equals(other.ModuleVersionId);
+
+    public override bool Equals(object obj)
+        => obj is MetadataContextId && Equals((MetadataContextId)obj);
+
+    public override int GetHashCode()
+        => ModuleVersionId.GetHashCode();
+
+    internal static MetadataContextId GetContextId(ModuleId moduleId, MakeAssemblyReferencesKind kind)
+    {
+        return kind switch
         {
-            ModuleVersionId = moduleVersionId;
-        }
-
-        public bool Equals(MetadataContextId other)
-            => ModuleVersionId.Equals(other.ModuleVersionId);
-
-        public override bool Equals(object obj)
-            => obj is MetadataContextId && Equals((MetadataContextId)obj);
-
-        public override int GetHashCode()
-            => ModuleVersionId.GetHashCode();
-
-        internal static MetadataContextId GetContextId(ModuleId moduleId, MakeAssemblyReferencesKind kind)
-        {
-            return kind switch
-            {
-                MakeAssemblyReferencesKind.AllAssemblies => default,
-                MakeAssemblyReferencesKind.AllReferences => new MetadataContextId(moduleId.Id),
-                _ => throw ExceptionUtilities.UnexpectedValue(kind),
-            };
-        }
+            MakeAssemblyReferencesKind.AllAssemblies => default,
+            MakeAssemblyReferencesKind.AllReferences => new MetadataContextId(moduleId.Id),
+            _ => throw ExceptionUtilities.UnexpectedValue(kind),
+        };
     }
 }

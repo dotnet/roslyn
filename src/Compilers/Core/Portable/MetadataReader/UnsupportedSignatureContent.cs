@@ -5,10 +5,9 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal class UnsupportedSignatureContent
+    : Exception
 {
-    internal class UnsupportedSignatureContent
-        : Exception
-    {
-    }
 }

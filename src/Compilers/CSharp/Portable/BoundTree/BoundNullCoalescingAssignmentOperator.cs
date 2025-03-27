@@ -4,23 +4,22 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
-{
-    internal partial class BoundNullCoalescingAssignmentOperator
-    {
-        internal bool IsNullableValueTypeAssignment
-        {
-            get
-            {
-                var leftType = LeftOperand.Type;
-                if (leftType?.IsNullableType() != true)
-                {
-                    return false;
-                }
+namespace Microsoft.CodeAnalysis.CSharp;
 
-                var nullableUnderlying = leftType.GetNullableUnderlyingType();
-                return nullableUnderlying.Equals(RightOperand.Type);
+internal partial class BoundNullCoalescingAssignmentOperator
+{
+    internal bool IsNullableValueTypeAssignment
+    {
+        get
+        {
+            var leftType = LeftOperand.Type;
+            if (leftType?.IsNullableType() != true)
+            {
+                return false;
             }
+
+            var nullableUnderlying = leftType.GetNullableUnderlyingType();
+            return nullableUnderlying.Equals(RightOperand.Type);
         }
     }
 }

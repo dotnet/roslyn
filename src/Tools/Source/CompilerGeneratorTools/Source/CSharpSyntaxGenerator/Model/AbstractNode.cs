@@ -7,10 +7,9 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace CSharpSyntaxGenerator
+namespace CSharpSyntaxGenerator;
+
+public class AbstractNode : TreeType
 {
-    public class AbstractNode : TreeType
-    {
-        public readonly List<Field> Fields = new List<Field>();
-    }
+    public readonly List<Field> Fields = new List<Field>();
 }

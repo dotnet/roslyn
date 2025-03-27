@@ -4,24 +4,23 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// A syntax tree created by a <see cref="ISourceGenerator"/>
+/// </summary>
+internal readonly struct GeneratedSyntaxTree
 {
-    /// <summary>
-    /// A syntax tree created by a <see cref="ISourceGenerator"/>
-    /// </summary>
-    internal readonly struct GeneratedSyntaxTree
+    public SourceText Text { get; }
+
+    public string HintName { get; }
+
+    public SyntaxTree Tree { get; }
+
+    public GeneratedSyntaxTree(string hintName, SourceText text, SyntaxTree tree)
     {
-        public SourceText Text { get; }
-
-        public string HintName { get; }
-
-        public SyntaxTree Tree { get; }
-
-        public GeneratedSyntaxTree(string hintName, SourceText text, SyntaxTree tree)
-        {
-            this.Text = text;
-            this.HintName = hintName;
-            this.Tree = tree;
-        }
+        this.Text = text;
+        this.HintName = hintName;
+        this.Tree = tree;
     }
 }

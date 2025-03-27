@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IOperationTests_IBranchOperation : SemanticModelTestBase
-    {
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_01()
-        {
-            var source = @"
+public class IOperationTests_IBranchOperation : SemanticModelTestBase
+{
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_01()
+    {
+        var source = @"
 class C
 {
     void F()
@@ -27,15 +27,15 @@ label1: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,1): warning CS0164: This label has not been referenced
-                // label1: ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label1").WithLocation(6, 1)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,1): warning CS0164: This label has not been referenced
+            // label1: ;
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label1").WithLocation(6, 1)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -43,14 +43,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_02()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_02()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b, bool c)
@@ -62,11 +62,11 @@ label2: if (b) goto label1;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -107,14 +107,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_03()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_03()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b, bool c)
@@ -126,11 +126,11 @@ label2: if (c) goto label1;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -171,14 +171,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_04()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_04()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b, bool c)
@@ -194,11 +194,11 @@ label5: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -239,14 +239,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_05()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_05()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b, bool c)
@@ -262,11 +262,11 @@ label5: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -307,14 +307,14 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_06()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_06()
+    {
+        var source = @"
 class C
 {
     void F()
@@ -323,15 +323,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(6, 14)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(6, 14)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -349,14 +349,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_07()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_07()
+    {
+        var source = @"
 class C
 {
     void F()
@@ -366,18 +366,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(6, 14),
-                // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(6, 14),
+            // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -401,14 +401,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_08()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_08()
+    {
+        var source = @"
 class C
 {
     void F(bool a)
@@ -417,15 +417,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,21): error CS0159: No such label 'label2' within the scope of the goto statement
-                //         if (a) goto label2;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(6, 21)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,21): error CS0159: No such label 'label2' within the scope of the goto statement
+            //         if (a) goto label2;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(6, 21)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -450,14 +450,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_09()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_09()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -467,18 +467,18 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,21): error CS0159: No such label 'label2' within the scope of the goto statement
-                //         if (a) goto label2;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(6, 21),
-                // (7,21): error CS0159: No such label 'label2' within the scope of the goto statement
-                //         if (b) goto label2;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(7, 21)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,21): error CS0159: No such label 'label2' within the scope of the goto statement
+            //         if (a) goto label2;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(6, 21),
+            // (7,21): error CS0159: No such label 'label2' within the scope of the goto statement
+            //         if (b) goto label2;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label2").WithArguments("label2").WithLocation(7, 21)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -520,14 +520,14 @@ Block[B5] - Exit
     Predecessors: [B3] [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_10()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_10()
+    {
+        var source = @"
 class C
 {
     void F(bool a)
@@ -538,15 +538,15 @@ label2: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14)
-                );
+        compilation.VerifyDiagnostics(
+            // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -571,14 +571,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_11()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_11()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -591,18 +591,18 @@ label3: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14),
-                // (9,14): error CS0159: No such label 'label1' within the scope of the goto statement
-                //         goto label1;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(9, 14)
-                );
+        compilation.VerifyDiagnostics(
+            // (7,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(7, 14),
+            // (9,14): error CS0159: No such label 'label1' within the scope of the goto statement
+            //         goto label1;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "label1").WithArguments("label1").WithLocation(9, 14)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -644,14 +644,14 @@ Block[B5] - Exit
     Predecessors: [B3] [B4]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_12()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_12()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -664,11 +664,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -702,14 +702,14 @@ Block[B4] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_15()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_15()
+    {
+        var source = @"
 class C
 {
     void F()
@@ -718,15 +718,15 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (6,9): error CS0139: No enclosing loop out of which to break or continue
-                //         break;
-                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(6, 9)
-                );
+        compilation.VerifyDiagnostics(
+            // (6,9): error CS0139: No enclosing loop out of which to break or continue
+            //         break;
+            Diagnostic(ErrorCode.ERR_NoBreakOrCont, "break;").WithLocation(6, 9)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -741,14 +741,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_16()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_16()
+    {
+        string source = @"
 class P
 {
     void M(bool x, bool y)
@@ -762,7 +762,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -818,16 +818,16 @@ Block[B5] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_17()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_17()
+    {
+        string source = @"
 class P
 {
     void M(bool x, bool y)
@@ -842,7 +842,7 @@ class P
     bool filter(out int i) => throw null;
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -897,16 +897,16 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_19()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_19()
+    {
+        string source = @"
 class P
 {
     void M()
@@ -915,7 +915,7 @@ class P
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -930,20 +930,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(6,9): error CS0139: No enclosing loop out of which to break or continue
-                //         continue;
-                Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(6, 9)
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(6,9): error CS0139: No enclosing loop out of which to break or continue
+            //         continue;
+            Diagnostic(ErrorCode.ERR_NoBreakOrCont, "continue;").WithLocation(6, 9)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_25()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_25()
+    {
+        string source = @"
 class P
 {
     void M(bool x)
@@ -979,7 +979,7 @@ outsideLabel:;
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1089,59 +1089,59 @@ Block[B6] - Exit
     Predecessors: [B2] [B3] [B4] [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(6,14): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
-                //         goto finallyLabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(6, 14),
-                // file.cs(7,14): error CS0159: No such label 'catchlabel' within the scope of the goto statement
-                //         goto catchlabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(7, 14),
-                // file.cs(8,14): error CS0159: No such label 'trylabel' within the scope of the goto statement
-                //         goto trylabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(8, 14),
-                // file.cs(13,18): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
-                //             goto finallyLabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(13, 18),
-                // file.cs(14,18): error CS0159: No such label 'catchlabel' within the scope of the goto statement
-                //             goto catchlabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(14, 18),
-                // file.cs(20,18): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
-                //             goto finallyLabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(20, 18),
-                // file.cs(21,18): error CS0159: No such label 'trylabel' within the scope of the goto statement
-                //             goto trylabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(21, 18),
-                // file.cs(27,18): error CS0159: No such label 'catchlabel' within the scope of the goto statement
-                //             goto catchlabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(27, 18),
-                // file.cs(28,18): error CS0159: No such label 'trylabel' within the scope of the goto statement
-                //             goto trylabel;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(28, 18),
-                // file.cs(29,13): error CS0157: Control cannot leave the body of a finally clause
-                //             goto outsideLabel;
-                Diagnostic(ErrorCode.ERR_BadFinallyLeave, "goto").WithLocation(29, 13),
-                // file.cs(32,9): warning CS0162: Unreachable code detected
-                //         x = true;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(32, 9),
-                // file.cs(12,1): warning CS0164: This label has not been referenced
-                // trylabel:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "trylabel").WithLocation(12, 1),
-                // file.cs(19,1): warning CS0164: This label has not been referenced
-                // catchlabel:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "catchlabel").WithLocation(19, 1),
-                // file.cs(26,1): warning CS0164: This label has not been referenced
-                // finallyLabel:
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "finallyLabel").WithLocation(26, 1)
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(6,14): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
+            //         goto finallyLabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(6, 14),
+            // file.cs(7,14): error CS0159: No such label 'catchlabel' within the scope of the goto statement
+            //         goto catchlabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(7, 14),
+            // file.cs(8,14): error CS0159: No such label 'trylabel' within the scope of the goto statement
+            //         goto trylabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(8, 14),
+            // file.cs(13,18): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
+            //             goto finallyLabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(13, 18),
+            // file.cs(14,18): error CS0159: No such label 'catchlabel' within the scope of the goto statement
+            //             goto catchlabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(14, 18),
+            // file.cs(20,18): error CS0159: No such label 'finallyLabel' within the scope of the goto statement
+            //             goto finallyLabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "finallyLabel").WithArguments("finallyLabel").WithLocation(20, 18),
+            // file.cs(21,18): error CS0159: No such label 'trylabel' within the scope of the goto statement
+            //             goto trylabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(21, 18),
+            // file.cs(27,18): error CS0159: No such label 'catchlabel' within the scope of the goto statement
+            //             goto catchlabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "catchlabel").WithArguments("catchlabel").WithLocation(27, 18),
+            // file.cs(28,18): error CS0159: No such label 'trylabel' within the scope of the goto statement
+            //             goto trylabel;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "trylabel").WithArguments("trylabel").WithLocation(28, 18),
+            // file.cs(29,13): error CS0157: Control cannot leave the body of a finally clause
+            //             goto outsideLabel;
+            Diagnostic(ErrorCode.ERR_BadFinallyLeave, "goto").WithLocation(29, 13),
+            // file.cs(32,9): warning CS0162: Unreachable code detected
+            //         x = true;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "x").WithLocation(32, 9),
+            // file.cs(12,1): warning CS0164: This label has not been referenced
+            // trylabel:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "trylabel").WithLocation(12, 1),
+            // file.cs(19,1): warning CS0164: This label has not been referenced
+            // catchlabel:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "catchlabel").WithLocation(19, 1),
+            // file.cs(26,1): warning CS0164: This label has not been referenced
+            // finallyLabel:
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "finallyLabel").WithLocation(26, 1)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_49()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_49()
+    {
+        var source = @"
 class C
 {
     void F(bool a)
@@ -1153,11 +1153,11 @@ label1: return;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1172,14 +1172,14 @@ Block[B2] - Exit
     Predecessors: [B1*2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_50()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_50()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -1196,11 +1196,11 @@ label3: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B2]
@@ -1222,14 +1222,14 @@ Block[B3] - Exit
     Predecessors: [B1*2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_51()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_51()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -1245,15 +1245,15 @@ label3: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (10,1): error CS0140: The label 'label1' is a duplicate
-                // label1:
-                Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(10, 1)
-                );
+        compilation.VerifyDiagnostics(
+            // (10,1): error CS0140: The label 'label1' is a duplicate
+            // label1:
+            Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(10, 1)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1285,14 +1285,14 @@ Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_52()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_52()
+    {
+        var source = @"
 class C
 {
     void F(bool a, bool b)
@@ -1308,15 +1308,15 @@ label3: ;
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics(
-                // (9,1): error CS0140: The label 'label1' is a duplicate
-                // label1:
-                Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(9, 1)
-                );
+        compilation.VerifyDiagnostics(
+            // (9,1): error CS0140: The label 'label1' is a duplicate
+            // label1:
+            Diagnostic(ErrorCode.ERR_DuplicateLabel, "label1").WithArguments("label1").WithLocation(9, 1)
+            );
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1348,14 +1348,14 @@ Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_54()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_54()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -1370,7 +1370,7 @@ label:  ;
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1404,20 +1404,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(9,13): error CS0159: No such label 'label' within the scope of the goto statement
-                //             goto label;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(9, 13),
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(9,13): error CS0159: No such label 'label' within the scope of the goto statement
+            //             goto label;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(9, 13),
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_55()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_55()
+    {
+        string source = @"
 #pragma warning disable CS8321
 struct C
 {
@@ -1434,7 +1434,7 @@ label:  ;
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1471,20 +1471,20 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(11,13): error CS0159: No such label 'label' within the scope of the goto statement
-                //             goto label;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(11, 13),
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(11,13): error CS0159: No such label 'label' within the scope of the goto statement
+            //             goto label;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(11, 13),
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BranchFlow_56()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BranchFlow_56()
+    {
+        string source = @"
 struct C
 {
     void M(System.Action<bool> d)
@@ -1500,7 +1500,7 @@ label:  ;
     }/*</bind>*/
 }
 ";
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1537,16 +1537,15 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = new[] {
-                // file.cs(10,13): error CS0159: No such label 'label' within the scope of the goto statement
-                //             goto label;
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(10, 13),
-                // file.cs(13,1): warning CS0164: This label has not been referenced
-                // label:  ;
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(13, 1)
-            };
+        var expectedDiagnostics = new[] {
+            // file.cs(10,13): error CS0159: No such label 'label' within the scope of the goto statement
+            //             goto label;
+            Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(10, 13),
+            // file.cs(13,1): warning CS0164: This label has not been referenced
+            // label:  ;
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(13, 1)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
     }
 }

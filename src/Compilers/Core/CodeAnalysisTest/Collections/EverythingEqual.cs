@@ -11,44 +11,43 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections
+namespace Microsoft.CodeAnalysis.UnitTests.Collections;
+
+/// <summary>
+/// An equality comparer that considers all values to be equal.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+internal class EverythingEqual<T> : IEqualityComparer<T>, IEqualityComparer
 {
-    /// <summary>
-    /// An equality comparer that considers all values to be equal.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal class EverythingEqual<T> : IEqualityComparer<T>, IEqualityComparer
+    private static readonly EverythingEqual<T> s_singleton = new();
+
+    private EverythingEqual() { }
+
+    internal static EverythingEqual<T> Default
     {
-        private static readonly EverythingEqual<T> s_singleton = new();
-
-        private EverythingEqual() { }
-
-        internal static EverythingEqual<T> Default
+        get
         {
-            get
-            {
-                return s_singleton;
-            }
+            return s_singleton;
         }
+    }
 
-        public bool Equals(T? x, T? y)
-        {
-            return true;
-        }
+    public bool Equals(T? x, T? y)
+    {
+        return true;
+    }
 
-        public int GetHashCode(T obj)
-        {
-            return 1;
-        }
+    public int GetHashCode(T obj)
+    {
+        return 1;
+    }
 
-        bool IEqualityComparer.Equals(object? x, object? y)
-        {
-            return true;
-        }
+    bool IEqualityComparer.Equals(object? x, object? y)
+    {
+        return true;
+    }
 
-        int IEqualityComparer.GetHashCode(object obj)
-        {
-            return 1;
-        }
+    int IEqualityComparer.GetHashCode(object obj)
+    {
+        return 1;
     }
 }

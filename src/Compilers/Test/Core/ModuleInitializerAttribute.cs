@@ -4,12 +4,11 @@
 
 #if !NET6_0_OR_GREATER
 
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.CompilerServices;
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class ModuleInitializerAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public sealed class ModuleInitializerAttribute : Attribute
-    {
-    }
 }
 
 #else

@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.Operations;
+
+internal readonly struct DisposeOperationInfo
 {
-    internal readonly struct DisposeOperationInfo
+    public readonly IMethodSymbol? DisposeMethod;
+
+    public readonly ImmutableArray<IArgumentOperation> DisposeArguments;
+
+    public DisposeOperationInfo(IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments)
     {
-        public readonly IMethodSymbol? DisposeMethod;
-
-        public readonly ImmutableArray<IArgumentOperation> DisposeArguments;
-
-        public DisposeOperationInfo(IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments)
-        {
-            DisposeMethod = disposeMethod;
-            DisposeArguments = disposeArguments;
-        }
+        DisposeMethod = disposeMethod;
+        DisposeArguments = disposeArguments;
     }
 }

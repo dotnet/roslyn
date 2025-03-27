@@ -8,132 +8,131 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
+
+internal sealed class PropertySymbol : Symbol, IPropertySymbol
 {
-    internal sealed class PropertySymbol : Symbol, IPropertySymbol
+    private readonly Symbols.PropertySymbol _underlying;
+    private ITypeSymbol _lazyType;
+
+    public PropertySymbol(Symbols.PropertySymbol underlying)
     {
-        private readonly Symbols.PropertySymbol _underlying;
-        private ITypeSymbol _lazyType;
+        Debug.Assert(underlying is object);
+        _underlying = underlying;
+    }
 
-        public PropertySymbol(Symbols.PropertySymbol underlying)
+    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
+
+    bool IPropertySymbol.IsIndexer
+    {
+        get { return _underlying.IsIndexer; }
+    }
+
+    ITypeSymbol IPropertySymbol.Type
+    {
+        get
         {
-            Debug.Assert(underlying is object);
-            _underlying = underlying;
-        }
-
-        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
-
-        bool IPropertySymbol.IsIndexer
-        {
-            get { return _underlying.IsIndexer; }
-        }
-
-        ITypeSymbol IPropertySymbol.Type
-        {
-            get
+            if (_lazyType is null)
             {
-                if (_lazyType is null)
-                {
-                    Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
-                }
-
-                return _lazyType;
+                Interlocked.CompareExchange(ref _lazyType, _underlying.TypeWithAnnotations.GetPublicSymbol(), null);
             }
+
+            return _lazyType;
         }
+    }
 
-        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
+    CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => _underlying.TypeWithAnnotations.ToPublicAnnotation();
 
-        ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
+    ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
+    {
+        get { return _underlying.Parameters.GetPublicSymbols(); }
+    }
+
+    IMethodSymbol IPropertySymbol.GetMethod
+    {
+        get { return _underlying.GetMethod.GetPublicSymbol(); }
+    }
+
+    IMethodSymbol IPropertySymbol.SetMethod
+    {
+        get { return _underlying.SetMethod.GetPublicSymbol(); }
+    }
+
+    IPropertySymbol IPropertySymbol.OriginalDefinition
+    {
+        get
         {
-            get { return _underlying.Parameters.GetPublicSymbols(); }
+            return _underlying.OriginalDefinition.GetPublicSymbol();
         }
+    }
 
-        IMethodSymbol IPropertySymbol.GetMethod
-        {
-            get { return _underlying.GetMethod.GetPublicSymbol(); }
-        }
+    IPropertySymbol IPropertySymbol.OverriddenProperty
+    {
+        get { return _underlying.OverriddenProperty.GetPublicSymbol(); }
+    }
 
-        IMethodSymbol IPropertySymbol.SetMethod
-        {
-            get { return _underlying.SetMethod.GetPublicSymbol(); }
-        }
+    ImmutableArray<IPropertySymbol> IPropertySymbol.ExplicitInterfaceImplementations
+    {
+        get { return _underlying.ExplicitInterfaceImplementations.GetPublicSymbols(); }
+    }
 
-        IPropertySymbol IPropertySymbol.OriginalDefinition
-        {
-            get
-            {
-                return _underlying.OriginalDefinition.GetPublicSymbol();
-            }
-        }
+    bool IPropertySymbol.IsReadOnly
+    {
+        get { return _underlying.IsReadOnly; }
+    }
 
-        IPropertySymbol IPropertySymbol.OverriddenProperty
-        {
-            get { return _underlying.OverriddenProperty.GetPublicSymbol(); }
-        }
+    bool IPropertySymbol.IsWriteOnly
+    {
+        get { return _underlying.IsWriteOnly; }
+    }
 
-        ImmutableArray<IPropertySymbol> IPropertySymbol.ExplicitInterfaceImplementations
-        {
-            get { return _underlying.ExplicitInterfaceImplementations.GetPublicSymbols(); }
-        }
+    bool IPropertySymbol.IsWithEvents
+    {
+        get { return false; }
+    }
 
-        bool IPropertySymbol.IsReadOnly
-        {
-            get { return _underlying.IsReadOnly; }
-        }
+    bool IPropertySymbol.IsRequired => _underlying.IsRequired;
 
-        bool IPropertySymbol.IsWriteOnly
-        {
-            get { return _underlying.IsWriteOnly; }
-        }
+    ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
+    {
+        get { return _underlying.TypeWithAnnotations.CustomModifiers; }
+    }
 
-        bool IPropertySymbol.IsWithEvents
-        {
-            get { return false; }
-        }
+    ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
+    {
+        get { return _underlying.RefCustomModifiers; }
+    }
 
-        bool IPropertySymbol.IsRequired => _underlying.IsRequired;
+    bool IPropertySymbol.ReturnsByRef => _underlying.ReturnsByRef;
 
-        ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
-        {
-            get { return _underlying.TypeWithAnnotations.CustomModifiers; }
-        }
+    bool IPropertySymbol.ReturnsByRefReadonly => _underlying.ReturnsByRefReadonly;
 
-        ImmutableArray<CustomModifier> IPropertySymbol.RefCustomModifiers
-        {
-            get { return _underlying.RefCustomModifiers; }
-        }
-
-        bool IPropertySymbol.ReturnsByRef => _underlying.ReturnsByRef;
-
-        bool IPropertySymbol.ReturnsByRefReadonly => _underlying.ReturnsByRefReadonly;
-
-        RefKind IPropertySymbol.RefKind => _underlying.RefKind;
+    RefKind IPropertySymbol.RefKind => _underlying.RefKind;
 
 #nullable enable
-        IPropertySymbol? IPropertySymbol.PartialDefinitionPart => _underlying.PartialDefinitionPart.GetPublicSymbol();
+    IPropertySymbol? IPropertySymbol.PartialDefinitionPart => _underlying.PartialDefinitionPart.GetPublicSymbol();
 
-        IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
+    IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
 
-        bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
+    bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
 #nullable disable
 
-        #region ISymbol Members
+    #region ISymbol Members
 
-        protected override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitProperty(this);
-        }
-
-        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitProperty(this);
-        }
-
-        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitProperty(this, argument);
-        }
-
-        #endregion
+    protected override void Accept(SymbolVisitor visitor)
+    {
+        visitor.VisitProperty(this);
     }
+
+    protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+    {
+        return visitor.VisitProperty(this);
+    }
+
+    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+    {
+        return visitor.VisitProperty(this, argument);
+    }
+
+    #endregion
 }

@@ -10,21 +10,21 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IOperationTests_IInterpolatedStringExpression : SemanticModelTestBase
-    {
-        private static CSharpTestSource GetSource(string code, bool hasDefaultHandler)
-            => hasDefaultHandler
-                ? new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }
-                : code;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_Empty(bool hasDefaultHandler)
-        {
-            string source = @"
+public class IOperationTests_IInterpolatedStringExpression : SemanticModelTestBase
+{
+    private static CSharpTestSource GetSource(string code, bool hasDefaultHandler)
+        => hasDefaultHandler
+            ? new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }
+            : code;
+
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_Empty(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -35,21 +35,21 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: """") (Syntax: '$""""')
   Parts(0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_OnlyTextPart(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_OnlyTextPart(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -60,24 +60,24 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""Only text part"") (Syntax: '$""Only text part""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'Only text part')
         Text: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Only text part"", IsImplicit) (Syntax: 'Only text part')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_OnlyInterpolationPart(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_OnlyInterpolationPart(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -88,7 +88,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{1}""')
   Parts(1):
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{1}')
@@ -99,17 +99,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_EmptyInterpolationPart(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_EmptyInterpolationPart(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -120,7 +120,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{}""')
   Parts(1):
       IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{}')
@@ -132,21 +132,21 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1733: Expected expression
-                //         Console.WriteLine(/*<bind>*/$"{}"/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 40)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS1733: Expected expression
+            //         Console.WriteLine(/*<bind>*/$"{}"/*</bind>*/);
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 40)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_TextAndInterpolationParts(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_TextAndInterpolationParts(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -157,7 +157,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -181,17 +181,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_FormatAndAlignment(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_FormatAndAlignment(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -205,7 +205,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -243,17 +243,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_InterpolationAndFormatAndAlignment(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_InterpolationAndFormatAndAlignment(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -267,7 +267,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x,y:D3}""')
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -285,17 +285,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_InvocationInInterpolation(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_InvocationInInterpolation(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -310,7 +310,7 @@ internal class Class
     private string M2(int z) => z.ToString();
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
   Parts(6):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -351,17 +351,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_NestedInterpolation(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_NestedInterpolation(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -376,7 +376,7 @@ internal class Class
     private int M2(string z) => Int32.Parse(z);
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""String {M2($""{y}"")}""')
   Parts(2):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -405,17 +405,17 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_InvalidExpressionInInterpolation(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Theory, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_InvalidExpressionInInterpolation(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -426,7 +426,7 @@ internal class Class
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""String {x ... nt {Class}""')
   Parts(4):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'String ')
@@ -453,24 +453,24 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString: 
           null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0103: The name 'x1' does not exist in the current context
-                //         Console.WriteLine(/*<bind>*/$"String {x1} and constant {Class}"/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 47),
-                // CS0119: 'Class' is a type, which is not valid in the given context
-                //         Console.WriteLine(/*<bind>*/$"String {x1} and constant {Class}"/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Class").WithArguments("Class", "type").WithLocation(8, 65)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0103: The name 'x1' does not exist in the current context
+            //         Console.WriteLine(/*<bind>*/$"String {x1} and constant {Class}"/*</bind>*/);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(8, 47),
+            // CS0119: 'Class' is a type, which is not valid in the given context
+            //         Console.WriteLine(/*<bind>*/$"String {x1} and constant {Class}"/*</bind>*/);
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "Class").WithArguments("Class", "type").WithLocation(8, 65)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(GetSource(source, hasDefaultHandler), expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_Empty_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_Empty_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -481,7 +481,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -502,17 +502,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_OnlyTextPart_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_OnlyTextPart_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -523,7 +523,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -547,17 +547,17 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_OnlyInterpolationPart_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_OnlyInterpolationPart_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -568,7 +568,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -631,17 +631,17 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_MultipleInterpolationParts_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_MultipleInterpolationParts_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -652,7 +652,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -722,17 +722,17 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_TextAndInterpolationParts_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_TextAndInterpolationParts_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -743,7 +743,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -842,17 +842,17 @@ Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_FormatAndAlignment_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_FormatAndAlignment_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -863,7 +863,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -926,17 +926,17 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_FormatAndAlignment_Flow_02(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_FormatAndAlignment_Flow_02(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -947,7 +947,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1025,17 +1025,17 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_FormatAndAlignment_Flow_03(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_FormatAndAlignment_Flow_03(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -1046,7 +1046,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1139,17 +1139,17 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_NestedInterpolation_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_NestedInterpolation_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -1160,7 +1160,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1253,17 +1253,17 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -1274,7 +1274,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1341,21 +1341,21 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
-                //         p = $"{d,(a ? b : c)}";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(a ? b : c)").WithLocation(8, 18)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(8,18): error CS0150: A constant value is expected
+            //         p = $"{d,(a ? b : c)}";
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "(a ? b : c)").WithLocation(8, 18)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Theory]
-        [CombinatorialData]
-        public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow_02(bool hasDefaultHandler)
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Theory]
+    [CombinatorialData]
+    public void InterpolatedStringExpression_ConditionalCodeInAlignment_Flow_02(bool hasDefaultHandler)
+    {
+        string source = @"
 using System;
 
 internal class Class
@@ -1366,7 +1366,7 @@ internal class Class
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1437,28 +1437,28 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         p = $"{c2,(a ? b : c):D3}";
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("string", "int").WithLocation(8, 20)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(8,20): error CS0029: Cannot implicitly convert type 'string' to 'int'
+            //         p = $"{c2,(a ? b : c):D3}";
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "a ? b : c").WithArguments("string", "int").WithLocation(8, 20)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(GetSource(source, hasDefaultHandler), expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_01()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_01()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i,1:test}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i,1:test}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i,1:test}""')
@@ -1512,22 +1512,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_02()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_02()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i,1}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i,1}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i,1}""')
@@ -1581,22 +1581,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_03()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_03()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i:test}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i:test}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i:test}""')
@@ -1650,22 +1650,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_04()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_04()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i}""')
@@ -1719,13 +1719,13 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_05()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_05()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i}""/*</bind>*/;
@@ -1734,29 +1734,29 @@ CustomHandler /*<bind>*/c = $""literal{i}""/*</bind>*/;
 public struct CustomHandler {}
 ";
 
-            var expectedDiagnostics = new[]
-            {
-                // (4,29): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""literal{i}""").WithArguments("CustomHandler", "2").WithLocation(4, 29),
-                // (4,29): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""literal{i}""").WithArguments("CustomHandler", "3").WithLocation(4, 29),
-                // (4,31): error CS1061: 'CustomHandler' does not contain a definition for 'AppendLiteral' and no accessible extension method 'AppendLiteral' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "literal").WithArguments("CustomHandler", "AppendLiteral").WithLocation(4, 31),
-                // (4,31): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "literal").WithArguments("?.()").WithLocation(4, 31),
-                // (4,38): error CS1061: 'CustomHandler' does not contain a definition for 'AppendFormatted' and no accessible extension method 'AppendFormatted' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{i}").WithArguments("CustomHandler", "AppendFormatted").WithLocation(4, 38),
-                // (4,38): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
-                // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{i}").WithArguments("?.()").WithLocation(4, 38)
-            };
+        var expectedDiagnostics = new[]
+        {
+            // (4,29): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""literal{i}""").WithArguments("CustomHandler", "2").WithLocation(4, 29),
+            // (4,29): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""literal{i}""").WithArguments("CustomHandler", "3").WithLocation(4, 29),
+            // (4,31): error CS1061: 'CustomHandler' does not contain a definition for 'AppendLiteral' and no accessible extension method 'AppendLiteral' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "literal").WithArguments("CustomHandler", "AppendLiteral").WithLocation(4, 31),
+            // (4,31): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "literal").WithArguments("?.()").WithLocation(4, 31),
+            // (4,38): error CS1061: 'CustomHandler' does not contain a definition for 'AppendFormatted' and no accessible extension method 'AppendFormatted' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{i}").WithArguments("CustomHandler", "AppendFormatted").WithLocation(4, 38),
+            // (4,38): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
+            // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{i}").WithArguments("?.()").WithLocation(4, 38)
+        };
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c = $""literal{i}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= $""literal{i}""')
@@ -1787,13 +1787,13 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_06()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_06()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i,1:test}""/*</bind>*/;
@@ -1807,9 +1807,9 @@ public struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i,1:test}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i,1:test}""')
@@ -1872,13 +1872,13 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_07()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_07()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 CustomHandler /*<bind>*/c = $""{}""/*</bind>*/;
 
@@ -1891,13 +1891,13 @@ public struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = new[] {
-                // (3,32): error CS1733: Expected expression
-                // CustomHandler /*<bind>*/c = $"{}"/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 32)
-            };
+        var expectedDiagnostics = new[] {
+            // (3,32): error CS1733: Expected expression
+            // CustomHandler /*<bind>*/c = $"{}"/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 32)
+        };
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'c = $""{}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= $""{}""')
@@ -1927,22 +1927,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             Children(0)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_08()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_08()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i,1:test}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i,1:test}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i,1:test}""')
@@ -1996,22 +1996,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_09()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_09()
+    {
+        var code = @"
 int i = 0;
 CustomHandler /*<bind>*/c = $""literal{i,1:test}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c = $""literal{i,1:test}""')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= $""literal{i,1:test}""')
@@ -2069,13 +2069,13 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
                             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_10()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_10()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 C c = new C();
@@ -2094,9 +2094,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInvocationOperation ( void C.M(CustomHandler c)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'c.M($""liter ... 1:format}"")')
   Instance Receiver:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
@@ -2158,14 +2158,14 @@ IInvocationOperation ( void C.M(CustomHandler c)) (OperationKind.Invocation, Typ
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                                                 expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversion_11()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversion_11()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 C c = new C();
@@ -2185,9 +2185,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInvocationOperation ( void C.M(System.Boolean b, CustomHandler c)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'c.M(true, $ ... 1:format}"")')
   Instance Receiver:
     ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
@@ -2257,14 +2257,14 @@ IInvocationOperation ( void C.M(System.Boolean b, CustomHandler c)) (OperationKi
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                                                 expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_01()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_01()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2277,11 +2277,11 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: false);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2352,13 +2352,13 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_02()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_02()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2371,11 +2371,11 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: false);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2455,13 +2455,13 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_03()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_03()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2474,11 +2474,11 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: true);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2574,13 +2574,13 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_04()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_04()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2593,11 +2593,11 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2698,13 +2698,13 @@ Block[B6] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_05()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_05()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2717,12 +2717,12 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: false);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            // Note that the blocks for the blocks for the AppendLiteral and the result have been merged in this result, even though the AppendLiteral call returns bool.
-            string expectedFlowGraph = @"
+        // Note that the blocks for the blocks for the AppendLiteral and the result have been merged in this result, even though the AppendLiteral call returns bool.
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2773,13 +2773,13 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_06()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_06()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2792,12 +2792,12 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true, includeTrailingOutConstructorParameter: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            // Note that the blocks for the blocks for the AppendLiteral and the result have been merged in this result, even though the AppendLiteral call returns bool.
-            string expectedFlowGraph = @"
+        // Note that the blocks for the blocks for the AppendLiteral and the result have been merged in this result, even though the AppendLiteral call returns bool.
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2873,13 +2873,13 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_07()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_07()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -2902,9 +2902,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3018,14 +3018,14 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_08()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_08()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3048,9 +3048,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3160,14 +3160,14 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_09()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_09()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3190,9 +3190,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3302,14 +3302,14 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_10()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_10()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3332,9 +3332,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3452,14 +3452,14 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_11()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_11()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3487,9 +3487,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3689,14 +3689,14 @@ Block[B8] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_12()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_12()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3719,13 +3719,13 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (11,43): error CS8950: Parameter 'b' is an argument to the interpolated string handler conversion on parameter 'c', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move 'b' before 'c'.
-                //         c.M(c: $"literal{c,1:format}", b: true);
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString, "true").WithArguments("b", "c").WithLocation(11, 43)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (11,43): error CS8950: Parameter 'b' is an argument to the interpolated string handler conversion on parameter 'c', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move 'b' before 'c'.
+            //         c.M(c: $"literal{c,1:format}", b: true);
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString, "true").WithArguments("b", "c").WithLocation(11, 43)
+        };
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3838,14 +3838,14 @@ Block[B5] - Exit
 
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_13()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_13()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -3896,13 +3896,13 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = new[] {
-                // (11,36): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
-                //         _ = new C1 { C2 = { [true, $"literal"] = { A = 1, B = 2 } } };
-                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""literal""").WithLocation(11, 36)
-            };
+        var expectedDiagnostics = new[] {
+            // (11,36): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+            //         _ = new C1 { C2 = { [true, $"literal"] = { A = 1, B = 2 } } };
+            Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, @"$""literal""").WithLocation(11, 36)
+        };
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -4022,14 +4022,14 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_14()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_14()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4052,9 +4052,9 @@ public partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -4165,14 +4165,14 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_15()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_15()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4187,16 +4187,16 @@ public class C
 }
 ";
 
-            var expectedDiagnostics = new[] {
-                // (7,23): error CS8944: 'C.C(bool, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
-                //     public C(bool b, [InterpolatedStringHandlerArgument("", "b")]CustomHandler c1) {}
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""", ""b"")").WithArguments("C.C(bool, CustomHandler)").WithLocation(7, 23),
-                // (11,25): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c1' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
-                //         _ = new C(true, $"literal{c,1:format}");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""literal{c,1:format}""").WithArguments("CustomHandler c1", "CustomHandler").WithLocation(11, 25)
-            };
+        var expectedDiagnostics = new[] {
+            // (7,23): error CS8944: 'C.C(bool, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+            //     public C(bool b, [InterpolatedStringHandlerArgument("", "b")]CustomHandler c1) {}
+            Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""", ""b"")").WithArguments("C.C(bool, CustomHandler)").WithLocation(7, 23),
+            // (11,25): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler c1' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+            //         _ = new C(true, $"literal{c,1:format}");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""literal{c,1:format}""").WithArguments("CustomHandler c1", "CustomHandler").WithLocation(11, 25)
+        };
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -4278,14 +4278,14 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
-                                                              expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false), InterpolatedStringHandlerArgumentAttribute },
+                                                          expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerConversionFlow_16()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerConversionFlow_16()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -4298,11 +4298,11 @@ public class C
 }
 ";
 
-            string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: true);
+        string handlerType = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeTrailingOutConstructorParameter: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -4366,13 +4366,13 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handlerType }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void DynamicConstruction_01()
-        {
-            var code = @"
+    [Fact]
+    public void DynamicConstruction_01()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 dynamic d = 1;
@@ -4402,9 +4402,9 @@ public struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInvocationOperation (void M(CustomHandler c)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M($""literal ... 1:format}"")')
   Instance Receiver:
     null
@@ -4461,13 +4461,13 @@ IInvocationOperation (void M(CustomHandler c)) (OperationKind.Invocation, Type: 
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void DynamicConstruction_02()
-        {
-            var code = @"
+    [Fact]
+    public void DynamicConstruction_02()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 dynamic d = 1;
 /*<bind>*/M(d, $""{1}literal"")/*</bind>*/;
@@ -4481,15 +4481,15 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = new[] {
-                // (4,16): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
-                // M(d, /*<bind>*/$"{1}literal"/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(4, 16)
-            };
+        var expectedDiagnostics = new[] {
+            // (4,16): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+            // M(d, /*<bind>*/$"{1}literal"/*</bind>*/);
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(4, 16)
+        };
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInvocationOperation (void M(dynamic d, CustomHandler c)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M(d, $""{1}literal"")')
   Instance Receiver:
     null
@@ -4551,13 +4551,13 @@ IInvocationOperation (void M(dynamic d, CustomHandler c)) (OperationKind.Invocat
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void DynamicConstruction_Flow()
-        {
-            var code = @"
+    [Fact]
+    public void DynamicConstruction_Flow()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -4579,15 +4579,15 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (9,15): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
-                //         M1(d, $"{1}literal");
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(9, 15)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (9,15): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+            //         M1(d, $"{1}literal");
+            Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(9, 15)
+        };
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -4695,19 +4695,19 @@ Block[B3] - Exit
 
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void InterpolationEscapeConstantValue_WithDefaultHandler()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void InterpolationEscapeConstantValue_WithDefaultHandler()
+    {
+        var code = @"
 int i = 1;
 System.Console.WriteLine(/*<bind>*/$""{{ {i} }}""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{{ {i} }}""')
   Parts(3):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{ ')
@@ -4725,21 +4725,21 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void InterpolationEscapeConstantValue_WithoutDefaultHandler1()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void InterpolationEscapeConstantValue_WithoutDefaultHandler1()
+    {
+        var code = @"
 int i = 1;
 System.Console.WriteLine(/*<bind>*/$""{{ {i} }}""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            // The difference between this test and the previous one is the constant value of the ILiteralOperations. When handlers are involved, the
-            // constant value is { and }. When they are not involved, the constant values are {{ and }}
-            string expectedOperationTree = @"
+        // The difference between this test and the previous one is the constant value of the ILiteralOperations. When handlers are involved, the
+        // constant value is { and }. When they are not involved, the constant values are {{ and }}
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{{ {i} }}""')
   Parts(3):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{ ')
@@ -4757,19 +4757,19 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler1()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler1()
+    {
+        var code = @"
 int i = 1;
 System.Console.WriteLine(/*<bind>*/$$""""""{{i}}""""""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$$""""""{{i}}""""""')
   Parts(1):
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{{i}}')
@@ -4780,67 +4780,67 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString:
           null";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler2()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler2()
+    {
+        var code = @"
 System.Console.WriteLine(/*<bind>*/$$$""""""{{i}}""""""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{i}}"") (Syntax: '$$$""""""{{i}}""""""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{i}}')
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler3()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler3()
+    {
+        var code = @"
 System.Console.WriteLine(/*<bind>*/$$$$""""""{{i}}""""""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{i}}"") (Syntax: '$$$$""""""{{i}}""""""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{i}}')
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler4()
-        {
-            var code = @"
+    [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+    public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler4()
+    {
+        var code = @"
 System.Console.WriteLine(/*<bind>*/$$$$""""""{{{i}}}""""""/*</bind>*/);";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{{i}}}"") (Syntax: '$$$$""""""{{{i}}}""""""')
   Parts(1):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{{i}}}')
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{{i}}}"", IsImplicit) (Syntax: '{{{i}}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringsAddedUnderObjectAddition_DefiniteAssignment()
+    {
+        var code = @"
 #pragma warning disable CS0219 // Unused local
 object o1;
 object o2;
@@ -4848,11 +4848,11 @@ object o3;
 _ = /*<bind>*/$""{o1 = null}"" + $""{o2 = null}"" + $""{o3 = null}"" + 1/*</bind>*/;
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) });
+        var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) });
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{o1 = nul ...  null}"" + 1')
   Left:
     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{o1 = nul ... o3 = null}""')
@@ -4917,14 +4917,14 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
 
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
-                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
+                                                                         expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void ParenthesizedInterpolatedStringsAdded()
-        {
-            var code = @"
+    [Fact]
+    public void ParenthesizedInterpolatedStringsAdded()
+    {
+        var code = @"
 int i1 = 1;
 int i2 = 2;
 int i3 = 3;
@@ -4935,8 +4935,8 @@ int i6 = 6;
 string s = /*<bind>*/(($""{i1,1:d}"" + $""{i2,2:f}"") + $""{i3,3:g}"") + ($""{i4,4:h}"" + ($""{i5,5:i}"" + $""{i6,6:j}""))/*</bind>*/;
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedOperationTree = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1,1:d ... {i6,6:j}""))')
   Left:
     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1,1:d} ... $""{i3,3:g}""')
@@ -5008,14 +5008,14 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.St
                       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""j"") (Syntax: ':j')
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
-                                                                             expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: true) },
+                                                                         expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void ParenthesizedInterpolatedStringsAdded_CustomHandler()
-        {
-            var code = @"
+    [Fact]
+    public void ParenthesizedInterpolatedStringsAdded_CustomHandler()
+    {
+        var code = @"
 int i1 = 1;
 int i2 = 2;
 int i3 = 3;
@@ -5026,10 +5026,10 @@ int i6 = 6;
 CustomHandler /*<bind>*/s = (($""{i1,1:d}"" + $""{i2,2:f}"") + $""{i3,3:g}"") + ($""{i4,4:h}"" + ($""{i5,5:i}"" + $""{i6,6:j}""))/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedOperationTree = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedOperationTree = @"
 IVariableDeclaratorOperation (Symbol: CustomHandler s) (OperationKind.VariableDeclarator, Type: null) (Syntax: 's = (($""{i1 ... {i6,6:j}""))')
   Initializer:
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (($""{i1,1 ... {i6,6:j}""))')
@@ -5203,22 +5203,22 @@ IVariableDeclaratorOperation (Symbol: CustomHandler s) (OperationKind.VariableDe
                                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void ExplicitCastToCustomHandler()
-        {
-            var code = @"
+    [Fact]
+    public void ExplicitCastToCustomHandler()
+    {
+        var code = @"
 int i1 = 1;
 
 CustomHandler s = /*<bind>*/(CustomHandler)$""{i1,1:d}""/*</bind>*/;
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedOperationTree = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedOperationTree = @"
 IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False, HandlerCreationHasSuccessParameter: False) (OperationKind.InterpolatedStringHandlerCreation, Type: CustomHandler) (Syntax: '(CustomHand ... $""{i1,1:d}""')
   Creation:
     IObjectCreationOperation (Constructor: CustomHandler..ctor(System.Int32 literalLength, System.Int32 formattedCount)) (OperationKind.ObjectCreation, Type: CustomHandler, IsImplicit) (Syntax: '$""{i1,1:d}""')
@@ -5259,13 +5259,13 @@ IInterpolatedStringHandlerCreationOperation (HandlerAppendCallsReturnBool: False
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(new[] { code, handler }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void HandlerInAppendFormatCall()
-        {
-            var code = @"
+    [Fact]
+    public void HandlerInAppendFormatCall()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5306,11 +5306,11 @@ public partial class CustomHandler
     }
 }
 ";
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            var expectedFlowGraph = @"
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -5432,13 +5432,13 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void InvalidConstructor()
-        {
-            var code = @"
+    [Fact]
+    public void InvalidConstructor()
+    {
+        var code = @"
 using System.Runtime.CompilerServices;
 
 public class C
@@ -5457,15 +5457,15 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = new[] {
-                // (8,16): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                //         C.M(in i, $"literal{1}");
-                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(8, 16)
-            };
+        var expectedDiagnostics = new[] {
+            // (8,16): error CS1620: Argument 3 must be passed with the 'ref' keyword
+            //         C.M(in i, $"literal{1}");
+            Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(8, 16)
+        };
 
-            var expectedFlowGraph = @"
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -5536,13 +5536,13 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void HandlerConstructorWithDefaultArgument()
-        {
-            var code = @"
+    [Fact]
+    public void HandlerConstructorWithDefaultArgument()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5566,8 +5566,8 @@ partial struct CustomHandler
 }
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -5642,13 +5642,13 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void InterpolatedStringHandlerArgumentsAttribute_ConversionFromArgumentType()
-        {
-            var code = @"
+    [Fact]
+    public void InterpolatedStringHandlerArgumentsAttribute_ConversionFromArgumentType()
+    {
+        var code = @"
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -5677,10 +5677,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -5779,13 +5779,13 @@ Block[B4] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
 
-        [Fact]
-        public void DiscardsUsedAsParameters()
-        {
-            var code = @"
+    [Fact]
+    public void DiscardsUsedAsParameters()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5811,10 +5811,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -5892,13 +5892,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void OutVariableDeclarationAsParameter_01()
-        {
-            var code = @"
+    [Fact]
+    public void OutVariableDeclarationAsParameter_01()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -5924,10 +5924,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -6009,13 +6009,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void OutVariableDeclarationAsParameter_02()
-        {
-            var code = @"
+    [Fact]
+    public void OutVariableDeclarationAsParameter_02()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -6041,10 +6041,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -6166,13 +6166,13 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void OutVariableDeclarationAsParameter_03()
-        {
-            var code = @"
+    [Fact]
+    public void OutVariableDeclarationAsParameter_03()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -6198,10 +6198,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -6301,13 +6301,13 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void OutVariableDeclarationAsParameter_04()
-        {
-            var code = @"
+    [Fact]
+    public void OutVariableDeclarationAsParameter_04()
+    {
+        var code = @"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -6333,10 +6333,10 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var expectedDiagnostics = DiagnosticDescription.None;
-            var expectedFlowGraph = @"
+        var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -6452,7 +6452,6 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedFlowGraph, expectedDiagnostics);
     }
 }

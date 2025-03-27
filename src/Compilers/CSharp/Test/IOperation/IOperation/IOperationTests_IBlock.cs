@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IOperationTests_IBlock : SemanticModelTestBase
-    {
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_01()
-        {
-            var source = @"
+public class IOperationTests_IBlock : SemanticModelTestBase
+{
+
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_01()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -32,11 +32,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -64,14 +64,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_02()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_02()
+    {
+        var source = @"
 #pragma warning disable CS0168
 
 class C
@@ -82,11 +82,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -94,14 +94,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_03()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_03()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -117,11 +117,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -167,14 +167,14 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_04()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_04()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -190,11 +190,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -230,14 +230,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_05()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_05()
+    {
+        var source = @"
 #pragma warning disable CS0168
 
 class C
@@ -251,11 +251,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -263,14 +263,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_06()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_06()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -288,11 +288,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -338,14 +338,14 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_07()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_07()
+    {
+        var source = @"
 #pragma warning disable CS0168
 
 class C
@@ -361,11 +361,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -373,14 +373,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_08()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_08()
+    {
+        var source = @"
 #pragma warning disable CS0168
 
 class C
@@ -409,11 +409,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -421,14 +421,14 @@ Block[B1] - Exit
     Predecessors: [B0]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_09()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_09()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -454,11 +454,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -510,14 +510,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_10()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_10()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -535,11 +535,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -593,14 +593,14 @@ Block[B3] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_11()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_11()
+    {
+        var source = @"
 #pragma warning disable CS0219
 
 class C
@@ -613,11 +613,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -653,14 +653,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_12()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_12()
+    {
+        var source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class C
@@ -682,11 +682,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -770,14 +770,14 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void BlockFlow_13()
-        {
-            var source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void BlockFlow_13()
+    {
+        var source = @"
 #pragma warning disable CS0168
 #pragma warning disable CS0219
 class C
@@ -801,11 +801,11 @@ class C
     }/*</bind>*/
 }";
 
-            var compilation = CreateCompilation(source);
+        var compilation = CreateCompilation(source);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            string expectedGraph = @"
+        string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -893,7 +893,6 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
-        }
+        VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
     }
 }

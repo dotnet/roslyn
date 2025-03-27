@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Represents the possible compilation stages for which it is possible to get diagnostics
+/// (errors).
+/// </summary>
+internal enum CompilationStage
 {
-    /// <summary>
-    /// Represents the possible compilation stages for which it is possible to get diagnostics
-    /// (errors).
-    /// </summary>
-    internal enum CompilationStage
-    {
-        Parse,
-        Declare,
-        Compile,
-    }
+    Parse,
+    Declare,
+    Compile,
 }

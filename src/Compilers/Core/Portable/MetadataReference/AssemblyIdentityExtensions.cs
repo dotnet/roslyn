@@ -7,24 +7,23 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal static class AssemblyIdentityExtensions
 {
-    internal static class AssemblyIdentityExtensions
+    // Windows.*[.winmd]
+    internal static bool IsWindowsComponent(this AssemblyIdentity identity)
     {
-        // Windows.*[.winmd]
-        internal static bool IsWindowsComponent(this AssemblyIdentity identity)
-        {
-            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
-                identity.Name.StartsWith("windows.", StringComparison.OrdinalIgnoreCase);
-        }
+        return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
+            identity.Name.StartsWith("windows.", StringComparison.OrdinalIgnoreCase);
+    }
 
-        internal const string WindowsRuntimeIdentitySimpleName = "windows";
+    internal const string WindowsRuntimeIdentitySimpleName = "windows";
 
-        // Windows[.winmd]
-        internal static bool IsWindowsRuntime(this AssemblyIdentity identity)
-        {
-            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
-                string.Equals(identity.Name, WindowsRuntimeIdentitySimpleName, StringComparison.OrdinalIgnoreCase);
-        }
+    // Windows[.winmd]
+    internal static bool IsWindowsRuntime(this AssemblyIdentity identity)
+    {
+        return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
+            string.Equals(identity.Name, WindowsRuntimeIdentitySimpleName, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -8,38 +8,37 @@ using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+internal partial class EditAndContinueTest<TSelf> : IDisposable
 {
-    internal partial class EditAndContinueTest<TSelf> : IDisposable
+    internal sealed class GenerationInfo
     {
-        internal sealed class GenerationInfo
+        public readonly Compilation Compilation;
+        public readonly MetadataReader MetadataReader;
+        public readonly EmitBaseline Baseline;
+        public readonly Action<GenerationVerifier> Verifier;
+
+        /// <summary>
+        /// Only available for baseline generation.
+        /// </summary>
+        public readonly CompilationVerifier? CompilationVerifier;
+
+        /// <summary>
+        /// Not available for baseline generation.
+        /// </summary>
+        public readonly CompilationDifference? CompilationDifference;
+
+        public GenerationInfo(Compilation compilation, MetadataReader reader, CompilationDifference? diff, CompilationVerifier? compilationVerifier, EmitBaseline baseline, Action<GenerationVerifier> verifier)
         {
-            public readonly Compilation Compilation;
-            public readonly MetadataReader MetadataReader;
-            public readonly EmitBaseline Baseline;
-            public readonly Action<GenerationVerifier> Verifier;
+            Debug.Assert(diff is null ^ compilationVerifier is null);
 
-            /// <summary>
-            /// Only available for baseline generation.
-            /// </summary>
-            public readonly CompilationVerifier? CompilationVerifier;
-
-            /// <summary>
-            /// Not available for baseline generation.
-            /// </summary>
-            public readonly CompilationDifference? CompilationDifference;
-
-            public GenerationInfo(Compilation compilation, MetadataReader reader, CompilationDifference? diff, CompilationVerifier? compilationVerifier, EmitBaseline baseline, Action<GenerationVerifier> verifier)
-            {
-                Debug.Assert(diff is null ^ compilationVerifier is null);
-
-                Compilation = compilation;
-                MetadataReader = reader;
-                Baseline = baseline;
-                Verifier = verifier;
-                CompilationDifference = diff;
-                CompilationVerifier = compilationVerifier;
-            }
+            Compilation = compilation;
+            MetadataReader = reader;
+            Baseline = baseline;
+            Verifier = verifier;
+            CompilationDifference = diff;
+            CompilationVerifier = compilationVerifier;
         }
     }
 }

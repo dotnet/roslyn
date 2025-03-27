@@ -4,22 +4,21 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Test.Utilities
-{
-    internal static class OperationTestExtensions
-    {
-        public static bool MustHaveNullType(this IOperation operation)
-        {
-            switch (operation.Kind)
-            {
-                // TODO: Expand to cover all operations that must always have null type.
-                case OperationKind.ArrayInitializer:
-                case OperationKind.Argument:
-                    return true;
+namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-                default:
-                    return false;
-            }
+internal static class OperationTestExtensions
+{
+    public static bool MustHaveNullType(this IOperation operation)
+    {
+        switch (operation.Kind)
+        {
+            // TODO: Expand to cover all operations that must always have null type.
+            case OperationKind.ArrayInitializer:
+            case OperationKind.Argument:
+                return true;
+
+            default:
+                return false;
         }
     }
 }

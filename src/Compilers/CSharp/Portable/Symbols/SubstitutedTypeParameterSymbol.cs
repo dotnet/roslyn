@@ -12,176 +12,175 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal class SubstitutedTypeParameterSymbol : WrappedTypeParameterSymbol
 {
-    internal class SubstitutedTypeParameterSymbol : WrappedTypeParameterSymbol
+    private readonly Symbol _container;
+    private readonly TypeMap _map;
+    private readonly int _ordinal;
+
+#if DEBUG_ALPHA
+    private static int _nextSequence = 1;
+    private readonly int _mySequence;
+#endif
+
+    internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
+        : base(substitutedFrom)
     {
-        private readonly Symbol _container;
-        private readonly TypeMap _map;
-        private readonly int _ordinal;
-
+        _container = newContainer;
+        // it is important that we don't use the map here in the constructor, as the map is still being filled
+        // in by TypeMap.WithAlphaRename.  Instead, we can use the map lazily when yielding the constraints.
+        _map = map;
+        _ordinal = ordinal;
 #if DEBUG_ALPHA
-        private static int _nextSequence = 1;
-        private readonly int _mySequence;
+        _mySequence = _nextSequence++;
 #endif
+    }
 
-        internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom, int ordinal)
-            : base(substitutedFrom)
+    public override Symbol ContainingSymbol
+    {
+        get
         {
-            _container = newContainer;
-            // it is important that we don't use the map here in the constructor, as the map is still being filled
-            // in by TypeMap.WithAlphaRename.  Instead, we can use the map lazily when yielding the constraints.
-            _map = map;
-            _ordinal = ordinal;
-#if DEBUG_ALPHA
-            _mySequence = _nextSequence++;
-#endif
+            return _container;
         }
+    }
 
-        public override Symbol ContainingSymbol
+    public override TypeParameterSymbol OriginalDefinition
+    {
+        get
         {
-            get
-            {
-                return _container;
-            }
+            // A substituted type parameter symbol is used as a type parameter of a frame type for lambda-captured
+            // variables within a generic method.  In that case the frame's own type parameter is an original.
+            return
+                ContainingSymbol.OriginalDefinition != _underlyingTypeParameter.ContainingSymbol.OriginalDefinition ? this :
+                _underlyingTypeParameter.OriginalDefinition;
         }
+    }
 
-        public override TypeParameterSymbol OriginalDefinition
+    public override TypeParameterSymbol ReducedFrom
+    {
+        get
         {
-            get
+            if (_container.Kind == SymbolKind.Method)
             {
-                // A substituted type parameter symbol is used as a type parameter of a frame type for lambda-captured
-                // variables within a generic method.  In that case the frame's own type parameter is an original.
-                return
-                    ContainingSymbol.OriginalDefinition != _underlyingTypeParameter.ContainingSymbol.OriginalDefinition ? this :
-                    _underlyingTypeParameter.OriginalDefinition;
-            }
-        }
+                MethodSymbol reducedFrom = ((MethodSymbol)_container).ReducedFrom;
 
-        public override TypeParameterSymbol ReducedFrom
-        {
-            get
-            {
-                if (_container.Kind == SymbolKind.Method)
+                if ((object)reducedFrom != null)
                 {
-                    MethodSymbol reducedFrom = ((MethodSymbol)_container).ReducedFrom;
+                    return reducedFrom.TypeParameters[this.Ordinal];
+                }
+            }
 
-                    if ((object)reducedFrom != null)
+            return null;
+        }
+    }
+
+    public override int Ordinal
+    {
+        get
+        {
+            return _ordinal;
+        }
+    }
+
+    public override string Name
+    {
+        get
+        {
+            return base.Name
+#if DEBUG_ALPHA
+                + "#" + _mySequence
+#endif
+                ;
+        }
+    }
+
+    internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+    {
+        var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+        _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
+
+        TypeWithAnnotations bestObjectConstraint = default;
+
+        // Strip all Object constraints.
+        for (int i = constraintTypes.Count - 1; i >= 0; i--)
+        {
+            TypeWithAnnotations type = constraintTypes[i];
+            if (ConstraintsHelper.IsObjectConstraint(type, ref bestObjectConstraint))
+            {
+                constraintTypes.RemoveAt(i);
+            }
+        }
+
+        if (bestObjectConstraint.HasType)
+        {
+            // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
+            if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
+            {
+                Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
+                if (constraintTypes.Count == 0)
+                {
+                    if (bestObjectConstraint.NullableAnnotation.IsOblivious() && !HasReferenceTypeConstraint)
                     {
-                        return reducedFrom.TypeParameters[this.Ordinal];
+                        bestObjectConstraint = default;
                     }
                 }
-
-                return null;
-            }
-        }
-
-        public override int Ordinal
-        {
-            get
-            {
-                return _ordinal;
-            }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return base.Name
-#if DEBUG_ALPHA
-                    + "#" + _mySequence
-#endif
-                    ;
-            }
-        }
-
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
-        {
-            var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
-
-            TypeWithAnnotations bestObjectConstraint = default;
-
-            // Strip all Object constraints.
-            for (int i = constraintTypes.Count - 1; i >= 0; i--)
-            {
-                TypeWithAnnotations type = constraintTypes[i];
-                if (ConstraintsHelper.IsObjectConstraint(type, ref bestObjectConstraint))
+                else
                 {
-                    constraintTypes.RemoveAt(i);
-                }
-            }
-
-            if (bestObjectConstraint.HasType)
-            {
-                // See if we need to put Object! or Object~ back in order to preserve nullability information for the type parameter.
-                if (ConstraintsHelper.IsObjectConstraintSignificant(CalculateIsNotNullableFromNonTypeConstraints(), bestObjectConstraint))
-                {
-                    Debug.Assert(!HasNotNullConstraint && !HasValueTypeConstraint);
-                    if (constraintTypes.Count == 0)
+                    foreach (TypeWithAnnotations constraintType in constraintTypes)
                     {
-                        if (bestObjectConstraint.NullableAnnotation.IsOblivious() && !HasReferenceTypeConstraint)
+                        if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, out _), bestObjectConstraint))
                         {
                             bestObjectConstraint = default;
+                            break;
                         }
                     }
-                    else
-                    {
-                        foreach (TypeWithAnnotations constraintType in constraintTypes)
-                        {
-                            if (!ConstraintsHelper.IsObjectConstraintSignificant(IsNotNullableFromConstraintType(constraintType, out _), bestObjectConstraint))
-                            {
-                                bestObjectConstraint = default;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (bestObjectConstraint.HasType)
-                    {
-                        constraintTypes.Insert(0, bestObjectConstraint);
-                    }
                 }
-            }
 
-            return constraintTypes.ToImmutableAndFree();
-        }
-
-        internal override bool? IsNotNullable
-        {
-            get
-            {
-                if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+                if (bestObjectConstraint.HasType)
                 {
-                    return _underlyingTypeParameter.IsNotNullable;
+                    constraintTypes.Insert(0, bestObjectConstraint);
                 }
-                else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
-                {
-                    var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
-                    return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
-                }
-
-                return CalculateIsNotNullable();
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return _map.SubstituteNamedTypes(_underlyingTypeParameter.GetInterfaces(inProgress));
-        }
-
-        internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return _map.SubstituteNamedType(_underlyingTypeParameter.GetEffectiveBaseClass(inProgress));
-        }
-
-        internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
-        }
-
-        internal override CSharpCompilation DeclaringCompilation => ContainingSymbol.DeclaringCompilation;
+        return constraintTypes.ToImmutableAndFree();
     }
+
+    internal override bool? IsNotNullable
+    {
+        get
+        {
+            if (_underlyingTypeParameter.ConstraintTypesNoUseSiteDiagnostics.IsEmpty)
+            {
+                return _underlyingTypeParameter.IsNotNullable;
+            }
+            else if (!HasNotNullConstraint && !HasValueTypeConstraint && !HasReferenceTypeConstraint)
+            {
+                var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+                _map.SubstituteConstraintTypesDistinctWithoutModifiers(_underlyingTypeParameter, _underlyingTypeParameter.GetConstraintTypes(ConsList<TypeParameterSymbol>.Empty), constraintTypes, null);
+                return IsNotNullableFromConstraintTypes(constraintTypes.ToImmutableAndFree());
+            }
+
+            return CalculateIsNotNullable();
+        }
+    }
+
+    internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return _map.SubstituteNamedTypes(_underlyingTypeParameter.GetInterfaces(inProgress));
+    }
+
+    internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return _map.SubstituteNamedType(_underlyingTypeParameter.GetEffectiveBaseClass(inProgress));
+    }
+
+    internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return _map.SubstituteType(_underlyingTypeParameter.GetDeducedBaseType(inProgress)).AsTypeSymbolOnly();
+    }
+
+    internal override CSharpCompilation DeclaringCompilation => ContainingSymbol.DeclaringCompilation;
 }

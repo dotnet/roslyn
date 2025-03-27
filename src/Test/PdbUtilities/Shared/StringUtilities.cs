@@ -7,42 +7,41 @@
 using System.Globalization;
 using System.Text;
 
-namespace Roslyn.Test
+namespace Roslyn.Test;
+
+internal static class StringUtilities
 {
-    internal static class StringUtilities
+    internal static string EscapeNonPrintableCharacters(string str)
     {
-        internal static string EscapeNonPrintableCharacters(string str)
+        StringBuilder sb = new StringBuilder();
+
+        foreach (char c in str)
         {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (char c in str)
+            bool escape;
+            switch (CharUnicodeInfo.GetUnicodeCategory(c))
             {
-                bool escape;
-                switch (CharUnicodeInfo.GetUnicodeCategory(c))
-                {
-                    case UnicodeCategory.Control:
-                    case UnicodeCategory.OtherNotAssigned:
-                    case UnicodeCategory.ParagraphSeparator:
-                    case UnicodeCategory.Surrogate:
-                        escape = true;
-                        break;
+                case UnicodeCategory.Control:
+                case UnicodeCategory.OtherNotAssigned:
+                case UnicodeCategory.ParagraphSeparator:
+                case UnicodeCategory.Surrogate:
+                    escape = true;
+                    break;
 
-                    default:
-                        escape = c >= 0xFFFC;
-                        break;
-                }
-
-                if (escape)
-                {
-                    sb.AppendFormat("\\u{0:X4}", (int)c);
-                }
-                else
-                {
-                    sb.Append(c);
-                }
+                default:
+                    escape = c >= 0xFFFC;
+                    break;
             }
 
-            return sb.ToString();
+            if (escape)
+            {
+                sb.AppendFormat("\\u{0:X4}", (int)c);
+            }
+            else
+            {
+                sb.Append(c);
+            }
         }
+
+        return sb.ToString();
     }
 }

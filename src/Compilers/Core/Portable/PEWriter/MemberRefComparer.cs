@@ -6,74 +6,73 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+internal sealed class MemberRefComparer : IEqualityComparer<ITypeMemberReference>
 {
-    internal sealed class MemberRefComparer : IEqualityComparer<ITypeMemberReference>
+    private readonly MetadataWriter _metadataWriter;
+
+    internal MemberRefComparer(MetadataWriter metadataWriter)
     {
-        private readonly MetadataWriter _metadataWriter;
+        _metadataWriter = metadataWriter;
+    }
 
-        internal MemberRefComparer(MetadataWriter metadataWriter)
+    public bool Equals(ITypeMemberReference? x, ITypeMemberReference? y)
+    {
+        if (x == y)
         {
-            _metadataWriter = metadataWriter;
+            return true;
         }
+        RoslynDebug.Assert(x is object && y is object);
 
-        public bool Equals(ITypeMemberReference? x, ITypeMemberReference? y)
+        if (x.GetContainingType(_metadataWriter.Context) != y.GetContainingType(_metadataWriter.Context))
         {
-            if (x == y)
-            {
-                return true;
-            }
-            RoslynDebug.Assert(x is object && y is object);
-
-            if (x.GetContainingType(_metadataWriter.Context) != y.GetContainingType(_metadataWriter.Context))
-            {
-                if (_metadataWriter.GetMemberReferenceParent(x) != _metadataWriter.GetMemberReferenceParent(y))
-                {
-                    return false;
-                }
-            }
-
-            if (x.Name != y.Name)
+            if (_metadataWriter.GetMemberReferenceParent(x) != _metadataWriter.GetMemberReferenceParent(y))
             {
                 return false;
             }
+        }
 
-            var xf = x as IFieldReference;
-            var yf = y as IFieldReference;
-            if (xf != null && yf != null)
-            {
-                return _metadataWriter.GetFieldSignatureIndex(xf) == _metadataWriter.GetFieldSignatureIndex(yf);
-            }
-
-            var xm = x as IMethodReference;
-            var ym = y as IMethodReference;
-            if (xm != null && ym != null)
-            {
-                return _metadataWriter.GetMethodSignatureHandle(xm) == _metadataWriter.GetMethodSignatureHandle(ym);
-            }
-
+        if (x.Name != y.Name)
+        {
             return false;
         }
 
-        public int GetHashCode(ITypeMemberReference memberRef)
+        var xf = x as IFieldReference;
+        var yf = y as IFieldReference;
+        if (xf != null && yf != null)
         {
-            int hash = Hash.Combine(memberRef.Name, _metadataWriter.GetMemberReferenceParent(memberRef).GetHashCode());
-
-            var fieldRef = memberRef as IFieldReference;
-            if (fieldRef != null)
-            {
-                hash = Hash.Combine(hash, _metadataWriter.GetFieldSignatureIndex(fieldRef).GetHashCode());
-            }
-            else
-            {
-                var methodRef = memberRef as IMethodReference;
-                if (methodRef != null)
-                {
-                    hash = Hash.Combine(hash, _metadataWriter.GetMethodSignatureHandle(methodRef).GetHashCode());
-                }
-            }
-
-            return hash;
+            return _metadataWriter.GetFieldSignatureIndex(xf) == _metadataWriter.GetFieldSignatureIndex(yf);
         }
+
+        var xm = x as IMethodReference;
+        var ym = y as IMethodReference;
+        if (xm != null && ym != null)
+        {
+            return _metadataWriter.GetMethodSignatureHandle(xm) == _metadataWriter.GetMethodSignatureHandle(ym);
+        }
+
+        return false;
+    }
+
+    public int GetHashCode(ITypeMemberReference memberRef)
+    {
+        int hash = Hash.Combine(memberRef.Name, _metadataWriter.GetMemberReferenceParent(memberRef).GetHashCode());
+
+        var fieldRef = memberRef as IFieldReference;
+        if (fieldRef != null)
+        {
+            hash = Hash.Combine(hash, _metadataWriter.GetFieldSignatureIndex(fieldRef).GetHashCode());
+        }
+        else
+        {
+            var methodRef = memberRef as IMethodReference;
+            if (methodRef != null)
+            {
+                hash = Hash.Combine(hash, _metadataWriter.GetMethodSignatureHandle(methodRef).GetHashCode());
+            }
+        }
+
+        return hash;
     }
 }

@@ -5,42 +5,41 @@
 using System;
 using System.ComponentModel;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Specifies the options for how locals are displayed in the description of a symbol.
+/// </summary>
+[Flags]
+public enum SymbolDisplayLocalOptions
 {
     /// <summary>
-    /// Specifies the options for how locals are displayed in the description of a symbol.
+    /// Shows only the name of the local.
+    /// For example, "x".
     /// </summary>
-    [Flags]
-    public enum SymbolDisplayLocalOptions
-    {
-        /// <summary>
-        /// Shows only the name of the local.
-        /// For example, "x".
-        /// </summary>
-        None = 0,
+    None = 0,
 
-        /// <summary>
-        /// Shows the type of the local in addition to its name.
-        /// For example, "int x" in C# or "x As Integer" in Visual Basic.
-        /// </summary>
-        IncludeType = 1 << 0,
+    /// <summary>
+    /// Shows the type of the local in addition to its name.
+    /// For example, "int x" in C# or "x As Integer" in Visual Basic.
+    /// </summary>
+    IncludeType = 1 << 0,
 
-        /// <summary>
-        /// Shows the constant value of the local, if there is one, in addition to its name.
-        /// For example "x = 1".
-        /// </summary>
-        IncludeConstantValue = 1 << 1,
+    /// <summary>
+    /// Shows the constant value of the local, if there is one, in addition to its name.
+    /// For example "x = 1".
+    /// </summary>
+    IncludeConstantValue = 1 << 1,
 
-        /// <summary>
-        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
-        /// Replaced by <see cref="IncludeModifiers"/>.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        IncludeRef = IncludeModifiers,
+    /// <summary>
+    /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
+    /// Replaced by <see cref="IncludeModifiers"/>.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    IncludeRef = IncludeModifiers,
 
-        /// <summary>
-        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
-        /// </summary>
-        IncludeModifiers = 1 << 2,
-    }
+    /// <summary>
+    /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
+    /// </summary>
+    IncludeModifiers = 1 << 2,
 }

@@ -6,33 +6,32 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
+
+internal sealed class RangeVariableSymbol : Symbol, IRangeVariableSymbol
 {
-    internal sealed class RangeVariableSymbol : Symbol, IRangeVariableSymbol
+    private readonly Symbols.RangeVariableSymbol _underlying;
+
+    public RangeVariableSymbol(Symbols.RangeVariableSymbol underlying)
     {
-        private readonly Symbols.RangeVariableSymbol _underlying;
+        Debug.Assert(underlying is object);
+        _underlying = underlying;
+    }
 
-        public RangeVariableSymbol(Symbols.RangeVariableSymbol underlying)
-        {
-            Debug.Assert(underlying is object);
-            _underlying = underlying;
-        }
+    internal override CSharp.Symbol UnderlyingSymbol => _underlying;
 
-        internal override CSharp.Symbol UnderlyingSymbol => _underlying;
+    protected override void Accept(SymbolVisitor visitor)
+    {
+        visitor.VisitRangeVariable(this);
+    }
 
-        protected override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitRangeVariable(this);
-        }
+    protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+    {
+        return visitor.VisitRangeVariable(this);
+    }
 
-        protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitRangeVariable(this);
-        }
-
-        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRangeVariable(this, argument);
-        }
+    protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+    {
+        return visitor.VisitRangeVariable(this, argument);
     }
 }

@@ -8,29 +8,28 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class EnsureInvariantCulture : IDisposable
 {
-    public class EnsureInvariantCulture : IDisposable
+    private readonly CultureInfo _threadCulture;
+    private readonly int _threadId;
+
+    public EnsureInvariantCulture()
     {
-        private readonly CultureInfo _threadCulture;
-        private readonly int _threadId;
+        _threadId = Environment.CurrentManagedThreadId;
+        _threadCulture = CultureInfo.CurrentCulture;
 
-        public EnsureInvariantCulture()
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+
+    public void Dispose()
+    {
+        Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
+
+        if (_threadId == Environment.CurrentManagedThreadId)
         {
-            _threadId = Environment.CurrentManagedThreadId;
-            _threadCulture = CultureInfo.CurrentCulture;
-
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        }
-
-        public void Dispose()
-        {
-            Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
-
-            if (_threadId == Environment.CurrentManagedThreadId)
-            {
-                CultureInfo.CurrentCulture = _threadCulture;
-            }
+            CultureInfo.CurrentCulture = _threadCulture;
         }
     }
 }

@@ -8,21 +8,20 @@ using System;
 using System.Globalization;
 using System.Threading;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Test.Utilities;
+
+public class CultureContext : IDisposable
 {
-    public class CultureContext : IDisposable
+    private readonly CultureInfo _threadCulture;
+
+    public CultureContext(CultureInfo cultureInfo)
     {
-        private readonly CultureInfo _threadCulture;
+        _threadCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = cultureInfo;
+    }
 
-        public CultureContext(CultureInfo cultureInfo)
-        {
-            _threadCulture = CultureInfo.CurrentCulture;
-            CultureInfo.CurrentCulture = cultureInfo;
-        }
-
-        public void Dispose()
-        {
-            CultureInfo.CurrentCulture = _threadCulture;
-        }
+    public void Dispose()
+    {
+        CultureInfo.CurrentCulture = _threadCulture;
     }
 }

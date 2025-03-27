@@ -8,17 +8,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace AnalyzerRunner
-{
-    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
-    internal sealed class AnalyzerRunnerWorkspaceConfigurationService : IWorkspaceConfigurationService
-    {
-        public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
+namespace AnalyzerRunner;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerRunnerWorkspaceConfigurationService()
-        {
-        }
+[ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
+internal sealed class AnalyzerRunnerWorkspaceConfigurationService : IWorkspaceConfigurationService
+{
+    public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AnalyzerRunnerWorkspaceConfigurationService()
+    {
     }
 }

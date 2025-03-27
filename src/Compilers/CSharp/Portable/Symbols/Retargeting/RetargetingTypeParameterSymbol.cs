@@ -15,103 +15,102 @@ using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Globalization;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+
+/// <summary>
+/// Represents a type parameter in a RetargetingModuleSymbol. Essentially this is a wrapper around 
+/// another TypeParameterSymbol that is responsible for retargeting symbols from one assembly to another. 
+/// It can retarget symbols for multiple assemblies at the same time.
+/// </summary>
+internal sealed class RetargetingTypeParameterSymbol
+    : WrappedTypeParameterSymbol
 {
     /// <summary>
-    /// Represents a type parameter in a RetargetingModuleSymbol. Essentially this is a wrapper around 
-    /// another TypeParameterSymbol that is responsible for retargeting symbols from one assembly to another. 
-    /// It can retarget symbols for multiple assemblies at the same time.
+    /// Owning RetargetingModuleSymbol.
     /// </summary>
-    internal sealed class RetargetingTypeParameterSymbol
-        : WrappedTypeParameterSymbol
+    private readonly RetargetingModuleSymbol _retargetingModule;
+
+    /// <summary>
+    /// Retargeted custom attributes
+    /// </summary>
+    private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+
+    public RetargetingTypeParameterSymbol(RetargetingModuleSymbol retargetingModule, TypeParameterSymbol underlyingTypeParameter)
+        : base(underlyingTypeParameter)
     {
-        /// <summary>
-        /// Owning RetargetingModuleSymbol.
-        /// </summary>
-        private readonly RetargetingModuleSymbol _retargetingModule;
+        Debug.Assert((object)retargetingModule != null);
+        Debug.Assert(!(underlyingTypeParameter is RetargetingTypeParameterSymbol));
 
-        /// <summary>
-        /// Retargeted custom attributes
-        /// </summary>
-        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+        _retargetingModule = retargetingModule;
+    }
 
-        public RetargetingTypeParameterSymbol(RetargetingModuleSymbol retargetingModule, TypeParameterSymbol underlyingTypeParameter)
-            : base(underlyingTypeParameter)
+    private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
+    {
+        get
         {
-            Debug.Assert((object)retargetingModule != null);
-            Debug.Assert(!(underlyingTypeParameter is RetargetingTypeParameterSymbol));
-
-            _retargetingModule = retargetingModule;
+            return _retargetingModule.RetargetingTranslator;
         }
+    }
 
-        private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
+    public override Symbol ContainingSymbol
+    {
+        get
         {
-            get
-            {
-                return _retargetingModule.RetargetingTranslator;
-            }
+            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.ContainingSymbol);
         }
+    }
 
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.ContainingSymbol);
-            }
-        }
+    public override ImmutableArray<CSharpAttributeData> GetAttributes()
+    {
+        return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingTypeParameter.GetAttributes(), ref _lazyCustomAttributes);
+    }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+    public override AssemblySymbol ContainingAssembly
+    {
+        get
         {
-            return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingTypeParameter.GetAttributes(), ref _lazyCustomAttributes);
+            return _retargetingModule.ContainingAssembly;
         }
+    }
 
-        public override AssemblySymbol ContainingAssembly
+    internal override ModuleSymbol ContainingModule
+    {
+        get
         {
-            get
-            {
-                return _retargetingModule.ContainingAssembly;
-            }
+            return _retargetingModule;
         }
+    }
 
-        internal override ModuleSymbol ContainingModule
-        {
-            get
-            {
-                return _retargetingModule;
-            }
-        }
+    internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress));
+    }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+    internal override bool? IsNotNullable
+    {
+        get
         {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetConstraintTypes(inProgress));
+            return _underlyingTypeParameter.IsNotNullable;
         }
+    }
 
-        internal override bool? IsNotNullable
-        {
-            get
-            {
-                return _underlyingTypeParameter.IsNotNullable;
-            }
-        }
+    internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetInterfaces(inProgress));
+    }
 
-        internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetInterfaces(inProgress));
-        }
+    internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetEffectiveBaseClass(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+    }
 
-        internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetEffectiveBaseClass(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-        }
+    internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
+    {
+        return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetDeducedBaseType(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+    }
 
-        internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
-        {
-            return this.RetargetingTranslator.Retarget(_underlyingTypeParameter.GetDeducedBaseType(inProgress), RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-        }
-
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
-        {
-            get { return null; }
-        }
+    internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+    {
+        get { return null; }
     }
 }

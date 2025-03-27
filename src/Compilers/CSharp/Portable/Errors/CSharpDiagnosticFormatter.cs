@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+public class CSharpDiagnosticFormatter : DiagnosticFormatter
 {
-    public class CSharpDiagnosticFormatter : DiagnosticFormatter
+    internal CSharpDiagnosticFormatter()
     {
-        internal CSharpDiagnosticFormatter()
-        {
-        }
+    }
 
-        public static new CSharpDiagnosticFormatter Instance { get; } = new CSharpDiagnosticFormatter();
+    public static new CSharpDiagnosticFormatter Instance { get; } = new CSharpDiagnosticFormatter();
 
-        internal override bool HasDefaultHelpLinkUri(Diagnostic diagnostic)
-        {
-            return diagnostic.Descriptor.HelpLinkUri == ErrorFacts.GetHelpLink((ErrorCode)diagnostic.Code);
-        }
+    internal override bool HasDefaultHelpLinkUri(Diagnostic diagnostic)
+    {
+        return diagnostic.Descriptor.HelpLinkUri == ErrorFacts.GetHelpLink((ErrorCode)diagnostic.Code);
     }
 }

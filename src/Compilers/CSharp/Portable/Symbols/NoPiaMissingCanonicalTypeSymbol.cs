@@ -10,112 +10,111 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// A NoPiaMissingCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
+/// embedded type symbol that was attempted to be substituted with canonical type, but the
+/// canonical type couldn't be found.
+/// </summary>
+internal class NoPiaMissingCanonicalTypeSymbol : ErrorTypeSymbol
+// TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.
 {
-    /// <summary>
-    /// A NoPiaMissingCanonicalTypeSymbol is a special kind of ErrorSymbol that represents a NoPia
-    /// embedded type symbol that was attempted to be substituted with canonical type, but the
-    /// canonical type couldn't be found.
-    /// </summary>
-    internal class NoPiaMissingCanonicalTypeSymbol : ErrorTypeSymbol
-    // TODO: Should probably inherit from MissingMetadataType.TopLevel, but review TypeOf checks for MissingMetadataType.
+    private readonly AssemblySymbol _embeddingAssembly;
+    private readonly string _fullTypeName;
+    private readonly string? _guid;
+    private readonly string? _scope;
+    private readonly string? _identifier;
+
+    public NoPiaMissingCanonicalTypeSymbol(
+        AssemblySymbol embeddingAssembly,
+        string fullTypeName,
+        string? guid,
+        string? scope,
+        string? identifier,
+        TupleExtraData? tupleData = null)
+        : base(tupleData)
     {
-        private readonly AssemblySymbol _embeddingAssembly;
-        private readonly string _fullTypeName;
-        private readonly string? _guid;
-        private readonly string? _scope;
-        private readonly string? _identifier;
+        _embeddingAssembly = embeddingAssembly;
+        _fullTypeName = fullTypeName;
+        _guid = guid;
+        _scope = scope;
+        _identifier = identifier;
+    }
 
-        public NoPiaMissingCanonicalTypeSymbol(
-            AssemblySymbol embeddingAssembly,
-            string fullTypeName,
-            string? guid,
-            string? scope,
-            string? identifier,
-            TupleExtraData? tupleData = null)
-            : base(tupleData)
+    protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    {
+        return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);
+    }
+
+    public AssemblySymbol EmbeddingAssembly
+    {
+        get
         {
-            _embeddingAssembly = embeddingAssembly;
-            _fullTypeName = fullTypeName;
-            _guid = guid;
-            _scope = scope;
-            _identifier = identifier;
+            return _embeddingAssembly;
         }
+    }
 
-        protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+    public string FullTypeName
+    {
+        get
         {
-            return new NoPiaMissingCanonicalTypeSymbol(_embeddingAssembly, _fullTypeName, _guid, _scope, _identifier, newData);
+            return _fullTypeName;
         }
+    }
 
-        public AssemblySymbol EmbeddingAssembly
+    internal override bool MangleName
+    {
+        get
         {
-            get
-            {
-                return _embeddingAssembly;
-            }
+            // Cannot be generic.
+            Debug.Assert(Arity == 0);
+            return false;
         }
+    }
 
-        public string FullTypeName
+    internal sealed override bool IsFileLocal => false;
+    internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
+    public string? Guid
+    {
+        get
         {
-            get
-            {
-                return _fullTypeName;
-            }
+            return _guid;
         }
+    }
 
-        internal override bool MangleName
+    public string? Scope
+    {
+        get
         {
-            get
-            {
-                // Cannot be generic.
-                Debug.Assert(Arity == 0);
-                return false;
-            }
+            return _scope;
         }
+    }
 
-        internal sealed override bool IsFileLocal => false;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
-
-        public string? Guid
+    public string? Identifier
+    {
+        get
         {
-            get
-            {
-                return _guid;
-            }
+            return _identifier;
         }
+    }
 
-        public string? Scope
+    internal override DiagnosticInfo ErrorInfo
+    {
+        get
         {
-            get
-            {
-                return _scope;
-            }
+            return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _fullTypeName);
         }
+    }
 
-        public string? Identifier
-        {
-            get
-            {
-                return _identifier;
-            }
-        }
+    public override int GetHashCode()
+    {
+        return RuntimeHelpers.GetHashCode(this);
+    }
 
-        internal override DiagnosticInfo ErrorInfo
-        {
-            get
-            {
-                return new CSDiagnosticInfo(ErrorCode.ERR_NoCanonicalView, _fullTypeName);
-            }
-        }
-
-        public override int GetHashCode()
-        {
-            return RuntimeHelpers.GetHashCode(this);
-        }
-
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
-        {
-            return ReferenceEquals(this, t2);
-        }
+    internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
+    {
+        return ReferenceEquals(this, t2);
     }
 }

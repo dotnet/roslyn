@@ -9,31 +9,30 @@
 
 #endregion
 
-namespace Microsoft.VisualStudio.Debugger
+namespace Microsoft.VisualStudio.Debugger;
+
+public class DkmProcess
 {
-    public class DkmProcess
+    public readonly DkmEngineSettings EngineSettings = new DkmEngineSettings();
+
+    private readonly bool _nativeDebuggingEnabled;
+
+    public DkmProcess(bool enableNativeDebugging)
     {
-        public readonly DkmEngineSettings EngineSettings = new DkmEngineSettings();
-
-        private readonly bool _nativeDebuggingEnabled;
-
-        public DkmProcess(bool enableNativeDebugging)
-        {
-            _nativeDebuggingEnabled = enableNativeDebugging;
-        }
-
-        public DkmRuntimeInstance GetNativeRuntimeInstance()
-        {
-            if (!_nativeDebuggingEnabled)
-            {
-                throw new DkmException(DkmExceptionCode.E_XAPI_DATA_ITEM_NOT_FOUND);
-            }
-
-            return null; // Value isn't required for testing
-        }
+        _nativeDebuggingEnabled = enableNativeDebugging;
     }
 
-    public class DkmThread
+    public DkmRuntimeInstance GetNativeRuntimeInstance()
     {
+        if (!_nativeDebuggingEnabled)
+        {
+            throw new DkmException(DkmExceptionCode.E_XAPI_DATA_ITEM_NOT_FOUND);
+        }
+
+        return null; // Value isn't required for testing
     }
+}
+
+public class DkmThread
+{
 }

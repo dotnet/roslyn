@@ -10,177 +10,176 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+public partial class CSharpSyntaxTree
 {
-    public partial class CSharpSyntaxTree
+    private sealed class LazySyntaxTree : CSharpSyntaxTree
     {
-        private sealed class LazySyntaxTree : CSharpSyntaxTree
+        private readonly SourceText _text;
+        private readonly CSharpParseOptions _options;
+        private readonly string _path;
+        private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
+        private CSharpSyntaxNode? _lazyRoot;
+
+        internal LazySyntaxTree(
+            SourceText text,
+            CSharpParseOptions options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
         {
-            private readonly SourceText _text;
-            private readonly CSharpParseOptions _options;
-            private readonly string _path;
-            private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
-            private CSharpSyntaxNode? _lazyRoot;
+            Debug.Assert(options != null);
 
-            internal LazySyntaxTree(
-                SourceText text,
-                CSharpParseOptions options,
-                string path,
-                ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
+            _text = text;
+            _options = options;
+            _path = path ?? string.Empty;
+            _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
+        }
+
+        public override string FilePath
+        {
+            get { return _path; }
+        }
+
+        public override SourceText GetText(CancellationToken cancellationToken)
+        {
+            return _text;
+        }
+
+        public override bool TryGetText([NotNullWhen(true)] out SourceText? text)
+        {
+            text = _text;
+            return true;
+        }
+
+        public override Encoding? Encoding
+        {
+            get { return _text.Encoding; }
+        }
+
+        public override int Length
+        {
+            get { return _text.Length; }
+        }
+
+        public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken)
+        {
+            if (_lazyRoot == null)
             {
-                Debug.Assert(options != null);
+                // Parse the syntax tree
+                var tree = SyntaxFactory.ParseSyntaxTree(_text, _options, _path, cancellationToken);
+                var root = CloneNodeAsRoot((CSharpSyntaxNode)tree.GetRoot(cancellationToken));
 
-                _text = text;
-                _options = options;
-                _path = path ?? string.Empty;
-                _diagnosticOptions = diagnosticOptions ?? EmptyDiagnosticOptions;
+                Interlocked.CompareExchange(ref _lazyRoot, root, null);
             }
 
-            public override string FilePath
-            {
-                get { return _path; }
-            }
+            return _lazyRoot;
+        }
 
-            public override SourceText GetText(CancellationToken cancellationToken)
-            {
-                return _text;
-            }
+        public override bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode? root)
+        {
+            root = _lazyRoot;
+            return root != null;
+        }
 
-            public override bool TryGetText([NotNullWhen(true)] out SourceText? text)
+        public override bool HasCompilationUnitRoot
+        {
+            get
             {
-                text = _text;
                 return true;
             }
+        }
 
-            public override Encoding? Encoding
+        public override CSharpParseOptions Options
+        {
+            get
             {
-                get { return _text.Encoding; }
+                return _options;
+            }
+        }
+
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _diagnosticOptions;
+
+        public override SyntaxReference GetReference(SyntaxNode node)
+        {
+            return new SimpleSyntaxReference(node);
+        }
+
+        public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
+        {
+            if (ReferenceEquals(_lazyRoot, root) && ReferenceEquals(_options, options))
+            {
+                return this;
             }
 
-            public override int Length
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                _text.Encoding,
+                _text.ChecksumAlgorithm,
+                _path,
+                (CSharpParseOptions)options,
+                (CSharpSyntaxNode)root,
+                _lazyDirectives,
+                _diagnosticOptions,
+                cloneRoot: true);
+        }
+
+        public override SyntaxTree WithFilePath(string path)
+        {
+            if (_path == path)
             {
-                get { return _text.Length; }
+                return this;
             }
 
-            public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken)
+            if (TryGetRoot(out var root))
             {
-                if (_lazyRoot == null)
-                {
-                    // Parse the syntax tree
-                    var tree = SyntaxFactory.ParseSyntaxTree(_text, _options, _path, cancellationToken);
-                    var root = CloneNodeAsRoot((CSharpSyntaxNode)tree.GetRoot(cancellationToken));
-
-                    Interlocked.CompareExchange(ref _lazyRoot, root, null);
-                }
-
-                return _lazyRoot;
-            }
-
-            public override bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode? root)
-            {
-                root = _lazyRoot;
-                return root != null;
-            }
-
-            public override bool HasCompilationUnitRoot
-            {
-                get
-                {
-                    return true;
-                }
-            }
-
-            public override CSharpParseOptions Options
-            {
-                get
-                {
-                    return _options;
-                }
-            }
-
-            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
-            public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => _diagnosticOptions;
-
-            public override SyntaxReference GetReference(SyntaxNode node)
-            {
-                return new SimpleSyntaxReference(node);
-            }
-
-            public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-            {
-                if (ReferenceEquals(_lazyRoot, root) && ReferenceEquals(_options, options))
-                {
-                    return this;
-                }
-
                 return new ParsedSyntaxTree(
-                    textOpt: null,
+                    _text,
                     _text.Encoding,
                     _text.ChecksumAlgorithm,
-                    _path,
-                    (CSharpParseOptions)options,
-                    (CSharpSyntaxNode)root,
-                    _lazyDirectives,
+                    path,
+                    _options,
+                    root,
+                    directives: default,
                     _diagnosticOptions,
                     cloneRoot: true);
             }
-
-            public override SyntaxTree WithFilePath(string path)
+            else
             {
-                if (_path == path)
-                {
-                    return this;
-                }
+                return new LazySyntaxTree(_text, _options, path, _diagnosticOptions);
+            }
+        }
 
-                if (TryGetRoot(out var root))
-                {
-                    return new ParsedSyntaxTree(
-                        _text,
-                        _text.Encoding,
-                        _text.ChecksumAlgorithm,
-                        path,
-                        _options,
-                        root,
-                        directives: default,
-                        _diagnosticOptions,
-                        cloneRoot: true);
-                }
-                else
-                {
-                    return new LazySyntaxTree(_text, _options, path, _diagnosticOptions);
-                }
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+        {
+            if (options is null)
+            {
+                options = EmptyDiagnosticOptions;
             }
 
-            [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
-            public override SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
+            if (ReferenceEquals(_diagnosticOptions, options))
             {
-                if (options is null)
-                {
-                    options = EmptyDiagnosticOptions;
-                }
+                return this;
+            }
 
-                if (ReferenceEquals(_diagnosticOptions, options))
-                {
-                    return this;
-                }
-
-                if (TryGetRoot(out var root))
-                {
-                    return new ParsedSyntaxTree(
-                        _text,
-                        _text.Encoding,
-                        _text.ChecksumAlgorithm,
-                        _path,
-                        _options,
-                        root,
-                        directives: default,
-                        options,
-                        cloneRoot: true);
-                }
-                else
-                {
-                    return new LazySyntaxTree(_text, _options, _path, options);
-                }
+            if (TryGetRoot(out var root))
+            {
+                return new ParsedSyntaxTree(
+                    _text,
+                    _text.Encoding,
+                    _text.ChecksumAlgorithm,
+                    _path,
+                    _options,
+                    root,
+                    directives: default,
+                    options,
+                    cloneRoot: true);
+            }
+            else
+            {
+                return new LazySyntaxTree(_text, _options, _path, options);
             }
         }
     }

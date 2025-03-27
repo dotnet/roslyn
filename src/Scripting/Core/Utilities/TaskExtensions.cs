@@ -7,18 +7,17 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Scripting
-{
-    internal static class ScriptStateTaskExtensions
-    {
-        internal static async Task<T> CastAsync<S, T>(this Task<S> task) where S : T
-        {
-            return await task.ConfigureAwait(true);
-        }
+namespace Microsoft.CodeAnalysis.Scripting;
 
-        internal static async Task<T> GetEvaluationResultAsync<T>(this Task<ScriptState<T>> task)
-        {
-            return (await task.ConfigureAwait(true)).ReturnValue;
-        }
+internal static class ScriptStateTaskExtensions
+{
+    internal static async Task<T> CastAsync<S, T>(this Task<S> task) where S : T
+    {
+        return await task.ConfigureAwait(true);
+    }
+
+    internal static async Task<T> GetEvaluationResultAsync<T>(this Task<ScriptState<T>> task)
+    {
+        return (await task.ConfigureAwait(true)).ReturnValue;
     }
 }

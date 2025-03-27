@@ -6,23 +6,22 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Symbols
+namespace Microsoft.CodeAnalysis.Symbols;
+
+internal interface IAssemblySymbolInternal : ISymbolInternal
 {
-    internal interface IAssemblySymbolInternal : ISymbolInternal
-    {
-        Version? AssemblyVersionPattern { get; }
+    Version? AssemblyVersionPattern { get; }
 
-        /// <summary>
-        /// Gets the name of this assembly.
-        /// </summary>
-        AssemblyIdentity Identity { get; }
+    /// <summary>
+    /// Gets the name of this assembly.
+    /// </summary>
+    AssemblyIdentity Identity { get; }
 
-        IAssemblySymbolInternal CorLibrary { get; }
+    IAssemblySymbolInternal CorLibrary { get; }
 
-        IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
+    IEnumerable<ImmutableArray<byte>> GetInternalsVisibleToPublicKeys(string simpleName);
 
-        IEnumerable<string> GetInternalsVisibleToAssemblyNames();
+    IEnumerable<string> GetInternalsVisibleToAssemblyNames();
 
-        bool AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal? otherAssembly);
-    }
+    bool AreInternalsVisibleToThisAssembly(IAssemblySymbolInternal? otherAssembly);
 }

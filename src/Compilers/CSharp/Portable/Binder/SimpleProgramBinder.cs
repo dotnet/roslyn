@@ -8,108 +8,107 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// This binder owns the scope for Simple Program top-level statements.
+/// </summary>
+internal sealed class SimpleProgramBinder : LocalScopeBinder
 {
-    /// <summary>
-    /// This binder owns the scope for Simple Program top-level statements.
-    /// </summary>
-    internal sealed class SimpleProgramBinder : LocalScopeBinder
+    private readonly SynthesizedSimpleProgramEntryPointSymbol _entryPoint;
+
+    public SimpleProgramBinder(Binder enclosing, SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+        : base(enclosing, enclosing.Flags)
     {
-        private readonly SynthesizedSimpleProgramEntryPointSymbol _entryPoint;
+        _entryPoint = entryPoint;
+    }
 
-        public SimpleProgramBinder(Binder enclosing, SynthesizedSimpleProgramEntryPointSymbol entryPoint)
-            : base(enclosing, enclosing.Flags)
+    protected override ImmutableArray<LocalSymbol> BuildLocals()
+    {
+        ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
+
+        foreach (var statement in _entryPoint.CompilationUnit.Members)
         {
-            _entryPoint = entryPoint;
-        }
-
-        protected override ImmutableArray<LocalSymbol> BuildLocals()
-        {
-            ArrayBuilder<LocalSymbol> locals = ArrayBuilder<LocalSymbol>.GetInstance(DefaultLocalSymbolArrayCapacity);
-
-            foreach (var statement in _entryPoint.CompilationUnit.Members)
+            if (statement is GlobalStatementSyntax topLevelStatement)
             {
-                if (statement is GlobalStatementSyntax topLevelStatement)
-                {
-                    this.BuildLocals(this, topLevelStatement.Statement, locals);
-                }
-            }
-
-            return locals.ToImmutableAndFree();
-        }
-
-        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
-        {
-            ArrayBuilder<LocalFunctionSymbol>? locals = null;
-
-            foreach (var statement in _entryPoint.CompilationUnit.Members)
-            {
-                if (statement is GlobalStatementSyntax topLevelStatement)
-                {
-                    this.BuildLocalFunctions(topLevelStatement.Statement, ref locals);
-                }
-            }
-
-            return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
-        }
-
-        internal override bool IsLocalFunctionsScopeBinder
-        {
-            get
-            {
-                return true;
+                this.BuildLocals(this, topLevelStatement.Statement, locals);
             }
         }
 
-        protected override ImmutableArray<LabelSymbol> BuildLabels()
+        return locals.ToImmutableAndFree();
+    }
+
+    protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+    {
+        ArrayBuilder<LocalFunctionSymbol>? locals = null;
+
+        foreach (var statement in _entryPoint.CompilationUnit.Members)
         {
-            ArrayBuilder<LabelSymbol>? labels = null;
-
-            foreach (var statement in _entryPoint.CompilationUnit.Members)
+            if (statement is GlobalStatementSyntax topLevelStatement)
             {
-                if (statement is GlobalStatementSyntax topLevelStatement)
-                {
-                    BuildLabels(_entryPoint, topLevelStatement.Statement, ref labels);
-                }
-            }
-
-            return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
-        }
-
-        internal override bool IsLabelsScopeBinder
-        {
-            get
-            {
-                return true;
+                this.BuildLocalFunctions(topLevelStatement.Statement, ref locals);
             }
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.Locals;
-            }
+        return locals?.ToImmutableAndFree() ?? ImmutableArray<LocalFunctionSymbol>.Empty;
+    }
 
-            throw ExceptionUtilities.Unreachable();
+    internal override bool IsLocalFunctionsScopeBinder
+    {
+        get
+        {
+            return true;
+        }
+    }
+
+    protected override ImmutableArray<LabelSymbol> BuildLabels()
+    {
+        ArrayBuilder<LabelSymbol>? labels = null;
+
+        foreach (var statement in _entryPoint.CompilationUnit.Members)
+        {
+            if (statement is GlobalStatementSyntax topLevelStatement)
+            {
+                BuildLabels(_entryPoint, topLevelStatement.Statement, ref labels);
+            }
         }
 
-        internal override SyntaxNode ScopeDesignator
+        return labels?.ToImmutableAndFree() ?? ImmutableArray<LabelSymbol>.Empty;
+    }
+
+    internal override bool IsLabelsScopeBinder
+    {
+        get
         {
-            get
-            {
-                return _entryPoint.SyntaxNode;
-            }
+            return true;
+        }
+    }
+
+    internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.Locals;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
-        {
-            if (ScopeDesignator == scopeDesignator)
-            {
-                return this.LocalFunctions;
-            }
+        throw ExceptionUtilities.Unreachable();
+    }
 
-            throw ExceptionUtilities.Unreachable();
+    internal override SyntaxNode ScopeDesignator
+    {
+        get
+        {
+            return _entryPoint.SyntaxNode;
         }
+    }
+
+    internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+    {
+        if (ScopeDesignator == scopeDesignator)
+        {
+            return this.LocalFunctions;
+        }
+
+        throw ExceptionUtilities.Unreachable();
     }
 }

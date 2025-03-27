@@ -5,39 +5,38 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// this is a basic do-nothing implementation of a syntax reference
+/// </summary>
+internal class SimpleSyntaxReference : SyntaxReference
 {
-    /// <summary>
-    /// this is a basic do-nothing implementation of a syntax reference
-    /// </summary>
-    internal class SimpleSyntaxReference : SyntaxReference
+    private readonly SyntaxNode _node;
+
+    internal SimpleSyntaxReference(SyntaxNode node)
     {
-        private readonly SyntaxNode _node;
+        _node = node;
+    }
 
-        internal SimpleSyntaxReference(SyntaxNode node)
+    public override SyntaxTree SyntaxTree
+    {
+        get
         {
-            _node = node;
+            return _node.SyntaxTree;
         }
+    }
 
-        public override SyntaxTree SyntaxTree
+    public override TextSpan Span
+    {
+        get
         {
-            get
-            {
-                return _node.SyntaxTree;
-            }
+            return _node.Span;
         }
+    }
 
-        public override TextSpan Span
-        {
-            get
-            {
-                return _node.Span;
-            }
-        }
-
-        public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
-        {
-            return _node;
-        }
+    public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
+    {
+        return _node;
     }
 }

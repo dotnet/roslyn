@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
+
+public class BindingAsyncTasklikeTests : CompilingTestBase
 {
-    public class BindingAsyncTasklikeTests : CompilingTestBase
+    [Fact]
+    public void AsyncTasklikeFromBuilderMethod()
     {
-        [Fact]
-        public void AsyncTasklikeFromBuilderMethod()
-        {
-            var source = @"
+        var source = @"
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 class C {
@@ -31,17 +31,17 @@ struct ValueTask<T> { }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
-            var methodf = compilation.GetMember<MethodSymbol>("C.f");
-            var methodg = compilation.GetMember<MethodSymbol>("C.g");
-            Assert.True(methodf.IsAsync);
-            Assert.True(methodg.IsAsync);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
+        var methodf = compilation.GetMember<MethodSymbol>("C.f");
+        var methodg = compilation.GetMember<MethodSymbol>("C.g");
+        Assert.True(methodf.IsAsync);
+        Assert.True(methodg.IsAsync);
+    }
 
-        [Fact]
-        public void AsyncTasklikeNotFromDelegate()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncTasklikeNotFromDelegate()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -92,16 +92,16 @@ public class TasklikeMethodBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
-                //         await new Unawaitable(); // error: GetAwaiter must be a field not a delegate
-                Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9)
-            );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
+            //         await new Unawaitable(); // error: GetAwaiter must be a field not a delegate
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9)
+        );
+    }
 
-        private bool VerifyTaskOverloads(string arg, string betterOverload, string worseOverload, bool implicitConversionToTask = false, bool isError = false)
-        {
-            var source =
+    private bool VerifyTaskOverloads(string arg, string betterOverload, string worseOverload, bool implicitConversionToTask = false, bool isError = false)
+    {
+        var source =
 @"using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -177,120 +177,120 @@ sealed class ValueTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            source = source.Replace("<<arg>>", arg);
-            source = source.Replace("<<betterOverload>>", (betterOverload != null) ? "static string " + betterOverload + " => \"better\";" : "");
-            source = source.Replace("<<worseOverload>>", (worseOverload != null) ? "static string " + worseOverload + " => \"worse\";" : "");
-            source = source.Replace("<<implicitConversionToTask>>", implicitConversionToTask ? "public static implicit operator Task(ValueTask t) => Task.FromResult(0);" : "");
-            source = source.Replace("<<implicitConversionToTaskT>>", implicitConversionToTask ? "public static implicit operator Task<T>(ValueTask<T> t) => Task.FromResult<T>(t._result);" : "");
-            if (isError)
-            {
-                var compilation = CreateCompilationWithMscorlib461(source);
-                var diagnostics = compilation.GetDiagnostics();
-                Assert.True(diagnostics.Length == 1);
-                Assert.True(diagnostics.First().Code == (int)ErrorCode.ERR_AmbigCall);
-            }
-            else
-            {
-                CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "better");
-            }
-            return true;
-        }
-
-        [Fact]
-        public void TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<int>> lambda)",
-                                                        null);
-
-        [Fact]
-        public void TasklikeA3n() => VerifyTaskOverloads("f(async () => {})",
-                                                         "f(Func<ValueTask> lambda)",
-                                                         null);
-
-        [Fact]
-        public void TasklikeA4() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f<T>(Func<ValueTask<T>> labda)",
-                                                        null);
-
-        [Fact]
-        public void TasklikeA5s() => VerifyTaskOverloads("f(() => 3)",
-                                                         "f<T>(Func<T> lambda)",
-                                                         "f<T>(Func<ValueTask<T>> lambda)");
-
-        [Fact]
-        public void TasklikeA5a() => VerifyTaskOverloads("f(async () => 3)",
-                                                         "f<T>(Func<ValueTask<T>> lambda)",
-                                                         "f<T>(Func<T> lambda)");
-
-        [Fact]
-        public void TasklikeA6() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<int>> lambda)",
-                                                        "f(Func<ValueTask<double>> lambda)");
-
-        [Fact]
-        public void TasklikeA7() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<byte>> lambda)",
-                                                        "f(Func<ValueTask<short>> lambda)");
-
-        [Fact]
-        public void TasklikeA8() => VerifyTaskOverloads("f(async () => {})",
-                                                        "f(Func<ValueTask> lambda)",
-                                                        "f(Action lambda)");
-
-        [Fact]
-        public void TasklikeB7_ic0() => VerifyTaskOverloads("f(async () => 3)",
-                                                           "f(Func<ValueTask<int>> lambda)",
-                                                           "f(Func<Task<int>> lambda)",
-                                                           isError: true);
-
-        [Fact]
-        public void TasklikeB7_ic1() => VerifyTaskOverloads("f(async () => 3)",
-                                                            "f(Func<ValueTask<int>> lambda)",
-                                                            "f(Func<Task<int>> lambda)",
-                                                            implicitConversionToTask: true);
-
-        [Fact]
-        public void TasklikeB7g_ic0() => VerifyTaskOverloads("f(async () => 3)",
-                                                             "f<T>(Func<ValueTask<T>> lambda)",
-                                                             "f<T>(Func<Task<T>> lambda)",
-                                                             isError: true);
-
-        [Fact]
-        public void TasklikeB7g_ic1() => VerifyTaskOverloads("f(async () => 3)",
-                                                             "f<T>(Func<ValueTask<T>> lambda)",
-                                                             "f<T>(Func<Task<T>> lambda)",
-                                                            implicitConversionToTask: true);
-
-        [Fact]
-        public void TasklikeB7n_ic0() => VerifyTaskOverloads("f(async () => {})",
-                                                             "f(Func<ValueTask> lambda)",
-                                                             "f(Func<Task> lambda)",
-                                                             isError: true);
-
-        [Fact]
-        public void TasklikeB7n_ic1() => VerifyTaskOverloads("f(async () => {})",
-                                                             "f(Func<ValueTask> lambda)",
-                                                             "f(Func<Task> lambda)",
-                                                            implicitConversionToTask: true);
-
-        [Fact]
-        public void TasklikeC1() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<int>> lambda)",
-                                                        "f(Func<Task<double>> lambda)");
-
-        [Fact]
-        public void TasklikeC2() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<byte>> lambda)",
-                                                        "f(Func<Task<short>> lambda)");
-
-        [Fact]
-        public void TasklikeC5() => VerifyTaskOverloads("f(async () => 3)",
-                                                        "f(Func<ValueTask<int>> lambda)",
-                                                        "f<T>(Func<Task<T>> lambda)");
-
-        [Fact]
-        public void AsyncTasklikeMethod()
+        source = source.Replace("<<arg>>", arg);
+        source = source.Replace("<<betterOverload>>", (betterOverload != null) ? "static string " + betterOverload + " => \"better\";" : "");
+        source = source.Replace("<<worseOverload>>", (worseOverload != null) ? "static string " + worseOverload + " => \"worse\";" : "");
+        source = source.Replace("<<implicitConversionToTask>>", implicitConversionToTask ? "public static implicit operator Task(ValueTask t) => Task.FromResult(0);" : "");
+        source = source.Replace("<<implicitConversionToTaskT>>", implicitConversionToTask ? "public static implicit operator Task<T>(ValueTask<T> t) => Task.FromResult<T>(t._result);" : "");
+        if (isError)
         {
-            var source = @"
+            var compilation = CreateCompilationWithMscorlib461(source);
+            var diagnostics = compilation.GetDiagnostics();
+            Assert.True(diagnostics.Length == 1);
+            Assert.True(diagnostics.First().Code == (int)ErrorCode.ERR_AmbigCall);
+        }
+        else
+        {
+            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "better");
+        }
+        return true;
+    }
+
+    [Fact]
+    public void TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<int>> lambda)",
+                                                    null);
+
+    [Fact]
+    public void TasklikeA3n() => VerifyTaskOverloads("f(async () => {})",
+                                                     "f(Func<ValueTask> lambda)",
+                                                     null);
+
+    [Fact]
+    public void TasklikeA4() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f<T>(Func<ValueTask<T>> labda)",
+                                                    null);
+
+    [Fact]
+    public void TasklikeA5s() => VerifyTaskOverloads("f(() => 3)",
+                                                     "f<T>(Func<T> lambda)",
+                                                     "f<T>(Func<ValueTask<T>> lambda)");
+
+    [Fact]
+    public void TasklikeA5a() => VerifyTaskOverloads("f(async () => 3)",
+                                                     "f<T>(Func<ValueTask<T>> lambda)",
+                                                     "f<T>(Func<T> lambda)");
+
+    [Fact]
+    public void TasklikeA6() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<int>> lambda)",
+                                                    "f(Func<ValueTask<double>> lambda)");
+
+    [Fact]
+    public void TasklikeA7() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<byte>> lambda)",
+                                                    "f(Func<ValueTask<short>> lambda)");
+
+    [Fact]
+    public void TasklikeA8() => VerifyTaskOverloads("f(async () => {})",
+                                                    "f(Func<ValueTask> lambda)",
+                                                    "f(Action lambda)");
+
+    [Fact]
+    public void TasklikeB7_ic0() => VerifyTaskOverloads("f(async () => 3)",
+                                                       "f(Func<ValueTask<int>> lambda)",
+                                                       "f(Func<Task<int>> lambda)",
+                                                       isError: true);
+
+    [Fact]
+    public void TasklikeB7_ic1() => VerifyTaskOverloads("f(async () => 3)",
+                                                        "f(Func<ValueTask<int>> lambda)",
+                                                        "f(Func<Task<int>> lambda)",
+                                                        implicitConversionToTask: true);
+
+    [Fact]
+    public void TasklikeB7g_ic0() => VerifyTaskOverloads("f(async () => 3)",
+                                                         "f<T>(Func<ValueTask<T>> lambda)",
+                                                         "f<T>(Func<Task<T>> lambda)",
+                                                         isError: true);
+
+    [Fact]
+    public void TasklikeB7g_ic1() => VerifyTaskOverloads("f(async () => 3)",
+                                                         "f<T>(Func<ValueTask<T>> lambda)",
+                                                         "f<T>(Func<Task<T>> lambda)",
+                                                        implicitConversionToTask: true);
+
+    [Fact]
+    public void TasklikeB7n_ic0() => VerifyTaskOverloads("f(async () => {})",
+                                                         "f(Func<ValueTask> lambda)",
+                                                         "f(Func<Task> lambda)",
+                                                         isError: true);
+
+    [Fact]
+    public void TasklikeB7n_ic1() => VerifyTaskOverloads("f(async () => {})",
+                                                         "f(Func<ValueTask> lambda)",
+                                                         "f(Func<Task> lambda)",
+                                                        implicitConversionToTask: true);
+
+    [Fact]
+    public void TasklikeC1() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<int>> lambda)",
+                                                    "f(Func<Task<double>> lambda)");
+
+    [Fact]
+    public void TasklikeC2() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<byte>> lambda)",
+                                                    "f(Func<Task<short>> lambda)");
+
+    [Fact]
+    public void TasklikeC5() => VerifyTaskOverloads("f(async () => 3)",
+                                                    "f(Func<ValueTask<int>> lambda)",
+                                                    "f<T>(Func<Task<T>> lambda)");
+
+    [Fact]
+    public void AsyncTasklikeMethod()
+    {
+        var source = @"
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 class C {
@@ -306,17 +306,17 @@ class ValueTaskMethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
-            var methodf = compilation.GetMember<MethodSymbol>("C.f");
-            var methodg = compilation.GetMember<MethodSymbol>("C.g");
-            Assert.True(methodf.IsAsync);
-            Assert.True(methodg.IsAsync);
-        }
+        var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
+        var methodf = compilation.GetMember<MethodSymbol>("C.f");
+        var methodg = compilation.GetMember<MethodSymbol>("C.g");
+        Assert.True(methodf.IsAsync);
+        Assert.True(methodg.IsAsync);
+    }
 
-        [Fact]
-        public void NotTasklike()
-        {
-            var source1 = @"
+    [Fact]
+    public void NotTasklike()
+    {
+        var source1 = @"
 using System.Threading.Tasks;
 class C
 {
@@ -325,16 +325,16 @@ class C
 }
 public class MyTask { }
 ";
-            CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
-                // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
-                // (6,18): error CS0161: 'C.f()': not all code paths return a value
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(6, 18)
-                );
+        CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
+            // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
+            //     async MyTask f() { await (Task)null; }
+            Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
+            // (6,18): error CS0161: 'C.f()': not all code paths return a value
+            //     async MyTask f() { await (Task)null; }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(6, 18)
+            );
 
-            var source2 = @"
+        var source2 = @"
 using System.Threading.Tasks;
 class C
 {
@@ -343,16 +343,16 @@ class C
 }
 public class MyTask { }
 ";
-            CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
-                // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
-                // (6,18): error CS0161: 'C.f()': not all code paths return a value
-                //     async MyTask f() { await (Task)null; }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(6, 18)
-                );
+        CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
+            // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
+            //     async MyTask f() { await (Task)null; }
+            Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
+            // (6,18): error CS0161: 'C.f()': not all code paths return a value
+            //     async MyTask f() { await (Task)null; }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "f").WithArguments("C.f()").WithLocation(6, 18)
+            );
 
-            var source3 = @"
+        var source3 = @"
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
 class C
@@ -369,13 +369,13 @@ public class MyTaskBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib461(source3).VerifyDiagnostics();
-        }
+        CreateCompilationWithMscorlib461(source3).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void AsyncTasklikeOverloadLambdas()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncTasklikeOverloadLambdas()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -421,17 +421,17 @@ public class MyTaskBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
-                //         h(async () => { await (Task)null; });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h(System.Func<MyTask>)", "C.h(System.Func<System.Threading.Tasks.Task>)").WithLocation(8, 9)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
+            //         h(async () => { await (Task)null; });
+            Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h(System.Func<MyTask>)", "C.h(System.Func<System.Threading.Tasks.Task>)").WithLocation(8, 9)
+            );
+    }
 
-        [Fact]
-        public void AsyncTasklikeInadmissibleArity()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncTasklikeInadmissibleArity()
+    {
+        var source = @"
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 class C {
@@ -443,18 +443,18 @@ class Mismatch2MethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib461(source);
-            comp.VerifyEmitDiagnostics(
-                // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
-                //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "g").WithLocation(5, 30)
-                );
-        }
+        var comp = CreateCompilationWithMscorlib461(source);
+        comp.VerifyEmitDiagnostics(
+            // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
+            //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }
+            Diagnostic(ErrorCode.ERR_BadAsyncReturn, "g").WithLocation(5, 30)
+            );
+    }
 
-        [Fact]
-        public void AsyncTasklikeOverloadInvestigations()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncTasklikeOverloadInvestigations()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -513,13 +513,13 @@ class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "1");
+    }
 
-        [Fact]
-        public void AsyncTasklikeBetterness()
-        {
-            var source = @"
+    [Fact]
+    public void AsyncTasklikeBetterness()
+    {
+        var source = @"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -564,7 +564,6 @@ public class ValueTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
-        }
+        CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: "bbbb");
     }
 }

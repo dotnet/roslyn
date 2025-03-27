@@ -14,67 +14,66 @@ using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+
+using SimpleDiagnostic = Diagnostic.SimpleDiagnostic;
+
+public class CompilationWithAnalyzersTests : TestBase
 {
-    using SimpleDiagnostic = Diagnostic.SimpleDiagnostic;
+    private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
 
-    public class CompilationWithAnalyzersTests : TestBase
+    [Fact]
+    public void GetEffectiveDiagnostics_Errors()
     {
-        private static readonly CSharpCompilationOptions s_dllWithMaxWarningLevel = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel);
+        var c = CSharpCompilation.Create("c");
+        var ds = new[] { (Diagnostic)null };
 
-        [Fact]
-        public void GetEffectiveDiagnostics_Errors()
-        {
-            var c = CSharpCompilation.Create("c");
-            var ds = new[] { (Diagnostic)null };
+        Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(default(ImmutableArray<Diagnostic>), c));
+        Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(null, c));
+        Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, null));
+    }
 
-            Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(default(ImmutableArray<Diagnostic>), c));
-            Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(null, c));
-            Assert.Throws<ArgumentNullException>(() => CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, null));
-        }
+    [Fact]
+    public void GetEffectiveDiagnostics()
+    {
+        var c = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel.
+            WithSpecificDiagnosticOptions(
+                new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
-        [Fact]
-        public void GetEffectiveDiagnostics()
-        {
-            var c = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel.
-                WithSpecificDiagnosticOptions(
-                    new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
+        var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude, "1", "2");
+        var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull, "1");
+        var ds = new[] { null, d1, d2 };
 
-            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude, "1", "2");
-            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull, "1");
-            var ds = new[] { null, d1, d2 };
+        var filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);
 
-            var filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);
+        // overwrite the original value to test eagerness:
+        ds[1] = null;
 
-            // overwrite the original value to test eagerness:
-            ds[1] = null;
+        AssertEx.Equal(new[] { d1 }, filtered);
+    }
 
-            AssertEx.Equal(new[] { d1 }, filtered);
-        }
+    [Fact]
+    public void GetAnalyzerTelemetry()
+    {
+        var compilation = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel);
+        DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
+        var analyzers = ImmutableArray.Create(analyzer);
+        var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
+        var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
 
-        [Fact]
-        public void GetAnalyzerTelemetry()
-        {
-            var compilation = CSharpCompilation.Create("c", options: s_dllWithMaxWarningLevel);
-            DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
-            var analyzers = ImmutableArray.Create(analyzer);
-            var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
-            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
+        var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
+        Assert.Empty(analysisResult.CompilationDiagnostics);
 
-            var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
-            Assert.Empty(analysisResult.CompilationDiagnostics);
+        // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
+        var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
+        Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
+    }
 
-            // Even though the analyzer registers a symbol action, it should never be invoked because all of its rules are disabled.
-            var analyzerTelemetry = compWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, CancellationToken.None).Result;
-            Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
-        }
-
-        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
-        public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
-        {
-            // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
-            var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
-            _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
-        }
+    [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
+    public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
+    {
+        // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.
+        var analyzer = new AnalyzerThatThrowsInSupportedDiagnostics();
+        _ = CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, s_dllWithMaxWarningLevel, onAnalyzerException: null);
     }
 }

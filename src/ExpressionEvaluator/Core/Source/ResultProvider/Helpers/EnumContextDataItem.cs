@@ -7,15 +7,14 @@
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
-{
-    internal sealed class EnumContextDataItem : DkmDataItem
-    {
-        public readonly DkmEvaluationResult Result;
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-        public EnumContextDataItem(DkmEvaluationResult result)
-        {
-            this.Result = result;
-        }
+internal sealed class EnumContextDataItem : DkmDataItem
+{
+    public readonly DkmEvaluationResult Result;
+
+    public EnumContextDataItem(DkmEvaluationResult result)
+    {
+        this.Result = result;
     }
 }

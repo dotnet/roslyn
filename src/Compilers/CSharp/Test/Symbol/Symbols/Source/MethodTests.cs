@@ -17,143 +17,143 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class MethodTests : CSharpTestBase
 {
-    public class MethodTests : CSharpTestBase
+    [Fact]
+    public void Simple1()
     {
-        [Fact]
-        public void Simple1()
-        {
-            var text =
+        var text =
 @"
 class A {
     void M(int x) {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotNull(m);
-            Assert.True(m.ReturnsVoid);
-            var x = m.Parameters[0];
-            Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
-            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
-            Assert.Equal(SymbolKind.Parameter, x.Kind);
-            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        Assert.NotNull(m);
+        Assert.True(m.ReturnsVoid);
+        var x = m.Parameters[0];
+        Assert.Equal("x", x.Name);
+        Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+        Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
+        Assert.Equal(SymbolKind.Parameter, x.Kind);
+        Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+    }
 
-        [Fact]
-        public void NoParameterlessCtorForStruct()
-        {
-            var text = "struct A { A() {} }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (1,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // struct A { A() {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A").WithArguments("parameterless struct constructors", "10.0").WithLocation(1, 12),
-                // (1,12): error CS8938: The parameterless struct constructor must be 'public'.
-                // struct A { A() {} }
-                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
-        }
+    [Fact]
+    public void NoParameterlessCtorForStruct()
+    {
+        var text = "struct A { A() {} }";
+        var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
+        comp.VerifyDiagnostics(
+            // (1,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+            // struct A { A() {} }
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A").WithArguments("parameterless struct constructors", "10.0").WithLocation(1, 12),
+            // (1,12): error CS8938: The parameterless struct constructor must be 'public'.
+            // struct A { A() {} }
+            Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
+    }
 
-        [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]
-        [Fact]
-        public void DefaultCtor1()
-        {
-            Action<string, string, int, Accessibility?> check =
-                (source, className, ctorCount, accessibility) =>
+    [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]
+    [Fact]
+    public void DefaultCtor1()
+    {
+        Action<string, string, int, Accessibility?> check =
+            (source, className, ctorCount, accessibility) =>
+            {
+                var comp = CreateCompilation(source);
+                var global = comp.GlobalNamespace;
+                var a = global.GetTypeMembers(className, 0).Single();
+                var ctors = a.InstanceConstructors; // Note, this only returns *instance* constructors.
+                Assert.Equal(ctorCount, ctors.Length);
+                foreach (var ct in ctors)
                 {
-                    var comp = CreateCompilation(source);
-                    var global = comp.GlobalNamespace;
-                    var a = global.GetTypeMembers(className, 0).Single();
-                    var ctors = a.InstanceConstructors; // Note, this only returns *instance* constructors.
-                    Assert.Equal(ctorCount, ctors.Length);
-                    foreach (var ct in ctors)
-                    {
-                        Assert.Equal(
-                            ct.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName,
-                            ct.Name
-                        );
+                    Assert.Equal(
+                        ct.IsStatic ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName,
+                        ct.Name
+                    );
 
-                        if (accessibility != null)
-                            Assert.Equal(accessibility, ct.DeclaredAccessibility);
-                    }
-                };
+                    if (accessibility != null)
+                        Assert.Equal(accessibility, ct.DeclaredAccessibility);
+                }
+            };
 
-            Accessibility? doNotCheckAccessibility = null;
+        Accessibility? doNotCheckAccessibility = null;
 
-            // A class without any defined constructors should generator a public constructor.
-            check(@"internal class A { }", "A", 1, Accessibility.Public);
+        // A class without any defined constructors should generator a public constructor.
+        check(@"internal class A { }", "A", 1, Accessibility.Public);
 
-            // An abstract class without any defined constructors should generator a protected constructor.
-            check(@"abstract internal class A { }", "A", 1, Accessibility.Protected);
+        // An abstract class without any defined constructors should generator a protected constructor.
+        check(@"abstract internal class A { }", "A", 1, Accessibility.Protected);
 
-            // A static class should not generate a default constructor
-            check(@"static internal class A { }", "A", 0, doNotCheckAccessibility);
+        // A static class should not generate a default constructor
+        check(@"static internal class A { }", "A", 0, doNotCheckAccessibility);
 
-            // A class with a defined instance constructor should not generate a default constructor.
-            check(@"internal class A { A(int x) {} }", "A", 1, doNotCheckAccessibility);
+        // A class with a defined instance constructor should not generate a default constructor.
+        check(@"internal class A { A(int x) {} }", "A", 1, doNotCheckAccessibility);
 
-            // A class with only a static constructor defined should still generate a default instance constructor.
-            check(@"internal class A { static A(int x) {} }", "A", 1, doNotCheckAccessibility);
-        }
+        // A class with only a static constructor defined should still generate a default instance constructor.
+        check(@"internal class A { static A(int x) {} }", "A", 1, doNotCheckAccessibility);
+    }
 
-        [WorkItem(537345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537345")]
-        [Fact]
-        public void Ctor1()
-        {
-            var text =
+    [WorkItem(537345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537345")]
+    [Fact]
+    public void Ctor1()
+    {
+        var text =
 @"
 class A {
     A(int x) {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.InstanceConstructors.Single();
-            Assert.NotNull(m);
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m.Name);
-            Assert.True(m.ReturnsVoid);
-            Assert.Equal(MethodKind.Constructor, m.MethodKind);
-            var x = m.Parameters[0];
-            Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
-            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
-            Assert.Equal(SymbolKind.Parameter, x.Kind);
-            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.InstanceConstructors.Single();
+        Assert.NotNull(m);
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m.Name);
+        Assert.True(m.ReturnsVoid);
+        Assert.Equal(MethodKind.Constructor, m.MethodKind);
+        var x = m.Parameters[0];
+        Assert.Equal("x", x.Name);
+        Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+        Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
+        Assert.Equal(SymbolKind.Parameter, x.Kind);
+        Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+    }
 
-        [Fact]
-        public void Simple2()
-        {
-            var text =
+    [Fact]
+    public void Simple2()
+    {
+        var text =
 @"
 class A {
     void M<T>(int x) {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.NotNull(m);
-            Assert.True(m.ReturnsVoid);
-            Assert.Equal(MethodKind.Ordinary, m.MethodKind);
-            var x = m.Parameters[0];
-            Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
-            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
-            Assert.Equal(SymbolKind.Parameter, x.Kind);
-            Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        Assert.NotNull(m);
+        Assert.True(m.ReturnsVoid);
+        Assert.Equal(MethodKind.Ordinary, m.MethodKind);
+        var x = m.Parameters[0];
+        Assert.Equal("x", x.Name);
+        Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+        Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
+        Assert.Equal(SymbolKind.Parameter, x.Kind);
+        Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
+    }
 
-        [Fact]
-        public void Access1()
-        {
-            var text =
+    [Fact]
+    public void Access1()
+    {
+        var text =
 @"
 class A {
     void M1() {}
@@ -162,20 +162,20 @@ interface B {
     void M2() {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m1 = a.GetMembers("M1").Single() as MethodSymbol;
-            var b = global.GetTypeMembers("B", 0).Single();
-            var m2 = b.GetMembers("M2").Single() as MethodSymbol;
-            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m1 = a.GetMembers("M1").Single() as MethodSymbol;
+        var b = global.GetTypeMembers("B", 0).Single();
+        var m2 = b.GetMembers("M2").Single() as MethodSymbol;
+        Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+    }
 
-        [Fact]
-        public void GenericParameter()
-        {
-            var text =
+    [Fact]
+    public void GenericParameter()
+    {
+        var text =
 @"
 public class MyList<T>
 {
@@ -184,20 +184,20 @@ public class MyList<T>
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var mylist = global.GetTypeMembers("MyList", 1).Single();
-            var t1 = mylist.TypeParameters[0];
-            var add = mylist.GetMembers("Add").Single() as MethodSymbol;
-            var element = add.Parameters[0];
-            var t2 = element.Type;
-            Assert.Equal(t1, t2);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var mylist = global.GetTypeMembers("MyList", 1).Single();
+        var t1 = mylist.TypeParameters[0];
+        var add = mylist.GetMembers("Add").Single() as MethodSymbol;
+        var element = add.Parameters[0];
+        var t2 = element.Type;
+        Assert.Equal(t1, t2);
+    }
 
-        [Fact]
-        public void PartialLocation()
-        {
-            var text =
+    [Fact]
+    public void PartialLocation()
+    {
+        var text =
 @"
 public partial class A {
   partial void M();
@@ -206,18 +206,18 @@ public partial class A {
   partial void M() {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M");
-            Assert.Equal(1, m.Length);
-            Assert.Equal(1, m.First().Locations.Length);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M");
+        Assert.Equal(1, m.Length);
+        Assert.Equal(1, m.First().Locations.Length);
+    }
 
-        [Fact]
-        public void PartialExtractSyntaxLocation_DeclBeforeDef()
-        {
-            var text =
+    [Fact]
+    public void PartialExtractSyntaxLocation_DeclBeforeDef()
+    {
+        var text =
 @"public partial class A {
   partial void M();
 }
@@ -225,27 +225,27 @@ public partial class A {
   partial void M() {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol)a.GetMembers("M").Single();
-            Assert.True(m.IsPartialDefinition());
-            var returnSyntax = m.ExtractReturnTypeSyntax();
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = (MethodSymbol)a.GetMembers("M").Single();
+        Assert.True(m.IsPartialDefinition());
+        var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).First();
+        var tree = comp.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).First();
 
-            var otherSymbol = m.PartialImplementationPart;
-            Assert.True(otherSymbol.IsPartialImplementation());
+        var otherSymbol = m.PartialImplementationPart;
+        Assert.True(otherSymbol.IsPartialImplementation());
 
-            Assert.Equal(node, returnSyntax);
-            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
-        }
+        Assert.Equal(node, returnSyntax);
+        Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
+    }
 
-        [Fact]
-        public void PartialExtractSyntaxLocation_DefBeforeDecl()
-        {
-            var text =
+    [Fact]
+    public void PartialExtractSyntaxLocation_DefBeforeDecl()
+    {
+        var text =
 @"public partial class A {
   partial void M() {}
 }
@@ -253,142 +253,142 @@ public partial class A {
   partial void M();
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol)a.GetMembers("M").Single();
-            Assert.True(m.IsPartialDefinition());
-            var returnSyntax = m.ExtractReturnTypeSyntax();
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = (MethodSymbol)a.GetMembers("M").Single();
+        Assert.True(m.IsPartialDefinition());
+        var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Last();
+        var tree = comp.SyntaxTrees.Single();
+        var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Last();
 
-            var otherSymbol = m.PartialImplementationPart;
-            Assert.True(otherSymbol.IsPartialImplementation());
+        var otherSymbol = m.PartialImplementationPart;
+        Assert.True(otherSymbol.IsPartialImplementation());
 
-            Assert.Equal(node, returnSyntax);
-            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
-        }
+        Assert.Equal(node, returnSyntax);
+        Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
+    }
 
-        [Fact]
-        public void PartialExtractSyntaxLocation_OnlyDef()
-        {
-            var text =
+    [Fact]
+    public void PartialExtractSyntaxLocation_OnlyDef()
+    {
+        var text =
 @"public partial class A {
   partial void M() {}
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol)a.GetMembers("M").Single();
-            Assert.True(m.IsPartialImplementation());
-            var returnSyntax = m.ExtractReturnTypeSyntax();
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = (MethodSymbol)a.GetMembers("M").Single();
+        Assert.True(m.IsPartialImplementation());
+        var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single().GetRoot();
-            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+        var tree = comp.SyntaxTrees.Single().GetRoot();
+        var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
 
-            Assert.Equal(node, returnSyntax);
-        }
+        Assert.Equal(node, returnSyntax);
+    }
 
-        [Fact]
-        public void PartialExtractSyntaxLocation_OnlyDecl()
-        {
-            var text =
+    [Fact]
+    public void PartialExtractSyntaxLocation_OnlyDecl()
+    {
+        var text =
 @"public partial class A {
   partial void M();
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = (MethodSymbol)a.GetMembers("M").Single();
-            Assert.True(m.IsPartialDefinition());
-            var returnSyntax = m.ExtractReturnTypeSyntax();
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = (MethodSymbol)a.GetMembers("M").Single();
+        Assert.True(m.IsPartialDefinition());
+        var returnSyntax = m.ExtractReturnTypeSyntax();
 
-            var tree = comp.SyntaxTrees.Single().GetRoot();
-            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+        var tree = comp.SyntaxTrees.Single().GetRoot();
+        var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
 
-            Assert.Equal(node, returnSyntax);
-        }
+        Assert.Equal(node, returnSyntax);
+    }
 
-        [Fact]
-        public void FullName()
-        {
-            var text =
+    [Fact]
+    public void FullName()
+    {
+        var text =
 @"
 public class A {
   public string M(int x);
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.Equal("System.String A.M(System.Int32 x)", m.ToTestDisplayString());
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        Assert.Equal("System.String A.M(System.Int32 x)", m.ToTestDisplayString());
+    }
 
-        [Fact]
-        public void TypeParameterScope()
-        {
-            var text =
+    [Fact]
+    public void TypeParameterScope()
+    {
+        var text =
 @"
 public interface A {
   T M<T>(T t);
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            var t = m.TypeParameters[0];
-            Assert.Equal(t, m.Parameters[0].Type);
-            Assert.Equal(t, m.ReturnType);
-        }
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        var t = m.TypeParameters[0];
+        Assert.Equal(t, m.Parameters[0].Type);
+        Assert.Equal(t, m.ReturnType);
+    }
 
-        [WorkItem(931142, "DevDiv/Personal")]
-        [Fact]
-        public void RefOutParameterType()
-        {
-            var text = @"public class A {
+    [WorkItem(931142, "DevDiv/Personal")]
+    [Fact]
+    public void RefOutParameterType()
+    {
+        var text = @"public class A {
   void M(ref A refp, out long outp) { }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            var p1 = m.Parameters[0];
-            var p2 = m.Parameters[1];
-            Assert.Equal(RefKind.Ref, p1.RefKind);
-            Assert.Equal(RefKind.Out, p2.RefKind);
+        var comp = CreateCompilation(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        var p1 = m.Parameters[0];
+        var p2 = m.Parameters[1];
+        Assert.Equal(RefKind.Ref, p1.RefKind);
+        Assert.Equal(RefKind.Out, p2.RefKind);
 
-            var refP = p1.Type;
-            Assert.Equal(TypeKind.Class, refP.TypeKind);
-            Assert.True(refP.IsReferenceType);
-            Assert.False(refP.IsValueType);
-            Assert.Equal("Object", refP.BaseType().Name);
-            Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
-            Assert.Equal(1, refP.GetMembers("M").Length);
+        var refP = p1.Type;
+        Assert.Equal(TypeKind.Class, refP.TypeKind);
+        Assert.True(refP.IsReferenceType);
+        Assert.False(refP.IsValueType);
+        Assert.Equal("Object", refP.BaseType().Name);
+        Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
+        Assert.Equal(1, refP.GetMembers("M").Length);
 
-            var outP = p2.Type;
-            Assert.Equal(TypeKind.Struct, outP.TypeKind);
-            Assert.False(outP.IsReferenceType);
-            Assert.True(outP.IsValueType);
-            Assert.False(outP.IsStatic);
-            Assert.False(outP.IsAbstract);
-            Assert.True(outP.IsSealed);
-            Assert.Equal(Accessibility.Public, outP.DeclaredAccessibility);
-            Assert.Equal(5, outP.Interfaces().Length);
-            Assert.Equal(0, outP.GetTypeMembers().Length); // Enumerable.Empty<NamedTypeSymbol>()
-            Assert.Equal(0, outP.GetTypeMembers(String.Empty).Length);
-            Assert.Equal(0, outP.GetTypeMembers(String.Empty, 0).Length);
-        }
+        var outP = p2.Type;
+        Assert.Equal(TypeKind.Struct, outP.TypeKind);
+        Assert.False(outP.IsReferenceType);
+        Assert.True(outP.IsValueType);
+        Assert.False(outP.IsStatic);
+        Assert.False(outP.IsAbstract);
+        Assert.True(outP.IsSealed);
+        Assert.Equal(Accessibility.Public, outP.DeclaredAccessibility);
+        Assert.Equal(5, outP.Interfaces().Length);
+        Assert.Equal(0, outP.GetTypeMembers().Length); // Enumerable.Empty<NamedTypeSymbol>()
+        Assert.Equal(0, outP.GetTypeMembers(String.Empty).Length);
+        Assert.Equal(0, outP.GetTypeMembers(String.Empty, 0).Length);
+    }
 
-        [Fact]
-        public void RefReturn()
-        {
-            var text =
+    [Fact]
+    public void RefReturn()
+    {
+        var text =
 @"public class A
 {
     ref int M(ref int i)
@@ -398,41 +398,41 @@ public interface A {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib461(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var m = a.GetMembers("M").Single() as MethodSymbol;
-            Assert.Equal(RefKind.Ref, m.RefKind);
-            Assert.Equal(TypeKind.Struct, m.ReturnType.TypeKind);
-            Assert.False(m.ReturnType.IsReferenceType);
-            Assert.True(m.ReturnType.IsValueType);
-            var p1 = m.Parameters[0];
-            Assert.Equal(RefKind.Ref, p1.RefKind);
+        var comp = CreateCompilationWithMscorlib461(text);
+        var global = comp.GlobalNamespace;
+        var a = global.GetTypeMembers("A", 0).Single();
+        var m = a.GetMembers("M").Single() as MethodSymbol;
+        Assert.Equal(RefKind.Ref, m.RefKind);
+        Assert.Equal(TypeKind.Struct, m.ReturnType.TypeKind);
+        Assert.False(m.ReturnType.IsReferenceType);
+        Assert.True(m.ReturnType.IsValueType);
+        var p1 = m.Parameters[0];
+        Assert.Equal(RefKind.Ref, p1.RefKind);
 
-            Assert.Equal("ref System.Int32 A.M(ref System.Int32 i)", m.ToTestDisplayString());
-        }
+        Assert.Equal("ref System.Int32 A.M(ref System.Int32 i)", m.ToTestDisplayString());
+    }
 
-        [Fact]
-        public void BothKindsOfCtors()
-        {
-            var text =
+    [Fact]
+    public void BothKindsOfCtors()
+    {
+        var text =
 @"public class Test
 {
     public Test() {}
     public static Test() {}
 }";
 
-            var comp = CreateCompilation(text);
-            var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
-            var members = classTest.GetMembers();
-            Assert.Equal(2, members.Length);
-        }
+        var comp = CreateCompilation(text);
+        var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
+        var members = classTest.GetMembers();
+        Assert.Equal(2, members.Length);
+    }
 
-        [WorkItem(931663, "DevDiv/Personal")]
-        [Fact]
-        public void RefOutArrayParameter()
-        {
-            var text =
+    [WorkItem(931663, "DevDiv/Personal")]
+    [Fact]
+    public void RefOutArrayParameter()
+    {
+        var text =
 @"public class Test
 {
     public void MethodWithRefOutArray(ref int[] ary1, out string[] ary2)
@@ -441,24 +441,24 @@ public interface A {
     }
 }";
 
-            var comp = CreateCompilation(text);
-            var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
-            var method = classTest.GetMembers("MethodWithRefOutArray").Single() as MethodSymbol;
-            Assert.Equal(classTest, method.ContainingSymbol);
-            Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.True(method.IsDefinition);
+        var comp = CreateCompilation(text);
+        var classTest = comp.GlobalNamespace.GetTypeMembers("Test", 0).Single();
+        var method = classTest.GetMembers("MethodWithRefOutArray").Single() as MethodSymbol;
+        Assert.Equal(classTest, method.ContainingSymbol);
+        Assert.Equal(SymbolKind.Method, method.Kind);
+        Assert.True(method.IsDefinition);
 
-            // var paramList = (method as MethodSymbol).Parameters;
-            var p1 = method.Parameters[0];
-            var p2 = method.Parameters[1];
-            Assert.Equal(RefKind.Ref, p1.RefKind);
-            Assert.Equal(RefKind.Out, p2.RefKind);
-        }
+        // var paramList = (method as MethodSymbol).Parameters;
+        var p1 = method.Parameters[0];
+        var p2 = method.Parameters[1];
+        Assert.Equal(RefKind.Ref, p1.RefKind);
+        Assert.Equal(RefKind.Out, p2.RefKind);
+    }
 
-        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
-        public void InterfaceImplementsCrossTrees(string ob, string cb)
-        {
-            var text1 =
+    [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+    public void InterfaceImplementsCrossTrees(string ob, string cb)
+    {
+        var text1 =
 @"using System;
 using System.Collections.Generic;
 
@@ -484,7 +484,7 @@ namespace NS
   }
 " + cb;
 
-            var text2 =
+        var text2 =
 @"using System;
 using System.Collections.Generic;
 
@@ -505,47 +505,47 @@ namespace NS.NS1
   }
 " + cb;
 
-            var comp = CreateCompilation(new[] { text1, text2 });
-            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
+        var comp = CreateCompilation(new[] { text1, text2 });
+        Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+        var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+        var ns1 = ns.GetMembers("NS1").Single() as NamespaceSymbol;
 
-            var classImpl = ns1.GetTypeMembers("Impl", 0).Single() as NamedTypeSymbol;
-            Assert.Equal(3, classImpl.Interfaces().Length);
-            // 
-            var itfc = classImpl.Interfaces().First() as NamedTypeSymbol;
-            Assert.Equal(1, itfc.Interfaces().Length);
-            itfc = itfc.Interfaces().First() as NamedTypeSymbol;
-            Assert.Equal("I1", itfc.Name);
+        var classImpl = ns1.GetTypeMembers("Impl", 0).Single() as NamedTypeSymbol;
+        Assert.Equal(3, classImpl.Interfaces().Length);
+        // 
+        var itfc = classImpl.Interfaces().First() as NamedTypeSymbol;
+        Assert.Equal(1, itfc.Interfaces().Length);
+        itfc = itfc.Interfaces().First() as NamedTypeSymbol;
+        Assert.Equal("I1", itfc.Name);
 
-            // explicit interface member names include the explicit interface
-            var mems = classImpl.GetMembers("M");
-            Assert.Equal(0, mems.Length);
-            //var mem1 = mems.First() as MethodSymbol;
-            // not impl
-            // Assert.Equal(MethodKind.ExplicitInterfaceImplementation, mem1.MethodKind);
-            // Assert.Equal(1, mem1.ExplicitInterfaceImplementation.Count());
+        // explicit interface member names include the explicit interface
+        var mems = classImpl.GetMembers("M");
+        Assert.Equal(0, mems.Length);
+        //var mem1 = mems.First() as MethodSymbol;
+        // not impl
+        // Assert.Equal(MethodKind.ExplicitInterfaceImplementation, mem1.MethodKind);
+        // Assert.Equal(1, mem1.ExplicitInterfaceImplementation.Count());
 
-            var mem1 = classImpl.GetMembers("M22").Single() as MethodSymbol;
-            // not impl
-            // Assert.Equal(0, mem1.ExplicitInterfaceImplementation.Count());
-            var param = mem1.Parameters.First() as ParameterSymbol;
-            Assert.Equal(RefKind.Ref, param.RefKind);
-            Assert.Equal("ref NS.Abc p", param.ToTestDisplayString());
+        var mem1 = classImpl.GetMembers("M22").Single() as MethodSymbol;
+        // not impl
+        // Assert.Equal(0, mem1.ExplicitInterfaceImplementation.Count());
+        var param = mem1.Parameters.First() as ParameterSymbol;
+        Assert.Equal(RefKind.Ref, param.RefKind);
+        Assert.Equal("ref NS.Abc p", param.ToTestDisplayString());
 
-            var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
-            Assert.Equal(1, structImpl.Interfaces().Length);
-            itfc = structImpl.Interfaces().First() as NamedTypeSymbol;
-            Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
-            //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
-            // not impl
-            // Assert.Equal(1, mem2.ExplicitInterfaceImplementation.Count());
-        }
+        var structImpl = ns1.GetTypeMembers("S").Single() as NamedTypeSymbol;
+        Assert.Equal(1, structImpl.Interfaces().Length);
+        itfc = structImpl.Interfaces().First() as NamedTypeSymbol;
+        Assert.Equal("NS.IGoo<T>", itfc.ToTestDisplayString());
+        //var mem2 = structImpl.GetMembers("M").Single() as MethodSymbol;
+        // not impl
+        // Assert.Equal(1, mem2.ExplicitInterfaceImplementation.Count());
+    }
 
-        [Fact]
-        public void AbstractVirtualMethodsCrossTrees()
-        {
-            var text = @"
+    [Fact]
+    public void AbstractVirtualMethodsCrossTrees()
+    {
+        var text = @"
 namespace MT  {
     public interface IGoo  {
         void M0();
@@ -553,7 +553,7 @@ namespace MT  {
 }
 ";
 
-            var text1 = @"
+        var text1 = @"
 namespace N1  {
     using MT;
     public abstract class Abc : IGoo  {
@@ -568,7 +568,7 @@ namespace N1  {
 }
 ";
 
-            var text2 = @"
+        var text2 = @"
 namespace N1.N2  {
     public class Bbc : Abc  {
         public override void M0() { }
@@ -581,142 +581,142 @@ namespace N1.N2  {
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib461(new[] { text, text1, text2 });
-            Assert.Equal(0, comp.GetDiagnostics().Count());
-            var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
-            var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
+        var comp = CreateCompilationWithMscorlib461(new[] { text, text1, text2 });
+        Assert.Equal(0, comp.GetDiagnostics().Count());
+        var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
+        var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
 
-            #region "Bbc"
-            var type1 = ns1.GetTypeMembers("Bbc", 0).Single() as NamedTypeSymbol;
-            var mems = type1.GetMembers();
-            Assert.Equal(7, mems.Length);
-            // var sorted = mems.Orderby(m => m.Name).ToArray();
-            var sorted = (from m in mems
-                          orderby m.Name
-                          select m).ToArray();
-
-            var m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.False(m0.IsAbstract);
-            Assert.False(m0.IsOverride);
-            Assert.False(m0.IsSealed);
-            Assert.False(m0.IsVirtual);
-
-            var m1 = sorted[1] as MethodSymbol;
-            Assert.Equal("M0", m1.Name);
-            Assert.False(m1.IsAbstract);
-            Assert.True(m1.IsOverride);
-            Assert.False(m1.IsSealed);
-            Assert.False(m1.IsVirtual);
-
-            var m2 = sorted[2] as MethodSymbol;
-            Assert.Equal("M2", m2.Name);
-            Assert.False(m2.IsAbstract);
-            Assert.True(m2.IsOverride);
-            Assert.False(m2.IsSealed);
-            Assert.False(m2.IsVirtual);
-
-            var m3 = sorted[3] as MethodSymbol;
-            Assert.Equal("M3", m3.Name);
-            Assert.False(m3.IsAbstract);
-            Assert.True(m3.IsOverride);
-            Assert.True(m3.IsSealed);
-            Assert.False(m3.IsVirtual);
-
-            var m4 = sorted[4] as MethodSymbol;
-            Assert.Equal("M4", m4.Name);
-            Assert.False(m4.IsAbstract);
-            Assert.True(m4.IsOverride);
-            Assert.False(m4.IsSealed);
-            Assert.False(m4.IsVirtual);
-
-            var m5 = sorted[5] as MethodSymbol;
-            Assert.Equal("M5", m5.Name);
-            Assert.False(m5.IsAbstract);
-            Assert.False(m5.IsOverride);
-            Assert.False(m5.IsSealed);
-            Assert.False(m5.IsVirtual);
-            Assert.True(m5.IsStatic);
-
-            var m6 = sorted[6] as MethodSymbol;
-            Assert.Equal("M6", m6.Name);
-            Assert.False(m6.IsAbstract);
-            Assert.True(m6.IsOverride);
-            Assert.False(m6.IsSealed);
-            Assert.False(m6.IsVirtual);
-            #endregion
-
-            #region "Abc"
-            var type2 = type1.BaseType();
-            Assert.Equal("Abc", type2.Name);
-            mems = type2.GetMembers();
-
-            Assert.Equal(8, mems.Length);
-            sorted = (from m in mems
+        #region "Bbc"
+        var type1 = ns1.GetTypeMembers("Bbc", 0).Single() as NamedTypeSymbol;
+        var mems = type1.GetMembers();
+        Assert.Equal(7, mems.Length);
+        // var sorted = mems.Orderby(m => m.Name).ToArray();
+        var sorted = (from m in mems
                       orderby m.Name
                       select m).ToArray();
 
-            var mm = sorted[2] as FieldSymbol;
-            Assert.Equal("M1", mm.Name);
-            Assert.False(mm.IsAbstract);
-            Assert.False(mm.IsOverride);
-            Assert.False(mm.IsSealed);
-            Assert.False(mm.IsVirtual);
+        var m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.False(m0.IsAbstract);
+        Assert.False(m0.IsOverride);
+        Assert.False(m0.IsSealed);
+        Assert.False(m0.IsVirtual);
 
-            m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.Equal(Accessibility.Protected, m0.DeclaredAccessibility);
+        var m1 = sorted[1] as MethodSymbol;
+        Assert.Equal("M0", m1.Name);
+        Assert.False(m1.IsAbstract);
+        Assert.True(m1.IsOverride);
+        Assert.False(m1.IsSealed);
+        Assert.False(m1.IsVirtual);
 
-            m1 = sorted[1] as MethodSymbol;
-            Assert.Equal("M0", m1.Name);
-            Assert.True(m1.IsAbstract);
-            Assert.False(m1.IsOverride);
-            Assert.False(m1.IsSealed);
-            Assert.False(m1.IsVirtual);
+        var m2 = sorted[2] as MethodSymbol;
+        Assert.Equal("M2", m2.Name);
+        Assert.False(m2.IsAbstract);
+        Assert.True(m2.IsOverride);
+        Assert.False(m2.IsSealed);
+        Assert.False(m2.IsVirtual);
 
-            m2 = sorted[3] as MethodSymbol;
-            Assert.Equal("M2", m2.Name);
-            Assert.True(m2.IsAbstract);
-            Assert.False(m2.IsOverride);
-            Assert.False(m2.IsSealed);
-            Assert.False(m2.IsVirtual);
+        var m3 = sorted[3] as MethodSymbol;
+        Assert.Equal("M3", m3.Name);
+        Assert.False(m3.IsAbstract);
+        Assert.True(m3.IsOverride);
+        Assert.True(m3.IsSealed);
+        Assert.False(m3.IsVirtual);
 
-            m3 = sorted[4] as MethodSymbol;
-            Assert.Equal("M3", m3.Name);
-            Assert.False(m3.IsAbstract);
-            Assert.False(m3.IsOverride);
-            Assert.False(m3.IsSealed);
-            Assert.True(m3.IsVirtual);
+        var m4 = sorted[4] as MethodSymbol;
+        Assert.Equal("M4", m4.Name);
+        Assert.False(m4.IsAbstract);
+        Assert.True(m4.IsOverride);
+        Assert.False(m4.IsSealed);
+        Assert.False(m4.IsVirtual);
 
-            m4 = sorted[5] as MethodSymbol;
-            Assert.Equal("M4", m4.Name);
-            Assert.False(m4.IsAbstract);
-            Assert.False(m4.IsOverride);
-            Assert.False(m4.IsSealed);
-            Assert.True(m4.IsVirtual);
+        var m5 = sorted[5] as MethodSymbol;
+        Assert.Equal("M5", m5.Name);
+        Assert.False(m5.IsAbstract);
+        Assert.False(m5.IsOverride);
+        Assert.False(m5.IsSealed);
+        Assert.False(m5.IsVirtual);
+        Assert.True(m5.IsStatic);
 
-            m5 = sorted[6] as MethodSymbol;
-            Assert.Equal("M5", m5.Name);
-            Assert.False(m5.IsAbstract);
-            Assert.False(m5.IsOverride);
-            Assert.False(m5.IsSealed);
-            Assert.False(m5.IsVirtual);
-            Assert.True(m5.IsStatic);
+        var m6 = sorted[6] as MethodSymbol;
+        Assert.Equal("M6", m6.Name);
+        Assert.False(m6.IsAbstract);
+        Assert.True(m6.IsOverride);
+        Assert.False(m6.IsSealed);
+        Assert.False(m6.IsVirtual);
+        #endregion
 
-            m6 = sorted[7] as MethodSymbol;
-            Assert.Equal("M6", m6.Name);
-            Assert.True(m6.IsAbstract);
-            Assert.False(m6.IsOverride);
-            Assert.False(m6.IsSealed);
-            Assert.False(m6.IsVirtual);
-            #endregion
-        }
+        #region "Abc"
+        var type2 = type1.BaseType();
+        Assert.Equal("Abc", type2.Name);
+        mems = type2.GetMembers();
 
-        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
-        [Fact]
-        public void AbstractVirtualMethodsCrossComps()
-        {
-            var text = @"
+        Assert.Equal(8, mems.Length);
+        sorted = (from m in mems
+                  orderby m.Name
+                  select m).ToArray();
+
+        var mm = sorted[2] as FieldSymbol;
+        Assert.Equal("M1", mm.Name);
+        Assert.False(mm.IsAbstract);
+        Assert.False(mm.IsOverride);
+        Assert.False(mm.IsSealed);
+        Assert.False(mm.IsVirtual);
+
+        m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.Equal(Accessibility.Protected, m0.DeclaredAccessibility);
+
+        m1 = sorted[1] as MethodSymbol;
+        Assert.Equal("M0", m1.Name);
+        Assert.True(m1.IsAbstract);
+        Assert.False(m1.IsOverride);
+        Assert.False(m1.IsSealed);
+        Assert.False(m1.IsVirtual);
+
+        m2 = sorted[3] as MethodSymbol;
+        Assert.Equal("M2", m2.Name);
+        Assert.True(m2.IsAbstract);
+        Assert.False(m2.IsOverride);
+        Assert.False(m2.IsSealed);
+        Assert.False(m2.IsVirtual);
+
+        m3 = sorted[4] as MethodSymbol;
+        Assert.Equal("M3", m3.Name);
+        Assert.False(m3.IsAbstract);
+        Assert.False(m3.IsOverride);
+        Assert.False(m3.IsSealed);
+        Assert.True(m3.IsVirtual);
+
+        m4 = sorted[5] as MethodSymbol;
+        Assert.Equal("M4", m4.Name);
+        Assert.False(m4.IsAbstract);
+        Assert.False(m4.IsOverride);
+        Assert.False(m4.IsSealed);
+        Assert.True(m4.IsVirtual);
+
+        m5 = sorted[6] as MethodSymbol;
+        Assert.Equal("M5", m5.Name);
+        Assert.False(m5.IsAbstract);
+        Assert.False(m5.IsOverride);
+        Assert.False(m5.IsSealed);
+        Assert.False(m5.IsVirtual);
+        Assert.True(m5.IsStatic);
+
+        m6 = sorted[7] as MethodSymbol;
+        Assert.Equal("M6", m6.Name);
+        Assert.True(m6.IsAbstract);
+        Assert.False(m6.IsOverride);
+        Assert.False(m6.IsSealed);
+        Assert.False(m6.IsVirtual);
+        #endregion
+    }
+
+    [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
+    [Fact]
+    public void AbstractVirtualMethodsCrossComps()
+    {
+        var text = @"
 namespace MT  {
     public interface IGoo  {
         void M0();
@@ -724,7 +724,7 @@ namespace MT  {
 }
 ";
 
-            var text1 = @"
+        var text1 = @"
 namespace N1  {
     using MT;
     public abstract class Abc : IGoo  {
@@ -739,7 +739,7 @@ namespace N1  {
 }
 ";
 
-            var text2 = @"
+        var text2 = @"
 namespace N1.N2  {
     public class Bbc : Abc  {
         public override void M0() { }
@@ -752,165 +752,165 @@ namespace N1.N2  {
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib461(text);
-            var compRef1 = new CSharpCompilationReference(comp1);
+        var comp1 = CreateCompilationWithMscorlib461(text);
+        var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib461(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
-            //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
-            //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
-            //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
-            var compRef2 = new CSharpCompilationReference(comp2);
+        var comp2 = CreateCompilationWithMscorlib461(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+        //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
+        //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
+        //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
+        var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilationWithMscorlib461(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
-            //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
-            //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
-            //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
+        var comp = CreateCompilationWithMscorlib461(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+        //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
+        //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
+        //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
 
-            Assert.Equal(0, comp1.GetDiagnostics().Count());
-            Assert.Equal(0, comp2.GetDiagnostics().Count());
-            Assert.Equal(0, comp.GetDiagnostics().Count());
-            //string errs = String.Empty;
-            //foreach (var e in comp.GetDiagnostics())
-            //{
-            //    errs += e.Info.ToString() + "\r\n";
-            //}
-            //Assert.Equal("Errs", errs);
+        Assert.Equal(0, comp1.GetDiagnostics().Count());
+        Assert.Equal(0, comp2.GetDiagnostics().Count());
+        Assert.Equal(0, comp.GetDiagnostics().Count());
+        //string errs = String.Empty;
+        //foreach (var e in comp.GetDiagnostics())
+        //{
+        //    errs += e.Info.ToString() + "\r\n";
+        //}
+        //Assert.Equal("Errs", errs);
 
-            var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
-            var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
+        var ns = comp.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol;
+        var ns1 = ns.GetMembers("N2").Single() as NamespaceSymbol;
 
-            #region "Bbc"
-            var type1 = ns1.GetTypeMembers("Bbc", 0).Single() as NamedTypeSymbol;
-            var mems = type1.GetMembers();
-            Assert.Equal(7, mems.Length);
-            // var sorted = mems.Orderby(m => m.Name).ToArray();
-            var sorted = (from m in mems
-                          orderby m.Name
-                          select m).ToArray();
-
-            var m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.False(m0.IsAbstract);
-            Assert.False(m0.IsOverride);
-            Assert.False(m0.IsSealed);
-            Assert.False(m0.IsVirtual);
-
-            var m1 = sorted[1] as MethodSymbol;
-            Assert.Equal("M0", m1.Name);
-            Assert.False(m1.IsAbstract);
-            Assert.True(m1.IsOverride);
-            Assert.False(m1.IsSealed);
-            Assert.False(m1.IsVirtual);
-
-            var m2 = sorted[2] as MethodSymbol;
-            Assert.Equal("M2", m2.Name);
-            Assert.False(m2.IsAbstract);
-            Assert.True(m2.IsOverride);
-            Assert.False(m2.IsSealed);
-            Assert.False(m2.IsVirtual);
-
-            var m3 = sorted[3] as MethodSymbol;
-            Assert.Equal("M3", m3.Name);
-            Assert.False(m3.IsAbstract);
-            Assert.True(m3.IsOverride);
-            Assert.True(m3.IsSealed);
-            Assert.False(m3.IsVirtual);
-
-            var m4 = sorted[4] as MethodSymbol;
-            Assert.Equal("M4", m4.Name);
-            Assert.False(m4.IsAbstract);
-            Assert.True(m4.IsOverride);
-            Assert.False(m4.IsSealed);
-            Assert.False(m4.IsVirtual);
-
-            var m5 = sorted[5] as MethodSymbol;
-            Assert.Equal("M5", m5.Name);
-            Assert.False(m5.IsAbstract);
-            Assert.False(m5.IsOverride);
-            Assert.False(m5.IsSealed);
-            Assert.False(m5.IsVirtual);
-            Assert.True(m5.IsStatic);
-
-            var m6 = sorted[6] as MethodSymbol;
-            Assert.Equal("M6", m6.Name);
-            Assert.False(m6.IsAbstract);
-            Assert.True(m6.IsOverride);
-            Assert.False(m6.IsSealed);
-            Assert.False(m6.IsVirtual);
-            #endregion
-
-            #region "Abc"
-            var type2 = type1.BaseType();
-            Assert.Equal("Abc", type2.Name);
-            mems = type2.GetMembers();
-            Assert.Equal(8, mems.Length);
-            sorted = (from m in mems
+        #region "Bbc"
+        var type1 = ns1.GetTypeMembers("Bbc", 0).Single() as NamedTypeSymbol;
+        var mems = type1.GetMembers();
+        Assert.Equal(7, mems.Length);
+        // var sorted = mems.Orderby(m => m.Name).ToArray();
+        var sorted = (from m in mems
                       orderby m.Name
                       select m).ToArray();
 
-            var mm = sorted[2] as FieldSymbol;
-            Assert.Equal("M1", mm.Name);
-            Assert.False(mm.IsAbstract);
-            Assert.False(mm.IsOverride);
-            Assert.False(mm.IsSealed);
-            Assert.False(mm.IsVirtual);
+        var m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.False(m0.IsAbstract);
+        Assert.False(m0.IsOverride);
+        Assert.False(m0.IsSealed);
+        Assert.False(m0.IsVirtual);
 
-            m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.False(m0.IsAbstract);
-            Assert.False(m0.IsOverride);
-            Assert.False(m0.IsSealed);
-            Assert.False(m0.IsVirtual);
+        var m1 = sorted[1] as MethodSymbol;
+        Assert.Equal("M0", m1.Name);
+        Assert.False(m1.IsAbstract);
+        Assert.True(m1.IsOverride);
+        Assert.False(m1.IsSealed);
+        Assert.False(m1.IsVirtual);
 
-            m1 = sorted[1] as MethodSymbol;
-            Assert.Equal("M0", m1.Name);
-            Assert.True(m1.IsAbstract);
-            Assert.False(m1.IsOverride);
-            Assert.False(m1.IsSealed);
-            Assert.False(m1.IsVirtual);
+        var m2 = sorted[2] as MethodSymbol;
+        Assert.Equal("M2", m2.Name);
+        Assert.False(m2.IsAbstract);
+        Assert.True(m2.IsOverride);
+        Assert.False(m2.IsSealed);
+        Assert.False(m2.IsVirtual);
 
-            m2 = sorted[3] as MethodSymbol;
-            Assert.Equal("M2", m2.Name);
-            Assert.True(m2.IsAbstract);
-            Assert.False(m2.IsOverride);
-            Assert.False(m2.IsSealed);
-            Assert.False(m2.IsVirtual);
+        var m3 = sorted[3] as MethodSymbol;
+        Assert.Equal("M3", m3.Name);
+        Assert.False(m3.IsAbstract);
+        Assert.True(m3.IsOverride);
+        Assert.True(m3.IsSealed);
+        Assert.False(m3.IsVirtual);
 
-            m3 = sorted[4] as MethodSymbol;
-            Assert.Equal("M3", m3.Name);
-            Assert.False(m3.IsAbstract);
-            Assert.False(m3.IsOverride);
-            Assert.False(m3.IsSealed);
-            Assert.True(m3.IsVirtual);
+        var m4 = sorted[4] as MethodSymbol;
+        Assert.Equal("M4", m4.Name);
+        Assert.False(m4.IsAbstract);
+        Assert.True(m4.IsOverride);
+        Assert.False(m4.IsSealed);
+        Assert.False(m4.IsVirtual);
 
-            m4 = sorted[5] as MethodSymbol;
-            Assert.Equal("M4", m4.Name);
-            Assert.False(m4.IsAbstract);
-            Assert.False(m4.IsOverride);
-            Assert.False(m4.IsSealed);
-            Assert.True(m4.IsVirtual);
+        var m5 = sorted[5] as MethodSymbol;
+        Assert.Equal("M5", m5.Name);
+        Assert.False(m5.IsAbstract);
+        Assert.False(m5.IsOverride);
+        Assert.False(m5.IsSealed);
+        Assert.False(m5.IsVirtual);
+        Assert.True(m5.IsStatic);
 
-            m5 = sorted[6] as MethodSymbol;
-            Assert.Equal("M5", m5.Name);
-            Assert.False(m5.IsAbstract);
-            Assert.False(m5.IsOverride);
-            Assert.False(m5.IsSealed);
-            Assert.False(m5.IsVirtual);
-            Assert.True(m5.IsStatic);
+        var m6 = sorted[6] as MethodSymbol;
+        Assert.Equal("M6", m6.Name);
+        Assert.False(m6.IsAbstract);
+        Assert.True(m6.IsOverride);
+        Assert.False(m6.IsSealed);
+        Assert.False(m6.IsVirtual);
+        #endregion
 
-            m6 = sorted[7] as MethodSymbol;
-            Assert.Equal("M6", m6.Name);
-            Assert.True(m6.IsAbstract);
-            Assert.False(m6.IsOverride);
-            Assert.False(m6.IsSealed);
-            Assert.False(m6.IsVirtual);
-            #endregion
-        }
+        #region "Abc"
+        var type2 = type1.BaseType();
+        Assert.Equal("Abc", type2.Name);
+        mems = type2.GetMembers();
+        Assert.Equal(8, mems.Length);
+        sorted = (from m in mems
+                  orderby m.Name
+                  select m).ToArray();
 
-        [Fact]
-        public void OverloadMethodsCrossTrees()
-        {
-            var text = @"
+        var mm = sorted[2] as FieldSymbol;
+        Assert.Equal("M1", mm.Name);
+        Assert.False(mm.IsAbstract);
+        Assert.False(mm.IsOverride);
+        Assert.False(mm.IsSealed);
+        Assert.False(mm.IsVirtual);
+
+        m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.False(m0.IsAbstract);
+        Assert.False(m0.IsOverride);
+        Assert.False(m0.IsSealed);
+        Assert.False(m0.IsVirtual);
+
+        m1 = sorted[1] as MethodSymbol;
+        Assert.Equal("M0", m1.Name);
+        Assert.True(m1.IsAbstract);
+        Assert.False(m1.IsOverride);
+        Assert.False(m1.IsSealed);
+        Assert.False(m1.IsVirtual);
+
+        m2 = sorted[3] as MethodSymbol;
+        Assert.Equal("M2", m2.Name);
+        Assert.True(m2.IsAbstract);
+        Assert.False(m2.IsOverride);
+        Assert.False(m2.IsSealed);
+        Assert.False(m2.IsVirtual);
+
+        m3 = sorted[4] as MethodSymbol;
+        Assert.Equal("M3", m3.Name);
+        Assert.False(m3.IsAbstract);
+        Assert.False(m3.IsOverride);
+        Assert.False(m3.IsSealed);
+        Assert.True(m3.IsVirtual);
+
+        m4 = sorted[5] as MethodSymbol;
+        Assert.Equal("M4", m4.Name);
+        Assert.False(m4.IsAbstract);
+        Assert.False(m4.IsOverride);
+        Assert.False(m4.IsSealed);
+        Assert.True(m4.IsVirtual);
+
+        m5 = sorted[6] as MethodSymbol;
+        Assert.Equal("M5", m5.Name);
+        Assert.False(m5.IsAbstract);
+        Assert.False(m5.IsOverride);
+        Assert.False(m5.IsSealed);
+        Assert.False(m5.IsVirtual);
+        Assert.True(m5.IsStatic);
+
+        m6 = sorted[7] as MethodSymbol;
+        Assert.Equal("M6", m6.Name);
+        Assert.True(m6.IsAbstract);
+        Assert.False(m6.IsOverride);
+        Assert.False(m6.IsSealed);
+        Assert.False(m6.IsVirtual);
+        #endregion
+    }
+
+    [Fact]
+    public void OverloadMethodsCrossTrees()
+    {
+        var text = @"
 using System;
 namespace NS
 {
@@ -922,7 +922,7 @@ namespace NS
 }
 ";
 
-            var text1 = @"
+        var text1 = @"
 namespace NS
 {
     using System;
@@ -935,7 +935,7 @@ namespace NS
 }
 ";
 
-            var text2 = @"
+        var text2 = @"
 namespace NS  {
     public class Test  {
         public class C : B  {
@@ -951,58 +951,58 @@ namespace NS  {
 }
 ";
 
-            var comp = CreateCompilation(new[] { text, text1, text2 });
-            // Not impl errors
-            // Assert.Equal(0, comp.GetDiagnostics().Count());
+        var comp = CreateCompilation(new[] { text, text1, text2 });
+        // Not impl errors
+        // Assert.Equal(0, comp.GetDiagnostics().Count());
 
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+        var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
 
-            var type1 = (ns.GetTypeMembers("Test").Single() as NamedTypeSymbol).GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
-            Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
+        var type1 = (ns.GetTypeMembers("Test").Single() as NamedTypeSymbol).GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
+        Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
 
-            var mems = type1.GetMembers();
-            Assert.Equal(2, mems.Length);
+        var mems = type1.GetMembers();
+        Assert.Equal(2, mems.Length);
 
-            var mems1 = type1.BaseType().GetMembers();
-            Assert.Equal(4, mems1.Length);
+        var mems1 = type1.BaseType().GetMembers();
+        Assert.Equal(4, mems1.Length);
 
-            var mems2 = type1.BaseType().BaseType().GetMembers();
-            Assert.Equal(3, mems2.Length);
+        var mems2 = type1.BaseType().BaseType().GetMembers();
+        Assert.Equal(3, mems2.Length);
 
-            var list = new List<Symbol>();
-            list.AddRange(mems);
-            list.AddRange(mems1);
-            list.AddRange(mems2);
-            var sorted = (from m in list
-                          orderby m.Name
-                          select m).ToArray();
+        var list = new List<Symbol>();
+        list.AddRange(mems);
+        list.AddRange(mems1);
+        list.AddRange(mems2);
+        var sorted = (from m in list
+                      orderby m.Name
+                      select m).ToArray();
 
-            var m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            m0 = sorted[1] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            m0 = sorted[2] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        var m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        m0 = sorted[1] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        m0 = sorted[2] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
 
-            var m1 = sorted[3] as MethodSymbol;
-            Assert.Equal("System.Int64 NS.Test.C.Overloads(NS.A p, NS.B p2)", m1.ToTestDisplayString());
-            m1 = sorted[4] as MethodSymbol;
-            Assert.Equal("void NS.B.Overloads(ref NS.A p)", m1.ToTestDisplayString());
-            m1 = sorted[5] as MethodSymbol;
-            Assert.Equal("System.String NS.B.Overloads(NS.B p)", m1.ToTestDisplayString());
-            m1 = sorted[6] as MethodSymbol;
-            Assert.Equal("System.Int64 NS.B.Overloads(NS.A p, System.Int64 p2)", m1.ToTestDisplayString());
-            m1 = sorted[7] as MethodSymbol;
-            Assert.Equal("void NS.A.Overloads(System.UInt16 p)", m1.ToTestDisplayString());
-            m1 = sorted[8] as MethodSymbol;
-            Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
-        }
+        var m1 = sorted[3] as MethodSymbol;
+        Assert.Equal("System.Int64 NS.Test.C.Overloads(NS.A p, NS.B p2)", m1.ToTestDisplayString());
+        m1 = sorted[4] as MethodSymbol;
+        Assert.Equal("void NS.B.Overloads(ref NS.A p)", m1.ToTestDisplayString());
+        m1 = sorted[5] as MethodSymbol;
+        Assert.Equal("System.String NS.B.Overloads(NS.B p)", m1.ToTestDisplayString());
+        m1 = sorted[6] as MethodSymbol;
+        Assert.Equal("System.Int64 NS.B.Overloads(NS.A p, System.Int64 p2)", m1.ToTestDisplayString());
+        m1 = sorted[7] as MethodSymbol;
+        Assert.Equal("void NS.A.Overloads(System.UInt16 p)", m1.ToTestDisplayString());
+        m1 = sorted[8] as MethodSymbol;
+        Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
+    }
 
-        [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
-        [Fact]
-        public void OverloadMethodsCrossComps()
-        {
-            var text = @"
+    [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
+    [Fact]
+    public void OverloadMethodsCrossComps()
+    {
+        var text = @"
 namespace NS
 {
     public class A
@@ -1013,7 +1013,7 @@ namespace NS
 }
 ";
 
-            var text1 = @"
+        var text1 = @"
 namespace NS
 {
     public class B : A
@@ -1025,7 +1025,7 @@ namespace NS
 }
 ";
 
-            var text2 = @"
+        var text2 = @"
 namespace NS  {
     public class Test  {
         public class C : B  {
@@ -1041,77 +1041,77 @@ namespace NS  {
 }
 ";
 
-            var comp1 = CreateCompilation(text);
-            var compRef1 = new CSharpCompilationReference(comp1);
+        var comp1 = CreateCompilation(text);
+        var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilation(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
-            //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
-            //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
-            //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
-            var compRef2 = new CSharpCompilationReference(comp2);
+        var comp2 = CreateCompilation(new string[] { text1 }, new List<MetadataReference>() { compRef1 }, assemblyName: "Test2");
+        //Compilation.Create(outputName: "Test2", options: CompilationOptions.Default,
+        //                    syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text1) },
+        //                    references: new MetadataReference[] { compRef1, GetCorlibReference() });
+        var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateCompilation(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
-            //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
-            //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
-            //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
+        var comp = CreateCompilation(new string[] { text2 }, new List<MetadataReference>() { compRef1, compRef2 }, assemblyName: "Test3");
+        //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
+        //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text2) },
+        //                        references: new MetadataReference[] { compRef1, compRef2, GetCorlibReference() });
 
-            Assert.Equal(0, comp1.GetDiagnostics().Count());
-            Assert.Equal(0, comp2.GetDiagnostics().Count());
-            Assert.Equal(0, comp.GetDiagnostics().Count());
-            //string errs = String.Empty;
-            //foreach (var e in comp.GetDiagnostics())
-            //{
-            //    errs += e.Info.ToString() + "\r\n";
-            //}
-            //Assert.Equal(String.Empty, errs);
+        Assert.Equal(0, comp1.GetDiagnostics().Count());
+        Assert.Equal(0, comp2.GetDiagnostics().Count());
+        Assert.Equal(0, comp.GetDiagnostics().Count());
+        //string errs = String.Empty;
+        //foreach (var e in comp.GetDiagnostics())
+        //{
+        //    errs += e.Info.ToString() + "\r\n";
+        //}
+        //Assert.Equal(String.Empty, errs);
 
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var type1 = (ns.GetTypeMembers("Test").Single() as NamedTypeSymbol).GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
-            Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
+        var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+        var type1 = (ns.GetTypeMembers("Test").Single() as NamedTypeSymbol).GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
+        Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
 
-            var mems = type1.GetMembers();
-            Assert.Equal(2, mems.Length);
+        var mems = type1.GetMembers();
+        Assert.Equal(2, mems.Length);
 
-            var mems1 = type1.BaseType().GetMembers();
-            Assert.Equal(4, mems1.Length);
+        var mems1 = type1.BaseType().GetMembers();
+        Assert.Equal(4, mems1.Length);
 
-            var mems2 = type1.BaseType().BaseType().GetMembers();
-            Assert.Equal(3, mems2.Length);
+        var mems2 = type1.BaseType().BaseType().GetMembers();
+        Assert.Equal(3, mems2.Length);
 
-            var list = new List<Symbol>();
-            list.AddRange(mems);
-            list.AddRange(mems1);
-            list.AddRange(mems2);
-            var sorted = (from m in list
-                          orderby m.Name
-                          select m).ToArray();
+        var list = new List<Symbol>();
+        list.AddRange(mems);
+        list.AddRange(mems1);
+        list.AddRange(mems2);
+        var sorted = (from m in list
+                      orderby m.Name
+                      select m).ToArray();
 
-            var m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            m0 = sorted[1] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            m0 = sorted[2] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        var m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        m0 = sorted[1] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        m0 = sorted[2] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
 
-            var m1 = sorted[3] as MethodSymbol;
-            Assert.Equal("System.Int64 NS.Test.C.Overloads(NS.A p, NS.B p2)", m1.ToTestDisplayString());
-            m1 = sorted[4] as MethodSymbol;
-            Assert.Equal("void NS.B.Overloads(ref NS.A p)", m1.ToTestDisplayString());
-            m1 = sorted[5] as MethodSymbol;
-            Assert.Equal("System.String NS.B.Overloads(NS.B p)", m1.ToTestDisplayString());
-            m1 = sorted[6] as MethodSymbol;
-            Assert.Equal("System.Int64 NS.B.Overloads(NS.A p, System.Int64 p2)", m1.ToTestDisplayString());
-            m1 = sorted[7] as MethodSymbol;
-            Assert.Equal("void NS.A.Overloads(System.UInt16 p)", m1.ToTestDisplayString());
-            m1 = sorted[8] as MethodSymbol;
-            Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
-        }
+        var m1 = sorted[3] as MethodSymbol;
+        Assert.Equal("System.Int64 NS.Test.C.Overloads(NS.A p, NS.B p2)", m1.ToTestDisplayString());
+        m1 = sorted[4] as MethodSymbol;
+        Assert.Equal("void NS.B.Overloads(ref NS.A p)", m1.ToTestDisplayString());
+        m1 = sorted[5] as MethodSymbol;
+        Assert.Equal("System.String NS.B.Overloads(NS.B p)", m1.ToTestDisplayString());
+        m1 = sorted[6] as MethodSymbol;
+        Assert.Equal("System.Int64 NS.B.Overloads(NS.A p, System.Int64 p2)", m1.ToTestDisplayString());
+        m1 = sorted[7] as MethodSymbol;
+        Assert.Equal("void NS.A.Overloads(System.UInt16 p)", m1.ToTestDisplayString());
+        m1 = sorted[8] as MethodSymbol;
+        Assert.Equal("void NS.A.Overloads(NS.A p)", m1.ToTestDisplayString());
+    }
 
-        [WorkItem(537754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537754")]
-        [Fact]
-        public void PartialMethodsCrossTrees()
-        {
-            var text = @"
+    [WorkItem(537754, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537754")]
+    [Fact]
+    public void PartialMethodsCrossTrees()
+    {
+        var text = @"
 namespace NS
 {
     public partial struct PS
@@ -1126,7 +1126,7 @@ namespace NS
 }
 ";
 
-            var text1 = @"
+        var text1 = @"
 namespace NS
 {
     partial struct PS
@@ -1143,7 +1143,7 @@ namespace NS
 }
 ";
 
-            var text2 = @"
+        var text2 = @"
 namespace NS
 {
     partial struct PS
@@ -1159,84 +1159,84 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(new[] { text, text1, text2 });
-            Assert.Equal(0, comp.GetDiagnostics().Count());
+        var comp = CreateCompilation(new[] { text, text1, text2 });
+        Assert.Equal(0, comp.GetDiagnostics().Count());
 
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+        var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
 
-            var type1 = ns.GetTypeMembers("PS", 0).Single() as NamedTypeSymbol;
-            // Bug
-            // Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
-            Assert.Equal(3, type1.Locations.Length);
-            Assert.False(type1.IsReferenceType);
-            Assert.True(type1.IsValueType);
+        var type1 = ns.GetTypeMembers("PS", 0).Single() as NamedTypeSymbol;
+        // Bug
+        // Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
+        Assert.Equal(3, type1.Locations.Length);
+        Assert.False(type1.IsReferenceType);
+        Assert.True(type1.IsValueType);
 
-            var mems = type1.GetMembers();
-            Assert.Equal(5, mems.Length);
-            var sorted = (from m in mems
-                          orderby m.Name
-                          select m).ToArray();
-
-            var m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.Equal(Accessibility.Public, m0.DeclaredAccessibility);
-            Assert.Equal(3, m0.Locations.Length);
-
-            var m2 = sorted[2] as MethodSymbol;
-            Assert.Equal("M0", m2.Name);
-            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.Equal(1, m2.Locations.Length);
-            Assert.True(m2.ReturnsVoid);
-
-            var m3 = sorted[3] as MethodSymbol;
-            Assert.Equal("M1", m3.Name);
-            Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
-            Assert.Equal(1, m3.Locations.Length);
-
-            var m4 = sorted[4] as MethodSymbol;
-            Assert.Equal("M2", m4.Name);
-            Assert.Equal(Accessibility.Private, m4.DeclaredAccessibility);
-            Assert.Equal(1, m4.Locations.Length);
-
-            #region "GPC"
-            var type2 = sorted[1] as NamedTypeSymbol;
-            Assert.Equal("NS.PS.GPC<T>", type2.ToTestDisplayString());
-            Assert.True(type2.IsNestedType());
-            // Bug
-            Assert.Equal(Accessibility.Public, type2.DeclaredAccessibility);
-            Assert.Equal(3, type2.Locations.Length);
-            Assert.False(type2.IsValueType);
-            Assert.True(type2.IsReferenceType);
-
-            mems = type2.GetMembers();
-            // Assert.Equal(3, mems.Count());
-            sorted = (from m in mems
+        var mems = type1.GetMembers();
+        Assert.Equal(5, mems.Length);
+        var sorted = (from m in mems
                       orderby m.Name
                       select m).ToArray();
 
-            m0 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
-            Assert.Equal(Accessibility.Public, m0.DeclaredAccessibility);
-            Assert.Equal(3, m0.Locations.Length);
+        var m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.Equal(Accessibility.Public, m0.DeclaredAccessibility);
+        Assert.Equal(3, m0.Locations.Length);
 
-            var mm = sorted[1] as MethodSymbol;
-            Assert.Equal("GM0", mm.Name);
-            Assert.Equal(Accessibility.Private, mm.DeclaredAccessibility);
-            Assert.Equal(1, mm.Locations.Length);
+        var m2 = sorted[2] as MethodSymbol;
+        Assert.Equal("M0", m2.Name);
+        Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+        Assert.Equal(1, m2.Locations.Length);
+        Assert.True(m2.ReturnsVoid);
 
-            m2 = sorted[2] as MethodSymbol;
-            Assert.Equal("GM1", m2.Name);
-            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.Equal(1, m2.Locations.Length);
-            Assert.True(m2.ReturnsVoid);
-            #endregion
-        }
+        var m3 = sorted[3] as MethodSymbol;
+        Assert.Equal("M1", m3.Name);
+        Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
+        Assert.Equal(1, m3.Locations.Length);
 
-        [WorkItem(537755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537755")]
-        [Fact]
-        public void PartialMethodsWithRefParams()
-        {
-            var text = @"
+        var m4 = sorted[4] as MethodSymbol;
+        Assert.Equal("M2", m4.Name);
+        Assert.Equal(Accessibility.Private, m4.DeclaredAccessibility);
+        Assert.Equal(1, m4.Locations.Length);
+
+        #region "GPC"
+        var type2 = sorted[1] as NamedTypeSymbol;
+        Assert.Equal("NS.PS.GPC<T>", type2.ToTestDisplayString());
+        Assert.True(type2.IsNestedType());
+        // Bug
+        Assert.Equal(Accessibility.Public, type2.DeclaredAccessibility);
+        Assert.Equal(3, type2.Locations.Length);
+        Assert.False(type2.IsValueType);
+        Assert.True(type2.IsReferenceType);
+
+        mems = type2.GetMembers();
+        // Assert.Equal(3, mems.Count());
+        sorted = (from m in mems
+                  orderby m.Name
+                  select m).ToArray();
+
+        m0 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m0.Name);
+        Assert.Equal(Accessibility.Public, m0.DeclaredAccessibility);
+        Assert.Equal(3, m0.Locations.Length);
+
+        var mm = sorted[1] as MethodSymbol;
+        Assert.Equal("GM0", mm.Name);
+        Assert.Equal(Accessibility.Private, mm.DeclaredAccessibility);
+        Assert.Equal(1, mm.Locations.Length);
+
+        m2 = sorted[2] as MethodSymbol;
+        Assert.Equal("GM1", m2.Name);
+        Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+        Assert.Equal(1, m2.Locations.Length);
+        Assert.True(m2.ReturnsVoid);
+        #endregion
+    }
+
+    [WorkItem(537755, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537755")]
+    [Fact]
+    public void PartialMethodsWithRefParams()
+    {
+        var text = @"
 namespace NS
 {
     public partial class PC
@@ -1253,47 +1253,47 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text);
-            Assert.Equal(0, comp.GetDiagnostics().Count());
+        var comp = CreateCompilation(text);
+        Assert.Equal(0, comp.GetDiagnostics().Count());
 
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var type1 = ns.GetTypeMembers("PC", 0).Single() as NamedTypeSymbol;
+        var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
+        var type1 = ns.GetTypeMembers("PC", 0).Single() as NamedTypeSymbol;
 
-            Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
-            Assert.Equal(2, type1.Locations.Length);
-            Assert.True(type1.IsReferenceType);
-            Assert.False(type1.IsValueType);
+        Assert.Equal(Accessibility.Public, type1.DeclaredAccessibility);
+        Assert.Equal(2, type1.Locations.Length);
+        Assert.True(type1.IsReferenceType);
+        Assert.False(type1.IsValueType);
 
-            var mems = type1.GetMembers();
-            // Bug: actual 5
-            Assert.Equal(3, mems.Length);
-            var sorted = (from m in mems
-                          orderby m.Name
-                          select m).ToArray();
+        var mems = type1.GetMembers();
+        // Bug: actual 5
+        Assert.Equal(3, mems.Length);
+        var sorted = (from m in mems
+                      orderby m.Name
+                      select m).ToArray();
 
-            var m1 = sorted[0] as MethodSymbol;
-            Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m1.Name);
-            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
-            Assert.Equal(2, m1.Locations.Length);
+        var m1 = sorted[0] as MethodSymbol;
+        Assert.Equal(WellKnownMemberNames.InstanceConstructorName, m1.Name);
+        Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+        Assert.Equal(2, m1.Locations.Length);
 
-            var m2 = sorted[1] as MethodSymbol;
-            Assert.Equal("M0", m2.Name);
-            Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.Equal(1, m2.Locations.Length);
-            Assert.True(m2.ReturnsVoid);
+        var m2 = sorted[1] as MethodSymbol;
+        Assert.Equal("M0", m2.Name);
+        Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
+        Assert.Equal(1, m2.Locations.Length);
+        Assert.True(m2.ReturnsVoid);
 
-            var m3 = sorted[2] as MethodSymbol;
-            Assert.Equal("M1", m3.Name);
-            Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
-            Assert.Equal(1, m3.Locations.Length);
-            Assert.True(m3.ReturnsVoid);
-        }
+        var m3 = sorted[2] as MethodSymbol;
+        Assert.Equal("M1", m3.Name);
+        Assert.Equal(Accessibility.Private, m3.DeclaredAccessibility);
+        Assert.Equal(1, m3.Locations.Length);
+        Assert.True(m3.ReturnsVoid);
+    }
 
-        [WorkItem(2358, "DevDiv_Projects/Roslyn")]
-        [Fact]
-        public void ExplicitInterfaceImplementation()
-        {
-            var text = @"
+    [WorkItem(2358, "DevDiv_Projects/Roslyn")]
+    [Fact]
+    public void ExplicitInterfaceImplementation()
+    {
+        var text = @"
 
 interface ISubFuncProp
 {
@@ -1321,17 +1321,17 @@ public class DerivedClass : Interface3Derived
   }
 }";
 
-            var comp = CreateCompilation(text);
+        var comp = CreateCompilation(text);
 
-            var derivedClass = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("DerivedClass")[0];
-            var members = derivedClass.GetMembers();
-            Assert.Equal(3, members.Length);
-        }
+        var derivedClass = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("DerivedClass")[0];
+        var members = derivedClass.GetMembers();
+        Assert.Equal(3, members.Length);
+    }
 
-        [Fact]
-        public void SubstitutedExplicitInterfaceImplementation()
-        {
-            var text = @"
+    [Fact]
+    public void SubstitutedExplicitInterfaceImplementation()
+    {
+        var text = @"
 public class A<T>
 {
     public interface I<U>
@@ -1349,73 +1349,73 @@ public class C : B<int, long>
 {
 }";
 
-            var comp = CreateCompilation(text);
+        var comp = CreateCompilation(text);
 
-            var classB = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("B").Single();
+        var classB = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("B").Single();
 
-            var classBTypeArguments = classB.TypeArguments();
-            Assert.Equal(2, classBTypeArguments.Length);
-            Assert.Equal("Q", classBTypeArguments[0].Name);
-            Assert.Equal("R", classBTypeArguments[1].Name);
+        var classBTypeArguments = classB.TypeArguments();
+        Assert.Equal(2, classBTypeArguments.Length);
+        Assert.Equal("Q", classBTypeArguments[0].Name);
+        Assert.Equal("R", classBTypeArguments[1].Name);
 
-            var classBMethodM = (MethodSymbol)classB.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
-            var classBMethodMTypeParameters = classBMethodM.TypeParameters;
-            Assert.Equal(1, classBMethodMTypeParameters.Length);
-            Assert.Equal("S", classBMethodMTypeParameters[0].Name);
+        var classBMethodM = (MethodSymbol)classB.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
+        var classBMethodMTypeParameters = classBMethodM.TypeParameters;
+        Assert.Equal(1, classBMethodMTypeParameters.Length);
+        Assert.Equal("S", classBMethodMTypeParameters[0].Name);
 
-            var classBMethodMParameters = classBMethodM.Parameters;
-            Assert.Equal(3, classBMethodMParameters.Length);
-            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type);
-            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type);
-            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type);
+        var classBMethodMParameters = classBMethodM.Parameters;
+        Assert.Equal(3, classBMethodMParameters.Length);
+        Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type);
+        Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type);
+        Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type);
 
-            var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
+        var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
 
-            var classCBase = classC.BaseType();
-            Assert.Equal(classB, classCBase.ConstructedFrom);
+        var classCBase = classC.BaseType();
+        Assert.Equal(classB, classCBase.ConstructedFrom);
 
-            var classCBaseTypeArguments = classCBase.TypeArguments();
-            Assert.Equal(2, classCBaseTypeArguments.Length);
-            Assert.Equal(SpecialType.System_Int32, classCBaseTypeArguments[0].SpecialType);
-            Assert.Equal(SpecialType.System_Int64, classCBaseTypeArguments[1].SpecialType);
+        var classCBaseTypeArguments = classCBase.TypeArguments();
+        Assert.Equal(2, classCBaseTypeArguments.Length);
+        Assert.Equal(SpecialType.System_Int32, classCBaseTypeArguments[0].SpecialType);
+        Assert.Equal(SpecialType.System_Int64, classCBaseTypeArguments[1].SpecialType);
 
-            var classCBaseMethodM = (MethodSymbol)classCBase.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
-            Assert.NotEqual(classBMethodM, classCBaseMethodM);
+        var classCBaseMethodM = (MethodSymbol)classCBase.GetMembers().Single(sym => sym.Name.EndsWith("M", StringComparison.Ordinal));
+        Assert.NotEqual(classBMethodM, classCBaseMethodM);
 
-            var classCBaseMethodMTypeParameters = classCBaseMethodM.TypeParameters;
-            Assert.Equal(1, classCBaseMethodMTypeParameters.Length);
-            Assert.Equal("S", classCBaseMethodMTypeParameters[0].Name);
+        var classCBaseMethodMTypeParameters = classCBaseMethodM.TypeParameters;
+        Assert.Equal(1, classCBaseMethodMTypeParameters.Length);
+        Assert.Equal("S", classCBaseMethodMTypeParameters[0].Name);
 
-            var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
-            Assert.Equal(3, classCBaseMethodMParameters.Length);
-            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type);
-            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type);
-            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type);
-        }
+        var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
+        Assert.Equal(3, classCBaseMethodMParameters.Length);
+        Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type);
+        Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type);
+        Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type);
+    }
 
-        #region Regressions
+    #region Regressions
 
-        [WorkItem(527149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527149")]
-        [Fact]
-        public void MethodWithParamsInParameters()
-        {
-            var text =
+    [WorkItem(527149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527149")]
+    [Fact]
+    public void MethodWithParamsInParameters()
+    {
+        var text =
 @"class C
 {
     void F1(params int[] a) { }
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
-            var f1 = c.GetMembers("F1").Single() as MethodSymbol;
-            Assert.Equal("void C.F1(params System.Int32[missing][] a)", f1.ToTestDisplayString());
-        }
+        var comp = CreateEmptyCompilation(text);
+        var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+        var f1 = c.GetMembers("F1").Single() as MethodSymbol;
+        Assert.Equal("void C.F1(params System.Int32[missing][] a)", f1.ToTestDisplayString());
+    }
 
-        [WorkItem(537352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537352")]
-        [Fact]
-        public void Arglist()
-        {
-            string code = @"
+    [WorkItem(537352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537352")]
+    [Fact]
+    public void Arglist()
+    {
+        string code = @"
                 class AA
                 {
                    public static int Method1(__arglist)
@@ -1423,18 +1423,18 @@ public class C : B<int, long>
                    }
                 }";
 
-            var comp = CreateCompilation(code);
-            NamedTypeSymbol nts = comp.Assembly.GlobalNamespace.GetTypeMembers()[0];
-            Assert.Equal("AA", nts.ToTestDisplayString());
-            Assert.Empty(comp.GetDeclarationDiagnostics());
-            Assert.Equal("System.Int32 AA.Method1(__arglist)", nts.GetMembers("Method1").Single().ToTestDisplayString());
-        }
+        var comp = CreateCompilation(code);
+        NamedTypeSymbol nts = comp.Assembly.GlobalNamespace.GetTypeMembers()[0];
+        Assert.Equal("AA", nts.ToTestDisplayString());
+        Assert.Empty(comp.GetDeclarationDiagnostics());
+        Assert.Equal("System.Int32 AA.Method1(__arglist)", nts.GetMembers("Method1").Single().ToTestDisplayString());
+    }
 
-        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
-        [Fact]
-        public void ExpImpInterfaceWithGlobal()
-        {
-            var text = @"
+    [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
+    [Fact]
+    public void ExpImpInterfaceWithGlobal()
+    {
+        var text = @"
 using System;
 namespace N1 
 {
@@ -1458,22 +1458,22 @@ namespace N2
 }
 ";
 
-            var comp = CreateCompilation(text);
-            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+        var comp = CreateCompilation(text);
+        Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
-            var ns = comp.GlobalNamespace.GetMembers("N2").Single() as NamespaceSymbol;
-            var type1 = ns.GetTypeMembers("ExpImpl", 0).Single() as NamedTypeSymbol;
-            var m1 = type1.GetMembers().FirstOrDefault() as MethodSymbol;
-            Assert.Equal("System.Int32 N2.ExpImpl.N1.I1.Method()", m1.ToTestDisplayString());
-            var em1 = m1.ExplicitInterfaceImplementations.First() as MethodSymbol;
-            Assert.Equal("System.Int32 N1.I1.Method()", em1.ToTestDisplayString());
-        }
+        var ns = comp.GlobalNamespace.GetMembers("N2").Single() as NamespaceSymbol;
+        var type1 = ns.GetTypeMembers("ExpImpl", 0).Single() as NamedTypeSymbol;
+        var m1 = type1.GetMembers().FirstOrDefault() as MethodSymbol;
+        Assert.Equal("System.Int32 N2.ExpImpl.N1.I1.Method()", m1.ToTestDisplayString());
+        var em1 = m1.ExplicitInterfaceImplementations.First() as MethodSymbol;
+        Assert.Equal("System.Int32 N1.I1.Method()", em1.ToTestDisplayString());
+    }
 
-        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
-        [Fact]
-        public void BaseInterfaceNameWithAlias()
-        {
-            var text = @"
+    [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
+    [Fact]
+    public void BaseInterfaceNameWithAlias()
+    {
+        var text = @"
 using N1Alias = N1;
 namespace N1 
 {
@@ -1496,20 +1496,20 @@ namespace N2
 }
 ";
 
-            var comp = CreateCompilation(text);
-            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+        var comp = CreateCompilation(text);
+        Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
-            var n2 = comp.GlobalNamespace.GetMembers("N2").Single() as NamespaceSymbol;
-            var test = n2.GetTypeMembers("Test").Single() as NamedTypeSymbol;
-            var bt = test.Interfaces().Single() as NamedTypeSymbol;
-            Assert.Equal("N1.I1", bt.ToTestDisplayString());
-        }
+        var n2 = comp.GlobalNamespace.GetMembers("N2").Single() as NamespaceSymbol;
+        var test = n2.GetTypeMembers("Test").Single() as NamedTypeSymbol;
+        var bt = test.Interfaces().Single() as NamedTypeSymbol;
+        Assert.Equal("N1.I1", bt.ToTestDisplayString());
+    }
 
-        [WorkItem(538209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538209")]
-        [Fact]
-        public void ParameterAccessibility01()
-        {
-            var text = @"
+    [WorkItem(538209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538209")]
+    [Fact]
+    public void ParameterAccessibility01()
+    {
+        var text = @"
 using System;
 class MyClass
 {
@@ -1540,15 +1540,15 @@ class MyClass
 }
 ";
 
-            var comp = CreateCompilation(text);
-            Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
-        }
+        var comp = CreateCompilation(text);
+        Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
+    }
 
-        [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
-        [Fact]
-        public void MethodsWithSameSigDiffReturnType()
-        {
-            var text = @"
+    [WorkItem(537877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537877")]
+    [Fact]
+    public void MethodsWithSameSigDiffReturnType()
+    {
+        var text = @"
 class Test
 {
     public int M1()
@@ -1561,20 +1561,20 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(text);
+        var comp = CreateCompilation(text);
 
-            var test = comp.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
-            var members = test.GetMembers("M1");
+        var test = comp.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
+        var members = test.GetMembers("M1");
 
-            Assert.Equal(2, members.Length);
-            Assert.Equal("System.Int32 Test.M1()", members[0].ToTestDisplayString());
-            Assert.Equal("System.Single Test.M1()", members[1].ToTestDisplayString());
-        }
+        Assert.Equal(2, members.Length);
+        Assert.Equal("System.Int32 Test.M1()", members[0].ToTestDisplayString());
+        Assert.Equal("System.Single Test.M1()", members[1].ToTestDisplayString());
+    }
 
-        [Fact]
-        public void OverriddenMethod01()
-        {
-            var text = @"
+    [Fact]
+    public void OverriddenMethod01()
+    {
+        var text = @"
 class A
 {
     public virtual void F(object[] args) {}
@@ -1589,23 +1589,23 @@ class B : A
 }
 ";
 
-            var comp = CreateCompilation(text);
+        var comp = CreateCompilation(text);
 
-            var a = comp.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
-            var b = comp.GlobalNamespace.GetTypeMembers("B").Single() as NamedTypeSymbol;
-            var f = b.GetMembers("F").Single() as MethodSymbol;
-            Assert.True(f.IsOverride);
-            var f2 = f.OverriddenMethod;
-            Assert.NotNull(f2);
-            Assert.Equal("A", f2.ContainingSymbol.Name);
-        }
-        #endregion
+        var a = comp.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
+        var b = comp.GlobalNamespace.GetTypeMembers("B").Single() as NamedTypeSymbol;
+        var f = b.GetMembers("F").Single() as MethodSymbol;
+        Assert.True(f.IsOverride);
+        var f2 = f.OverriddenMethod;
+        Assert.NotNull(f2);
+        Assert.Equal("A", f2.ContainingSymbol.Name);
+    }
+    #endregion
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
-        [Fact]
-        public void MethodEscapedIdentifier()
-        {
-            var text = @"
+    [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+    [Fact]
+    public void MethodEscapedIdentifier()
+    {
+        var text = @"
 interface @void { @void @return(@void @in); };
 class @int { virtual @int @float(@int @in); };
 class C1 : @int, @void
@@ -1614,40 +1614,40 @@ class C1 : @int, @void
     override @int @float(@int @in) { return null; }
 }
 ";
-            var comp = CreateCompilation(Parse(text));
-            NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
-            // Per explanation from NGafter:
-            //
-            // We intentionally escape keywords that appear in the type qualification of the interface name
-            // on interface implementation members.  That is necessary to distinguish I<int>.F from I<@int>.F,
-            // for example, which might both be members in a class.  An alternative would be to stop using the
-            // abbreviated names for the built-in types, but since we may want to use these names in
-            // diagnostics the @-escaped version is preferred.
-            //
-            MethodSymbol mreturn = (MethodSymbol)c1.GetMembers("@void.return").Single();
-            Assert.Equal("@void.return", mreturn.Name);
-            Assert.Equal("C1.@void.@return(@void)", mreturn.ToString());
-            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType;
-            Assert.Equal("void", rvoid.Name);
-            Assert.Equal("@void", rvoid.ToString());
-            MethodSymbol mvoidreturn = (MethodSymbol)mreturn.ExplicitInterfaceImplementations.Single();
-            Assert.Equal("return", mvoidreturn.Name);
-            Assert.Equal("@void.@return(@void)", mvoidreturn.ToString());
-            ParameterSymbol pin = mreturn.Parameters.Single();
-            Assert.Equal("in", pin.Name);
-            Assert.Equal("@in", pin.ToDisplayString(
-                new SymbolDisplayFormat(
-                    parameterOptions: SymbolDisplayParameterOptions.IncludeName,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)));
-            MethodSymbol mfloat = (MethodSymbol)c1.GetMembers("float").Single();
-            Assert.Equal("float", mfloat.Name);
-            Assert.Empty(c1.GetMembers("@float"));
-        }
+        var comp = CreateCompilation(Parse(text));
+        NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
+        // Per explanation from NGafter:
+        //
+        // We intentionally escape keywords that appear in the type qualification of the interface name
+        // on interface implementation members.  That is necessary to distinguish I<int>.F from I<@int>.F,
+        // for example, which might both be members in a class.  An alternative would be to stop using the
+        // abbreviated names for the built-in types, but since we may want to use these names in
+        // diagnostics the @-escaped version is preferred.
+        //
+        MethodSymbol mreturn = (MethodSymbol)c1.GetMembers("@void.return").Single();
+        Assert.Equal("@void.return", mreturn.Name);
+        Assert.Equal("C1.@void.@return(@void)", mreturn.ToString());
+        NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType;
+        Assert.Equal("void", rvoid.Name);
+        Assert.Equal("@void", rvoid.ToString());
+        MethodSymbol mvoidreturn = (MethodSymbol)mreturn.ExplicitInterfaceImplementations.Single();
+        Assert.Equal("return", mvoidreturn.Name);
+        Assert.Equal("@void.@return(@void)", mvoidreturn.ToString());
+        ParameterSymbol pin = mreturn.Parameters.Single();
+        Assert.Equal("in", pin.Name);
+        Assert.Equal("@in", pin.ToDisplayString(
+            new SymbolDisplayFormat(
+                parameterOptions: SymbolDisplayParameterOptions.IncludeName,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)));
+        MethodSymbol mfloat = (MethodSymbol)c1.GetMembers("float").Single();
+        Assert.Equal("float", mfloat.Name);
+        Assert.Empty(c1.GetMembers("@float"));
+    }
 
-        [Fact]
-        public void ExplicitInterfaceImplementationSimple()
-        {
-            string text = @"
+    [Fact]
+    public void ExplicitInterfaceImplementationSimple()
+    {
+        string text = @"
 interface I
 {
     void Method();
@@ -1659,40 +1659,40 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+        var comp = CreateCompilation(Parse(text));
 
-            var globalNamespace = comp.GlobalNamespace;
+        var globalNamespace = comp.GlobalNamespace;
 
-            var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
-            Assert.Equal(TypeKind.Interface, @interface.TypeKind);
+        var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
+        Assert.Equal(TypeKind.Interface, @interface.TypeKind);
 
-            var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
+        var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
 
-            var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces().Contains(@interface));
+        var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
+        Assert.Equal(TypeKind.Class, @class.TypeKind);
+        Assert.True(@class.Interfaces().Contains(@interface));
 
-            var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
+        var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
+        Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
 
-            var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
-            Assert.Equal(interfaceMethod, explicitImpl);
+        var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
+        Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
-            context.Diagnostics.Verify();
-        }
+        var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+            GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
+        context.Diagnostics.Verify();
+    }
 
-        [Fact]
-        public void ExplicitInterfaceImplementationCorLib()
-        {
-            string text = @"
+    [Fact]
+    public void ExplicitInterfaceImplementationCorLib()
+    {
+        string text = @"
 class F : System.IFormattable
 {
     string System.IFormattable.ToString(string format, System.IFormatProvider formatProvider)
@@ -1702,41 +1702,41 @@ class F : System.IFormattable
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+        var comp = CreateCompilation(Parse(text));
 
-            var globalNamespace = comp.GlobalNamespace;
-            var systemNamespace = (NamespaceSymbol)globalNamespace.GetMembers("System").Single();
+        var globalNamespace = comp.GlobalNamespace;
+        var systemNamespace = (NamespaceSymbol)globalNamespace.GetMembers("System").Single();
 
-            var @interface = (NamedTypeSymbol)systemNamespace.GetTypeMembers("IFormattable").Single();
-            Assert.Equal(TypeKind.Interface, @interface.TypeKind);
+        var @interface = (NamedTypeSymbol)systemNamespace.GetTypeMembers("IFormattable").Single();
+        Assert.Equal(TypeKind.Interface, @interface.TypeKind);
 
-            var interfaceMethod = (MethodSymbol)@interface.GetMembers("ToString").Single();
+        var interfaceMethod = (MethodSymbol)@interface.GetMembers("ToString").Single();
 
-            var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("F").Single();
-            Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces().Contains(@interface));
+        var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("F").Single();
+        Assert.Equal(TypeKind.Class, @class.TypeKind);
+        Assert.True(@class.Interfaces().Contains(@interface));
 
-            var classMethod = (MethodSymbol)@class.GetMembers("System.IFormattable.ToString").Single();
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
+        var classMethod = (MethodSymbol)@class.GetMembers("System.IFormattable.ToString").Single();
+        Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
 
-            var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
-            Assert.Equal(interfaceMethod, explicitImpl);
+        var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
+        Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-               GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
-            context.Diagnostics.Verify();
-        }
+        var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+           GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
+        context.Diagnostics.Verify();
+    }
 
-        [Fact]
-        public void ExplicitInterfaceImplementationRef()
-        {
-            string text = @"
+    [Fact]
+    public void ExplicitInterfaceImplementationRef()
+    {
+        string text = @"
 interface I
 {
     ref int Method(ref int i);
@@ -1748,42 +1748,42 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib461(text);
+        var comp = CreateCompilationWithMscorlib461(text);
 
-            var globalNamespace = comp.GlobalNamespace;
+        var globalNamespace = comp.GlobalNamespace;
 
-            var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
-            Assert.Equal(TypeKind.Interface, @interface.TypeKind);
+        var @interface = (NamedTypeSymbol)globalNamespace.GetTypeMembers("I").Single();
+        Assert.Equal(TypeKind.Interface, @interface.TypeKind);
 
-            var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
-            Assert.Equal(RefKind.Ref, interfaceMethod.RefKind);
+        var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
+        Assert.Equal(RefKind.Ref, interfaceMethod.RefKind);
 
-            var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
-            Assert.Equal(TypeKind.Class, @class.TypeKind);
-            Assert.True(@class.Interfaces().Contains(@interface));
+        var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("C").Single();
+        Assert.Equal(TypeKind.Class, @class.TypeKind);
+        Assert.True(@class.Interfaces().Contains(@interface));
 
-            var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
-            Assert.Equal(RefKind.Ref, classMethod.RefKind);
+        var classMethod = (MethodSymbol)@class.GetMembers("I.Method").Single();
+        Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
+        Assert.Equal(RefKind.Ref, classMethod.RefKind);
 
-            var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
-            Assert.Equal(interfaceMethod, explicitImpl);
+        var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
+        Assert.Equal(interfaceMethod, explicitImpl);
 
-            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
-            Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
-            context.Diagnostics.Verify();
-        }
+        var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+            GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        Assert.Equal(interfaceMethod, explicitOverride.ImplementedMethod.GetInternalSymbol());
+        context.Diagnostics.Verify();
+    }
 
-        [Fact]
-        public void ExplicitInterfaceImplementationGeneric()
-        {
-            string text = @"
+    [Fact]
+    public void ExplicitInterfaceImplementationGeneric()
+    {
+        string text = @"
 namespace Namespace
 {
     interface I<T>
@@ -1798,50 +1798,50 @@ class IC : Namespace.I<int>
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+        var comp = CreateCompilation(Parse(text));
 
-            var globalNamespace = comp.GlobalNamespace;
-            var systemNamespace = (NamespaceSymbol)globalNamespace.GetMembers("Namespace").Single();
+        var globalNamespace = comp.GlobalNamespace;
+        var systemNamespace = (NamespaceSymbol)globalNamespace.GetMembers("Namespace").Single();
 
-            var @interface = (NamedTypeSymbol)systemNamespace.GetTypeMembers("I", 1).Single();
-            Assert.Equal(TypeKind.Interface, @interface.TypeKind);
+        var @interface = (NamedTypeSymbol)systemNamespace.GetTypeMembers("I", 1).Single();
+        Assert.Equal(TypeKind.Interface, @interface.TypeKind);
 
-            var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
+        var interfaceMethod = (MethodSymbol)@interface.GetMembers("Method").Single();
 
-            var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IC").Single();
-            Assert.Equal(TypeKind.Class, @class.TypeKind);
+        var @class = (NamedTypeSymbol)globalNamespace.GetTypeMembers("IC").Single();
+        Assert.Equal(TypeKind.Class, @class.TypeKind);
 
-            var substitutedInterface = @class.Interfaces().Single();
-            Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
+        var substitutedInterface = @class.Interfaces().Single();
+        Assert.Equal(@interface, substitutedInterface.ConstructedFrom);
 
-            var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Single();
+        var substitutedInterfaceMethod = (MethodSymbol)substitutedInterface.GetMembers("Method").Single();
 
-            var classMethod = (MethodSymbol)@class.GetMembers("Namespace.I<System.Int32>.Method").Single();
-            Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
+        var classMethod = (MethodSymbol)@class.GetMembers("Namespace.I<System.Int32>.Method").Single();
+        Assert.Equal(MethodKind.ExplicitInterfaceImplementation, classMethod.MethodKind);
 
-            var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
-            Assert.Equal(substitutedInterface, explicitImpl.ContainingType);
-            Assert.Equal(substitutedInterfaceMethod.OriginalDefinition, explicitImpl.OriginalDefinition);
+        var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
+        Assert.Equal(substitutedInterface, explicitImpl.ContainingType);
+        Assert.Equal(substitutedInterfaceMethod.OriginalDefinition, explicitImpl.OriginalDefinition);
 
-            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+            GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(@class, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(classMethod, explicitOverride.ImplementingMethod.GetInternalSymbol());
 
-            var explicitOverrideImplementedMethod = explicitOverride.ImplementedMethod;
-            Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context).GetInternalSymbol());
-            Assert.Equal(substitutedInterfaceMethod.Name, explicitOverrideImplementedMethod.Name);
-            Assert.Equal(substitutedInterfaceMethod.Arity, explicitOverrideImplementedMethod.GenericParameterCount);
-            context.Diagnostics.Verify();
-        }
+        var explicitOverrideImplementedMethod = explicitOverride.ImplementedMethod;
+        Assert.Equal(substitutedInterface, explicitOverrideImplementedMethod.GetContainingType(context).GetInternalSymbol());
+        Assert.Equal(substitutedInterfaceMethod.Name, explicitOverrideImplementedMethod.Name);
+        Assert.Equal(substitutedInterfaceMethod.Arity, explicitOverrideImplementedMethod.GenericParameterCount);
+        context.Diagnostics.Verify();
+    }
 
-        [Fact()]
-        public void TestMetadataVirtual()
-        {
-            string text = @"
+    [Fact()]
+    public void TestMetadataVirtual()
+    {
+        string text = @"
 class C
 {
     virtual void Method1() { }
@@ -1851,91 +1851,91 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(Parse(text));
+        var comp = CreateCompilation(Parse(text));
 
-            var @class = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
+        var @class = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var method1 = (SourceMemberMethodSymbol)@class.GetMembers("Method1").Single();
-            var method2 = (SourceMemberMethodSymbol)@class.GetMembers("Method2").Single();
-            var method3 = (SourceMemberMethodSymbol)@class.GetMembers("Method3").Single();
-            var method4 = (SourceMemberMethodSymbol)@class.GetMembers("Method4").Single();
+        var method1 = (SourceMemberMethodSymbol)@class.GetMembers("Method1").Single();
+        var method2 = (SourceMemberMethodSymbol)@class.GetMembers("Method2").Single();
+        var method3 = (SourceMemberMethodSymbol)@class.GetMembers("Method3").Single();
+        var method4 = (SourceMemberMethodSymbol)@class.GetMembers("Method4").Single();
 
-            Assert.True(method1.IsVirtual);
-            Assert.True(method2.IsVirtual);
-            Assert.False(method3.IsVirtual);
-            Assert.False(method4.IsVirtual);
+        Assert.True(method1.IsVirtual);
+        Assert.True(method2.IsVirtual);
+        Assert.False(method3.IsVirtual);
+        Assert.False(method4.IsVirtual);
 
-            //1 and 3 - read before set
-            Assert.True(((Cci.IMethodDefinition)method1.GetCciAdapter()).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)method3.GetCciAdapter()).IsVirtual);
+        //1 and 3 - read before set
+        Assert.True(((Cci.IMethodDefinition)method1.GetCciAdapter()).IsVirtual);
+        Assert.False(((Cci.IMethodDefinition)method3.GetCciAdapter()).IsVirtual);
 
-            //2 and 4 - set before read
-            method2.EnsureMetadataVirtual();
-            method4.EnsureMetadataVirtual();
+        //2 and 4 - set before read
+        method2.EnsureMetadataVirtual();
+        method4.EnsureMetadataVirtual();
 
-            //can set twice (e.g. if the method implicitly implements more than one interface method)
-            method2.EnsureMetadataVirtual();
-            method4.EnsureMetadataVirtual();
+        //can set twice (e.g. if the method implicitly implements more than one interface method)
+        method2.EnsureMetadataVirtual();
+        method4.EnsureMetadataVirtual();
 
-            Assert.True(((Cci.IMethodDefinition)method2.GetCciAdapter()).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)method4.GetCciAdapter()).IsVirtual);
+        Assert.True(((Cci.IMethodDefinition)method2.GetCciAdapter()).IsVirtual);
+        Assert.True(((Cci.IMethodDefinition)method4.GetCciAdapter()).IsVirtual);
 
-            //API view unchanged
-            Assert.True(method1.IsVirtual);
-            Assert.True(method2.IsVirtual);
-            Assert.False(method3.IsVirtual);
-            Assert.False(method4.IsVirtual);
-        }
+        //API view unchanged
+        Assert.True(method1.IsVirtual);
+        Assert.True(method2.IsVirtual);
+        Assert.False(method3.IsVirtual);
+        Assert.False(method4.IsVirtual);
+    }
 
-        [Fact]
-        public void ExplicitStaticConstructor()
-        {
-            string text = @"
+    [Fact]
+    public void ExplicitStaticConstructor()
+    {
+        string text = @"
 class C
 {
     static C() { }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics();
 
-            var staticConstructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.StaticConstructorName);
+        var staticConstructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.StaticConstructorName);
 
-            Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
-            Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
-            Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
-            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
-        }
+        Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+        Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
+        Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
+        Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
+    }
 
-        [Fact]
-        public void ImplicitStaticConstructor()
-        {
-            string text = @"
+    [Fact]
+    public void ImplicitStaticConstructor()
+    {
+        string text = @"
 class C
 {
     static int f = 1; //initialized in implicit static constructor
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,16): warning CS0414: The field 'C.f' is assigned but its value is never used
-                //     static int f = 1; //initialized in implicit static constructor
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f")
-            );
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (4,16): warning CS0414: The field 'C.f' is assigned but its value is never used
+            //     static int f = 1; //initialized in implicit static constructor
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f")
+        );
 
-            var staticConstructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.StaticConstructorName);
+        var staticConstructor = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>(WellKnownMemberNames.StaticConstructorName);
 
-            Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
-            Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
-            Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
-            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
-        }
+        Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
+        Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
+        Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
+        Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
+    }
 
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
-        [Fact]
-        public void AccessorMethodAccessorOverriding()
-        {
-            var text = @"
+    [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+    [Fact]
+    public void AccessorMethodAccessorOverriding()
+    {
+        var text = @"
 public class A
 {
     public virtual int P { get; set; }
@@ -1951,35 +1951,35 @@ public class C : B
     public override int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics();
 
-            var globalNamespace = comp.GlobalNamespace;
+        var globalNamespace = comp.GlobalNamespace;
 
-            var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
-            var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+        var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
+        var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
+        var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var methodA = classA.GetMember<PropertySymbol>("P").GetMethod;
-            var methodB = classB.GetMember<MethodSymbol>("get_P");
-            var methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
+        var methodA = classA.GetMember<PropertySymbol>("P").GetMethod;
+        var methodB = classB.GetMember<MethodSymbol>("get_P");
+        var methodC = classC.GetMember<PropertySymbol>("P").GetMethod;
 
-            var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
-            context.Diagnostics.Verify();
-        }
+        var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+            GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
+        context.Diagnostics.Verify();
+    }
 
-        [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
-        [Fact]
-        public void MethodAccessorMethodOverriding()
-        {
-            var text = @"
+    [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]
+    [Fact]
+    public void MethodAccessorMethodOverriding()
+    {
+        var text = @"
 public class A
 {
     public virtual int get_P() { return 0; }
@@ -1995,35 +1995,35 @@ public class C : B
     public override int get_P() { return 0; }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics();
 
-            var globalNamespace = comp.GlobalNamespace;
+        var globalNamespace = comp.GlobalNamespace;
 
-            var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
-            var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+        var classA = globalNamespace.GetMember<NamedTypeSymbol>("A");
+        var classB = globalNamespace.GetMember<NamedTypeSymbol>("B");
+        var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var methodA = classA.GetMember<MethodSymbol>("get_P");
-            var methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
-            var methodC = classC.GetMember<MethodSymbol>("get_P");
+        var methodA = classA.GetMember<MethodSymbol>("get_P");
+        var methodB = classB.GetMember<PropertySymbol>("P").GetMethod;
+        var methodC = classC.GetMember<MethodSymbol>("get_P");
 
-            var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
-            var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
-                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
-            var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
-            Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
-            Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
-            Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
-            context.Diagnostics.Verify();
-        }
+        var typeDefC = (Cci.ITypeDefinition)classC.GetCciAdapter();
+        var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
+            GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
+        var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
+        var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
+        Assert.Equal(classC, explicitOverride.ContainingType.GetInternalSymbol());
+        Assert.Equal(methodC, explicitOverride.ImplementingMethod.GetInternalSymbol());
+        Assert.Equal(methodA, explicitOverride.ImplementedMethod.GetInternalSymbol());
+        context.Diagnostics.Verify();
+    }
 
-        [WorkItem(543444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543444")]
-        [Fact]
-        public void BadArityInOperatorDeclaration()
-        {
-            var text =
+    [WorkItem(543444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543444")]
+    [Fact]
+    public void BadArityInOperatorDeclaration()
+    {
+        var text =
 @"class A
 {
     public static bool operator true(A x, A y) { return false; }
@@ -2034,66 +2034,66 @@ class B
     public static B operator *(B x) { return null; }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (3,33): error CS1020: Overloadable binary operator expected
-                // public static bool operator true(A x, A y) { return false; }
-                Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "true"),
-                // (8,30): error CS1019: Overloadable unary operator expected
-                //     public static B operator *(B x) { return null; }
-                Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "*"),
-                // (3,33): error CS0216: The operator 'A.operator true(A, A)' requires a matching operator 'false' to also be defined
-                //     public static bool operator true(A x, A y) { return false; }
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("A.operator true(A, A)", "false")
-            );
-        }
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (3,33): error CS1020: Overloadable binary operator expected
+            // public static bool operator true(A x, A y) { return false; }
+            Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "true"),
+            // (8,30): error CS1019: Overloadable unary operator expected
+            //     public static B operator *(B x) { return null; }
+            Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "*"),
+            // (3,33): error CS0216: The operator 'A.operator true(A, A)' requires a matching operator 'false' to also be defined
+            //     public static bool operator true(A x, A y) { return false; }
+            Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("A.operator true(A, A)", "false")
+        );
+    }
 
-        [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
-        [Fact]
-        public void UserDefinedOperatorLocation()
-        {
-            var source = @"
+    [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
+    [Fact]
+    public void UserDefinedOperatorLocation()
+    {
+        var source = @"
 public class C
 {
     public static C operator +(C c) { return null; }
 }
 ";
 
-            var keywordPos = source.IndexOf('+');
-            var parenPos = source.IndexOf('(');
+        var keywordPos = source.IndexOf('+');
+        var parenPos = source.IndexOf('(');
 
-            var comp = CreateCompilation(source);
-            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single();
-            var span = symbol.Locations.Single().SourceSpan;
-            Assert.Equal(keywordPos, span.Start);
-            Assert.Equal(parenPos, span.End);
-        }
+        var comp = CreateCompilation(source);
+        var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.UnaryPlusOperatorName).Single();
+        var span = symbol.Locations.Single().SourceSpan;
+        Assert.Equal(keywordPos, span.Start);
+        Assert.Equal(parenPos, span.End);
+    }
 
-        [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
-        [Fact]
-        public void UserDefinedConversionLocation()
-        {
-            var source = @"
+    [WorkItem(779441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/779441")]
+    [Fact]
+    public void UserDefinedConversionLocation()
+    {
+        var source = @"
 public class C
 {
     public static explicit operator string(C c) { return null; }
 }
 ";
 
-            var keywordPos = source.IndexOf("string", StringComparison.Ordinal);
-            var parenPos = source.IndexOf('(');
+        var keywordPos = source.IndexOf("string", StringComparison.Ordinal);
+        var parenPos = source.IndexOf('(');
 
-            var comp = CreateCompilation(source);
-            var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ExplicitConversionName).Single();
-            var span = symbol.Locations.Single().SourceSpan;
-            Assert.Equal(keywordPos, span.Start);
-            Assert.Equal(parenPos, span.End);
-        }
-        [WorkItem(787708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/787708")]
-        [Fact]
-        public void PartialAsyncMethodInTypeWithAttributes()
-        {
-            var source = @"
+        var comp = CreateCompilation(source);
+        var symbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.ExplicitConversionName).Single();
+        var span = symbol.Locations.Single().SourceSpan;
+        Assert.Equal(keywordPos, span.Start);
+        Assert.Equal(parenPos, span.End);
+    }
+    [WorkItem(787708, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/787708")]
+    [Fact]
+    public void PartialAsyncMethodInTypeWithAttributes()
+    {
+        var source = @"
 using System;
 
 class Attr : Attribute
@@ -2110,101 +2110,101 @@ partial class C
     async partial void M() { }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-              // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-              //     async partial void M() { }
-              Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+          // (15,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+          //     async partial void M() { }
+          Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M"));
+    }
 
-        [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
-        [Fact]
-        public void SubstitutedParameterEquality()
-        {
-            var source = @"
+    [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
+    [Fact]
+    public void SubstitutedParameterEquality()
+    {
+        var source = @"
 class C
 {
     void M<T>(T t) { }
 }
 ";
-            var comp = CreateCompilation(source);
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var method = type.GetMember<MethodSymbol>("M");
+        var comp = CreateCompilation(source);
+        var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+        var method = type.GetMember<MethodSymbol>("M");
 
-            var constructedMethod1 = method.Construct(type);
-            var constructedMethod2 = method.Construct(type);
-            Assert.Equal(constructedMethod1, constructedMethod2);
-            Assert.NotSame(constructedMethod1, constructedMethod2);
+        var constructedMethod1 = method.Construct(type);
+        var constructedMethod2 = method.Construct(type);
+        Assert.Equal(constructedMethod1, constructedMethod2);
+        Assert.NotSame(constructedMethod1, constructedMethod2);
 
-            var substitutedParameter1 = constructedMethod1.Parameters.Single();
-            var substitutedParameter2 = constructedMethod2.Parameters.Single();
-            Assert.Equal(substitutedParameter1, substitutedParameter2);
-            Assert.NotSame(substitutedParameter1, substitutedParameter2);
-        }
+        var substitutedParameter1 = constructedMethod1.Parameters.Single();
+        var substitutedParameter2 = constructedMethod2.Parameters.Single();
+        Assert.Equal(substitutedParameter1, substitutedParameter2);
+        Assert.NotSame(substitutedParameter1, substitutedParameter2);
+    }
 
-        [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
-        [Fact]
-        public void ReducedExtensionMethodParameterEquality()
-        {
-            var source = @"
+    [WorkItem(910100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/910100")]
+    [Fact]
+    public void ReducedExtensionMethodParameterEquality()
+    {
+        var source = @"
 static class C
 {
     static void M(this int i, string s) { }
 }
 ";
-            var comp = CreateCompilation(source);
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var method = type.GetMember<MethodSymbol>("M");
+        var comp = CreateCompilation(source);
+        var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+        var method = type.GetMember<MethodSymbol>("M");
 
-            var reducedMethod1 = method.ReduceExtensionMethod();
-            var reducedMethod2 = method.ReduceExtensionMethod();
-            Assert.Equal(reducedMethod1, reducedMethod2);
-            Assert.NotSame(reducedMethod1, reducedMethod2);
+        var reducedMethod1 = method.ReduceExtensionMethod();
+        var reducedMethod2 = method.ReduceExtensionMethod();
+        Assert.Equal(reducedMethod1, reducedMethod2);
+        Assert.NotSame(reducedMethod1, reducedMethod2);
 
-            var extensionParameter1 = reducedMethod1.Parameters.Single();
-            var extensionParameter2 = reducedMethod2.Parameters.Single();
-            Assert.Equal(extensionParameter1, extensionParameter2);
-            Assert.NotSame(extensionParameter1, extensionParameter2);
-        }
+        var extensionParameter1 = reducedMethod1.Parameters.Single();
+        var extensionParameter2 = reducedMethod2.Parameters.Single();
+        Assert.Equal(extensionParameter1, extensionParameter2);
+        Assert.NotSame(extensionParameter1, extensionParameter2);
+    }
 
-        [Fact]
-        public void RefReturningVoidMethod()
-        {
-            var source = @"
+    [Fact]
+    public void RefReturningVoidMethod()
+    {
+        var source = @"
 static class C
 {
     static ref void M() { }
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (4,16): error CS1547: Keyword 'void' cannot be used in this context
-                //     static ref void M() { }
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (4,16): error CS1547: Keyword 'void' cannot be used in this context
+            //     static ref void M() { }
+            Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 16)
+            );
+    }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void RefReadonlyReturningVoidMethod()
-        {
-            var source = @"
+    [Fact]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public void RefReadonlyReturningVoidMethod()
+    {
+        var source = @"
 static class C
 {
     static ref readonly void M() { }
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (4,25): error CS1547: Keyword 'void' cannot be used in this context
-                //     static ref readonly void M() { }
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (4,25): error CS1547: Keyword 'void' cannot be used in this context
+            //     static ref readonly void M() { }
+            Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 25)
+            );
+    }
 
-        [Fact]
-        public void RefReturningVoidMethodNested()
-        {
-            var source = @"
+    [Fact]
+    public void RefReturningVoidMethodNested()
+    {
+        var source = @"
 static class C
 {
     static void Main()
@@ -2214,21 +2214,21 @@ static class C
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (6,13): error CS1547: Keyword 'void' cannot be used in this context
-                //         ref void M() { }
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
-                // (6,18): warning CS8321: The local function 'M' is declared but never used
-                //         ref void M() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (6,13): error CS1547: Keyword 'void' cannot be used in this context
+            //         ref void M() { }
+            Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
+            // (6,18): warning CS8321: The local function 'M' is declared but never used
+            //         ref void M() { }
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
+            );
+    }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void RefReadonlyReturningVoidMethodNested()
-        {
-            var source = @"
+    [Fact]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public void RefReadonlyReturningVoidMethodNested()
+    {
+        var source = @"
 static class C
 {
     static void Main()
@@ -2244,119 +2244,119 @@ static class C
 }
 ";
 
-            var parseOptions = TestOptions.Regular;
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (10,22): error CS1547: Keyword 'void' cannot be used in this context
-                //         ref readonly void M2() {M1(); throw null;}
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
-            );
-        }
+        var parseOptions = TestOptions.Regular;
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (10,22): error CS1547: Keyword 'void' cannot be used in this context
+            //         ref readonly void M2() {M1(); throw null;}
+            Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(10, 22)
+        );
+    }
 
-        [Fact]
-        public void RefReturningAsyncMethod()
-        {
-            var source = @"
+    [Fact]
+    public void RefReturningAsyncMethod()
+    {
+        var source = @"
 static class C
 {
     static async ref int M() { }
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (4,18): error CS1073: Unexpected token 'ref'
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
-                // (4,26): error CS0161: 'C.M()': not all code paths return a value
-                //     static async ref int M() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (4,18): error CS1073: Unexpected token 'ref'
+            //     static async ref int M() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+            // (4,26): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     static async ref int M() { }
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 26),
+            // (4,26): error CS0161: 'C.M()': not all code paths return a value
+            //     static async ref int M() { }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 26)
+            );
+    }
 
-        [Fact]
-        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
-        public void RefReadonlyReturningAsyncMethod()
-        {
-            var source = @"
+    [Fact]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public void RefReadonlyReturningAsyncMethod()
+    {
+        var source = @"
 static class C
 {
     static async ref readonly int M() { }
 }
 ";
 
-            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
-                // (4,18): error CS1073: Unexpected token 'ref'
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
-                // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
-                // (4,35): error CS0161: 'C.M()': not all code paths return a value
-                //     static async ref readonly int M() { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
-                );
-        }
+        CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+            // (4,18): error CS1073: Unexpected token 'ref'
+            //     static async ref readonly int M() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 18),
+            // (4,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+            //     static async ref readonly int M() { }
+            Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(4, 35),
+            // (4,35): error CS0161: 'C.M()': not all code paths return a value
+            //     static async ref readonly int M() { }
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(4, 35)
+            );
+    }
 
-        [Fact]
-        public void StaticMethodDoesNotRequireInstanceReceiver()
-        {
-            var source = @"
+    [Fact]
+    public void StaticMethodDoesNotRequireInstanceReceiver()
+    {
+        var source = @"
 class C
 {
     public static int M() => 42;
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-            var method = compilation.GetMember<MethodSymbol>("C.M");
-            Assert.False(method.RequiresInstanceReceiver);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var method = compilation.GetMember<MethodSymbol>("C.M");
+        Assert.False(method.RequiresInstanceReceiver);
+    }
 
-        [Fact]
-        public void InstanceMethodRequiresInstanceReceiver()
-        {
-            var source = @"
+    [Fact]
+    public void InstanceMethodRequiresInstanceReceiver()
+    {
+        var source = @"
 class C
 {
     public int M() => 42;
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-            var method = compilation.GetMember<MethodSymbol>("C.M");
-            Assert.True(method.RequiresInstanceReceiver);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var method = compilation.GetMember<MethodSymbol>("C.M");
+        Assert.True(method.RequiresInstanceReceiver);
+    }
 
-        [Fact]
-        public void OrdinaryMethodIsNotConditional()
-        {
-            var source = @"
+    [Fact]
+    public void OrdinaryMethodIsNotConditional()
+    {
+        var source = @"
 class C
 {
     public void M() {}
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-            var method = compilation.GetMember<MethodSymbol>("C.M");
-            Assert.False(method.IsConditional);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var method = compilation.GetMember<MethodSymbol>("C.M");
+        Assert.False(method.IsConditional);
+    }
 
-        [Fact]
-        public void ConditionalMethodIsConditional()
-        {
-            var source = @"
+    [Fact]
+    public void ConditionalMethodIsConditional()
+    {
+        var source = @"
 using System.Diagnostics;
 class C
 {
     [Conditional(""Debug"")]
     public void M() {}
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-            var method = compilation.GetMember<MethodSymbol>("C.M");
-            Assert.True(method.IsConditional);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var method = compilation.GetMember<MethodSymbol>("C.M");
+        Assert.True(method.IsConditional);
+    }
 
-        [Fact]
-        public void ConditionalMethodOverrideIsConditional()
-        {
-            var source = @"
+    [Fact]
+    public void ConditionalMethodOverrideIsConditional()
+    {
+        var source = @"
 using System.Diagnostics;
 
 class Base
@@ -2369,67 +2369,67 @@ class Derived : Base
 {
     public override void M() {}
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
-            var method = compilation.GetMember<MethodSymbol>("Derived.M");
-            Assert.True(method.IsConditional);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics();
+        var method = compilation.GetMember<MethodSymbol>("Derived.M");
+        Assert.True(method.IsConditional);
+    }
 
-        [Fact]
-        public void InvalidConditionalMethodIsConditional()
-        {
-            var source = @"
+    [Fact]
+    public void InvalidConditionalMethodIsConditional()
+    {
+        var source = @"
 using System.Diagnostics;
 class C
 {
     [Conditional(""Debug"")]
     public int M() => 42; 
 }";
-            var compilation = CreateCompilation(source).VerifyDiagnostics(
-                    // (5,6): error CS0578: The Conditional attribute is not valid on 'C.M()' because its return type is not void
-                    //     [Conditional("Debug")]
-                    Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
-            var method = compilation.GetMember<MethodSymbol>("C.M");
-            Assert.True(method.IsConditional);
-        }
+        var compilation = CreateCompilation(source).VerifyDiagnostics(
+                // (5,6): error CS0578: The Conditional attribute is not valid on 'C.M()' because its return type is not void
+                //     [Conditional("Debug")]
+                Diagnostic(ErrorCode.ERR_ConditionalMustReturnVoid, @"Conditional(""Debug"")").WithArguments("C.M()").WithLocation(5, 6));
+        var method = compilation.GetMember<MethodSymbol>("C.M");
+        Assert.True(method.IsConditional);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinitionOnNonPartial()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinitionOnNonPartial()
+    {
+        var source = @"
 class C
 {
     void M() {}
 }
 ";
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
-            Assert.False(m.IsPartialDefinition);
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+        var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+        Assert.False(m.IsPartialDefinition);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinitionOnPartialDefinitionOnly()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinitionOnPartialDefinitionOnly()
+    {
+        var source = @"
 partial class C
 {
     partial void M();
 }
 ";
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
-            Assert.True(m.IsPartialDefinition);
-            Assert.Null(m.PartialDefinitionPart);
-            Assert.Null(m.PartialImplementationPart);
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+        var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+        Assert.True(m.IsPartialDefinition);
+        Assert.Null(m.PartialDefinitionPart);
+        Assert.Null(m.PartialImplementationPart);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinitionWithPartialImplementation()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinitionWithPartialImplementation()
+    {
+        var source = @"
 partial class C
 {
     partial void M();
@@ -2437,18 +2437,18 @@ partial class C
 }
 ";
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
-            Assert.True(m.IsPartialDefinition);
-            Assert.Null(m.PartialDefinitionPart);
-            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+        var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+        Assert.True(m.IsPartialDefinition);
+        Assert.Null(m.PartialDefinitionPart);
+        Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinitionOnPartialImplementation_NonPartialClass()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinitionOnPartialImplementation_NonPartialClass()
+    {
+        var source = @"
 class C
 {
     partial void M();
@@ -2456,47 +2456,47 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (4,18): error CS0751: A partial member must be declared within a partial type
-                //     partial void M();
-                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
-                // (5,18): error CS0751: A partial member must be declared within a partial type
-                //     partial void M() {}
-                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
-            );
-            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
-            Assert.True(m.IsPartialDefinition);
-            Assert.Null(m.PartialDefinitionPart);
-            Assert.False(m.PartialImplementationPart.IsPartialDefinition);
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,18): error CS0751: A partial member must be declared within a partial type
+            //     partial void M();
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
+            // (5,18): error CS0751: A partial member must be declared within a partial type
+            //     partial void M() {}
+            Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
+        );
+        var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+        Assert.True(m.IsPartialDefinition);
+        Assert.Null(m.PartialDefinitionPart);
+        Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinitionOnPartialImplementationOnly()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinitionOnPartialImplementationOnly()
+    {
+        var source = @"
 partial class C
 {
     partial void M() {}
 }
 ";
 
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M()'
-                //     partial void M() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M()").WithLocation(4, 18)
-            );
-            var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
-            Assert.False(m.IsPartialDefinition);
-            Assert.Null(m.PartialDefinitionPart);
-            Assert.Null(m.PartialImplementationPart);
-        }
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M()'
+            //     partial void M() {}
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M()").WithLocation(4, 18)
+        );
+        var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+        Assert.False(m.IsPartialDefinition);
+        Assert.Null(m.PartialDefinitionPart);
+        Assert.Null(m.PartialImplementationPart);
+    }
 
-        [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
-        public void IsPartialDefinition_ReturnsFalseFromMetadata()
-        {
-            var source = @"
+    [Fact, WorkItem(51082, "https://github.com/dotnet/roslyn/issues/51082")]
+    public void IsPartialDefinition_ReturnsFalseFromMetadata()
+    {
+        var source = @"
 public partial class C
 {
     public partial void M();
@@ -2504,85 +2504,84 @@ public partial class C
 }
 ";
 
-            CompileAndVerify(source,
-                sourceSymbolValidator: module =>
-                {
-                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
-                    Assert.True(m.IsPartialDefinition);
-                    Assert.Null(m.PartialDefinitionPart);
-                    Assert.False(m.PartialImplementationPart.IsPartialDefinition);
-                },
-                symbolValidator: module =>
-                {
-                    var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
-                    Assert.False(m.IsPartialDefinition);
-                    Assert.Null(m.PartialDefinitionPart);
-                    Assert.Null(m.PartialImplementationPart);
-                });
-        }
+        CompileAndVerify(source,
+            sourceSymbolValidator: module =>
+            {
+                var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                Assert.True(m.IsPartialDefinition);
+                Assert.Null(m.PartialDefinitionPart);
+                Assert.False(m.PartialImplementationPart.IsPartialDefinition);
+            },
+            symbolValidator: module =>
+            {
+                var m = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").GetPublicSymbol();
+                Assert.False(m.IsPartialDefinition);
+                Assert.Null(m.PartialDefinitionPart);
+                Assert.Null(m.PartialImplementationPart);
+            });
+    }
 
-        [Fact]
-        public void IsPartialDefinition_OnPartialExtern()
-        {
-            var source = @"
+    [Fact]
+    public void IsPartialDefinition_OnPartialExtern()
+    {
+        var source = @"
 public partial class C
 {
     private partial void M();
     private extern partial void M();
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
 
-            var syntax = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(syntax);
+        var syntax = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(syntax);
 
-            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+        var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
 
-            var partialDef = model.GetDeclaredSymbol(methods[0]);
-            Assert.True(partialDef.IsPartialDefinition);
+        var partialDef = model.GetDeclaredSymbol(methods[0]);
+        Assert.True(partialDef.IsPartialDefinition);
 
-            var partialImpl = model.GetDeclaredSymbol(methods[1]);
-            Assert.False(partialImpl.IsPartialDefinition);
+        var partialImpl = model.GetDeclaredSymbol(methods[1]);
+        Assert.False(partialImpl.IsPartialDefinition);
 
-            Assert.Same(partialDef.PartialImplementationPart, partialImpl);
-            Assert.Same(partialImpl.PartialDefinitionPart, partialDef);
+        Assert.Same(partialDef.PartialImplementationPart, partialImpl);
+        Assert.Same(partialImpl.PartialDefinitionPart, partialDef);
 
-            Assert.Null(partialDef.PartialDefinitionPart);
-            Assert.Null(partialImpl.PartialImplementationPart);
-        }
+        Assert.Null(partialDef.PartialDefinitionPart);
+        Assert.Null(partialImpl.PartialImplementationPart);
+    }
 
-        [Fact]
-        public void IsPartialDefinition_Constructed()
-        {
-            var source = @"
+    [Fact]
+    public void IsPartialDefinition_Constructed()
+    {
+        var source = @"
 public partial class C
 {
     public partial void M<T>();
     public partial void M<T>() { }
 }
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
 
-            var syntax = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(syntax);
+        var syntax = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(syntax);
 
-            var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
-            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+        var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+        var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
 
-            var classC = model.GetDeclaredSymbol(type);
-            var partialDef = model.GetDeclaredSymbol(methods[0]);
-            var partialDefConstructed = partialDef.Construct(classC); // M<C>()
+        var classC = model.GetDeclaredSymbol(type);
+        var partialDef = model.GetDeclaredSymbol(methods[0]);
+        var partialDefConstructed = partialDef.Construct(classC); // M<C>()
 
-            Assert.True(partialDef.IsPartialDefinition);
-            Assert.False(partialDefConstructed.IsPartialDefinition);
+        Assert.True(partialDef.IsPartialDefinition);
+        Assert.False(partialDefConstructed.IsPartialDefinition);
 
-            var partialImpl = model.GetDeclaredSymbol(methods[1]);
-            var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
+        var partialImpl = model.GetDeclaredSymbol(methods[1]);
+        var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
 
-            Assert.False(partialImpl.IsPartialDefinition);
-            Assert.False(partialImplConstructed.IsPartialDefinition);
-        }
+        Assert.False(partialImpl.IsPartialDefinition);
+        Assert.False(partialImplConstructed.IsPartialDefinition);
     }
 }

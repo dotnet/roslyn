@@ -13,67 +13,66 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.SignatureHelp;
+
+[Shared]
+[ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]
+internal class FSharpSignatureHelpProvider : ISignatureHelpProvider
 {
-    [Shared]
-    [ExportSignatureHelpProvider(nameof(FSharpSignatureHelpProvider), LanguageNames.FSharp)]
-    internal class FSharpSignatureHelpProvider : ISignatureHelpProvider
+    private readonly IFSharpSignatureHelpProvider _provider;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FSharpSignatureHelpProvider(IFSharpSignatureHelpProvider provider)
     {
-        private readonly IFSharpSignatureHelpProvider _provider;
+        _provider = provider;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpSignatureHelpProvider(IFSharpSignatureHelpProvider provider)
+    public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
+    {
+        var mappedTriggerReason = FSharpSignatureHelpTriggerReasonHelpers.ConvertFrom(triggerInfo.TriggerReason);
+        var mappedTriggerInfo = new FSharpSignatureHelpTriggerInfo(mappedTriggerReason, triggerInfo.TriggerCharacter);
+        var mappedSignatureHelpItems = await _provider.GetItemsAsync(document, position, mappedTriggerInfo, cancellationToken).ConfigureAwait(false);
+
+        if (mappedSignatureHelpItems != null)
         {
-            _provider = provider;
+            return new SignatureHelpItems(
+                mappedSignatureHelpItems.Items?.Select(x =>
+                    new SignatureHelpItem(
+                        x.IsVariadic,
+                        x.DocumentationFactory,
+                        x.PrefixDisplayParts,
+                        x.SeparatorDisplayParts,
+                        x.SuffixDisplayParts,
+                        x.Parameters.Select(y =>
+                            new SignatureHelpParameter(
+                                y.Name,
+                                y.IsOptional,
+                                y.DocumentationFactory,
+                                y.DisplayParts,
+                                y.PrefixDisplayParts,
+                                y.SuffixDisplayParts,
+                                y.SelectedDisplayParts)).ToList(),
+                        x.DescriptionParts)).ToList(),
+                mappedSignatureHelpItems.ApplicableSpan,
+                mappedSignatureHelpItems.ArgumentIndex,
+                mappedSignatureHelpItems.ArgumentCount,
+                mappedSignatureHelpItems.ArgumentName,
+                mappedSignatureHelpItems.SelectedItemIndex);
         }
-
-        public async Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
+        else
         {
-            var mappedTriggerReason = FSharpSignatureHelpTriggerReasonHelpers.ConvertFrom(triggerInfo.TriggerReason);
-            var mappedTriggerInfo = new FSharpSignatureHelpTriggerInfo(mappedTriggerReason, triggerInfo.TriggerCharacter);
-            var mappedSignatureHelpItems = await _provider.GetItemsAsync(document, position, mappedTriggerInfo, cancellationToken).ConfigureAwait(false);
-
-            if (mappedSignatureHelpItems != null)
-            {
-                return new SignatureHelpItems(
-                    mappedSignatureHelpItems.Items?.Select(x =>
-                        new SignatureHelpItem(
-                            x.IsVariadic,
-                            x.DocumentationFactory,
-                            x.PrefixDisplayParts,
-                            x.SeparatorDisplayParts,
-                            x.SuffixDisplayParts,
-                            x.Parameters.Select(y =>
-                                new SignatureHelpParameter(
-                                    y.Name,
-                                    y.IsOptional,
-                                    y.DocumentationFactory,
-                                    y.DisplayParts,
-                                    y.PrefixDisplayParts,
-                                    y.SuffixDisplayParts,
-                                    y.SelectedDisplayParts)).ToList(),
-                            x.DescriptionParts)).ToList(),
-                    mappedSignatureHelpItems.ApplicableSpan,
-                    mappedSignatureHelpItems.ArgumentIndex,
-                    mappedSignatureHelpItems.ArgumentCount,
-                    mappedSignatureHelpItems.ArgumentName,
-                    mappedSignatureHelpItems.SelectedItemIndex);
-            }
-            else
-            {
-                return null;
-            }
+            return null;
         }
+    }
 
-        public bool IsRetriggerCharacter(char ch)
-        {
-            return _provider.IsRetriggerCharacter(ch);
-        }
+    public bool IsRetriggerCharacter(char ch)
+    {
+        return _provider.IsRetriggerCharacter(ch);
+    }
 
-        public bool IsTriggerCharacter(char ch)
-        {
-            return _provider.IsTriggerCharacter(ch);
-        }
+    public bool IsTriggerCharacter(char ch)
+    {
+        return _provider.IsTriggerCharacter(ch);
     }
 }

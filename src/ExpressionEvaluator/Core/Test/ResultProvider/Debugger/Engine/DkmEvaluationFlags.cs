@@ -11,24 +11,23 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Debugger.Evaluation
+namespace Microsoft.VisualStudio.Debugger.Evaluation;
+
+[Flags]
+public enum DkmEvaluationFlags
 {
-    [Flags]
-    public enum DkmEvaluationFlags
-    {
-        None,
-        NoSideEffects = 4,
-        ShowValueRaw = 128,
-        HideNonPublicMembers = 512,
-        NoToString = 1024,
-        NoFormatting = 2048,
-        NoRawView = 4096, // Not used in managed debugging
-        NoQuotes = 8192,
-        DynamicView = 16384,
-        ResultsOnly = 32768,
-        NoExpansion = 65536,
-        FilterToFavorites = 0x40000,
-        UseSimpleDisplayString = 0x80000,
-        IncreaseMaxStringSize = 0x100000
-    }
+    None,
+    NoSideEffects = 4,
+    ShowValueRaw = 128,
+    HideNonPublicMembers = 512,
+    NoToString = 1024,
+    NoFormatting = 2048,
+    NoRawView = 4096, // Not used in managed debugging
+    NoQuotes = 8192,
+    DynamicView = 16384,
+    ResultsOnly = 32768,
+    NoExpansion = 65536,
+    FilterToFavorites = 0x40000,
+    UseSimpleDisplayString = 0x80000,
+    IncreaseMaxStringSize = 0x100000
 }

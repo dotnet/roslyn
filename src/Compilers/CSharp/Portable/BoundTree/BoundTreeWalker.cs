@@ -6,252 +6,251 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal abstract partial class BoundTreeWalker : BoundTreeVisitor
 {
-    internal abstract partial class BoundTreeWalker : BoundTreeVisitor
+    protected BoundTreeWalker()
     {
-        protected BoundTreeWalker()
-        {
-        }
+    }
 
-        public void VisitList<T>(ImmutableArray<T> list) where T : BoundNode
+    public void VisitList<T>(ImmutableArray<T> list) where T : BoundNode
+    {
+        if (!list.IsDefault)
         {
-            if (!list.IsDefault)
+            for (int i = 0; i < list.Length; i++)
             {
-                for (int i = 0; i < list.Length; i++)
-                {
-                    this.Visit(list[i]);
-                }
-            }
-        }
-
-        protected void VisitUnoptimizedForm(BoundQueryClause queryClause)
-        {
-            BoundExpression? unoptimizedForm = queryClause.UnoptimizedForm;
-
-            // The unoptimized form of a query has an additional argument in the call,
-            // which is typically the "trivial" expression x where x is the query
-            // variable.  So that we can make sense of x in this
-            // context, we store the unoptimized form and visit this extra argument.
-            var qc = unoptimizedForm as BoundQueryClause;
-            if (qc != null) unoptimizedForm = qc.Value;
-            var call = unoptimizedForm as BoundCall;
-            if (call != null && (object)call.Method != null)
-            {
-                var arguments = call.Arguments;
-                if (call.Method.Name == "Select")
-                {
-                    this.Visit(arguments[arguments.Length - 1]);
-                }
-                else if (call.Method.Name == "GroupBy")
-                {
-                    this.Visit(arguments[arguments.Length - 2]);
-                }
+                this.Visit(list[i]);
             }
         }
     }
 
-    /// <summary>
-    /// Note: do not use a static/singleton instance of this type, as it holds state.
-    /// </summary>
-    internal abstract class BoundTreeWalkerWithStackGuard : BoundTreeWalker
+    protected void VisitUnoptimizedForm(BoundQueryClause queryClause)
     {
-        private int _recursionDepth;
+        BoundExpression? unoptimizedForm = queryClause.UnoptimizedForm;
 
-        protected BoundTreeWalkerWithStackGuard()
-        { }
-
-        protected BoundTreeWalkerWithStackGuard(int recursionDepth)
+        // The unoptimized form of a query has an additional argument in the call,
+        // which is typically the "trivial" expression x where x is the query
+        // variable.  So that we can make sense of x in this
+        // context, we store the unoptimized form and visit this extra argument.
+        var qc = unoptimizedForm as BoundQueryClause;
+        if (qc != null) unoptimizedForm = qc.Value;
+        var call = unoptimizedForm as BoundCall;
+        if (call != null && (object)call.Method != null)
         {
-            _recursionDepth = recursionDepth;
-        }
-
-        protected int RecursionDepth => _recursionDepth;
-
-        public override BoundNode? Visit(BoundNode? node)
-        {
-            if (node is BoundExpression or BoundPattern)
+            var arguments = call.Arguments;
+            if (call.Method.Name == "Select")
             {
-                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
+                this.Visit(arguments[arguments.Length - 1]);
             }
-
-            return base.Visit(node);
+            else if (call.Method.Name == "GroupBy")
+            {
+                this.Visit(arguments[arguments.Length - 2]);
+            }
         }
+    }
+}
 
-        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
+/// <summary>
+/// Note: do not use a static/singleton instance of this type, as it holds state.
+/// </summary>
+internal abstract class BoundTreeWalkerWithStackGuard : BoundTreeWalker
+{
+    private int _recursionDepth;
+
+    protected BoundTreeWalkerWithStackGuard()
+    { }
+
+    protected BoundTreeWalkerWithStackGuard(int recursionDepth)
+    {
+        _recursionDepth = recursionDepth;
+    }
+
+    protected int RecursionDepth => _recursionDepth;
+
+    public override BoundNode? Visit(BoundNode? node)
+    {
+        if (node is BoundExpression or BoundPattern)
         {
             return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
+        return base.Visit(node);
+    }
+
+    protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
+    {
+        return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
+    }
+
+    protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
+    {
+        Debug.Assert(node is BoundExpression or BoundPattern);
+        return base.Visit(node);
+    }
+}
+
+/// <summary>
+/// Note: do not use a static/singleton instance of this type, as it holds state.
+/// </summary>
+internal abstract class BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeWalkerWithStackGuard
+{
+    protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
+    { }
+
+    protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
+        : base(recursionDepth)
+    { }
+
+    public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
+    {
+        if (node.Left is not BoundBinaryOperator binary)
         {
-            Debug.Assert(node is BoundExpression or BoundPattern);
-            return base.Visit(node);
+            return base.VisitBinaryOperator(node);
         }
+
+        var rightOperands = ArrayBuilder<BoundExpression>.GetInstance();
+
+        rightOperands.Push(node.Right);
+
+        BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
+        rightOperands.Push(binary.Right);
+
+        BoundExpression? current = binary.Left;
+
+        while (current.Kind == BoundKind.BinaryOperator)
+        {
+            binary = (BoundBinaryOperator)current;
+            BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
+            rightOperands.Push(binary.Right);
+            current = binary.Left;
+        }
+
+        this.Visit(current);
+
+        current = rightOperands.Pop();
+        do
+        {
+            this.Visit(current);
+        } while (rightOperands.TryPop(out current));
+
+        rightOperands.Free();
+        return null;
+    }
+
+    protected virtual void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+    {
+    }
+
+    public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+    {
+        if (node.Left is not BoundBinaryPattern binary)
+        {
+            return base.VisitBinaryPattern(node);
+        }
+
+        var rightOperands = ArrayBuilder<BoundPattern>.GetInstance();
+
+        rightOperands.Push(node.Right);
+        rightOperands.Push(binary.Right);
+
+        BoundPattern? current = binary.Left;
+
+        while (current.Kind == BoundKind.BinaryPattern)
+        {
+            binary = (BoundBinaryPattern)current;
+            rightOperands.Push(binary.Right);
+            current = binary.Left;
+        }
+
+        Visit(current);
+
+        current = rightOperands.Pop();
+
+        do
+        {
+            Visit(current);
+        } while (rightOperands.TryPop(out current));
+
+        rightOperands.Free();
+        return null;
+    }
+
+    public sealed override BoundNode? VisitCall(BoundCall node)
+    {
+        if (node.ReceiverOpt is BoundCall receiver1)
+        {
+            var calls = ArrayBuilder<BoundCall>.GetInstance();
+
+            calls.Push(node);
+
+            node = receiver1;
+            while (node.ReceiverOpt is BoundCall receiver2)
+            {
+                BeforeVisitingSkippedBoundCallChildren(node);
+                calls.Push(node);
+                node = receiver2;
+            }
+
+            BeforeVisitingSkippedBoundCallChildren(node);
+
+            VisitReceiver(node);
+
+            do
+            {
+                VisitArguments(node);
+            }
+            while (calls.TryPop(out node!));
+
+            calls.Free();
+        }
+        else
+        {
+            VisitReceiver(node);
+            VisitArguments(node);
+        }
+
+        return null;
+    }
+
+    protected virtual void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+    {
     }
 
     /// <summary>
-    /// Note: do not use a static/singleton instance of this type, as it holds state.
+    /// Called only for the first (in evaluation order) <see cref="BoundCall"/> in the chain.
     /// </summary>
-    internal abstract class BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeWalkerWithStackGuard
+    protected virtual void VisitReceiver(BoundCall node)
     {
-        protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
-        { }
+        this.Visit(node.ReceiverOpt);
+    }
 
-        protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
-            : base(recursionDepth)
-        { }
+    protected virtual void VisitArguments(BoundCall node)
+    {
+        this.VisitList(node.Arguments);
+    }
 
-        public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
+    public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
+    {
+        while (true)
         {
-            if (node.Left is not BoundBinaryOperator binary)
+            Visit(node.Condition);
+            Visit(node.Consequence);
+            var alternative = node.AlternativeOpt;
+            if (alternative is null)
             {
-                return base.VisitBinaryOperator(node);
+                break;
             }
-
-            var rightOperands = ArrayBuilder<BoundExpression>.GetInstance();
-
-            rightOperands.Push(node.Right);
-
-            BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
-            rightOperands.Push(binary.Right);
-
-            BoundExpression? current = binary.Left;
-
-            while (current.Kind == BoundKind.BinaryOperator)
+            if (alternative is BoundIfStatement elseIfStatement)
             {
-                binary = (BoundBinaryOperator)current;
-                BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
-                rightOperands.Push(binary.Right);
-                current = binary.Left;
-            }
-
-            this.Visit(current);
-
-            current = rightOperands.Pop();
-            do
-            {
-                this.Visit(current);
-            } while (rightOperands.TryPop(out current));
-
-            rightOperands.Free();
-            return null;
-        }
-
-        protected virtual void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
-        {
-        }
-
-        public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
-        {
-            if (node.Left is not BoundBinaryPattern binary)
-            {
-                return base.VisitBinaryPattern(node);
-            }
-
-            var rightOperands = ArrayBuilder<BoundPattern>.GetInstance();
-
-            rightOperands.Push(node.Right);
-            rightOperands.Push(binary.Right);
-
-            BoundPattern? current = binary.Left;
-
-            while (current.Kind == BoundKind.BinaryPattern)
-            {
-                binary = (BoundBinaryPattern)current;
-                rightOperands.Push(binary.Right);
-                current = binary.Left;
-            }
-
-            Visit(current);
-
-            current = rightOperands.Pop();
-
-            do
-            {
-                Visit(current);
-            } while (rightOperands.TryPop(out current));
-
-            rightOperands.Free();
-            return null;
-        }
-
-        public sealed override BoundNode? VisitCall(BoundCall node)
-        {
-            if (node.ReceiverOpt is BoundCall receiver1)
-            {
-                var calls = ArrayBuilder<BoundCall>.GetInstance();
-
-                calls.Push(node);
-
-                node = receiver1;
-                while (node.ReceiverOpt is BoundCall receiver2)
-                {
-                    BeforeVisitingSkippedBoundCallChildren(node);
-                    calls.Push(node);
-                    node = receiver2;
-                }
-
-                BeforeVisitingSkippedBoundCallChildren(node);
-
-                VisitReceiver(node);
-
-                do
-                {
-                    VisitArguments(node);
-                }
-                while (calls.TryPop(out node!));
-
-                calls.Free();
+                node = elseIfStatement;
             }
             else
             {
-                VisitReceiver(node);
-                VisitArguments(node);
+                Visit(alternative);
+                break;
             }
-
-            return null;
         }
-
-        protected virtual void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
-        {
-        }
-
-        /// <summary>
-        /// Called only for the first (in evaluation order) <see cref="BoundCall"/> in the chain.
-        /// </summary>
-        protected virtual void VisitReceiver(BoundCall node)
-        {
-            this.Visit(node.ReceiverOpt);
-        }
-
-        protected virtual void VisitArguments(BoundCall node)
-        {
-            this.VisitList(node.Arguments);
-        }
-
-        public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
-        {
-            while (true)
-            {
-                Visit(node.Condition);
-                Visit(node.Consequence);
-                var alternative = node.AlternativeOpt;
-                if (alternative is null)
-                {
-                    break;
-                }
-                if (alternative is BoundIfStatement elseIfStatement)
-                {
-                    node = elseIfStatement;
-                }
-                else
-                {
-                    Visit(alternative);
-                    break;
-                }
-            }
-            return null;
-        }
+        return null;
     }
 }

@@ -8,14 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildBoss
+namespace BuildBoss;
+
+internal enum ProjectFileType
 {
-    internal enum ProjectFileType
-    {
-        CSharp,
-        Basic,
-        Shared,
-        Tool,
-        Unknown
-    }
+    CSharp,
+    Basic,
+    Shared,
+    Tool,
+    Unknown
 }

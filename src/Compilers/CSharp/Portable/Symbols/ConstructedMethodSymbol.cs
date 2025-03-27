@@ -9,27 +9,26 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
 {
-    internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
+    private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
+
+    internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
+        : base(containingSymbol: constructedFrom.ContainingSymbol,
+               map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
+               originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
+               constructedFrom: constructedFrom)
     {
-        private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
+        _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
+    }
 
-        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
-            : base(containingSymbol: constructedFrom.ContainingSymbol,
-                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
-                   originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
-                   constructedFrom: constructedFrom)
+    public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
+    {
+        get
         {
-            _typeArgumentsWithAnnotations = typeArgumentsWithAnnotations;
-        }
-
-        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
-        {
-            get
-            {
-                return _typeArgumentsWithAnnotations;
-            }
+            return _typeArgumentsWithAnnotations;
         }
     }
 }

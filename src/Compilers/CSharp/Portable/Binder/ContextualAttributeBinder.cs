@@ -6,71 +6,70 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// Each application of an attribute is effectively a constructor call.  Since the attribute constructor
+/// might have a CallerMemberName parameter, we need to keep track of which method/property/event
+/// the attribute is on/in (e.g. on a parameter) so that we can use the name of that member as the 
+/// CallerMemberName argument.
+/// This binder is also needed when a <see cref="NameofBinder"/> introduces type parameters to a scope within an attribute.
+/// </summary>
+internal sealed class ContextualAttributeBinder : Binder
 {
-    /// <summary>
-    /// Each application of an attribute is effectively a constructor call.  Since the attribute constructor
-    /// might have a CallerMemberName parameter, we need to keep track of which method/property/event
-    /// the attribute is on/in (e.g. on a parameter) so that we can use the name of that member as the 
-    /// CallerMemberName argument.
-    /// This binder is also needed when a <see cref="NameofBinder"/> introduces type parameters to a scope within an attribute.
-    /// </summary>
-    internal sealed class ContextualAttributeBinder : Binder
+    private readonly Symbol _attributeTarget;
+    private readonly Symbol _attributedMember;
+
+    /// <param name="enclosing">Next binder in the chain (enclosing).</param>
+    /// <param name="symbol">Symbol to which the attribute was applied (e.g. a parameter).</param>
+    public ContextualAttributeBinder(Binder enclosing, Symbol symbol)
+        : base(enclosing, enclosing.Flags | BinderFlags.InContextualAttributeBinder)
     {
-        private readonly Symbol _attributeTarget;
-        private readonly Symbol _attributedMember;
+        Debug.Assert(symbol is not null);
+        _attributeTarget = symbol;
+        _attributedMember = GetAttributedMember(symbol);
+    }
 
-        /// <param name="enclosing">Next binder in the chain (enclosing).</param>
-        /// <param name="symbol">Symbol to which the attribute was applied (e.g. a parameter).</param>
-        public ContextualAttributeBinder(Binder enclosing, Symbol symbol)
-            : base(enclosing, enclosing.Flags | BinderFlags.InContextualAttributeBinder)
+    /// <summary>
+    /// We're binding an attribute and this is the member to/in which the attribute was applied.
+    /// </summary>
+    /// <remarks>
+    /// Method, property, event, or null.
+    /// A virtual property on Binder (i.e. our usual pattern) would be more robust, but the applicability
+    /// of this property is so narrow that it doesn't seem worthwhile.
+    /// </remarks>
+    internal Symbol AttributedMember
+    {
+        get
         {
-            Debug.Assert(symbol is not null);
-            _attributeTarget = symbol;
-            _attributedMember = GetAttributedMember(symbol);
+            return _attributedMember;
         }
+    }
 
-        /// <summary>
-        /// We're binding an attribute and this is the member to/in which the attribute was applied.
-        /// </summary>
-        /// <remarks>
-        /// Method, property, event, or null.
-        /// A virtual property on Binder (i.e. our usual pattern) would be more robust, but the applicability
-        /// of this property is so narrow that it doesn't seem worthwhile.
-        /// </remarks>
-        internal Symbol AttributedMember
+    /// <summary>
+    /// Walk up to the nearest method/property/event.
+    /// </summary>
+    internal static Symbol GetAttributedMember(Symbol symbol)
+    {
+        for (; (object)symbol != null; symbol = symbol.ContainingSymbol)
         {
-            get
+            switch (symbol.Kind)
             {
-                return _attributedMember;
+                case SymbolKind.Method:
+                case SymbolKind.Property:
+                case SymbolKind.Event:
+                    return symbol;
             }
         }
 
-        /// <summary>
-        /// Walk up to the nearest method/property/event.
-        /// </summary>
-        internal static Symbol GetAttributedMember(Symbol symbol)
-        {
-            for (; (object)symbol != null; symbol = symbol.ContainingSymbol)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.Method:
-                    case SymbolKind.Property:
-                    case SymbolKind.Event:
-                        return symbol;
-                }
-            }
+        return symbol;
+    }
 
-            return symbol;
-        }
-
-        internal Symbol AttributeTarget
+    internal Symbol AttributeTarget
+    {
+        get
         {
-            get
-            {
-                return _attributeTarget;
-            }
+            return _attributeTarget;
         }
     }
 }

@@ -10,15 +10,15 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers;
+
+[CompilerTrait(CompilerFeature.ModuleInitializers)]
+public sealed class IgnoredTests : CSharpTestBase
 {
-    [CompilerTrait(CompilerFeature.ModuleInitializers)]
-    public sealed class IgnoredTests : CSharpTestBase
+    [Fact]
+    public void IgnoredOnReturnValue()
     {
-        [Fact]
-        public void IgnoredOnReturnValue()
-        {
-            string source = @"
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -31,21 +31,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnMethodParameter()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnMethodParameter()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -57,21 +57,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnGenericParameter()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnGenericParameter()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -83,21 +83,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnClass()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnClass()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 [ModuleInitializer]
@@ -108,21 +108,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnEvent()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnEvent()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -133,21 +133,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnProperty()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnProperty()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -158,21 +158,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnIndexer()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnIndexer()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -183,21 +183,21 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnField()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnField()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -208,63 +208,63 @@ class C
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnModule()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnModule()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 [module: ModuleInitializer]
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredOnAssembly()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredOnAssembly()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 [assembly: ModuleInitializer]
 
 namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
+    }
 
-        [Fact]
-        public void IgnoredWhenConstructorArgumentIsSpecified()
-        {
-            string source = @"
+    [Fact]
+    public void IgnoredWhenConstructorArgumentIsSpecified()
+    {
+        string source = @"
 using System.Runtime.CompilerServices;
 
 class C
@@ -283,15 +283,14 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            CompileAndVerify(
-                source,
-                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
-                symbolValidator: module =>
-                {
-                    Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
-                    var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
-                    Assert.Null(rootModuleType.GetMember(".cctor"));
-                });
-        }
+        CompileAndVerify(
+            source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: module =>
+            {
+                Assert.Equal(MetadataImportOptions.All, ((PEModuleSymbol)module).ImportOptions);
+                var rootModuleType = (TypeSymbol)module.GlobalNamespace.GetMember("<Module>");
+                Assert.Null(rootModuleType.GetMember(".cctor"));
+            });
     }
 }

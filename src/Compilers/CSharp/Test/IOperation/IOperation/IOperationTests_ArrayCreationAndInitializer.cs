@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class IOperationTests_ArrayCreationAndInitializer : SemanticModelTestBase
 {
-    public class IOperationTests_ArrayCreationAndInitializer : SemanticModelTestBase
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_PrimitiveType()
     {
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_PrimitiveType()
-        {
-            string source = @"
+        string source = @"
 class C
 {
     public void F()
@@ -25,22 +25,22 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[1]')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_UserDefinedType()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_UserDefinedType()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -51,22 +51,22 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[1]')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_ConstantDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_ConstantDimension()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -78,22 +78,22 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
       ILocalReferenceOperation: dimension (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_NonConstantDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_NonConstantDimension()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -104,22 +104,22 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
       IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'dimension')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_DimensionWithImplicitConversion()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_DimensionWithImplicitConversion()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -130,7 +130,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[dimension]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
@@ -140,15 +140,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void SimpleArrayCreation_DimensionWithExplicitConversion()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void SimpleArrayCreation_DimensionWithExplicitConversion()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -159,7 +159,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[(int)dimension]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)dimension')
@@ -169,15 +169,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_PrimitiveType()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_PrimitiveType()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -186,7 +186,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new string[ ... ing.Empty }')
@@ -197,15 +197,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             Instance Receiver: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_PrimitiveTypeWithExplicitDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_PrimitiveTypeWithExplicitDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -214,7 +214,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -225,15 +225,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             Instance Receiver: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithIncorrectExplicitDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithIncorrectExplicitDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -242,7 +242,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
@@ -253,19 +253,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             Instance Receiver: 
               null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0847: An array initializer of length '2' is expected
-                //         var a = /*<bind>*/new string[2] { string.Empty }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ string.Empty }").WithArguments("2").WithLocation(6, 41)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0847: An array initializer of length '2' is expected
+            //         var a = /*<bind>*/new string[2] { string.Empty }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{ string.Empty }").WithArguments("2").WithLocation(6, 41)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithNonConstantExplicitDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializerErrorCase_PrimitiveTypeWithNonConstantExplicitDimension()
+    {
+        string source = @"
 class C
 {
     public void F(int dimension)
@@ -274,7 +274,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[ ... ing.Empty }')
   Dimension Sizes(1):
       IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'dimension')
@@ -285,19 +285,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             Instance Receiver: 
               null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0150: A constant value is expected
-                //         var a = /*<bind>*/new string[dimension] { string.Empty }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "dimension").WithLocation(6, 38)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0150: A constant value is expected
+            //         var a = /*<bind>*/new string[dimension] { string.Empty }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "dimension").WithLocation(6, 38)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_NoExplicitArrayCreationExpression()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_NoExplicitArrayCreationExpression()
+    {
+        string source = @"
 class C
 {
     public void F(int dimension)
@@ -306,7 +306,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int[] x = { 1, 2 };')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int[] x = { 1, 2 }')
     Declarators:
@@ -324,15 +324,15 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_UserDefinedType()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_UserDefinedType()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -343,7 +343,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M[] { new M() }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new M[] { new M() }')
@@ -355,15 +355,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new M
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_ImplicitlyTyped()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_ImplicitlyTyped()
+    {
+        string source = @"
 class M { }
 
 class C
@@ -374,7 +374,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new[] { new M() }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { new M() }')
@@ -386,15 +386,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: M[]) (Syntax: 'new[]
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializerAndDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializerAndDimension()
+    {
+        string source = @"
 class C
 {
     public void F(int dimension)
@@ -403,7 +403,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syntax: 'new[]/*</bind>*/')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'new[]/*</bind>*/')
@@ -411,25 +411,25 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syn
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '')
       Element Values(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1514: { expected
-                //         var x = /*<bind>*/new[]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 43),
-                // CS1513: } expected
-                //         var x = /*<bind>*/new[]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 43),
-                // CS0826: No best type found for implicitly-typed array
-                //         var x = /*<bind>*/new[]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[]/*</bind>*/").WithLocation(6, 27)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS1514: { expected
+            //         var x = /*<bind>*/new[]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 43),
+            // CS1513: } expected
+            //         var x = /*<bind>*/new[]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 43),
+            // CS0826: No best type found for implicitly-typed array
+            //         var x = /*<bind>*/new[]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[]/*</bind>*/").WithLocation(6, 27)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializer()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializerErrorCase_ImplicitlyTypedWithoutInitializer()
+    {
+        string source = @"
 class C
 {
     public void F(int dimension)
@@ -438,7 +438,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syntax: 'new[2]/*</bind>*/')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'new[2]/*</bind>*/')
@@ -446,28 +446,28 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syn
     IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '')
       Element Values(0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,31): error CS0178: Invalid rank specifier: expected ',' or ']'
-                //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidArray, "2").WithLocation(6, 31),
-                // file.cs(6,44): error CS1514: { expected
-                //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 44),
-                // file.cs(6,44): error CS1513: } expected
-                //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 44),
-                // file.cs(6,27): error CS0826: No best type found for implicitly-typed array
-                //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[2]/*</bind>*/").WithLocation(6, 27)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,31): error CS0178: Invalid rank specifier: expected ',' or ']'
+            //         var x = /*<bind>*/new[2]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_InvalidArray, "2").WithLocation(6, 31),
+            // file.cs(6,44): error CS1514: { expected
+            //         var x = /*<bind>*/new[2]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 44),
+            // file.cs(6,44): error CS1513: } expected
+            //         var x = /*<bind>*/new[2]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 44),
+            // file.cs(6,27): error CS0826: No best type found for implicitly-typed array
+            //         var x = /*<bind>*/new[2]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[2]/*</bind>*/").WithLocation(6, 27)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationWithInitializer_MultipleInitializersWithConversions()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationWithInitializer_MultipleInitializersWithConversions()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -477,7 +477,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new[] { ""he ... , a, null }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: 'new[] { ""he ... , a, null }')
@@ -491,15 +491,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void MultiDimensionalArrayCreation()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void MultiDimensionalArrayCreation()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -509,7 +509,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Syntax: 'new byte[1,2,3]')
   Dimension Sizes(3):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
@@ -518,15 +518,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Sy
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void MultiDimensionalArrayCreation_WithInitializer()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void MultiDimensionalArrayCreation_WithInitializer()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -535,7 +535,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Syntax: 'new byte[,, ...  5, 6 } } }')
   Dimension Sizes(3):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new byte[,, ...  5, 6 } } }')
@@ -577,15 +577,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte[,,]) (Sy
                         Operand: 
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6) (Syntax: '6')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationOfSingleDimensionalArrays()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationOfSingleDimensionalArrays()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -594,7 +594,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[][] ... ew int[5] }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new int[][] ... ew int[5] }')
@@ -616,15 +616,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (S
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationOfMultiDimensionalArrays()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationOfMultiDimensionalArrays()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -633,22 +633,22 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,]) (Syntax: 'new int[1][,]')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationOfImplicitlyTypedMultiDimensionalArrays_WithInitializer()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationOfImplicitlyTypedMultiDimensionalArrays_WithInitializer()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -657,7 +657,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,,]) (Syntax: 'new[] { new ... , 4 } } } }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'new[] { new ... , 4 } } } }')
@@ -693,15 +693,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][,,]) 
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationErrorCase_MissingDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationErrorCase_MissingDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -710,25 +710,25 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[]')
   Dimension Sizes(0)
   Initializer: 
     null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1586: Array creation must have array size or array initializer
-                //         var a = /*<bind>*/new string[]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 37)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS1586: Array creation must have array size or array initializer
+            //         var a = /*<bind>*/new string[]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 37)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationErrorCase_InvalidInitializer()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationErrorCase_InvalidInitializer()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -737,7 +737,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[] { 1 }')
   Dimension Sizes(1):
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new string[] { 1 }')
@@ -749,19 +749,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
             Operand: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         var a = /*<bind>*/new string[] { 1 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(6, 42)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         var a = /*<bind>*/new string[] { 1 }/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(6, 42)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationErrorCase_MissingExplicitCast()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationErrorCase_MissingExplicitCast()
+    {
+        string source = @"
 class C
 {
     public void F(object b)
@@ -770,7 +770,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[b]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b')
@@ -780,19 +780,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
   Initializer: 
     null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         var a = /*<bind>*/new string[b]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("object", "int").WithLocation(6, 38)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+            //         var a = /*<bind>*/new string[b]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "b").WithArguments("object", "int").WithLocation(6, 38)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreation_InvocationExpressionAsDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreation_InvocationExpressionAsDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -803,7 +803,7 @@ class C
     public int M() => 1;
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
       IInvocationOperation ( System.Int32 C.M()) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M()')
@@ -813,15 +813,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreation_InvocationExpressionWithConversionAsDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreation_InvocationExpressionWithConversionAsDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -832,7 +832,7 @@ class C
     public object M() => null;
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Syntax: 'new string[(int)M()]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: '(int)M()')
@@ -845,15 +845,15 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[]) (Sy
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationErrorCase_InvocationExpressionAsDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationErrorCase_InvocationExpressionAsDimension()
+    {
+        string source = @"
 class C
 {
     public static void F()
@@ -864,7 +864,7 @@ class C
     public static object M() => null;
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
@@ -877,19 +877,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
   Initializer: 
     null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         var a = /*<bind>*/new string[M()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "M()").WithArguments("object", "int").WithLocation(6, 38)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,38): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+            //         var a = /*<bind>*/new string[M()]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "M()").WithArguments("object", "int").WithLocation(6, 38)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
-        public void ArrayCreationErrorCase_InvocationExpressionWithConversionAsDimension()
-        {
-            string source = @"
+    [Fact, WorkItem(17596, "https://github.com/dotnet/roslyn/issues/17596")]
+    public void ArrayCreationErrorCase_InvocationExpressionWithConversionAsDimension()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -900,7 +900,7 @@ class C
     public C M() => new C();
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[(int)M()]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: '(int)M()')
@@ -913,19 +913,19 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
   Initializer: 
     null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0030: Cannot convert type 'C' to 'int'
-                //         var a = /*<bind>*/new string[(int)M()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)M()").WithArguments("C", "int").WithLocation(6, 38)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // CS0030: Cannot convert type 'C' to 'int'
+            //         var a = /*<bind>*/new string[(int)M()]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)M()").WithArguments("C", "int").WithLocation(6, 38)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
-        public void SimpleArrayCreation_ConstantConversion()
-        {
-            string source = @"
+    [Fact, WorkItem(7299, "https://github.com/dotnet/roslyn/issues/7299")]
+    public void SimpleArrayCreation_ConstantConversion()
+    {
+        string source = @"
 class C
 {
     public void F()
@@ -934,7 +934,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[0.0]')
   Dimension Sizes(1):
       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
@@ -944,20 +944,20 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsI
   Initializer: 
     null
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,38): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
-                //         var a = /*<bind>*/new string[0.0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "0.0").WithArguments("double", "int").WithLocation(6, 38)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(6,38): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+            //         var a = /*<bind>*/new string[0.0]/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "0.0").WithArguments("double", "int").WithLocation(6, 38)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_NoControlFlow()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_NoControlFlow()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2, c2 = 1, c3 = 1;
@@ -975,7 +975,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1106,16 +1106,16 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInFirstDimension_NoInitializer()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInFirstDimension_NoInitializer()
+    {
+        string source = @"
 class C
 {
     void M(int[,] a1, int? d1, int d2, int c)
@@ -1125,7 +1125,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1207,16 +1207,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInFirstDimension_WithInitializer()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInFirstDimension_WithInitializer()
+    {
+        string source = @"
 class C
 {
     const int c = 1;
@@ -1227,7 +1227,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1315,20 +1315,20 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,22): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2, c] { { v1 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(8, 22)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(8,22): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2, c] { { v1 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(8, 22)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInSecondDimension_NoInitializer()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInSecondDimension_NoInitializer()
+    {
+        string source = @"
 class C
 {
     void M(int[,] a1, int? d1, int d2, int c)
@@ -1338,7 +1338,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1424,16 +1424,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInSecondDimension_WithInitializer()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInSecondDimension_WithInitializer()
+    {
+        string source = @"
 class C
 {
     const int c = 1;
@@ -1444,7 +1444,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1536,20 +1536,20 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,25): error CS0150: A constant value is expected
-                //         a1 = new int[c, d1 ?? d2] { { v1 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(8, 25)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(8,25): error CS0150: A constant value is expected
+            //         a1 = new int[c, d1 ?? d2] { { v1 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(8, 25)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInMultipleDimensions()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInMultipleDimensions()
+    {
+        string source = @"
 class C
 {
     void M(int[,] a1, int? d1, int d2, int? d3, int d4, int v1)
@@ -1559,7 +1559,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1687,23 +1687,23 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {                
-                // file.cs(7,22): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22),
-                // file.cs(7,32): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d3 ?? d4").WithLocation(7, 32)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {                
+            // file.cs(7,22): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22),
+            // file.cs(7,32): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d3 ?? d4").WithLocation(7, 32)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInFirstInitializerValue_SingleDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInFirstInitializerValue_SingleDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2;
@@ -1714,7 +1714,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1804,16 +1804,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInFirstInitializerValue_MultiDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInFirstInitializerValue_MultiDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2, c2 = 1;
@@ -1824,7 +1824,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -1925,16 +1925,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_SingleDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_SingleDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2;
@@ -1945,7 +1945,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2039,16 +2039,16 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_MultiDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_MultiDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2, c2 = 1;
@@ -2059,7 +2059,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2164,18 +2164,18 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_MultiDimArray_02()
-        {
-            // Error case where one array initializer element value is a nested array initializer and another one is not.
-            // Verifies that CFG builder handles the mixed kind element values.
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInSecondInitializerValue_MultiDimArray_02()
+    {
+        // Error case where one array initializer element value is a nested array initializer and another one is not.
+        // Verifies that CFG builder handles the mixed kind element values.
+        string source = @"
 class C
 {
     const int c1 = 2, c2 = 1;
@@ -2186,7 +2186,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2291,20 +2291,20 @@ Block[B6] - Exit
     Predecessors: [B5]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(8,32): error CS0846: A nested array initializer is expected
-                //         a1 = new int[c1, c2] { v3, { v1 ?? v2 } };
-                Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "v3").WithLocation(8, 32)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(8,32): error CS0846: A nested array initializer is expected
+            //         a1 = new int[c1, c2] { v3, { v1 ?? v2 } };
+            Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "v3").WithLocation(8, 32)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInMultipleInitializerValues_SingleDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInMultipleInitializerValues_SingleDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2;
@@ -2315,7 +2315,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2447,16 +2447,16 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInMultipleInitializerValues_MultiDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInMultipleInitializerValues_MultiDimArray()
+    {
+        string source = @"
 class C
 {
     const int c1 = 2, c2 = 1;
@@ -2467,7 +2467,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2610,16 +2610,16 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInDimensionAndMultipleInitializerValues_SingleDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInDimensionAndMultipleInitializerValues_SingleDimArray()
+    {
+        string source = @"
 class C
 {
     void M(int[] a1, int? v1, int v2, int? v3, int v4, int? d1, int d2)
@@ -2629,7 +2629,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -2797,20 +2797,20 @@ Block[B12] - Exit
     Predecessors: [B11]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(7,22): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2] { v1 ?? v2, v3 ?? v4 };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // file.cs(7,22): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2] { v1 ?? v2, v3 ?? v4 };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void ArrayCreationAndInitializer_ControlFlowInMultipleDimensionsAndInitializerValues_MultiDimArray()
-        {
-            string source = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void ArrayCreationAndInitializer_ControlFlowInMultipleDimensionsAndInitializerValues_MultiDimArray()
+    {
+        string source = @"
 class C
 {
     void M(int[,] a1, int? v1, int v2, int? v3, int v4, int? d1, int d2, int? d3, int d4)
@@ -2820,7 +2820,7 @@ class C
     }/*</bind>*/
 }
 ";
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -3035,16 +3035,15 @@ Block[B15] - Exit
     Predecessors: [B14]
     Statements (0)
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] {                
-                // file.cs(7,22): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 ?? v2 }, { v3 ?? v4 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22),
-                // file.cs(7,32): error CS0150: A constant value is expected
-                //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 ?? v2 }, { v3 ?? v4 } };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "d3 ?? d4").WithLocation(7, 32)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {                
+            // file.cs(7,22): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 ?? v2 }, { v3 ?? v4 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d1 ?? d2").WithLocation(7, 22),
+            // file.cs(7,32): error CS0150: A constant value is expected
+            //         a1 = new int[d1 ?? d2, d3 ?? d4] { { v1 ?? v2 }, { v3 ?? v4 } };
+            Diagnostic(ErrorCode.ERR_ConstantExpected, "d3 ?? d4").WithLocation(7, 32)
+        };
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
     }
 }

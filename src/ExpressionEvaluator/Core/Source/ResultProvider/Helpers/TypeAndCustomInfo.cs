@@ -9,37 +9,36 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
+
+internal readonly struct TypeAndCustomInfo
 {
-    internal readonly struct TypeAndCustomInfo
+    public readonly DkmClrType ClrType;
+    public readonly DkmClrCustomTypeInfo Info;
+
+    public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
     {
-        public readonly DkmClrType ClrType;
-        public readonly DkmClrCustomTypeInfo Info;
+        Debug.Assert(type != null); // Can only be null in the default instance.
+        ClrType = type;
+        Info = info;
+    }
 
-        public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
+    public Type Type
+    {
+        get
         {
-            Debug.Assert(type != null); // Can only be null in the default instance.
-            ClrType = type;
-            Info = info;
-        }
+            var t = ClrType?.GetLmrType();
 
-        public Type Type
-        {
-            get
+            //TODO: Sometimes we get byref types here when dealing with ref-returning members.
+            //      That probably should not happen.
+            //      For now we will just unwrap unexpected byrefs
+            if (t?.IsByRef == true)
             {
-                var t = ClrType?.GetLmrType();
-
-                //TODO: Sometimes we get byref types here when dealing with ref-returning members.
-                //      That probably should not happen.
-                //      For now we will just unwrap unexpected byrefs
-                if (t?.IsByRef == true)
-                {
-                    t = t.GetElementType();
-                    Debug.Assert(!t.IsByRef, "double byref type?");
-                }
-
-                return t;
+                t = t.GetElementType();
+                Debug.Assert(!t.IsByRef, "double byref type?");
             }
+
+            return t;
         }
     }
 }

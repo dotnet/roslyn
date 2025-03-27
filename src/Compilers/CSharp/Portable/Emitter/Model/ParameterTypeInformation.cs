@@ -11,122 +11,121 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Emit
+namespace Microsoft.CodeAnalysis.CSharp.Emit;
+
+internal sealed class ParameterTypeInformation : Cci.IParameterTypeInformation
 {
-    internal sealed class ParameterTypeInformation : Cci.IParameterTypeInformation
+    private readonly ParameterSymbol _underlyingParameter;
+
+    public ParameterTypeInformation(ParameterSymbol underlyingParameter)
     {
-        private readonly ParameterSymbol _underlyingParameter;
+        Debug.Assert((object)underlyingParameter != null);
 
-        public ParameterTypeInformation(ParameterSymbol underlyingParameter)
+        _underlyingParameter = underlyingParameter;
+    }
+
+    ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+    {
+        get
         {
-            Debug.Assert((object)underlyingParameter != null);
-
-            _underlyingParameter = underlyingParameter;
-        }
-
-        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.TypeWithAnnotations.CustomModifiers);
-            }
-        }
-
-        bool Cci.IParameterTypeInformation.IsByReference
-        {
-            get
-            {
-                return _underlyingParameter.RefKind != RefKind.None;
-            }
-        }
-
-        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.RefCustomModifiers);
-            }
-        }
-
-        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
-        {
-            return ((PEModuleBuilder)context.Module).Translate(_underlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
-        }
-
-        ushort Cci.IParameterListEntry.Index
-        {
-            get
-            {
-                return (ushort)_underlyingParameter.Ordinal;
-            }
-        }
-
-        public override string ToString()
-        {
-            return _underlyingParameter.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
-        }
-
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
+            return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.TypeWithAnnotations.CustomModifiers);
         }
     }
 
-    internal sealed class ArgListParameterTypeInformation : Cci.IParameterTypeInformation
+    bool Cci.IParameterTypeInformation.IsByReference
     {
-        private readonly ushort _ordinal;
-        private readonly bool _isByRef;
-        private readonly Cci.ITypeReference _type;
-
-        public ArgListParameterTypeInformation(int ordinal, bool isByRef, Cci.ITypeReference type)
+        get
         {
-            _ordinal = (ushort)ordinal;
-            _isByRef = isByRef;
-            _type = type;
+            return _underlyingParameter.RefKind != RefKind.None;
         }
+    }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+    ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
+    {
+        get
         {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+            return ImmutableArray<Cci.ICustomModifier>.CastUp(_underlyingParameter.RefCustomModifiers);
         }
+    }
 
-        bool Cci.IParameterTypeInformation.IsByReference
-        {
-            get { return _isByRef; }
-        }
+    Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
+    {
+        return ((PEModuleBuilder)context.Module).Translate(_underlyingParameter.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+    }
 
-        ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
+    ushort Cci.IParameterListEntry.Index
+    {
+        get
         {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+            return (ushort)_underlyingParameter.Ordinal;
         }
+    }
 
-        Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
-        {
-            return _type;
-        }
+    public override string ToString()
+    {
+        return _underlyingParameter.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+    }
 
-        ushort Cci.IParameterListEntry.Index
-        {
-            get { return _ordinal; }
-        }
+    public sealed override bool Equals(object obj)
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
+    }
 
-        public sealed override bool Equals(object obj)
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
+    public sealed override int GetHashCode()
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
+    }
+}
 
-        public sealed override int GetHashCode()
-        {
-            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw ExceptionUtilities.Unreachable();
-        }
+internal sealed class ArgListParameterTypeInformation : Cci.IParameterTypeInformation
+{
+    private readonly ushort _ordinal;
+    private readonly bool _isByRef;
+    private readonly Cci.ITypeReference _type;
+
+    public ArgListParameterTypeInformation(int ordinal, bool isByRef, Cci.ITypeReference type)
+    {
+        _ordinal = (ushort)ordinal;
+        _isByRef = isByRef;
+        _type = type;
+    }
+
+    ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.CustomModifiers
+    {
+        get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+    }
+
+    bool Cci.IParameterTypeInformation.IsByReference
+    {
+        get { return _isByRef; }
+    }
+
+    ImmutableArray<Cci.ICustomModifier> Cci.IParameterTypeInformation.RefCustomModifiers
+    {
+        get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
+    }
+
+    Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
+    {
+        return _type;
+    }
+
+    ushort Cci.IParameterListEntry.Index
+    {
+        get { return _ordinal; }
+    }
+
+    public sealed override bool Equals(object obj)
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
+    }
+
+    public sealed override int GetHashCode()
+    {
+        // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+        throw ExceptionUtilities.Unreachable();
     }
 }

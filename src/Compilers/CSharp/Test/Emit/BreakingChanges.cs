@@ -12,24 +12,24 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public class BreakingChanges : CSharpTestBase
 {
-    public class BreakingChanges : CSharpTestBase
+    [Fact, WorkItem(527050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527050")]
+    [Trait("Feature", "Directives")]
+    public void TestCS1024DefineWithUnicodeInMiddle()
     {
-        [Fact, WorkItem(527050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527050")]
-        [Trait("Feature", "Directives")]
-        public void TestCS1024DefineWithUnicodeInMiddle()
-        {
-            var test = @"#de\u0066in\U00000065 ABC";
+        var test = @"#de\u0066in\U00000065 ABC";
 
-            // This is now a negative test, this should not be allowed.
-            SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_PPDirectiveExpected, @"de\u0066in\U00000065"));
-        }
+        // This is now a negative test, this should not be allowed.
+        SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_PPDirectiveExpected, @"de\u0066in\U00000065"));
+    }
 
-        [Fact, WorkItem(527951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527951")]
-        public void CS0133ERR_NotConstantExpression05()
-        {
-            var text = @"
+    [Fact, WorkItem(527951, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527951")]
+    public void CS0133ERR_NotConstantExpression05()
+    {
+        var text = @"
 class A
 {
     public void Do()
@@ -39,19 +39,19 @@ class A
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (7,22): warning CS0219: The variable 'o2' is assigned but its value is never used
-                //         const string o2 = (string)o1; // Dev10 reports CS0133
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o2").WithArguments("o2")
-                );
-        }
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (7,22): warning CS0219: The variable 'o2' is assigned but its value is never used
+            //         const string o2 = (string)o1; // Dev10 reports CS0133
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o2").WithArguments("o2")
+            );
+    }
 
-        [WorkItem(527943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527943")]
-        [Fact]
-        public void CS0146ERR_CircularBase05()
-        {
-            var text = @"
+    [WorkItem(527943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527943")]
+    [Fact]
+    public void CS0146ERR_CircularBase05()
+    {
+        var text = @"
 interface IFace<T> { }
 
 class B : IFace<B.C.D>
@@ -62,16 +62,16 @@ class B : IFace<B.C.D>
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
-            Assert.Equal(0, comp.GetDiagnostics().Count());
-        }
+        var comp = CreateCompilation(text);
+        // In Dev10, there was an error - ErrorCode.ERR_CircularBase at (4,7)
+        Assert.Equal(0, comp.GetDiagnostics().Count());
+    }
 
-        [WorkItem(540371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540371"), WorkItem(530792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530792")]
-        [Fact]
-        public void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
-        {
-            var source1 = @"
+    [WorkItem(540371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540371"), WorkItem(530792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530792")]
+    [Fact]
+    public void CS0507ERR_CantChangeAccessOnOverride_TestSynthesizedSealedAccessorsInDifferentAssembly()
+    {
+        var source1 = @"
 using System.Collections.Generic;
  
 public class Base<T>
@@ -79,9 +79,9 @@ public class Base<T>
     public virtual List<T> Property1 { get { return null; } protected internal set { } }
     public virtual List<T> Property2 { protected internal get { return null; } set { } }
 }";
-            var compilation1 = CreateCompilation(source1);
+        var compilation1 = CreateCompilation(source1);
 
-            var source2 = @"
+        var source2 = @"
 using System.Collections.Generic;
     
 public class Derived : Base<int>
@@ -89,54 +89,54 @@ public class Derived : Base<int>
     public sealed override List<int> Property1 { get { return null; } }
     public sealed override List<int> Property2 { set { } }
 }";
-            var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
-            comp.VerifyDiagnostics();
+        var comp = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+        comp.VerifyDiagnostics();
 
-            // This is not a breaking change - but it is a change in behavior from Dev10
-            // Dev10 used to report following errors -
-            // Error CS0507: 'Derived.Property1.set': cannot change access modifiers when overriding 'protected' inherited member 'Base<int>.Property1.set'
-            // Error CS0507: 'Derived.Property2.get': cannot change access modifiers when overriding 'protected' inherited member 'Base<int>.Property2.get'
-            // Roslyn makes this case work by synthesizing 'protected' accessors for the missing ones
+        // This is not a breaking change - but it is a change in behavior from Dev10
+        // Dev10 used to report following errors -
+        // Error CS0507: 'Derived.Property1.set': cannot change access modifiers when overriding 'protected' inherited member 'Base<int>.Property1.set'
+        // Error CS0507: 'Derived.Property2.get': cannot change access modifiers when overriding 'protected' inherited member 'Base<int>.Property2.get'
+        // Roslyn makes this case work by synthesizing 'protected' accessors for the missing ones
 
-            var baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.GetMember<PropertySymbol>("Property1");
-            var baseProperty2 = baseClass.GetMember<PropertySymbol>("Property2");
+        var baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+        var baseProperty1 = baseClass.GetMember<PropertySymbol>("Property1");
+        var baseProperty2 = baseClass.GetMember<PropertySymbol>("Property2");
 
-            Assert.Equal(Accessibility.Public, baseProperty1.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, baseProperty1.GetMethod.DeclaredAccessibility);
-            Assert.Equal(Accessibility.ProtectedOrInternal, baseProperty1.SetMethod.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, baseProperty1.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, baseProperty1.GetMethod.DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, baseProperty1.SetMethod.DeclaredAccessibility);
 
-            Assert.Equal(Accessibility.Public, baseProperty2.DeclaredAccessibility);
-            Assert.Equal(Accessibility.ProtectedOrInternal, baseProperty2.GetMethod.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, baseProperty2.SetMethod.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, baseProperty2.DeclaredAccessibility);
+        Assert.Equal(Accessibility.ProtectedOrInternal, baseProperty2.GetMethod.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, baseProperty2.SetMethod.DeclaredAccessibility);
 
-            var derivedClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty1 = derivedClass.GetMember<SourcePropertySymbol>("Property1");
-            var derivedProperty2 = derivedClass.GetMember<SourcePropertySymbol>("Property2");
+        var derivedClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+        var derivedProperty1 = derivedClass.GetMember<SourcePropertySymbol>("Property1");
+        var derivedProperty2 = derivedClass.GetMember<SourcePropertySymbol>("Property2");
 
-            Assert.Equal(Accessibility.Public, derivedProperty1.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, derivedProperty1.GetMethod.DeclaredAccessibility);
-            Assert.Null(derivedProperty1.SetMethod);
+        Assert.Equal(Accessibility.Public, derivedProperty1.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, derivedProperty1.GetMethod.DeclaredAccessibility);
+        Assert.Null(derivedProperty1.SetMethod);
 
-            Assert.Equal(Accessibility.Public, derivedProperty2.DeclaredAccessibility);
-            Assert.Null(derivedProperty2.GetMethod);
-            Assert.Equal(Accessibility.Public, derivedProperty2.SetMethod.DeclaredAccessibility);
+        Assert.Equal(Accessibility.Public, derivedProperty2.DeclaredAccessibility);
+        Assert.Null(derivedProperty2.GetMethod);
+        Assert.Equal(Accessibility.Public, derivedProperty2.SetMethod.DeclaredAccessibility);
 
-            var derivedProperty1Synthesized = derivedProperty1.SynthesizedSealedAccessorOpt;
-            var derivedProperty2Synthesized = derivedProperty2.SynthesizedSealedAccessorOpt;
+        var derivedProperty1Synthesized = derivedProperty1.SynthesizedSealedAccessorOpt;
+        var derivedProperty2Synthesized = derivedProperty2.SynthesizedSealedAccessorOpt;
 
-            Assert.Equal(MethodKind.PropertySet, derivedProperty1Synthesized.MethodKind);
-            Assert.Equal(Accessibility.Protected, derivedProperty1Synthesized.DeclaredAccessibility);
+        Assert.Equal(MethodKind.PropertySet, derivedProperty1Synthesized.MethodKind);
+        Assert.Equal(Accessibility.Protected, derivedProperty1Synthesized.DeclaredAccessibility);
 
-            Assert.Equal(MethodKind.PropertyGet, derivedProperty2Synthesized.MethodKind);
-            Assert.Equal(Accessibility.Protected, derivedProperty2Synthesized.DeclaredAccessibility);
-        }
+        Assert.Equal(MethodKind.PropertyGet, derivedProperty2Synthesized.MethodKind);
+        Assert.Equal(Accessibility.Protected, derivedProperty2Synthesized.DeclaredAccessibility);
+    }
 
-        // Confirm that this error no longer exists
-        [Fact]
-        public void CS0609ERR_NameAttributeOnOverride()
-        {
-            var text = @"
+    // Confirm that this error no longer exists
+    [Fact]
+    public void CS0609ERR_NameAttributeOnOverride()
+    {
+        var text = @"
 using System.Runtime.CompilerServices;
 
 public class @idx
@@ -158,20 +158,20 @@ public class MonthDays : idx
    }
 }
 ";
-            var compilation = CreateCompilation(text);
+        var compilation = CreateCompilation(text);
 
-            compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics();
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("MonthDays").Indexers.Single();
-            Assert.Equal(Microsoft.CodeAnalysis.WellKnownMemberNames.Indexer, indexer.Name);
-            Assert.Equal("MonthInfoIndexer", indexer.MetadataName);
-        }
+        var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("MonthDays").Indexers.Single();
+        Assert.Equal(Microsoft.CodeAnalysis.WellKnownMemberNames.Indexer, indexer.Name);
+        Assert.Equal("MonthInfoIndexer", indexer.MetadataName);
+    }
 
-        [WorkItem(527116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527116")]
-        [Fact]
-        public void RegressWarningInSingleMultiLineMixedXml()
-        {
-            var text = @"
+    [WorkItem(527116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527116")]
+    [Fact]
+    public void RegressWarningInSingleMultiLineMixedXml()
+    {
+        var text = @"
 /// <summary> 
 /** This is the summary */
 /// </summary>
@@ -194,18 +194,18 @@ class Test
 }
 ";
 
-            var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
-            Assert.NotNull(tree);
-            Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
-            // Dev10 allows (no warning)
-            // Roslyn gives Warning CS1570 - "XML Comment has badly formed XML..."
-            Assert.Equal(8, tree.GetDiagnostics().Count());
-        }
+        var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
+        Assert.NotNull(tree);
+        Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
+        // Dev10 allows (no warning)
+        // Roslyn gives Warning CS1570 - "XML Comment has badly formed XML..."
+        Assert.Equal(8, tree.GetDiagnostics().Count());
+    }
 
-        [Fact, WorkItem(527093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527093")]
-        public void NoCS1570ForUndefinedXmlNamespace()
-        {
-            var text = @"
+    [Fact, WorkItem(527093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527093")]
+    public void NoCS1570ForUndefinedXmlNamespace()
+    {
+        var text = @"
 /// <xml> xmlns:s=""uuid: BDC6E3F0-6DA3-11d1-A2A3 - 00AA00C14882"">
 /// <s:inventory>
 /// </s:inventory>
@@ -213,18 +213,18 @@ class Test
 class A { }
 ";
 
-            var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
-            Assert.NotNull(tree);
-            Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
-            // Native Warning CS1570 - "XML Comment has badly formed XML..."
-            // Roslyn no 
-            Assert.Empty(tree.GetDiagnostics());
-        }
+        var tree = Parse(text, options: TestOptions.RegularWithDocumentationComments);
+        Assert.NotNull(tree);
+        Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
+        // Native Warning CS1570 - "XML Comment has badly formed XML..."
+        // Roslyn no 
+        Assert.Empty(tree.GetDiagnostics());
+    }
 
-        [Fact, WorkItem(541345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541345")]
-        public void CS0019_TestNullCoalesceWithNullOperandsErrors()
-        {
-            var source = @"
+    [Fact, WorkItem(541345, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541345")]
+    public void CS0019_TestNullCoalesceWithNullOperandsErrors()
+    {
+        var source = @"
 class Program
 {
     static void Main()
@@ -248,18 +248,18 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"),
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"null ?? ""ABC""").WithArguments("b"),
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
-                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>"),
+            Diagnostic(ErrorCode.ERR_NotConstantExpression, @"null ?? ""ABC""").WithArguments("b"),
+            Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""DEF"" ?? null").WithArguments("c"),
+            Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null ?? 123").WithArguments("d"));
+    }
 
-        [Fact, WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
-        public         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
-                void CS1730ERR_CantUseAttributeOnInvaildLocation()
-        {
-            var test = @"using System;
+    [Fact, WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676"), WorkItem(528676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528676")]
+    public         // CS0657WRN_AttributeLocationOnBadDeclaration_AfterAttrDeclOrDelegate
+            void CS1730ERR_CantUseAttributeOnInvaildLocation()
+    {
+        var test = @"using System;
 
 [AttributeUsage(AttributeTargets.All)]
 public class Goo : Attribute
@@ -274,16 +274,16 @@ public delegate void EventHandler(object sender, EventArgs e);
 public class Test { }
 ";
 
-            // In Dev10, this is a warning CS0657
-            // Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "assembly").WithArguments("assembly", "type")
-            SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
-        }
+        // In Dev10, this is a warning CS0657
+        // Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "assembly").WithArguments("assembly", "type")
+        SyntaxFactory.ParseSyntaxTree(test).GetDiagnostics().Verify(Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
+    }
 
-        [WorkItem(528711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528711")]
-        [Fact]
-        public void CS9259_StructLayoutCycle()
-        {
-            var text =
+    [WorkItem(528711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528711")]
+    [Fact]
+    public void CS9259_StructLayoutCycle()
+    {
+        var text =
 @"struct S1<T>
 {
     S1<S1<T>>.S2 x;
@@ -292,22 +292,22 @@ public class Test { }
         static T x;
     }
 }";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (3,18): warning CS0169: The field 'S1<T>.x' is never used
-                //     S1<S1<T>>.S2 x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S1<T>.x").WithLocation(3, 18),
-                // (6,18): warning CS0169: The field 'S1<T>.S2.x' is never used
-                //         static T x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S1<T>.S2.x").WithLocation(6, 18)
-                );
-        }
+        var comp = CreateCompilation(text);
+        comp.VerifyDiagnostics(
+            // (3,18): warning CS0169: The field 'S1<T>.x' is never used
+            //     S1<S1<T>>.S2 x;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S1<T>.x").WithLocation(3, 18),
+            // (6,18): warning CS0169: The field 'S1<T>.S2.x' is never used
+            //         static T x;
+            Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S1<T>.S2.x").WithLocation(6, 18)
+            );
+    }
 
-        [WorkItem(528094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528094")]
-        [Fact]
-        public void FormattingUnicodeNotPartOfId()
-        {
-            string source = @"
+    [WorkItem(528094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528094")]
+    [Fact]
+    public void FormattingUnicodeNotPartOfId()
+    {
+        string source = @"
 // <Area> Lexical - Unicode Characters</Area>
 // <Title>
 // Compiler considers identifiers, which differ only in formatting-character, as different ones;
@@ -334,15 +334,15 @@ class Program
     }
 }
 ";
-            // Dev10 print '0'
-            CompileAndVerify(source, expectedOutput: "1");
-        }
+        // Dev10 print '0'
+        CompileAndVerify(source, expectedOutput: "1");
+    }
 
-        [WorkItem(529000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529000")]
-        [Fact]
-        public void NoCS0121ForSwitchedParamNames_Dev10814222()
-        {
-            string source = @"
+    [WorkItem(529000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529000")]
+    [Fact]
+    public void NoCS0121ForSwitchedParamNames_Dev10814222()
+    {
+        string source = @"
 using System;
 
 // Bug Dev10: 814222 resolved as Won't Fix
@@ -378,16 +378,16 @@ class Test01
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "0000");
-        }
+        CompileAndVerify(source, expectedOutput: "0000");
+    }
 
-        [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
-        [WorkItem(529002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529002")]
-        [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
-        [Fact]
-        public void CS0185ERR_LockNeedsReference_RequireRefType()
-        {
-            var source = @"
+    [WorkItem(529001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529001")]
+    [WorkItem(529002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529002")]
+    [WorkItem(1067, "https://github.com/dotnet/roslyn/issues/1067")]
+    [Fact]
+    public void CS0185ERR_LockNeedsReference_RequireRefType()
+    {
+        var source = @"
 class C
 {
     void M<T, TClass, TStruct>() 
@@ -403,50 +403,50 @@ class C
     }
 }
 ";
-            var standardCompilation = CreateCompilation(source);
-            var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
+        var standardCompilation = CreateCompilation(source);
+        var strictCompilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
-            standardCompilation.VerifyDiagnostics(
-                // (8,32): warning CS0642: Possible mistaken empty statement
-                //         lock (default(object)) ;
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
-                // (9,29): warning CS0642: Possible mistaken empty statement
-                //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
-                // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
-                //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
-                // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
-                //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15)
-                );
-            strictCompilation.VerifyDiagnostics(
-                // (8,32): warning CS0642: Possible mistaken empty statement
-                //         lock (default(object)) ;
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
-                // (9,29): warning CS0642: Possible mistaken empty statement
-                //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
-                // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
-                //         lock (default(int)) ;       // CS0185
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
-                // (10,15): error CS0185: 'T' is not a reference type as required by the lock statement
-                //         lock (default(T)) {}        // new CS0185 - no constraints (Bug#10755)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(T)").WithArguments("T").WithLocation(10, 15),
-                // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
-                //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15),
-                // (13,15): error CS0185: '<null>' is not a reference type as required by the lock statement
-                //         lock (null) {}              // new CS0185 - null is not an object type
-                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(13, 15)
-                );
-        }
+        standardCompilation.VerifyDiagnostics(
+            // (8,32): warning CS0642: Possible mistaken empty statement
+            //         lock (default(object)) ;
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
+            // (9,29): warning CS0642: Possible mistaken empty statement
+            //         lock (default(int)) ;       // CS0185
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
+            // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
+            //         lock (default(int)) ;       // CS0185
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
+            // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
+            //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15)
+            );
+        strictCompilation.VerifyDiagnostics(
+            // (8,32): warning CS0642: Possible mistaken empty statement
+            //         lock (default(object)) ;
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
+            // (9,29): warning CS0642: Possible mistaken empty statement
+            //         lock (default(int)) ;       // CS0185
+            Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(9, 29),
+            // (9,15): error CS0185: 'int' is not a reference type as required by the lock statement
+            //         lock (default(int)) ;       // CS0185
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(int)").WithArguments("int").WithLocation(9, 15),
+            // (10,15): error CS0185: 'T' is not a reference type as required by the lock statement
+            //         lock (default(T)) {}        // new CS0185 - no constraints (Bug#10755)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(T)").WithArguments("T").WithLocation(10, 15),
+            // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
+            //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15),
+            // (13,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+            //         lock (null) {}              // new CS0185 - null is not an object type
+            Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(13, 15)
+            );
+    }
 
-        [WorkItem(528972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528972")]
-        [Fact]
-        public void CS0121ERR_AmbigCall_Lambda1()
-        {
-            var text = @"
+    [WorkItem(528972, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528972")]
+    [Fact]
+    public void CS0121ERR_AmbigCall_Lambda1()
+    {
+        var text = @"
 using System;
 
 class A
@@ -466,17 +466,17 @@ class A
     }
 }
 ";
-            // Dev11 FIXED this, no error anymore (So Not breaking Dev11)
-            // Dev10 reports CS0121 because ExpressionBinder::WhichConversionIsBetter fails to unwrap
-            // the NamedArgumentSpecification to find the UNBOUNDLAMBDA and, thus, never calls
-            // WhichLambdaConversionIsBetter.
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        // Dev11 FIXED this, no error anymore (So Not breaking Dev11)
+        // Dev10 reports CS0121 because ExpressionBinder::WhichConversionIsBetter fails to unwrap
+        // the NamedArgumentSpecification to find the UNBOUNDLAMBDA and, thus, never calls
+        // WhichLambdaConversionIsBetter.
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem(529202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
-        public void NoCS0029_ErrorOnZeroToEnumToTypeConversion()
-        {
-            string source = @"
+    [Fact, WorkItem(529202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529202")]
+    public void NoCS0029_ErrorOnZeroToEnumToTypeConversion()
+    {
+        string source = @"
 class Program
 {
     static void Main()
@@ -497,18 +497,18 @@ struct S
         return E.Zero;
     }
 }";
-            // Dev10/11: (11,9): error CS0029: Cannot implicitly convert type 'int' to 'S'
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
-                //         S s = 0;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "S")
-                );
-        }
+        // Dev10/11: (11,9): error CS0029: Cannot implicitly convert type 'int' to 'S'
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,15): error CS0029: Cannot implicitly convert type 'int' to 'S'
+            //         S s = 0;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "S")
+            );
+    }
 
-        [Fact, WorkItem(529242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529242")]
-        public void ThrowOverflowExceptionForUncheckedCheckedLambda()
-        {
-            string source = @"
+    [Fact, WorkItem(529242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529242")]
+    public void ThrowOverflowExceptionForUncheckedCheckedLambda()
+    {
+        string source = @"
 using System;
 class Program
 {
@@ -533,14 +533,14 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: "OV 9");
-        }
+        CompileAndVerify(source, expectedOutput: "OV 9");
+    }
 
-        [WorkItem(529262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")]
-        [Fact]
-        public void PartialMethod_ParameterAndTypeParameterNames()
-        {
-            var source =
+    [WorkItem(529262, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529262")]
+    [Fact]
+    public void PartialMethod_ParameterAndTypeParameterNames()
+    {
+        var source =
 @"using System;
 using System.Reflection;
 partial class C
@@ -560,14 +560,14 @@ partial class C
         M(x: 1, y: 2);
     }
 }";
-            // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
-        }
+        // Dev12 would emit "2, 1 | T1, T2 | x, y".
+        CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
+    }
 
-        [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
-        public void NewCS0029_ImplicitlyUnwrapGenericNullable()
-        {
-            string source = @"
+    [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
+    public void NewCS0029_ImplicitlyUnwrapGenericNullable()
+    {
+        string source = @"
 public class GenC<T, U> where T : struct, U
 {
     public void Test(T t)
@@ -576,13 +576,13 @@ public class GenC<T, U> where T : struct, U
         U valueUn = nt;
     }
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,21): error CS0029: Cannot implicitly convert type 'T?' to 'U'
-                //         U valueUn = nt;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,21): error CS0029: Cannot implicitly convert type 'T?' to 'U'
+            //         U valueUn = nt;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "nt").WithArguments("T?", "U"));
 
-            VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
+        VerifyOperationTreeForTest<LocalDeclarationStatementSyntax>(comp, @"
 IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'T? nt = t;')
   IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'T? nt = t')
     Declarators:
@@ -596,22 +596,22 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ");
-        }
+    }
 
-        [Fact, WorkItem(529280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529280"), WorkItem(546864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546864")]
-        public void ExplicitUDCWithGenericConstraints()
-        {
-            // This compiles successfully in Dev10 dues to a bug; a user-defined conversion
-            // that converts from or to an interface should never be chosen.  If you are
-            // converting from Alpha to Beta via standard conversion, then Beta to Gamma
-            // via user-defined conversion, then Gamma to Delta via standard conversion, then
-            // none of Alpha, Beta, Gamma or Delta should be allowed to be interfaces. The 
-            // Dev10 compiler only checks Alpha and Delta, not Beta and Gamma.
-            //
-            // Unfortunately, real-world code both in devdiv and in the wild depends on this
-            // behavior, so we are replicating the bug in Roslyn.
+    [Fact, WorkItem(529280, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529280"), WorkItem(546864, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546864")]
+    public void ExplicitUDCWithGenericConstraints()
+    {
+        // This compiles successfully in Dev10 dues to a bug; a user-defined conversion
+        // that converts from or to an interface should never be chosen.  If you are
+        // converting from Alpha to Beta via standard conversion, then Beta to Gamma
+        // via user-defined conversion, then Gamma to Delta via standard conversion, then
+        // none of Alpha, Beta, Gamma or Delta should be allowed to be interfaces. The 
+        // Dev10 compiler only checks Alpha and Delta, not Beta and Gamma.
+        //
+        // Unfortunately, real-world code both in devdiv and in the wild depends on this
+        // behavior, so we are replicating the bug in Roslyn.
 
-            string source = @"using System;
+        string source = @"using System;
 
 public interface IGoo {    void Method();    }
 public class CT : IGoo {    public void Method() { }    }
@@ -636,14 +636,14 @@ public class Test
 }
 ";
 
-            // CompileAndVerify(source, expectedOutput: "ExpConv");
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        // CompileAndVerify(source, expectedOutput: "ExpConv");
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
-        public void TestNullCoalescingOverImplicitExplicitUDC()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
+    public void TestNullCoalescingOverImplicitExplicitUDC()
+    {
+        string source = @"using System;
 
 struct GenS<T> where T : struct
 {
@@ -675,14 +675,14 @@ class Program
     }
 }
 ";
-            // Native compiler picks explicit conversion - print 3
-            CompileAndVerify(source, expectedOutput: "2");
-        }
+        // Native compiler picks explicit conversion - print 3
+        CompileAndVerify(source, expectedOutput: "2");
+    }
 
-        [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
-        public void TestNullCoalescingOverImplicitExplicitUDC_2()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(529362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529362")]
+    public void TestNullCoalescingOverImplicitExplicitUDC_2()
+    {
+        string source = @"using System;
 
 struct S
 {
@@ -709,14 +709,14 @@ class Program
     }
 }
 ";
-            // Native compiler picks explicit conversion
-            CompileAndVerify(source, expectedOutput: "Implicit");
-        }
+        // Native compiler picks explicit conversion
+        CompileAndVerify(source, expectedOutput: "Implicit");
+    }
 
-        [Fact, WorkItem(529363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529363")]
-        public void AssignmentNullCoalescingOperator()
-        {
-            string source = @"using System;
+    [Fact, WorkItem(529363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529363")]
+    public void AssignmentNullCoalescingOperator()
+    {
+        string source = @"using System;
 
 class NullCoalescingTest
 {
@@ -729,20 +729,20 @@ class NullCoalescingTest
     }
 }
 ";
-            // Native compiler no error (print -123)
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,27): error CS0165: Use of unassigned local variable 'c'
-                //         Console.WriteLine(c);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c"),
-                // (7,14): warning CS0219: The variable 'a' is assigned but its value is never used
-                //         int? a;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a"));
-        }
+        // Native compiler no error (print -123)
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,27): error CS0165: Use of unassigned local variable 'c'
+            //         Console.WriteLine(c);
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c"),
+            // (7,14): warning CS0219: The variable 'a' is assigned but its value is never used
+            //         int? a;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a"));
+    }
 
-        [Fact, WorkItem(529464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529464")]
-        public void MultiDimensionArrayWithDiffTypeIndexDevDiv31328()
-        {
-            var text = @"
+    [Fact, WorkItem(529464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529464")]
+    public void MultiDimensionArrayWithDiffTypeIndexDevDiv31328()
+    {
+        var text = @"
 class A
 {
     public static void Main()
@@ -754,15 +754,15 @@ class A
     }
 }
 ";
-            // Dev10 Won't fix bug#31328 for md array with different types' index and involving ulong
-            // CS0266: Cannot implicitly convert type 'ulong' to 'int'. ...
-            CreateCompilation(text).VerifyDiagnostics();
-        }
+        // Dev10 Won't fix bug#31328 for md array with different types' index and involving ulong
+        // CS0266: Cannot implicitly convert type 'ulong' to 'int'. ...
+        CreateCompilation(text).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void PointerArithmetic_SubtractNullLiteral()
-        {
-            var text = @"
+    [Fact]
+    public void PointerArithmetic_SubtractNullLiteral()
+    {
+        var text = @"
 unsafe class C
 {
     long M(int* p)
@@ -771,15 +771,15 @@ unsafe class C
     }
 }
 ";
-            // Dev10: the null literal is treated as though it is converted to void*, making the subtraction illegal (ExpressionBinder::GetPtrBinOpSigs).
-            // Roslyn: the null literal is converted to int*, making the subtraction legal.
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-        }
+        // Dev10: the null literal is treated as though it is converted to void*, making the subtraction illegal (ExpressionBinder::GetPtrBinOpSigs).
+        // Roslyn: the null literal is converted to int*, making the subtraction legal.
+        CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
 
-        [Fact]
-        public void CS0181ERR_BadAttributeParamType_Nullable()
-        {
-            var text = @"
+    [Fact]
+    public void CS0181ERR_BadAttributeParamType_Nullable()
+    {
+        var text = @"
 [Boom]
 class Boom : System.Attribute
 {
@@ -791,21 +791,21 @@ class Boom : System.Attribute
     }
 }
 ";
-            // Roslyn: error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
-            // Dev10/11: no error, but throw at runtime - System.Reflection.CustomAttributeFormatException
-            CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
-        }
+        // Roslyn: error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
+        // Dev10/11: no error, but throw at runtime - System.Reflection.CustomAttributeFormatException
+        CreateCompilation(text).VerifyDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?"));
+    }
 
-        /// <summary>
-        /// When determining whether the LHS of a null-coalescing operator (??) is non-null, the native compiler strips off casts.  
-        /// 
-        /// We have decided not to reproduce this behavior.
-        /// </summary>
-        [Fact]
-        public void CastOnLhsOfConditionalOperator()
-        {
-            var text = @"
+    /// <summary>
+    /// When determining whether the LHS of a null-coalescing operator (??) is non-null, the native compiler strips off casts.  
+    /// 
+    /// We have decided not to reproduce this behavior.
+    /// </summary>
+    [Fact]
+    public void CastOnLhsOfConditionalOperator()
+    {
+        var text = @"
 class C
 {
     static void Main(string[] args)
@@ -821,30 +821,30 @@ class C
     }
 }
 ";
-            // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-            // Dev10/11: no error
-            CreateCompilation(text).VerifyDiagnostics(
-                // This is new in Roslyn.
+        // Roslyn: error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
+        // Dev10/11: no error
+        CreateCompilation(text).VerifyDiagnostics(
+            // This is new in Roslyn.
 
-                // (7,29): error CS0165: Use of unassigned local variable 'i'
-                //         int? j = (int?)1 ?? i; //dev10 accepts, since it treats the RHS as unreachable.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"),
+            // (7,29): error CS0165: Use of unassigned local variable 'i'
+            //         int? j = (int?)1 ?? i; //dev10 accepts, since it treats the RHS as unreachable.
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i"),
 
-                // These match Dev10.
+            // These match Dev10.
 
-                // (10,36): error CS0165: Use of unassigned local variable 'k'
-                //         int? l = ((int?)1 ?? j) ?? k; // If the LHS of the LHS is non-null, then the LHS should be non-null, but dev10 only handles casts.
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k"),
-                // (13,57): error CS0165: Use of unassigned local variable 'm'
-                //         int? n = ((int?)1).HasValue ? ((int?)1).Value : m; //dev10 does not strip casts in a comparable conditional operator
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m"));
-        }
+            // (10,36): error CS0165: Use of unassigned local variable 'k'
+            //         int? l = ((int?)1 ?? j) ?? k; // If the LHS of the LHS is non-null, then the LHS should be non-null, but dev10 only handles casts.
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "k").WithArguments("k"),
+            // (13,57): error CS0165: Use of unassigned local variable 'm'
+            //         int? n = ((int?)1).HasValue ? ((int?)1).Value : m; //dev10 does not strip casts in a comparable conditional operator
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "m").WithArguments("m"));
+    }
 
-        [WorkItem(529974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529974")]
-        [Fact]
-        public void TestCollisionForLoopControlVariable()
-        {
-            var source = @"
+    [WorkItem(529974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529974")]
+    [Fact]
+    public void TestCollisionForLoopControlVariable()
+    {
+        var source = @"
 namespace Microsoft.Test.XmlGen.Protocols.Saml2
 {
     using System;
@@ -907,16 +907,16 @@ public class Program
 {
     public static void Main() { }
 }";
-            // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
-            // variables within the same declaration space. According to the old spec the error should be reported.
-            // In Roslyn the single definition rule is relaxed and we do not give an error, but for a different reason.
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        // Dev11 reported no errors for the above repro and allowed the name 'count' to bind to different
+        // variables within the same declaration space. According to the old spec the error should be reported.
+        // In Roslyn the single definition rule is relaxed and we do not give an error, but for a different reason.
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem(530301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
-        public void NoMore_CS0458WRN_AlwaysNull02()
-        {
-            CreateCompilation(
+    [Fact, WorkItem(530301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530301")]
+    public void NoMore_CS0458WRN_AlwaysNull02()
+    {
+        CreateCompilation(
 @"
 public class Test
 {
@@ -940,25 +940,25 @@ public class Test
     }
 }
 ")
-                // We decided to not report WRN_AlwaysNull in some cases.
+            // We decided to not report WRN_AlwaysNull in some cases.
 
-                .VerifyDiagnostics(
-                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "true & null").WithArguments("bool?"),
-                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "null & true").WithArguments("bool?"),
-                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | false").WithArguments("bool?"),
-                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "false | null").WithArguments("bool?"),
-                    Diagnostic(ErrorCode.WRN_AlwaysNull, "ct & null ^ null").WithArguments("bool?") //,
-                                                                                                    // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | cf").WithArguments("bool?")
-                    );
-        }
+            .VerifyDiagnostics(
+                // Diagnostic(ErrorCode.WRN_AlwaysNull, "true & null").WithArguments("bool?"),
+                // Diagnostic(ErrorCode.WRN_AlwaysNull, "null & true").WithArguments("bool?"),
+                // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | false").WithArguments("bool?"),
+                // Diagnostic(ErrorCode.WRN_AlwaysNull, "false | null").WithArguments("bool?"),
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "ct & null ^ null").WithArguments("bool?") //,
+                                                                                                // Diagnostic(ErrorCode.WRN_AlwaysNull, "null | cf").WithArguments("bool?")
+                );
+    }
 
-        [WorkItem(530403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530403")]
-        [Fact]
-        public void CS0135_local_param_cannot_be_declared()
-        {
-            // Dev11 missed this error.  The issue is that an a is a field of c, and then it is a local in parts of d.  
-            // by then referring to the field without the this keyword, it should be flagged as declaring a competing variable (as it is confusing).
-            var text = @"
+    [WorkItem(530403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530403")]
+    [Fact]
+    public void CS0135_local_param_cannot_be_declared()
+    {
+        // Dev11 missed this error.  The issue is that an a is a field of c, and then it is a local in parts of d.  
+        // by then referring to the field without the this keyword, it should be flagged as declaring a competing variable (as it is confusing).
+        var text = @"
 using System;
 public class @c
 {
@@ -980,17 +980,17 @@ public class @c
    }
 } 
 ";
-            var comp = CreateCompilation(text);
+        var comp = CreateCompilation(text);
 
-            // In Roslyn the single definition rule is relaxed and we do not give an error.
-            comp.VerifyDiagnostics();
-        }
+        // In Roslyn the single definition rule is relaxed and we do not give an error.
+        comp.VerifyDiagnostics();
+    }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
-        public void ExpressionTreeExplicitOpVsConvert()
-        {
-            var text = @"
+    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+    [WorkItem(530518, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530518")]
+    public void ExpressionTreeExplicitOpVsConvert()
+    {
+        var text = @"
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1007,18 +1007,18 @@ Console.WriteLine(testExpr2);
 }
 ";
 
-            // Native Compiler: x => Convert(Convert(op_Explicit(x)))
-            CompileAndVerify(text, expectedOutput:
+        // Native Compiler: x => Convert(Convert(op_Explicit(x)))
+        CompileAndVerify(text, expectedOutput:
 @"x => Convert(Convert(Convert(x)))
 x => Convert(Convert(Convert(x)))
 ");
-        }
+    }
 
-        [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        public void ExpressionTreeNoCovertForIdentityConversion()
-        {
-            var source = @"
+    [WorkItem(530531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530531")]
+    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+    public void ExpressionTreeNoCovertForIdentityConversion()
+    {
+        var source = @"
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1034,17 +1034,17 @@ static void Main()
 }
 ";
 
-            // Native compiler: x => (Convert(x) != Convert(null))
-            CompileAndVerify(source, expectedOutput:
+        // Native compiler: x => (Convert(x) != Convert(null))
+        CompileAndVerify(source, expectedOutput:
 @"x => (Convert(x) != null)
 True
 ");
-        }
+    }
 
-        [Fact, WorkItem(530548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530548")]
-        public void CS0219WRN_UnreferencedVarAssg_RHSMidRefType()
-        {
-            string source = @"
+    [Fact, WorkItem(530548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530548")]
+    public void CS0219WRN_UnreferencedVarAssg_RHSMidRefType()
+    {
+        string source = @"
 public interface Base { }
 public struct Derived : Base { }
 public class Test
@@ -1057,20 +1057,20 @@ public class Test
     }
 }
 ";
-            // Native compiler no error (print -123)
-            CreateCompilation(source).VerifyDiagnostics(
-    // (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
-    //         var b1 = new Derived(); // Both Warning CS0219
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
-    // (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
-    //         var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
-        }
+        // Native compiler no error (print -123)
+        CreateCompilation(source).VerifyDiagnostics(
+// (8,13): warning CS0219: The variable 'b1' is assigned but its value is never used
+//         var b1 = new Derived(); // Both Warning CS0219
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
+// (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
+//         var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
+    }
 
-        [Fact, WorkItem(530556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530556")]
-        public void NoCS0591ERR_InvalidAttributeArgument()
-        {
-            string source = @"
+    [Fact, WorkItem(530556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530556")]
+    public void NoCS0591ERR_InvalidAttributeArgument()
+    {
+        string source = @"
 using System;
 [AttributeUsage(AttributeTargets.All + 0xFFFFFF)]
 class MyAtt : Attribute { }
@@ -1078,14 +1078,14 @@ class MyAtt : Attribute { }
 class MyAtt1 : Attribute { }
 public class Test {}
 ";
-            // Native compiler  error CS0591: Invalid value for argument to 'AttributeUsage' attribute
-            CreateCompilation(source).VerifyDiagnostics();
-        }
+        // Native compiler  error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+        CreateCompilation(source).VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem(530586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
-        public void ThrowOnceInIteratorFinallyBlock()
-        {
-            string source = @"
+    [Fact, WorkItem(530586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530586")]
+    public void ThrowOnceInIteratorFinallyBlock()
+    {
+        string source = @"
 //<Title> Finally block runs twice in iterator</Title>
 //<RelatedBug>Dev10:473561-->8444?</RelatedBug>
 using System;
@@ -1130,11 +1130,11 @@ class Program
     }
 }
 ";
-            // Native print "++ ++ EX 2"
-            var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
+        // Native print "++ ++ EX 2"
+        var verifier = CompileAndVerify(source, expectedOutput: " ++ EX 1");
 
-            // must not load "<>4__this"
-            verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
+        // must not load "<>4__this"
+        verifier.VerifyIL("Program.test.<Goo>d__1.System.Collections.IEnumerator.MoveNext()", @"
 {
   // Code size      101 (0x65)
   .maxstack  2
@@ -1205,8 +1205,8 @@ class Program
 }
 ");
 
-            // must load "<>4__this"
-            verifier.VerifyIL("Program.test.<Goo>d__1.<>m__Finally1()", @"
+        // must load "<>4__this"
+        verifier.VerifyIL("Program.test.<Goo>d__1.<>m__Finally1()", @"
 {
   // Code size       42 (0x2a)
   .maxstack  3
@@ -1227,12 +1227,12 @@ class Program
 }
 ");
 
-        }
+    }
 
-        [Fact, WorkItem(530587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530587")]
-        public void NoFormatCharInIDEqual()
-        {
-            string source = @"
+    [Fact, WorkItem(530587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530587")]
+    public void NoFormatCharInIDEqual()
+    {
+        string source = @"
 #define A
 using System;
 class Program
@@ -1248,13 +1248,13 @@ return x;
 }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "1"); // Native print 0
-        }
+        CompileAndVerify(source, expectedOutput: "1"); // Native print 0
+    }
 
-        [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
-        public void CS1718WRN_ComparisonToSelf_Roslyn()
-        {
-            string source = @"
+    [Fact, WorkItem(530614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530614")]
+    public void CS1718WRN_ComparisonToSelf_Roslyn()
+    {
+        string source = @"
 enum @esbyte : sbyte { e0, e1 };
 public class z_1495j12
 {
@@ -1266,16 +1266,16 @@ if (esbyte.e0 == esbyte.e0)
 }
 }}
 ";
-            // Native compiler no warn
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,5): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
-        }
+        // Native compiler no warn
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,5): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+            Diagnostic(ErrorCode.WRN_ComparisonToSelf, "esbyte.e0 == esbyte.e0"));
+    }
 
-        [Fact, WorkItem(530629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530629")]
-        public void CS0414WRN_UnreferencedFieldAssg_Roslyn()
-        {
-            string source = @"
+    [Fact, WorkItem(530629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530629")]
+    public void CS0414WRN_UnreferencedFieldAssg_Roslyn()
+    {
+        string source = @"
 namespace VS7_336319
 {
     public sealed class PredefinedTypes
@@ -1292,18 +1292,18 @@ namespace VS7_336319
     }
 }
 ";
-            // Native compiler no warn
-            CreateCompilation(source).VerifyDiagnostics(
-    // (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
-    //         private static PredefinedTypes PredefinedTypes = null;
-    Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
-        }
+        // Native compiler no warn
+        CreateCompilation(source).VerifyDiagnostics(
+// (10,40): warning CS0414: The field 'VS7_336319.ExpressionBinder.PredefinedTypes' is assigned but its value is never used
+//         private static PredefinedTypes PredefinedTypes = null;
+Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "PredefinedTypes").WithArguments("VS7_336319.ExpressionBinder.PredefinedTypes"));
+    }
 
-        [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
-        public void ExpressionTreeWithNullableUDCandOperator()
-        {
-            string source = @"
+    [WorkItem(530666, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530666")]
+    [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
+    public void ExpressionTreeWithNullableUDCandOperator()
+    {
+        string source = @"
 using System;
 using System.Linq.Expressions;
 struct B
@@ -1327,14 +1327,14 @@ static int Main()
     }
 }
 ";
-            // Native compiler throw
-            CompileAndVerify(source, expectedOutput: "3");
-        }
+        // Native compiler throw
+        CompileAndVerify(source, expectedOutput: "3");
+    }
 
-        [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]
-        public void CS0121Err_AmbiguousMethodCall()
-        {
-            string source = @"
+    [Fact, WorkItem(530696, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530696")]
+    public void CS0121Err_AmbiguousMethodCall()
+    {
+        string source = @"
     class G<T> { }
     class C
     {
@@ -1353,34 +1353,34 @@ static int Main()
     }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-    // (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
-    //             M();
-    Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
-        }
+        CreateCompilation(source).VerifyDiagnostics(
+// (15,13): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params double[])' and 'C.M(params G<int>[])'
+//             M();
+Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params double[])", "C.M(params G<int>[])"));
+    }
 
-        [Fact, WorkItem(530653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530653")]
-        public void RepeatedObsoleteWarnings()
-        {
-            // <quote source="Srivatsn's comments from bug 16642">
-            // Inside a method body if you access a static field twice thus:
-            // 
-            // var x = ObsoleteType.field1;
-            // var y = ObsoleteType.field1;
-            //
-            // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
-            // the lookup of type names for certain cases and doesn't report errors on the second lookup as that just comes 
-            // from the cache. Note how I said caches sometimes. If you simply say -
-            //
-            // var x= new ObsoleteType();
-            // var y = new ObsoleteType();
-            //
-            // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
-            // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
-            // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
-            // behavior is quirky enough to warrant a break.
-            // </quote>
-            CompileAndVerify(@"
+    [Fact, WorkItem(530653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530653")]
+    public void RepeatedObsoleteWarnings()
+    {
+        // <quote source="Srivatsn's comments from bug 16642">
+        // Inside a method body if you access a static field twice thus:
+        // 
+        // var x = ObsoleteType.field1;
+        // var y = ObsoleteType.field1;
+        //
+        // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
+        // the lookup of type names for certain cases and doesn't report errors on the second lookup as that just comes 
+        // from the cache. Note how I said caches sometimes. If you simply say -
+        //
+        // var x= new ObsoleteType();
+        // var y = new ObsoleteType();
+        //
+        // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
+        // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
+        // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
+        // behavior is quirky enough to warrant a break.
+        // </quote>
+        CompileAndVerify(@"
 using System;
 [Obsolete]
 public class ObsoleteType
@@ -1397,35 +1397,35 @@ public class Program
         var y = ObsoleteType.field; // In Dev11, this line doesn't produce a warning.
     }
 }").VerifyDiagnostics(
-                // (15,17): warning CS0612: 'ObsoleteType' is obsolete
-                //         var y = ObsoleteType.field;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteType").WithArguments("ObsoleteType"));
-        }
+            // (15,17): warning CS0612: 'ObsoleteType' is obsolete
+            //         var y = ObsoleteType.field;
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteType").WithArguments("ObsoleteType"));
+    }
 
-        [Fact, WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")]
-        public void TestReferenceResolution()
-        {
-            var cs1Compilation = CreateCSharpCompilation("CS1",
+    [Fact, WorkItem(530303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530303")]
+    public void TestReferenceResolution()
+    {
+        var cs1Compilation = CreateCSharpCompilation("CS1",
 @"public class CS1 {}",
-                compilationOptions: TestOptions.ReleaseDll);
-            var cs1Verifier = CompileAndVerify(cs1Compilation);
-            cs1Verifier.VerifyDiagnostics();
+            compilationOptions: TestOptions.ReleaseDll);
+        var cs1Verifier = CompileAndVerify(cs1Compilation);
+        cs1Verifier.VerifyDiagnostics();
 
-            var cs2Compilation = CreateCSharpCompilation("CS2",
+        var cs2Compilation = CreateCSharpCompilation("CS2",
 @"public class CS2<T> {}",
-                compilationOptions: TestOptions.ReleaseDll,
-                referencedCompilations: new Compilation[] { cs1Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation);
-            cs2Verifier.VerifyDiagnostics();
+            compilationOptions: TestOptions.ReleaseDll,
+            referencedCompilations: new Compilation[] { cs1Compilation });
+        var cs2Verifier = CompileAndVerify(cs2Compilation);
+        cs2Verifier.VerifyDiagnostics();
 
-            var cs3Compilation = CreateCSharpCompilation("CS3",
+        var cs3Compilation = CreateCSharpCompilation("CS3",
 @"public class CS3 : CS2<CS1> {}",
-                compilationOptions: TestOptions.ReleaseDll,
-                referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation);
-            cs3Verifier.VerifyDiagnostics();
+            compilationOptions: TestOptions.ReleaseDll,
+            referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
+        var cs3Verifier = CompileAndVerify(cs3Compilation);
+        cs3Verifier.VerifyDiagnostics();
 
-            var cs4Compilation = CreateCSharpCompilation("CS4",
+        var cs4Compilation = CreateCSharpCompilation("CS4",
 @"public class Program
 {
     static void Main()
@@ -1433,15 +1433,15 @@ public class Program
         System.Console.WriteLine(typeof(CS3));
     }
 }",
-                compilationOptions: TestOptions.ReleaseExe,
-                referencedCompilations: new Compilation[] { cs2Compilation, cs3Compilation });
-            cs4Compilation.VerifyDiagnostics();
-        }
+            compilationOptions: TestOptions.ReleaseExe,
+            referencedCompilations: new Compilation[] { cs2Compilation, cs3Compilation });
+        cs4Compilation.VerifyDiagnostics();
+    }
 
-        [Fact, WorkItem(531014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531014")]
-        public void TestVariableAndTypeNameClashes()
-        {
-            CompileAndVerify(@"
+    [Fact, WorkItem(531014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531014")]
+    public void TestVariableAndTypeNameClashes()
+    {
+        CompileAndVerify(@"
 using System;
 public class Class1
 {
@@ -1466,20 +1466,20 @@ public class Class1
         }
     }
 }").VerifyDiagnostics(
-                // Breaking Change: See bug 17395. Dev11 had a bug because of which it didn't report the below warnings.
-                // (13,16): warning CS0168: The variable 'A5' is declared but never used
-                //             A5 A5; const A6 A6 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "A5").WithArguments("A5"),
-                // (13,29): warning CS0219: The variable 'A6' is assigned but its value is never used
-                //             A5 A5; const A6 A6 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "A6").WithArguments("A6"));
-        }
+            // Breaking Change: See bug 17395. Dev11 had a bug because of which it didn't report the below warnings.
+            // (13,16): warning CS0168: The variable 'A5' is declared but never used
+            //             A5 A5; const A6 A6 = null;
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "A5").WithArguments("A5"),
+            // (13,29): warning CS0219: The variable 'A6' is assigned but its value is never used
+            //             A5 A5; const A6 A6 = null;
+            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "A6").WithArguments("A6"));
+    }
 
-        [WorkItem(530584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530584")]
-        [Fact]
-        public void NotRuntimeAmbiguousBecauseOfReturnTypes()
-        {
-            var source = @"
+    [WorkItem(530584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530584")]
+    [Fact]
+    public void NotRuntimeAmbiguousBecauseOfReturnTypes()
+    {
+        var source = @"
 using System;
 
 class Base<T, S>
@@ -1504,16 +1504,16 @@ class Derived : Base<int, int>
     }
 }
 ";
-            // BREAK: Dev11 reports WRN_MultipleRuntimeOverrideMatches, but there
-            // is no runtime ambiguity because the return types differ.
-            CompileAndVerify(source, expectedOutput: "Derived.Out");
-        }
+        // BREAK: Dev11 reports WRN_MultipleRuntimeOverrideMatches, but there
+        // is no runtime ambiguity because the return types differ.
+        CompileAndVerify(source, expectedOutput: "Derived.Out");
+    }
 
-        [WorkItem(695311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695311")]
-        [Fact]
-        public void NestedCollectionInitializerOnGenericProperty()
-        {
-            var libSource = @"
+    [WorkItem(695311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/695311")]
+    [Fact]
+    public void NestedCollectionInitializerOnGenericProperty()
+    {
+        var libSource = @"
 using System.Collections;
 
 public interface IAdd
@@ -1578,10 +1578,10 @@ public static class Util
 }
 ";
 
-            var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
+        var libRef = CreateCompilation(libSource, assemblyName: "lib").EmitToImageReference();
 
-            {
-                var source = @"
+        {
+            var source = @"
 using System;
 using System.Collections;
 
@@ -1600,13 +1600,13 @@ class Test
 }
 ";
 
-                // As in dev11.
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
-                CompileAndVerify(comp, expectedOutput: "03");
-            }
+            // As in dev11.
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "03");
+        }
 
-            {
-                var source = @"
+        {
+            var source = @"
 using System;
 using System.Collections;
 
@@ -1624,12 +1624,12 @@ class Test
 }
 ";
 
-                // As in dev11.
-                // NOTE: The spec will likely be updated to make this illegal.
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
-                var verifier = CompileAndVerify(comp, expectedOutput: "3");
+            // As in dev11.
+            // NOTE: The spec will likely be updated to make this illegal.
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
 
-                verifier.VerifyIL("Test.Goo<T>()", @"
+            verifier.VerifyIL("Test.Goo<T>()", @"
 {
   // Code size       72 (0x48)
   .maxstack  3
@@ -1655,10 +1655,10 @@ class Test
   IL_0047:  ret
 }
 ");
-            }
+        }
 
-            {
-                var source = @"
+        {
+            var source = @"
 using System;
 using System.Collections;
 
@@ -1676,19 +1676,19 @@ class Test
 }
 ";
 
-                // BREAK: dev11 compiles and prints "0"
-                var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
-                comp.VerifyDiagnostics(
-                    // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
-                    //         return new Wrapper<T> { Item = { 1, 2, 3} };
-                    Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Item").WithArguments("Wrapper<T>.Item", "T"));
-            }
+            // BREAK: dev11 compiles and prints "0"
+            var comp = CreateCompilation(source, new[] { libRef }, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (15,33): error CS1918: Members of property 'Wrapper<T>.Item' of type 'T' cannot be assigned with an object initializer because it is of a value type
+                //         return new Wrapper<T> { Item = { 1, 2, 3} };
+                Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Item").WithArguments("Wrapper<T>.Item", "T"));
         }
+    }
 
-        [Fact, WorkItem(770424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770424"), WorkItem(1079034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
-        public void UserDefinedShortCircuitingOperators()
-        {
-            var source = @"
+    [Fact, WorkItem(770424, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/770424"), WorkItem(1079034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1079034")]
+    public void UserDefinedShortCircuitingOperators()
+    {
+        var source = @"
 public class Base
 {
     public static bool operator true(Base x)
@@ -1722,7 +1722,6 @@ public class Derived : Base
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "Base.op_FalseBase.op_True");
-        }
+        CompileAndVerify(source, expectedOutput: "Base.op_FalseBase.op_True");
     }
 }

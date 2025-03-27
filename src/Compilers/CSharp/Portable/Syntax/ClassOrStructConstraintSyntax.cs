@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax
+namespace Microsoft.CodeAnalysis.CSharp.Syntax;
+
+public partial class ClassOrStructConstraintSyntax
 {
-    public partial class ClassOrStructConstraintSyntax
+    public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword)
     {
-        public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword)
-        {
-            return Update(classOrStructKeyword, QuestionToken);
-        }
+        return Update(classOrStructKeyword, QuestionToken);
     }
 }

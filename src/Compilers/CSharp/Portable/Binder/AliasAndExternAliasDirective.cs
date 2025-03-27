@@ -9,21 +9,20 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal readonly struct AliasAndExternAliasDirective
 {
-    internal readonly struct AliasAndExternAliasDirective
+    public readonly AliasSymbol Alias;
+    public readonly SyntaxReference? ExternAliasDirectiveReference;
+    public readonly bool SkipInLookup;
+
+    public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax? externAliasDirective, bool skipInLookup)
     {
-        public readonly AliasSymbol Alias;
-        public readonly SyntaxReference? ExternAliasDirectiveReference;
-        public readonly bool SkipInLookup;
-
-        public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax? externAliasDirective, bool skipInLookup)
-        {
-            this.Alias = alias;
-            this.ExternAliasDirectiveReference = externAliasDirective?.GetReference();
-            this.SkipInLookup = skipInLookup;
-        }
-
-        public ExternAliasDirectiveSyntax? ExternAliasDirective => (ExternAliasDirectiveSyntax?)ExternAliasDirectiveReference?.GetSyntax();
+        this.Alias = alias;
+        this.ExternAliasDirectiveReference = externAliasDirective?.GetReference();
+        this.SkipInLookup = skipInLookup;
     }
+
+    public ExternAliasDirectiveSyntax? ExternAliasDirective => (ExternAliasDirectiveSyntax?)ExternAliasDirectiveReference?.GetSyntax();
 }

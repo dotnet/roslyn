@@ -6,92 +6,91 @@ using System.Collections.Immutable;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public abstract class SyntaxTreeOptionsProvider
 {
-    public abstract class SyntaxTreeOptionsProvider
+    /// <summary>
+    /// Get whether the given tree is generated.
+    /// </summary>
+    public abstract GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get diagnostic severity setting for a given diagnostic identifier in a given tree.
+    /// </summary>
+    public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+
+    /// <summary>
+    /// Get diagnostic severity set globally for a given diagnostic identifier
+    /// </summary>
+    public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+}
+
+internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+{
+    private readonly struct Options
     {
-        /// <summary>
-        /// Get whether the given tree is generated.
-        /// </summary>
-        public abstract GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken cancellationToken);
+        public readonly GeneratedKind IsGenerated;
+        public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
 
-        /// <summary>
-        /// Get diagnostic severity setting for a given diagnostic identifier in a given tree.
-        /// </summary>
-        public abstract bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
-
-        /// <summary>
-        /// Get diagnostic severity set globally for a given diagnostic identifier
-        /// </summary>
-        public abstract bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity);
+        public Options(AnalyzerConfigOptionsResult? result)
+        {
+            if (result is AnalyzerConfigOptionsResult r)
+            {
+                DiagnosticOptions = r.TreeOptions;
+                IsGenerated = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(r.AnalyzerOptions);
+            }
+            else
+            {
+                DiagnosticOptions = SyntaxTree.EmptyDiagnosticOptions;
+                IsGenerated = GeneratedKind.Unknown;
+            }
+        }
     }
 
-    internal sealed class CompilerSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+    private readonly ImmutableDictionary<SyntaxTree, Options> _options;
+
+    private readonly AnalyzerConfigOptionsResult _globalOptions;
+
+    public CompilerSyntaxTreeOptionsProvider(
+        SyntaxTree?[] trees,
+        ImmutableArray<AnalyzerConfigOptionsResult> results,
+        AnalyzerConfigOptionsResult globalResults)
     {
-        private readonly struct Options
+        var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Options>();
+        for (int i = 0; i < trees.Length; i++)
         {
-            public readonly GeneratedKind IsGenerated;
-            public readonly ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions;
-
-            public Options(AnalyzerConfigOptionsResult? result)
+            if (trees[i] != null)
             {
-                if (result is AnalyzerConfigOptionsResult r)
-                {
-                    DiagnosticOptions = r.TreeOptions;
-                    IsGenerated = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(r.AnalyzerOptions);
-                }
-                else
-                {
-                    DiagnosticOptions = SyntaxTree.EmptyDiagnosticOptions;
-                    IsGenerated = GeneratedKind.Unknown;
-                }
+                builder.Add(
+                    trees[i]!,
+                    new Options(results.IsDefault ? null : (AnalyzerConfigOptionsResult?)results[i]));
             }
         }
+        _options = builder.ToImmutableDictionary();
+        _globalOptions = globalResults;
+    }
 
-        private readonly ImmutableDictionary<SyntaxTree, Options> _options;
+    public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
+        => _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
 
-        private readonly AnalyzerConfigOptionsResult _globalOptions;
-
-        public CompilerSyntaxTreeOptionsProvider(
-            SyntaxTree?[] trees,
-            ImmutableArray<AnalyzerConfigOptionsResult> results,
-            AnalyzerConfigOptionsResult globalResults)
+    public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
+    {
+        if (_options.TryGetValue(tree, out var value))
         {
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Options>();
-            for (int i = 0; i < trees.Length; i++)
-            {
-                if (trees[i] != null)
-                {
-                    builder.Add(
-                        trees[i]!,
-                        new Options(results.IsDefault ? null : (AnalyzerConfigOptionsResult?)results[i]));
-                }
-            }
-            _options = builder.ToImmutableDictionary();
-            _globalOptions = globalResults;
+            return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);
         }
+        severity = ReportDiagnostic.Default;
+        return false;
+    }
 
-        public override GeneratedKind IsGenerated(SyntaxTree tree, CancellationToken _)
-            => _options.TryGetValue(tree, out var value) ? value.IsGenerated : GeneratedKind.Unknown;
-
-        public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
+    public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
+    {
+        if (_globalOptions.TreeOptions is object)
         {
-            if (_options.TryGetValue(tree, out var value))
-            {
-                return value.DiagnosticOptions.TryGetValue(diagnosticId, out severity);
-            }
-            severity = ReportDiagnostic.Default;
-            return false;
+            return _globalOptions.TreeOptions.TryGetValue(diagnosticId, out severity);
         }
-
-        public override bool TryGetGlobalDiagnosticValue(string diagnosticId, CancellationToken _, out ReportDiagnostic severity)
-        {
-            if (_globalOptions.TreeOptions is object)
-            {
-                return _globalOptions.TreeOptions.TryGetValue(diagnosticId, out severity);
-            }
-            severity = ReportDiagnostic.Default;
-            return false;
-        }
+        severity = ReportDiagnostic.Default;
+        return false;
     }
 }

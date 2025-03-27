@@ -4,34 +4,33 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Specifies what symbols to import from metadata.
+/// </summary>
+public enum MetadataImportOptions : byte
 {
     /// <summary>
-    /// Specifies what symbols to import from metadata.
+    /// Only import public and protected symbols.
     /// </summary>
-    public enum MetadataImportOptions : byte
+    Public = 0,
+
+    /// <summary>
+    /// Import public, protected and internal symbols.
+    /// </summary>
+    Internal = 1,
+
+    /// <summary>
+    /// Import all symbols.
+    /// </summary>
+    All = 2,
+}
+
+internal static partial class EnumBounds
+{
+    internal static bool IsValid(this MetadataImportOptions value)
     {
-        /// <summary>
-        /// Only import public and protected symbols.
-        /// </summary>
-        Public = 0,
-
-        /// <summary>
-        /// Import public, protected and internal symbols.
-        /// </summary>
-        Internal = 1,
-
-        /// <summary>
-        /// Import all symbols.
-        /// </summary>
-        All = 2,
-    }
-
-    internal static partial class EnumBounds
-    {
-        internal static bool IsValid(this MetadataImportOptions value)
-        {
-            return value >= MetadataImportOptions.Public && value <= MetadataImportOptions.All;
-        }
+        return value >= MetadataImportOptions.Public && value <= MetadataImportOptions.All;
     }
 }

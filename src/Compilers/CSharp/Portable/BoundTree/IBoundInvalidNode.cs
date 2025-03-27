@@ -5,14 +5,13 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+/// <summary>
+/// For nodes that can generate an <see cref="IInvalidOperation"/>, this allows the Lazy implementation
+/// to get the children of this node on demand.
+/// </summary>
+internal interface IBoundInvalidNode
 {
-    /// <summary>
-    /// For nodes that can generate an <see cref="IInvalidOperation"/>, this allows the Lazy implementation
-    /// to get the children of this node on demand.
-    /// </summary>
-    internal interface IBoundInvalidNode
-    {
-        ImmutableArray<BoundNode> InvalidNodeChildren { get; }
-    }
+    ImmutableArray<BoundNode> InvalidNodeChildren { get; }
 }

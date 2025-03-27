@@ -5,55 +5,54 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Information decoded from early well-known custom attributes applied on a property.
+/// </summary>
+internal class CommonPropertyEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
 {
-    /// <summary>
-    /// Information decoded from early well-known custom attributes applied on a property.
-    /// </summary>
-    internal class CommonPropertyEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
+    #region ObsoleteAttribute
+    private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+    [DisallowNull]
+    public ObsoleteAttributeData? ObsoleteAttributeData
     {
-        #region ObsoleteAttribute
-        private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        [DisallowNull]
-        public ObsoleteAttributeData? ObsoleteAttributeData
+        get
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                Debug.Assert(value != null);
-                Debug.Assert(!value.IsUninitialized);
-
-                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
-                    return;
-
-                _obsoleteAttributeData = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: true);
+            return _obsoleteAttributeData.IsUninitialized ? null : _obsoleteAttributeData;
         }
-        #endregion
-
-        #region OverloadResolutionPriorityAttribute
-        private int _overloadResolutionPriority = 0;
-        [DisallowNull]
-        public int OverloadResolutionPriority
+        set
         {
-            get
-            {
-                VerifySealed(expected: true);
-                return _overloadResolutionPriority;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _overloadResolutionPriority = value;
-                SetDataStored();
-            }
+            VerifySealed(expected: false);
+            Debug.Assert(value != null);
+            Debug.Assert(!value.IsUninitialized);
+
+            if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                return;
+
+            _obsoleteAttributeData = value;
+            SetDataStored();
         }
-        #endregion
     }
+    #endregion
+
+    #region OverloadResolutionPriorityAttribute
+    private int _overloadResolutionPriority = 0;
+    [DisallowNull]
+    public int OverloadResolutionPriority
+    {
+        get
+        {
+            VerifySealed(expected: true);
+            return _overloadResolutionPriority;
+        }
+        set
+        {
+            VerifySealed(expected: false);
+            _overloadResolutionPriority = value;
+            SetDataStored();
+        }
+    }
+    #endregion
 }

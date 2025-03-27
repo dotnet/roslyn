@@ -8,13 +8,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal abstract class MergedNamespaceOrTypeDeclaration : Declaration
 {
-    internal abstract class MergedNamespaceOrTypeDeclaration : Declaration
+    protected MergedNamespaceOrTypeDeclaration(string name)
+        : base(name)
     {
-        protected MergedNamespaceOrTypeDeclaration(string name)
-            : base(name)
-        {
-        }
     }
 }

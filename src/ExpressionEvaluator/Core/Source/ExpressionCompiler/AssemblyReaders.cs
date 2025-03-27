@@ -4,17 +4,16 @@
 
 using System.Reflection.Metadata;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator
-{
-    internal readonly struct AssemblyReaders
-    {
-        public readonly MetadataReader MetadataReader;
-        public readonly object SymReader;
+namespace Microsoft.CodeAnalysis.ExpressionEvaluator;
 
-        public AssemblyReaders(MetadataReader metadataReader, object symReader)
-        {
-            MetadataReader = metadataReader;
-            SymReader = symReader;
-        }
+internal readonly struct AssemblyReaders
+{
+    public readonly MetadataReader MetadataReader;
+    public readonly object SymReader;
+
+    public AssemblyReaders(MetadataReader metadataReader, object symReader)
+    {
+        MetadataReader = metadataReader;
+        SymReader = symReader;
     }
 }

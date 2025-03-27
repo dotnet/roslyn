@@ -8,22 +8,21 @@ using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests;
+
+internal sealed class TestableCompilerServerHost : ICompilerServerHost
 {
-    internal sealed class TestableCompilerServerHost : ICompilerServerHost
+    internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation { get; }
+    public ICompilerServerLogger Logger { get; }
+
+    internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null, ICompilerServerLogger logger = null)
     {
-        internal Func<RunRequest, CancellationToken, BuildResponse> RunCompilation { get; }
-        public ICompilerServerLogger Logger { get; }
+        RunCompilation = runCompilation;
+        Logger = logger ?? EmptyCompilerServerLogger.Instance;
+    }
 
-        internal TestableCompilerServerHost(Func<RunRequest, CancellationToken, BuildResponse> runCompilation = null, ICompilerServerLogger logger = null)
-        {
-            RunCompilation = runCompilation;
-            Logger = logger ?? EmptyCompilerServerLogger.Instance;
-        }
-
-        BuildResponse ICompilerServerHost.RunCompilation(in RunRequest request, CancellationToken cancellationToken)
-        {
-            return RunCompilation(request, cancellationToken);
-        }
+    BuildResponse ICompilerServerHost.RunCompilation(in RunRequest request, CancellationToken cancellationToken)
+    {
+        return RunCompilation(request, cancellationToken);
     }
 }

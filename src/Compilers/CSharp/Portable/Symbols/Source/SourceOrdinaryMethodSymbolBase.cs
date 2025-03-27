@@ -14,97 +14,96 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+namespace Microsoft.CodeAnalysis.CSharp.Symbols;
+
+/// <summary>
+/// Unlike <see cref="SourceOrdinaryMethodSymbol"/>, this type doesn't depend
+/// on any specific kind of syntax node associated with it. Any syntax node is good enough
+/// for it.
+/// </summary>
+internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
 {
-    /// <summary>
-    /// Unlike <see cref="SourceOrdinaryMethodSymbol"/>, this type doesn't depend
-    /// on any specific kind of syntax node associated with it. Any syntax node is good enough
-    /// for it.
-    /// </summary>
-    internal abstract class SourceOrdinaryMethodSymbolBase : SourceOrdinaryMethodOrUserDefinedOperatorSymbol
+    private readonly string _name;
+
+    protected SourceOrdinaryMethodSymbolBase(
+        NamedTypeSymbol containingType,
+        string name,
+        Location location,
+        CSharpSyntaxNode syntax,
+        bool isIterator,
+        (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags) :
+        base(containingType,
+             syntax.GetReference(),
+             location,
+             isIterator: isIterator,
+             modifiersAndFlags)
     {
-        private readonly string _name;
+        _name = name;
+    }
 
-        protected SourceOrdinaryMethodSymbolBase(
-            NamedTypeSymbol containingType,
-            string name,
-            Location location,
-            CSharpSyntaxNode syntax,
-            bool isIterator,
-            (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags) :
-            base(containingType,
-                 syntax.GetReference(),
-                 location,
-                 isIterator: isIterator,
-                 modifiersAndFlags)
+    protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
+    {
+        if (!this.IsAsync)
         {
-            _name = name;
+            CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
+            return;
         }
 
-        protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
+        var diagnostics = BindingDiagnosticBag.GetInstance();
+        AsyncMethodChecks(diagnostics);
+
+        CompleteAsyncMethodChecks(diagnostics, cancellationToken);
+        diagnostics.Free();
+    }
+
+    private void CompleteAsyncMethodChecks(BindingDiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+    {
+        if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
         {
-            if (!this.IsAsync)
+            if (diagnosticsOpt != null)
             {
-                CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
-                return;
+                AddDeclarationDiagnostics(diagnosticsOpt);
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
-            AsyncMethodChecks(diagnostics);
-
-            CompleteAsyncMethodChecks(diagnostics, cancellationToken);
-            diagnostics.Free();
+            CompleteAsyncMethodChecksBetweenStartAndFinish();
+            state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
         }
-
-        private void CompleteAsyncMethodChecks(BindingDiagnosticBag diagnosticsOpt, CancellationToken cancellationToken)
+        else
         {
-            if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
-            {
-                if (diagnosticsOpt != null)
-                {
-                    AddDeclarationDiagnostics(diagnosticsOpt);
-                }
-
-                CompleteAsyncMethodChecksBetweenStartAndFinish();
-                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
-            }
-            else
-            {
-                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
-            }
+            state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
         }
+    }
 
-        protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
+    protected abstract void CompleteAsyncMethodChecksBetweenStartAndFinish();
 
-        public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
+    public abstract override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
-        public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
+    public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
-        public override string Name
+    public override string Name
+    {
+        get
         {
-            get
-            {
-                return _name;
-            }
+            return _name;
         }
+    }
 
-        protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
+    protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
-        internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
+    internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+    {
+        base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+        if (this.IsExtensionMethod)
         {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            // No need to check if [Extension] attribute was explicitly set since
+            // we'll issue CS1112 error in those cases and won't generate IL.
+            var compilation = this.DeclaringCompilation;
 
-            if (this.IsExtensionMethod)
-            {
-                // No need to check if [Extension] attribute was explicitly set since
-                // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
-
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                    WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
-            }
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
+                WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
         }
     }
 }

@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class IOperationTests_INoPiaObjectCreationOperation : SemanticModelTestBase
-    {
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void NoPiaObjectCreation_01()
-        {
-            string pia = @"
+public class IOperationTests_INoPiaObjectCreationOperation : SemanticModelTestBase
+{
+
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void NoPiaObjectCreation_01()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -40,11 +40,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     public void M1(ITest33 x, int y)
@@ -54,7 +54,7 @@ class UsePia
 } 
 ";
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33  { y }')
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ITest33) (Syntax: '{ y }')
@@ -68,16 +68,16 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void NoPiaObjectCreation_02()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void NoPiaObjectCreation_02()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -99,11 +99,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     public void M1(ITest33 x, int y)
@@ -113,7 +113,7 @@ class UsePia
 } 
 ";
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33  { P = y }')
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ITest33) (Syntax: '{ P = y }')
@@ -126,16 +126,16 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
             Right: 
               IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void NoPiaObjectCreation_03()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation)]
+    [Fact]
+    public void NoPiaObjectCreation_03()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -156,11 +156,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     public void M1(ITest33 x, int y)
@@ -170,21 +170,21 @@ class UsePia
 } 
 ";
 
-            string expectedOperationTree = @"
+        string expectedOperationTree = @"
 INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new ITest33()')
   Initializer: 
     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(consumer, expectedOperationTree, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void NoPiaObjectCreationFlow_01()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void NoPiaObjectCreationFlow_01()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -206,11 +206,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     /*<bind>*/public void M1(ITest33 x, int y)
@@ -220,9 +220,9 @@ class UsePia
 } 
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -269,14 +269,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void NoPiaObjectCreationFlow_02()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void NoPiaObjectCreationFlow_02()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -298,11 +298,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     /*<bind>*/public void M1(ITest33 x, int y)
@@ -312,9 +312,9 @@ class UsePia
 } 
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -360,14 +360,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void NoPiaObjectCreationFlow_03()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void NoPiaObjectCreationFlow_03()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -388,11 +388,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     /*<bind>*/public void M1(ITest33 x, int y)
@@ -402,9 +402,9 @@ class UsePia
 } 
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -426,14 +426,14 @@ Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
+    }
 
-        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
-        public void NoPiaObjectCreationFlow_04()
-        {
-            string pia = @"
+    [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+    [Fact]
+    public void NoPiaObjectCreationFlow_04()
+    {
+        string pia = @"
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -455,11 +455,11 @@ public abstract class ClassITest33
 }
 ";
 
-            var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
+        var piaCompilation = CreateCompilation(pia, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(piaCompilation);
+        CompileAndVerify(piaCompilation);
 
-            string consumer = @"
+        string consumer = @"
 class UsePia
 {
     /*<bind>*/public void M1(ITest33 x, object y1, object y2)
@@ -469,9 +469,9 @@ class UsePia
 } 
 ";
 
-            var expectedDiagnostics = DiagnosticDescription.None;
+        var expectedDiagnostics = DiagnosticDescription.None;
 
-            string expectedFlowGraph = @"
+        string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -570,7 +570,6 @@ Block[B7] - Exit
     Predecessors: [B6]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(consumer, expectedFlowGraph, expectedDiagnostics, references: new[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
     }
 }

@@ -10,19 +10,19 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests
-{
-    public class FunctionPointerOperations : SemanticModelTestBase
-    {
-        private CSharpCompilation CreateFunctionPointerCompilation(string source)
-        {
-            return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
-        }
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-        [Fact]
-        public void FunctionPointerLoad()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+public class FunctionPointerOperations : SemanticModelTestBase
+{
+    private CSharpCompilation CreateFunctionPointerCompilation(string source)
+    {
+        return CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
+    }
+
+    [Fact]
+    public void FunctionPointerLoad()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     static void M1() => throw null;
@@ -32,7 +32,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&M1')
   Reference: 
     IMethodReferenceOperation: void C.M1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M1')
@@ -40,13 +40,13 @@ IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syn
         null
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+    }
 
-        [Fact]
-        public void FunctionPointerLoad_WithThisReference()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerLoad_WithThisReference()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     void M1() => throw null;
@@ -56,7 +56,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M1')
   Reference: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
@@ -64,19 +64,19 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
-                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M1").WithArguments("C.M1()").WithLocation(7, 42)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
+            //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "M1").WithArguments("C.M1()").WithLocation(7, 42)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerLoad_WithInstanceReference()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerLoad_WithInstanceReference()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     void M1() => throw null;
@@ -86,7 +86,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&c.M1')
   Reference: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c.M1')
@@ -94,19 +94,19 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
           IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
-                //         delegate*<void> ptr = /*<bind>*/&c.M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "c.M1").WithArguments("C.M1()").WithLocation(7, 42)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,42): error CS8759: Cannot create a function pointer for 'C.M1()' because it is not a static method
+            //         delegate*<void> ptr = /*<bind>*/&c.M1/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_FuncPtrMethMustBeStatic, "c.M1").WithArguments("C.M1()").WithLocation(7, 42)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerLoad_WithStaticReference()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerLoad_WithStaticReference()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 static class Helper { public static void M1() => throw null; }
 unsafe class C
 {
@@ -116,7 +116,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syntax: '&Helper.M1')
   Reference: 
     IMethodReferenceOperation: void Helper.M1() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'Helper.M1')
@@ -124,16 +124,16 @@ IAddressOfOperation (OperationKind.AddressOf, Type: delegate*<System.Void>) (Syn
         null
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+    }
 
-        [Fact]
-        public void FunctionPointerLoad_NonExistantMethod()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerLoad_NonExistantMethod()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     static void M2()
@@ -142,26 +142,26 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: ?*, IsInvalid) (Syntax: '&M1')
   Reference: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M1')
       Children(0)
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (6,42): error CS0103: The name 'M1' does not exist in the current context
-                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(6, 42)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (6,42): error CS0103: The name 'M1' does not exist in the current context
+            //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(6, 42)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerLoad_InvalidMethod()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerLoad_InvalidMethod()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     static string M1() => null;
@@ -171,7 +171,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&M1')
   Reference: 
     IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M1')
@@ -179,19 +179,19 @@ IAddressOfOperation (OperationKind.AddressOf, Type: null, IsInvalid) (Syntax: '&
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M1')
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,42): error CS0407: 'string C.M1()' has the wrong return type
-                //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("C.M1()", "string").WithLocation(7, 42)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,42): error CS0407: 'string C.M1()' has the wrong return type
+            //         delegate*<void> ptr = /*<bind>*/&M1/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("C.M1()", "string").WithLocation(7, 42)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocationSignatureTest()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocationSignatureTest()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -200,21 +200,21 @@ unsafe class C
         /*<bind>*/ptr(Prop)/*</bind>*/;
     }
 }");
-            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(comp);
+        var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<InvocationExpressionSyntax>(comp);
 
-            var fktPointerOp = (IFunctionPointerInvocationOperation)actualOperation;
-            var signature = fktPointerOp.GetFunctionPointerSignature();
+        var fktPointerOp = (IFunctionPointerInvocationOperation)actualOperation;
+        var signature = fktPointerOp.GetFunctionPointerSignature();
 
-            Assert.NotNull(syntaxNode);
-            Assert.Equal(1, signature.Parameters.Length);
-            Assert.Equal(SpecialType.System_String, signature.Parameters[0].Type.SpecialType);
-            Assert.Equal(SpecialType.System_Void, signature.ReturnType.SpecialType);
-        }
+        Assert.NotNull(syntaxNode);
+        Assert.Equal(1, signature.Parameters.Length);
+        Assert.Equal(SpecialType.System_String, signature.Parameters[0].Type.SpecialType);
+        Assert.Equal(SpecialType.System_Void, signature.ReturnType.SpecialType);
+    }
 
-        [Fact]
-        public void FunctionPointerUnsafe()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerUnsafe()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 using System;
 static unsafe class C
 {
@@ -232,7 +232,7 @@ static unsafe class C
     }
 }
 ");
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Int32) (Syntax: 'p[i](i)')
   Target:
     IOperation:  (OperationKind.None, Type: delegate*<System.Int32, System.Int32>) (Syntax: 'p[i]')
@@ -246,13 +246,13 @@ IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Ty
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -262,7 +262,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Type: System.Void) (Syntax: 'ptr(Prop)')
   Target: 
     IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.Void>) (Syntax: 'ptr')
@@ -275,13 +275,13 @@ IFunctionPointerInvocationOperation (OperationKind.FunctionPointerInvocation, Ty
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics: new DiagnosticDescription[0]);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation_TooFewArguments()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation_TooFewArguments()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -291,7 +291,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr(Prop)')
   Children(2):
       IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.String, System.String, System.Void>, IsInvalid) (Syntax: 'ptr')
@@ -300,19 +300,19 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,19): error CS8756: Function pointer 'delegate*<string, string, void>' does not take 1 arguments
-                //         /*<bind>*/ptr(Prop)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr(Prop)").WithArguments("delegate*<string, string, void>", "1").WithLocation(7, 19)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,19): error CS8756: Function pointer 'delegate*<string, string, void>' does not take 1 arguments
+            //         /*<bind>*/ptr(Prop)/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr(Prop)").WithArguments("delegate*<string, string, void>", "1").WithLocation(7, 19)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation_TooManyArguments()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation_TooManyArguments()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -322,7 +322,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr(Prop)')
   Children(2):
       IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Void>, IsInvalid) (Syntax: 'ptr')
@@ -331,19 +331,19 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
             ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,19): error CS8756: Function pointer 'delegate*<string, string, void>' does not take 1 arguments
-                //         /*<bind>*/ptr(Prop)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr(Prop)").WithArguments("delegate*<void>", "1").WithLocation(7, 19)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,19): error CS8756: Function pointer 'delegate*<string, string, void>' does not take 1 arguments
+            //         /*<bind>*/ptr(Prop)/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadFuncPointerArgCount, "ptr(Prop)").WithArguments("delegate*<void>", "1").WithLocation(7, 19)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation_IncorrectParameterType()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation_IncorrectParameterType()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -353,7 +353,7 @@ unsafe class C
     }
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'ptr(Prop)')
   Children(2):
       IParameterReferenceOperation: ptr (OperationKind.ParameterReference, Type: delegate*<System.Int32, System.Void>) (Syntax: 'ptr')
@@ -362,19 +362,19 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax:
           IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'Prop')
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,23): error CS1503: Argument 1: cannot convert from 'string' to 'int'
-                //         /*<bind>*/ptr(Prop)/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadArgType, "Prop").WithArguments("1", "string", "int").WithLocation(7, 23)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,23): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         /*<bind>*/ptr(Prop)/*</bind>*/;
+            Diagnostic(ErrorCode.ERR_BadArgType, "Prop").WithArguments("1", "string", "int").WithLocation(7, 23)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation_IncorrectReturnUsage()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation_IncorrectReturnUsage()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     public string Prop { get; }
@@ -385,7 +385,7 @@ unsafe class C
     }/*</bind>*/
 }");
 
-            var expectedOperationTree = @"
+        var expectedOperationTree = @"
 IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: System.String s
   IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'string s = ptr(Prop);')
@@ -430,22 +430,22 @@ IBlockOperation (2 statements, 1 locals) (OperationKind.Block, Type: null, IsInv
                       OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
 
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // (7,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         string s = ptr(Prop);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr(Prop)").WithArguments("int", "string").WithLocation(7, 20),
-                // (8,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
-                //         s = ptr(Prop);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr(Prop)").WithArguments("int", "string").WithLocation(8, 13)
-            };
+        var expectedDiagnostics = new DiagnosticDescription[] {
+            // (7,20): error CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         string s = ptr(Prop);
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr(Prop)").WithArguments("int", "string").WithLocation(7, 20),
+            // (8,13): error CS0029: Cannot implicitly convert type 'int' to 'string'
+            //         s = ptr(Prop);
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "ptr(Prop)").WithArguments("int", "string").WithLocation(8, 13)
+        };
 
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, expectedDiagnostics);
-        }
+        VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+    }
 
-        [Fact]
-        public void FunctionPointerAddressOf_InCFG()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerAddressOf_InCFG()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     static void M1() {}
@@ -457,7 +457,7 @@ unsafe class C
     }/*</bind>*/
 }");
 
-            var expectedFlowGraph = @"
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -514,13 +514,13 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, new DiagnosticDescription[0]);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, new DiagnosticDescription[0]);
+    }
 
-        [Fact]
-        public void FunctionPointerInvocation_InCFG()
-        {
-            var comp = CreateFunctionPointerCompilation(@"
+    [Fact]
+    public void FunctionPointerInvocation_InCFG()
+    {
+        var comp = CreateFunctionPointerCompilation(@"
 unsafe class C
 {
     static void M1() {}
@@ -532,7 +532,7 @@ unsafe class C
     }/*</bind>*/
 }");
 
-            var expectedFlowGraph = @"
+        var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
@@ -591,7 +591,6 @@ Block[B5] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, new DiagnosticDescription[0]);
-        }
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, new DiagnosticDescription[0]);
     }
 }

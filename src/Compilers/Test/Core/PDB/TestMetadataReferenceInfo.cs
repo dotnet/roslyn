@@ -14,74 +14,73 @@ using Microsoft.CodeAnalysis.InternalUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities.PDB
+namespace Roslyn.Test.Utilities.PDB;
+
+internal class TestMetadataReferenceInfo : IDisposable
 {
-    internal class TestMetadataReferenceInfo : IDisposable
+    public readonly Compilation Compilation;
+    public readonly TestMetadataReference MetadataReference;
+    public readonly MetadataReferenceInfo MetadataReferenceInfo;
+    private bool _disposedValue;
+    private readonly MemoryStream _emitStream;
+    private readonly PEReader _peReader;
+
+    public TestMetadataReferenceInfo(
+        MemoryStream emitStream,
+        Compilation compilation,
+        TestMetadataReference metadataReference,
+        string fullPath)
     {
-        public readonly Compilation Compilation;
-        public readonly TestMetadataReference MetadataReference;
-        public readonly MetadataReferenceInfo MetadataReferenceInfo;
-        private bool _disposedValue;
-        private readonly MemoryStream _emitStream;
-        private readonly PEReader _peReader;
+        _emitStream = emitStream;
+        _peReader = new PEReader(emitStream);
+        Compilation = compilation;
+        MetadataReference = metadataReference;
 
-        public TestMetadataReferenceInfo(
-            MemoryStream emitStream,
-            Compilation compilation,
-            TestMetadataReference metadataReference,
-            string fullPath)
+        var metadataReader = _peReader.GetMetadataReader();
+        var moduleDefinition = metadataReader.GetModuleDefinition();
+
+        MetadataReferenceInfo = new MetadataReferenceInfo(
+            _peReader.PEHeaders.CoffHeader.TimeDateStamp,
+            _peReader.PEHeaders.PEHeader.SizeOfImage,
+            PathUtilities.GetFileName(fullPath),
+            metadataReader.GetGuid(moduleDefinition.Mvid),
+            metadataReference.Properties.Aliases,
+            metadataReference.Properties.Kind,
+            metadataReference.Properties.EmbedInteropTypes);
+    }
+
+    public static TestMetadataReferenceInfo Create(Compilation compilation, string fullPath, EmitOptions emitOptions)
+    {
+        var emitStream = compilation.EmitToStream(emitOptions);
+
+        var metadata = AssemblyMetadata.CreateFromStream(emitStream);
+        var metadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
+
+        return new TestMetadataReferenceInfo(
+            emitStream,
+            compilation,
+            metadataReference,
+            fullPath);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposedValue)
         {
-            _emitStream = emitStream;
-            _peReader = new PEReader(emitStream);
-            Compilation = compilation;
-            MetadataReference = metadataReference;
-
-            var metadataReader = _peReader.GetMetadataReader();
-            var moduleDefinition = metadataReader.GetModuleDefinition();
-
-            MetadataReferenceInfo = new MetadataReferenceInfo(
-                _peReader.PEHeaders.CoffHeader.TimeDateStamp,
-                _peReader.PEHeaders.PEHeader.SizeOfImage,
-                PathUtilities.GetFileName(fullPath),
-                metadataReader.GetGuid(moduleDefinition.Mvid),
-                metadataReference.Properties.Aliases,
-                metadataReference.Properties.Kind,
-                metadataReference.Properties.EmbedInteropTypes);
-        }
-
-        public static TestMetadataReferenceInfo Create(Compilation compilation, string fullPath, EmitOptions emitOptions)
-        {
-            var emitStream = compilation.EmitToStream(emitOptions);
-
-            var metadata = AssemblyMetadata.CreateFromStream(emitStream);
-            var metadataReference = new TestMetadataReference(metadata, fullPath: fullPath);
-
-            return new TestMetadataReferenceInfo(
-                emitStream,
-                compilation,
-                metadataReference,
-                fullPath);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
+            if (disposing)
             {
-                if (disposing)
-                {
-                    _peReader.Dispose();
-                    _emitStream.Dispose();
-                }
-
-                _disposedValue = true;
+                _peReader.Dispose();
+                _emitStream.Dispose();
             }
-        }
 
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            _disposedValue = true;
         }
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

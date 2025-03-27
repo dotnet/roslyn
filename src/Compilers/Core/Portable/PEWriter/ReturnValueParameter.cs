@@ -6,65 +6,64 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace Microsoft.Cci
+namespace Microsoft.Cci;
+
+internal sealed class ReturnValueParameter : ParameterDefinitionBase
 {
-    internal sealed class ReturnValueParameter : ParameterDefinitionBase
+    internal ReturnValueParameter(IMethodDefinition containingMethod)
     {
-        internal ReturnValueParameter(IMethodDefinition containingMethod)
-        {
-            _containingMethod = containingMethod;
-        }
+        _containingMethod = containingMethod;
+    }
 
-        public override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
-        {
-            return _containingMethod.GetReturnValueAttributes(context);
-        }
+    public override IEnumerable<ICustomAttribute> GetAttributes(EmitContext context)
+    {
+        return _containingMethod.GetReturnValueAttributes(context);
+    }
 
-        private readonly IMethodDefinition _containingMethod;
+    private readonly IMethodDefinition _containingMethod;
 
-        public override ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
-        {
-            get { return _containingMethod.RefCustomModifiers; }
-        }
+    public override ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
+    {
+        get { return _containingMethod.RefCustomModifiers; }
+    }
 
-        public override ImmutableArray<Cci.ICustomModifier> CustomModifiers
-        {
-            get { return _containingMethod.ReturnValueCustomModifiers; }
-        }
+    public override ImmutableArray<Cci.ICustomModifier> CustomModifiers
+    {
+        get { return _containingMethod.ReturnValueCustomModifiers; }
+    }
 
-        public override ushort Index
-        {
-            get { return 0; }
-        }
+    public override ushort Index
+    {
+        get { return 0; }
+    }
 
-        public override bool IsByReference
-        {
-            get { return _containingMethod.ReturnValueIsByRef; }
-        }
+    public override bool IsByReference
+    {
+        get { return _containingMethod.ReturnValueIsByRef; }
+    }
 
-        public override bool IsMarshalledExplicitly
-        {
-            get { return _containingMethod.ReturnValueIsMarshalledExplicitly; }
-        }
+    public override bool IsMarshalledExplicitly
+    {
+        get { return _containingMethod.ReturnValueIsMarshalledExplicitly; }
+    }
 
-        public override IMarshallingInformation MarshallingInformation
-        {
-            get { return _containingMethod.ReturnValueMarshallingInformation; }
-        }
+    public override IMarshallingInformation MarshallingInformation
+    {
+        get { return _containingMethod.ReturnValueMarshallingInformation; }
+    }
 
-        public override ImmutableArray<byte> MarshallingDescriptor
-        {
-            get { return _containingMethod.ReturnValueMarshallingDescriptor; }
-        }
+    public override ImmutableArray<byte> MarshallingDescriptor
+    {
+        get { return _containingMethod.ReturnValueMarshallingDescriptor; }
+    }
 
-        public override string Name
-        {
-            get { return string.Empty; }
-        }
+    public override string Name
+    {
+        get { return string.Empty; }
+    }
 
-        public override ITypeReference GetType(EmitContext context)
-        {
-            return _containingMethod.GetType(context);
-        }
+    public override ITypeReference GetType(EmitContext context)
+    {
+        return _containingMethod.GetType(context);
     }
 }

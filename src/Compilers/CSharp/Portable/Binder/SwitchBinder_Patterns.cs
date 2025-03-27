@@ -14,281 +14,280 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+internal partial class SwitchBinder : LocalScopeBinder
 {
-    internal partial class SwitchBinder : LocalScopeBinder
+    internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
     {
-        internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
+        return new SwitchBinder(next, switchSyntax);
+    }
+
+    /// <summary>
+    /// Bind the switch statement, reporting in the process any switch labels that are subsumed by previous cases.
+    /// </summary>
+    internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
+    {
+        Debug.Assert(SwitchSyntax.Equals(node));
+
+        if (node.Sections.Count == 0)
         {
-            return new SwitchBinder(next, switchSyntax);
+            diagnostics.Add(ErrorCode.WRN_EmptySwitch, node.OpenBraceToken.GetLocation());
         }
 
-        /// <summary>
-        /// Bind the switch statement, reporting in the process any switch labels that are subsumed by previous cases.
-        /// </summary>
-        internal override BoundStatement BindSwitchStatementCore(SwitchStatementSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
+        // Bind switch expression and set the switch governing type.
+        BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
+        diagnostics.AddRange(SwitchGoverningDiagnostics, allowMismatchInDependencyAccumulation: true);
+
+        ImmutableArray<BoundSwitchSection> switchSections = BindSwitchSections(originalBinder, diagnostics, out BoundSwitchLabel defaultLabel);
+        ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
+        ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
+        BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
+            compilation: this.Compilation,
+            syntax: node,
+            switchGoverningExpression: boundSwitchGoverningExpression,
+            switchSections: switchSections,
+            // If there is no explicit default label, the default action is to break out of the switch
+            defaultLabel: defaultLabel?.Label ?? BreakLabel,
+            diagnostics);
+
+        // Report subsumption errors, but ignore the input's constant value for that.
+        CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
+
+        // When the input is constant, we use that to reshape the decision dag that is returned
+        // so that flow analysis will see that some of the cases may be unreachable.
+        decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
+
+        return new BoundSwitchStatement(
+            syntax: node,
+            expression: boundSwitchGoverningExpression,
+            innerLocals: locals,
+            innerLocalFunctions: functions,
+            switchSections: switchSections,
+            defaultLabel: defaultLabel,
+            breakLabel: this.BreakLabel,
+            reachabilityDecisionDag: decisionDag);
+    }
+
+    private void CheckSwitchErrors(
+        ref ImmutableArray<BoundSwitchSection> switchSections,
+        BoundDecisionDag decisionDag,
+        BindingDiagnosticBag diagnostics)
+    {
+        var reachableLabels = decisionDag.ReachableLabels;
+        static bool isSubsumed(BoundSwitchLabel switchLabel, ImmutableHashSet<LabelSymbol> reachableLabels)
         {
-            Debug.Assert(SwitchSyntax.Equals(node));
-
-            if (node.Sections.Count == 0)
-            {
-                diagnostics.Add(ErrorCode.WRN_EmptySwitch, node.OpenBraceToken.GetLocation());
-            }
-
-            // Bind switch expression and set the switch governing type.
-            BoundExpression boundSwitchGoverningExpression = SwitchGoverningExpression;
-            diagnostics.AddRange(SwitchGoverningDiagnostics, allowMismatchInDependencyAccumulation: true);
-
-            ImmutableArray<BoundSwitchSection> switchSections = BindSwitchSections(originalBinder, diagnostics, out BoundSwitchLabel defaultLabel);
-            ImmutableArray<LocalSymbol> locals = GetDeclaredLocalsForScope(node);
-            ImmutableArray<LocalFunctionSymbol> functions = GetDeclaredLocalFunctionsForScope(node);
-            BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
-                compilation: this.Compilation,
-                syntax: node,
-                switchGoverningExpression: boundSwitchGoverningExpression,
-                switchSections: switchSections,
-                // If there is no explicit default label, the default action is to break out of the switch
-                defaultLabel: defaultLabel?.Label ?? BreakLabel,
-                diagnostics);
-
-            // Report subsumption errors, but ignore the input's constant value for that.
-            CheckSwitchErrors(ref switchSections, decisionDag, diagnostics);
-
-            // When the input is constant, we use that to reshape the decision dag that is returned
-            // so that flow analysis will see that some of the cases may be unreachable.
-            decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(boundSwitchGoverningExpression);
-
-            return new BoundSwitchStatement(
-                syntax: node,
-                expression: boundSwitchGoverningExpression,
-                innerLocals: locals,
-                innerLocalFunctions: functions,
-                switchSections: switchSections,
-                defaultLabel: defaultLabel,
-                breakLabel: this.BreakLabel,
-                reachabilityDecisionDag: decisionDag);
+            return !reachableLabels.Contains(switchLabel.Label);
         }
 
-        private void CheckSwitchErrors(
-            ref ImmutableArray<BoundSwitchSection> switchSections,
-            BoundDecisionDag decisionDag,
-            BindingDiagnosticBag diagnostics)
+        // If no switch sections are subsumed, just return
+        if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(isSubsumed, reachableLabels), reachableLabels))
         {
-            var reachableLabels = decisionDag.ReachableLabels;
-            static bool isSubsumed(BoundSwitchLabel switchLabel, ImmutableHashSet<LabelSymbol> reachableLabels)
-            {
-                return !reachableLabels.Contains(switchLabel.Label);
-            }
+            return;
+        }
 
-            // If no switch sections are subsumed, just return
-            if (!switchSections.Any(static (s, reachableLabels) => s.SwitchLabels.Any(isSubsumed, reachableLabels), reachableLabels))
+        var sectionBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(switchSections.Length);
+        bool anyPreviousErrors = false;
+        foreach (var oldSection in switchSections)
+        {
+            var labelBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
+            foreach (var label in oldSection.SwitchLabels)
             {
-                return;
-            }
-
-            var sectionBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(switchSections.Length);
-            bool anyPreviousErrors = false;
-            foreach (var oldSection in switchSections)
-            {
-                var labelBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(oldSection.SwitchLabels.Length);
-                foreach (var label in oldSection.SwitchLabels)
+                var newLabel = label;
+                if (!label.HasErrors && isSubsumed(label, reachableLabels) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                 {
-                    var newLabel = label;
-                    if (!label.HasErrors && isSubsumed(label, reachableLabels) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    var syntax = label.Syntax;
+                    switch (syntax)
                     {
-                        var syntax = label.Syntax;
-                        switch (syntax)
-                        {
-                            case CasePatternSwitchLabelSyntax p:
-                                if (!p.Pattern.HasErrors && !anyPreviousErrors)
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
-                                }
-                                break;
-                            case CaseSwitchLabelSyntax p:
-                                if (label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad && FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
-                                {
-                                    // We use the traditional diagnostic when possible
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
-                                }
-                                else if (!label.Pattern.HasErrors && !anyPreviousErrors)
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
-                                }
-                                break;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
-                        }
-
-                        // We mark any subsumed sections as erroneous for the benefit of flow analysis
-                        newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
+                        case CasePatternSwitchLabelSyntax p:
+                            if (!p.Pattern.HasErrors && !anyPreviousErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
+                            }
+                            break;
+                        case CaseSwitchLabelSyntax p:
+                            if (label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad && FindMatchingSwitchCaseLabel(cp.ConstantValue, p) != label.Label)
+                            {
+                                // We use the traditional diagnostic when possible
+                                diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location, cp.ConstantValue.GetValueToDisplay());
+                            }
+                            else if (!label.Pattern.HasErrors && !anyPreviousErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
+                            }
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                     }
 
-                    anyPreviousErrors |= label.HasErrors;
-                    labelBuilder.Add(newLabel);
+                    // We mark any subsumed sections as erroneous for the benefit of flow analysis
+                    newLabel = new BoundSwitchLabel(label.Syntax, label.Label, label.Pattern, label.WhenClause, hasErrors: true);
                 }
 
-                sectionBuilder.Add(oldSection.Update(oldSection.Locals, labelBuilder.ToImmutableAndFree(), oldSection.Statements));
+                anyPreviousErrors |= label.HasErrors;
+                labelBuilder.Add(newLabel);
             }
 
-            switchSections = sectionBuilder.ToImmutableAndFree();
+            sectionBuilder.Add(oldSection.Update(oldSection.Locals, labelBuilder.ToImmutableAndFree(), oldSection.Statements));
         }
 
-        /// <summary>
-        /// Bind a pattern switch label in order to force inference of the type of pattern variables.
-        /// </summary>
-        internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            // node should be a label of this switch statement.
-            Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
+        switchSections = sectionBuilder.ToImmutableAndFree();
+    }
 
-            // This simulates enough of the normal binding path of a switch statement to cause
-            // the label's pattern variables to have their types inferred, if necessary.
-            // It also binds the when clause, and therefore any pattern and out variables there.
-            BoundSwitchLabel defaultLabel = null;
-            BindSwitchSectionLabel(
-                sectionBinder: GetBinder(node.Parent),
-                node: node,
-                label: LabelsByNode[node],
-                defaultLabel: ref defaultLabel,
-                diagnostics: diagnostics);
+    /// <summary>
+    /// Bind a pattern switch label in order to force inference of the type of pattern variables.
+    /// </summary>
+    internal override void BindPatternSwitchLabelForInference(CasePatternSwitchLabelSyntax node, BindingDiagnosticBag diagnostics)
+    {
+        // node should be a label of this switch statement.
+        Debug.Assert(this.SwitchSyntax == node.Parent.Parent);
+
+        // This simulates enough of the normal binding path of a switch statement to cause
+        // the label's pattern variables to have their types inferred, if necessary.
+        // It also binds the when clause, and therefore any pattern and out variables there.
+        BoundSwitchLabel defaultLabel = null;
+        BindSwitchSectionLabel(
+            sectionBinder: GetBinder(node.Parent),
+            node: node,
+            label: LabelsByNode[node],
+            defaultLabel: ref defaultLabel,
+            diagnostics: diagnostics);
+    }
+
+    /// <summary>
+    /// Bind the pattern switch labels.
+    /// </summary>
+    private ImmutableArray<BoundSwitchSection> BindSwitchSections(
+        Binder originalBinder,
+        BindingDiagnosticBag diagnostics,
+        out BoundSwitchLabel defaultLabel)
+    {
+        // Bind match sections
+        var boundSwitchSectionsBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
+        defaultLabel = null;
+        foreach (SwitchSectionSyntax sectionSyntax in SwitchSyntax.Sections)
+        {
+            BoundSwitchSection section = BindSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, diagnostics);
+            boundSwitchSectionsBuilder.Add(section);
         }
 
-        /// <summary>
-        /// Bind the pattern switch labels.
-        /// </summary>
-        private ImmutableArray<BoundSwitchSection> BindSwitchSections(
-            Binder originalBinder,
-            BindingDiagnosticBag diagnostics,
-            out BoundSwitchLabel defaultLabel)
+        return boundSwitchSectionsBuilder.ToImmutableAndFree();
+    }
+
+    /// <summary>
+    /// Bind the pattern switch section.
+    /// </summary>
+    private BoundSwitchSection BindSwitchSection(
+        SwitchSectionSyntax node,
+        Binder originalBinder,
+        ref BoundSwitchLabel defaultLabel,
+        BindingDiagnosticBag diagnostics)
+    {
+        // Bind match section labels
+        var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(node.Labels.Count);
+        Binder sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
+        Debug.Assert(sectionBinder != null);
+        Dictionary<SyntaxNode, LabelSymbol> labelsByNode = LabelsByNode;
+
+        foreach (SwitchLabelSyntax labelSyntax in node.Labels)
         {
-            // Bind match sections
-            var boundSwitchSectionsBuilder = ArrayBuilder<BoundSwitchSection>.GetInstance(SwitchSyntax.Sections.Count);
-            defaultLabel = null;
-            foreach (SwitchSectionSyntax sectionSyntax in SwitchSyntax.Sections)
+            LabelSymbol label = labelsByNode[labelSyntax];
+            BoundSwitchLabel boundLabel = BindSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
+            boundLabelsBuilder.Add(boundLabel);
+        }
+
+        // Bind switch section statements
+        var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
+        foreach (StatementSyntax statement in node.Statements)
+        {
+            var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
+            if (ContainsUsingVariable(boundStatement))
             {
-                BoundSwitchSection section = BindSwitchSection(sectionSyntax, originalBinder, ref defaultLabel, diagnostics);
-                boundSwitchSectionsBuilder.Add(section);
+                diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
             }
-
-            return boundSwitchSectionsBuilder.ToImmutableAndFree();
+            boundStatementsBuilder.Add(boundStatement);
         }
 
-        /// <summary>
-        /// Bind the pattern switch section.
-        /// </summary>
-        private BoundSwitchSection BindSwitchSection(
-            SwitchSectionSyntax node,
-            Binder originalBinder,
-            ref BoundSwitchLabel defaultLabel,
-            BindingDiagnosticBag diagnostics)
+        return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+    }
+
+    internal static bool ContainsUsingVariable(BoundStatement boundStatement)
+    {
+        if (boundStatement is BoundLocalDeclaration boundLocal)
         {
-            // Bind match section labels
-            var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance(node.Labels.Count);
-            Binder sectionBinder = originalBinder.GetBinder(node); // this binder can bind pattern variables from the section.
-            Debug.Assert(sectionBinder != null);
-            Dictionary<SyntaxNode, LabelSymbol> labelsByNode = LabelsByNode;
+            return boundLocal.LocalSymbol.IsUsing;
+        }
+        else if (boundStatement is BoundMultipleLocalDeclarationsBase boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+        {
+            return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+        }
+        return false;
+    }
 
-            foreach (SwitchLabelSyntax labelSyntax in node.Labels)
-            {
-                LabelSymbol label = labelsByNode[labelSyntax];
-                BoundSwitchLabel boundLabel = BindSwitchSectionLabel(sectionBinder, labelSyntax, label, ref defaultLabel, diagnostics);
-                boundLabelsBuilder.Add(boundLabel);
-            }
-
-            // Bind switch section statements
-            var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
-            foreach (StatementSyntax statement in node.Statements)
-            {
-                var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
-                if (ContainsUsingVariable(boundStatement))
+    private BoundSwitchLabel BindSwitchSectionLabel(
+        Binder sectionBinder,
+        SwitchLabelSyntax node,
+        LabelSymbol label,
+        ref BoundSwitchLabel defaultLabel,
+        BindingDiagnosticBag diagnostics)
+    {
+        switch (node.Kind())
+        {
+            case SyntaxKind.CaseSwitchLabel:
                 {
-                    diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
+                    var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
+                    bool hasErrors = node.HasErrors;
+                    BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
+                        caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
+                    pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
+                    reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
+
+                    return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
                 }
-                boundStatementsBuilder.Add(boundStatement);
-            }
 
-            return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
-        }
-
-        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
-        {
-            if (boundStatement is BoundLocalDeclaration boundLocal)
-            {
-                return boundLocal.LocalSymbol.IsUsing;
-            }
-            else if (boundStatement is BoundMultipleLocalDeclarationsBase boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
-            {
-                return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
-            }
-            return false;
-        }
-
-        private BoundSwitchLabel BindSwitchSectionLabel(
-            Binder sectionBinder,
-            SwitchLabelSyntax node,
-            LabelSymbol label,
-            ref BoundSwitchLabel defaultLabel,
-            BindingDiagnosticBag diagnostics)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CaseSwitchLabel:
-                    {
-                        var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
-                        bool hasErrors = node.HasErrors;
-                        BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, SwitchGoverningType, hasErrors, diagnostics);
-                        pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
-                        reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
-
-                        return new BoundSwitchLabel(node, label, pattern, null, pattern.HasErrors);
-                    }
-
-                case SyntaxKind.DefaultSwitchLabel:
-                    {
-                        var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, narrowedType: SwitchGoverningType);
-                        bool hasErrors = pattern.HasErrors;
-                        if (defaultLabel != null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
-                            hasErrors = true;
-                            return new BoundSwitchLabel(node, label, pattern, null, hasErrors);
-                        }
-                        else
-                        {
-                            // Note that this is semantically last! The caller will place it in the decision dag
-                            // in the final position.
-                            return defaultLabel = new BoundSwitchLabel(node, label, pattern, null, hasErrors);
-                        }
-                    }
-
-                case SyntaxKind.CasePatternSwitchLabel:
-                    {
-                        var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
-
-                        MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.Keyword);
-
-                        BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
-                        if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
-                            reportIfConstantNamedUnderscore(pattern, p.Expression);
-
-                        return new BoundSwitchLabel(node, label, pattern,
-                            matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
-                            node.HasErrors);
-                    }
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-
-            void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
-            {
-                if (pattern is BoundConstantPattern { HasErrors: false } && IsUnderscore(expression))
+            case SyntaxKind.DefaultSwitchLabel:
                 {
-                    diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
+                    var pattern = new BoundDiscardPattern(node, inputType: SwitchGoverningType, narrowedType: SwitchGoverningType);
+                    bool hasErrors = pattern.HasErrors;
+                    if (defaultLabel != null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, label.Name);
+                        hasErrors = true;
+                        return new BoundSwitchLabel(node, label, pattern, null, hasErrors);
+                    }
+                    else
+                    {
+                        // Note that this is semantically last! The caller will place it in the decision dag
+                        // in the final position.
+                        return defaultLabel = new BoundSwitchLabel(node, label, pattern, null, hasErrors);
+                    }
                 }
+
+            case SyntaxKind.CasePatternSwitchLabel:
+                {
+                    var matchLabelSyntax = (CasePatternSwitchLabelSyntax)node;
+
+                    MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.Keyword);
+
+                    BoundPattern pattern = sectionBinder.BindPattern(
+                        matchLabelSyntax.Pattern, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics);
+                    if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
+                        reportIfConstantNamedUnderscore(pattern, p.Expression);
+
+                    return new BoundSwitchLabel(node, label, pattern,
+                        matchLabelSyntax.WhenClause != null ? sectionBinder.BindBooleanExpression(matchLabelSyntax.WhenClause.Condition, diagnostics) : null,
+                        node.HasErrors);
+                }
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(node);
+        }
+
+        void reportIfConstantNamedUnderscore(BoundPattern pattern, ExpressionSyntax expression)
+        {
+            if (pattern is BoundConstantPattern { HasErrors: false } && IsUnderscore(expression))
+            {
+                diagnostics.Add(ErrorCode.WRN_CaseConstantNamedUnderscore, expression.Location);
             }
         }
     }

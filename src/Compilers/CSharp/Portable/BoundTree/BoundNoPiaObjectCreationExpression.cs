@@ -5,16 +5,15 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+partial class BoundNoPiaObjectCreationExpression
 {
-    partial class BoundNoPiaObjectCreationExpression
-    {
-        public override MethodSymbol? Constructor => null;
-        public override ImmutableArray<BoundExpression> Arguments => ImmutableArray<BoundExpression>.Empty;
-        public override ImmutableArray<string?> ArgumentNamesOpt => default;
-        public override ImmutableArray<RefKind> ArgumentRefKindsOpt => default;
-        public override bool Expanded => false;
-        public override ImmutableArray<int> ArgsToParamsOpt => default;
-        public override BitVector DefaultArguments => default;
-    }
+    public override MethodSymbol? Constructor => null;
+    public override ImmutableArray<BoundExpression> Arguments => ImmutableArray<BoundExpression>.Empty;
+    public override ImmutableArray<string?> ArgumentNamesOpt => default;
+    public override ImmutableArray<RefKind> ArgumentRefKindsOpt => default;
+    public override bool Expanded => false;
+    public override ImmutableArray<int> ArgsToParamsOpt => default;
+    public override BitVector DefaultArguments => default;
 }

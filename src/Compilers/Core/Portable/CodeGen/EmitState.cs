@@ -6,75 +6,74 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeGen
+namespace Microsoft.CodeAnalysis.CodeGen;
+
+internal partial class ILBuilder
 {
-    internal partial class ILBuilder
+    /// <summary>
+    /// Abstract Execution state. 
+    /// If we know something interesting about IL stream we put it here.
+    /// </summary>
+    private struct EmitState
     {
-        /// <summary>
-        /// Abstract Execution state. 
-        /// If we know something interesting about IL stream we put it here.
-        /// </summary>
-        private struct EmitState
+        private int _maxStack;
+        private int _curStack;
+        private int _instructionsEmitted;
+
+        internal int InstructionsEmitted
         {
-            private int _maxStack;
-            private int _curStack;
-            private int _instructionsEmitted;
-
-            internal int InstructionsEmitted
+            get
             {
-                get
-                {
-                    return _instructionsEmitted;
-                }
+                return _instructionsEmitted;
             }
+        }
 
-            internal void InstructionAdded()
+        internal void InstructionAdded()
+        {
+            _instructionsEmitted += 1;
+        }
+
+        /// <summary>
+        /// Eval stack's high watermark.
+        /// </summary>
+        internal int MaxStack
+        {
+            get
             {
-                _instructionsEmitted += 1;
+                return _maxStack;
             }
-
-            /// <summary>
-            /// Eval stack's high watermark.
-            /// </summary>
-            internal int MaxStack
+            private set
             {
-                get
-                {
-                    return _maxStack;
-                }
-                private set
-                {
-                    Debug.Assert(value >= 0 && value <= ushort.MaxValue);
-                    _maxStack = value;
-                }
+                Debug.Assert(value >= 0 && value <= ushort.MaxValue);
+                _maxStack = value;
             }
+        }
 
-            /// <summary>
-            /// Current evaluation stack depth.
-            /// </summary>
-            internal int CurStack
+        /// <summary>
+        /// Current evaluation stack depth.
+        /// </summary>
+        internal int CurStack
+        {
+            get
             {
-                get
-                {
-                    return _curStack;
-                }
-                private set
-                {
-                    Debug.Assert(value >= 0 && value <= ushort.MaxValue);
-                    _curStack = value;
-                }
+                return _curStack;
             }
-
-            //TODO: for debugging we could also record what we have in the stack (I, F, O, &, ...)
-
-            /// <summary>
-            /// Record effects of that currently emitted instruction on the eval stack.
-            /// </summary>
-            internal void AdjustStack(int count)
+            private set
             {
-                CurStack += count;
-                MaxStack = Math.Max(MaxStack, CurStack);
+                Debug.Assert(value >= 0 && value <= ushort.MaxValue);
+                _curStack = value;
             }
+        }
+
+        //TODO: for debugging we could also record what we have in the stack (I, F, O, &, ...)
+
+        /// <summary>
+        /// Record effects of that currently emitted instruction on the eval stack.
+        /// </summary>
+        internal void AdjustStack(int count)
+        {
+            CurStack += count;
+            MaxStack = Math.Max(MaxStack, CurStack);
         }
     }
 }

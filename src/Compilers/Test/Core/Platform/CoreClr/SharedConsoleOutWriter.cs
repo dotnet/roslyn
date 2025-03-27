@@ -13,70 +13,69 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
-namespace Roslyn.Test.Utilities.CoreClr
+namespace Roslyn.Test.Utilities.CoreClr;
+
+internal static class SharedConsole
 {
-    internal static class SharedConsole
+    private static TextWriter s_savedConsoleOut;
+    private static TextWriter s_savedConsoleError;
+
+    private static AsyncLocal<StringWriter> s_currentOut;
+    private static AsyncLocal<StringWriter> s_currentError;
+
+    internal static void OverrideConsole()
     {
-        private static TextWriter s_savedConsoleOut;
-        private static TextWriter s_savedConsoleError;
+        s_savedConsoleOut = Console.Out;
+        s_savedConsoleError = Console.Error;
 
-        private static AsyncLocal<StringWriter> s_currentOut;
-        private static AsyncLocal<StringWriter> s_currentError;
+        s_currentOut = new AsyncLocal<StringWriter>();
+        s_currentError = new AsyncLocal<StringWriter>();
 
-        internal static void OverrideConsole()
+        Console.SetOut(new SharedConsoleOutWriter());
+        Console.SetError(new SharedConsoleErrorWriter());
+    }
+
+    public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
+    {
+        var outputWriter = new CappedStringWriter(expectedLength);
+        var errorOutputWriter = new CappedStringWriter(expectedLength);
+
+        var savedOutput = s_currentOut.Value;
+        var savedError = s_currentError.Value;
+
+        try
         {
-            s_savedConsoleOut = Console.Out;
-            s_savedConsoleError = Console.Error;
-
-            s_currentOut = new AsyncLocal<StringWriter>();
-            s_currentError = new AsyncLocal<StringWriter>();
-
-            Console.SetOut(new SharedConsoleOutWriter());
-            Console.SetError(new SharedConsoleErrorWriter());
+            s_currentOut.Value = outputWriter;
+            s_currentError.Value = errorOutputWriter;
+            action();
+        }
+        finally
+        {
+            s_currentOut.Value = savedOutput;
+            s_currentError.Value = savedError;
         }
 
-        public static void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput)
-        {
-            var outputWriter = new CappedStringWriter(expectedLength);
-            var errorOutputWriter = new CappedStringWriter(expectedLength);
+        output = outputWriter.ToString();
+        errorOutput = errorOutputWriter.ToString();
+    }
 
-            var savedOutput = s_currentOut.Value;
-            var savedError = s_currentError.Value;
+    private sealed class SharedConsoleOutWriter : SharedConsoleWriter
+    {
+        public override TextWriter Underlying => s_currentOut.Value ?? s_savedConsoleOut;
+    }
 
-            try
-            {
-                s_currentOut.Value = outputWriter;
-                s_currentError.Value = errorOutputWriter;
-                action();
-            }
-            finally
-            {
-                s_currentOut.Value = savedOutput;
-                s_currentError.Value = savedError;
-            }
+    private sealed class SharedConsoleErrorWriter : SharedConsoleWriter
+    {
+        public override TextWriter Underlying => s_currentError.Value ?? s_savedConsoleError;
+    }
 
-            output = outputWriter.ToString();
-            errorOutput = errorOutputWriter.ToString();
-        }
+    private abstract class SharedConsoleWriter : TextWriter
+    {
+        public override Encoding Encoding => Underlying.Encoding;
 
-        private sealed class SharedConsoleOutWriter : SharedConsoleWriter
-        {
-            public override TextWriter Underlying => s_currentOut.Value ?? s_savedConsoleOut;
-        }
+        public abstract TextWriter Underlying { get; }
 
-        private sealed class SharedConsoleErrorWriter : SharedConsoleWriter
-        {
-            public override TextWriter Underlying => s_currentError.Value ?? s_savedConsoleError;
-        }
-
-        private abstract class SharedConsoleWriter : TextWriter
-        {
-            public override Encoding Encoding => Underlying.Encoding;
-
-            public abstract TextWriter Underlying { get; }
-
-            public override void Write(char value) => Underlying.Write(value);
-        }
+        public override void Write(char value) => Underlying.Write(value);
     }
 }
 

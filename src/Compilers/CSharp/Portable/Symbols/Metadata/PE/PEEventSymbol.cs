@@ -16,496 +16,495 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
+namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+
+/// <summary>
+/// The class to represent all events imported from a PE/module.
+/// </summary>
+internal sealed class PEEventSymbol : EventSymbol
 {
-    /// <summary>
-    /// The class to represent all events imported from a PE/module.
-    /// </summary>
-    internal sealed class PEEventSymbol : EventSymbol
+    private readonly string _name;
+    private readonly PENamedTypeSymbol _containingType;
+    private readonly EventDefinitionHandle _handle;
+    private readonly TypeWithAnnotations _eventTypeWithAnnotations;
+    private readonly PEMethodSymbol _addMethod;
+    private readonly PEMethodSymbol _removeMethod;
+    private readonly PEFieldSymbol? _associatedFieldOpt;
+    private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
+    private Tuple<CultureInfo, string>? _lazyDocComment;
+    private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+
+    private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+
+    // Distinct accessibility value to represent unset.
+    private const int UnsetAccessibility = -1;
+    private int _lazyDeclaredAccessibility = UnsetAccessibility;
+
+    private readonly Flags _flags;
+    [Flags]
+    private enum Flags : byte
     {
-        private readonly string _name;
-        private readonly PENamedTypeSymbol _containingType;
-        private readonly EventDefinitionHandle _handle;
-        private readonly TypeWithAnnotations _eventTypeWithAnnotations;
-        private readonly PEMethodSymbol _addMethod;
-        private readonly PEMethodSymbol _removeMethod;
-        private readonly PEFieldSymbol? _associatedFieldOpt;
-        private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
-        private Tuple<CultureInfo, string>? _lazyDocComment;
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+        IsSpecialName = 1,
+        IsRuntimeSpecialName = 2,
+        CallMethodsDirectly = 4
+    }
 
-        private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+    internal PEEventSymbol(
+        PEModuleSymbol moduleSymbol,
+        PENamedTypeSymbol containingType,
+        EventDefinitionHandle handle,
+        PEMethodSymbol addMethod,
+        PEMethodSymbol removeMethod,
+        MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols)
+    {
+        RoslynDebug.Assert((object)moduleSymbol != null);
+        RoslynDebug.Assert((object)containingType != null);
+        Debug.Assert(!handle.IsNil);
+        RoslynDebug.Assert((object)addMethod != null);
+        RoslynDebug.Assert((object)removeMethod != null);
 
-        // Distinct accessibility value to represent unset.
-        private const int UnsetAccessibility = -1;
-        private int _lazyDeclaredAccessibility = UnsetAccessibility;
+        _addMethod = addMethod;
+        _removeMethod = removeMethod;
+        _handle = handle;
+        _containingType = containingType;
 
-        private readonly Flags _flags;
-        [Flags]
-        private enum Flags : byte
+        EventAttributes mdFlags = 0;
+        EntityHandle eventType = default(EntityHandle);
+
+        try
         {
-            IsSpecialName = 1,
-            IsRuntimeSpecialName = 2,
-            CallMethodsDirectly = 4
+            var module = moduleSymbol.Module;
+            module.GetEventDefPropsOrThrow(handle, out _name, out mdFlags, out eventType);
+        }
+        catch (BadImageFormatException mrEx)
+        {
+            _name = _name ?? string.Empty;
+            _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+
+            if (eventType.IsNil)
+            {
+                _eventTypeWithAnnotations = TypeWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
+            }
         }
 
-        internal PEEventSymbol(
-            PEModuleSymbol moduleSymbol,
-            PENamedTypeSymbol containingType,
-            EventDefinitionHandle handle,
-            PEMethodSymbol addMethod,
-            PEMethodSymbol removeMethod,
-            MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols)
+        TypeSymbol originalEventType = _eventTypeWithAnnotations.Type;
+        if (!_eventTypeWithAnnotations.HasType)
         {
-            RoslynDebug.Assert((object)moduleSymbol != null);
-            RoslynDebug.Assert((object)containingType != null);
-            Debug.Assert(!handle.IsNil);
-            RoslynDebug.Assert((object)addMethod != null);
-            RoslynDebug.Assert((object)removeMethod != null);
+            var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
+            originalEventType = metadataDecoder.GetTypeOfToken(eventType);
 
-            _addMethod = addMethod;
-            _removeMethod = removeMethod;
-            _handle = handle;
-            _containingType = containingType;
+            const int targetSymbolCustomModifierCount = 0;
+            var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
+            typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, _containingType);
 
-            EventAttributes mdFlags = 0;
-            EntityHandle eventType = default(EntityHandle);
+            // We start without annotation (they will be decoded below)
+            var type = TypeWithAnnotations.Create(typeSymbol);
 
-            try
+            // Decode nullable before tuple types to avoid converting between
+            // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
+
+            // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+            // because the event does not have explicit accessibility in metadata.
+            type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
+            type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
+            _eventTypeWithAnnotations = type;
+        }
+
+        // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
+        bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
+        bool callMethodsDirectly = isWindowsRuntimeEvent
+            ? !DoModifiersMatch(_addMethod, _removeMethod)
+            : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
+
+        if (callMethodsDirectly)
+        {
+            _flags |= Flags.CallMethodsDirectly;
+        }
+        else
+        {
+            _addMethod.SetAssociatedEvent(this, MethodKind.EventAdd);
+            _removeMethod.SetAssociatedEvent(this, MethodKind.EventRemove);
+
+            PEFieldSymbol? associatedField = GetAssociatedField(privateFieldNameToSymbols, isWindowsRuntimeEvent);
+            if ((object?)associatedField != null)
             {
-                var module = moduleSymbol.Module;
-                module.GetEventDefPropsOrThrow(handle, out _name, out mdFlags, out eventType);
+                _associatedFieldOpt = associatedField;
+                associatedField.SetAssociatedEvent(this);
             }
-            catch (BadImageFormatException mrEx)
-            {
-                _name = _name ?? string.Empty;
-                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+        }
 
-                if (eventType.IsNil)
+        if ((mdFlags & EventAttributes.SpecialName) != 0)
+        {
+            _flags |= Flags.IsSpecialName;
+        }
+
+        if ((mdFlags & EventAttributes.RTSpecialName) != 0)
+        {
+            _flags |= Flags.IsRuntimeSpecialName;
+        }
+    }
+
+    /// <summary>
+    /// Look for a field with the same name and an appropriate type (i.e. the same type, except in WinRT).
+    /// If one is found, the caller will assume that this event was originally field-like and associate
+    /// the two symbols.
+    /// </summary>
+    /// <remarks>
+    /// Perf impact: If we find a field with the same name, we will eagerly evaluate its type.
+    /// </remarks>
+    private PEFieldSymbol? GetAssociatedField(MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, bool isWindowsRuntimeEvent)
+    {
+        // NOTE: Neither the name nor the accessibility of a PEFieldSymbol is lazy.
+        foreach (PEFieldSymbol candidateAssociatedField in privateFieldNameToSymbols[_name])
+        {
+            Debug.Assert(candidateAssociatedField.DeclaredAccessibility == Accessibility.Private);
+
+            // Unfortunately, this will cause us to realize the type of the field, which would
+            // otherwise have been lazy.
+            TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
+
+            if (isWindowsRuntimeEvent)
+            {
+                NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
+                if (TypeSymbol.Equals(eventRegistrationTokenTable_T, candidateAssociatedFieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(_eventTypeWithAnnotations.Type, ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.ConsiderEverything2))
                 {
-                    _eventTypeWithAnnotations = TypeWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
+                    return candidateAssociatedField;
                 }
-            }
-
-            TypeSymbol originalEventType = _eventTypeWithAnnotations.Type;
-            if (!_eventTypeWithAnnotations.HasType)
-            {
-                var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                originalEventType = metadataDecoder.GetTypeOfToken(eventType);
-
-                const int targetSymbolCustomModifierCount = 0;
-                var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
-                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, _containingType);
-
-                // We start without annotation (they will be decoded below)
-                var type = TypeWithAnnotations.Create(typeSymbol);
-
-                // Decode nullable before tuple types to avoid converting between
-                // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-
-                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
-                // because the event does not have explicit accessibility in metadata.
-                type = NullableTypeDecoder.TransformType(type, handle, moduleSymbol, accessSymbol: _containingType, nullableContext: _containingType);
-                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
-                _eventTypeWithAnnotations = type;
-            }
-
-            // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
-            bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
-            bool callMethodsDirectly = isWindowsRuntimeEvent
-                ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
-
-            if (callMethodsDirectly)
-            {
-                _flags |= Flags.CallMethodsDirectly;
             }
             else
             {
-                _addMethod.SetAssociatedEvent(this, MethodKind.EventAdd);
-                _removeMethod.SetAssociatedEvent(this, MethodKind.EventRemove);
-
-                PEFieldSymbol? associatedField = GetAssociatedField(privateFieldNameToSymbols, isWindowsRuntimeEvent);
-                if ((object?)associatedField != null)
+                if (TypeSymbol.Equals(candidateAssociatedFieldType, _eventTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
                 {
-                    _associatedFieldOpt = associatedField;
-                    associatedField.SetAssociatedEvent(this);
+                    return candidateAssociatedField;
                 }
             }
-
-            if ((mdFlags & EventAttributes.SpecialName) != 0)
-            {
-                _flags |= Flags.IsSpecialName;
-            }
-
-            if ((mdFlags & EventAttributes.RTSpecialName) != 0)
-            {
-                _flags |= Flags.IsRuntimeSpecialName;
-            }
         }
 
-        /// <summary>
-        /// Look for a field with the same name and an appropriate type (i.e. the same type, except in WinRT).
-        /// If one is found, the caller will assume that this event was originally field-like and associate
-        /// the two symbols.
-        /// </summary>
-        /// <remarks>
-        /// Perf impact: If we find a field with the same name, we will eagerly evaluate its type.
-        /// </remarks>
-        private PEFieldSymbol? GetAssociatedField(MultiDictionary<string, PEFieldSymbol> privateFieldNameToSymbols, bool isWindowsRuntimeEvent)
+        return null;
+    }
+
+    public override bool IsWindowsRuntimeEvent
+    {
+        get
         {
-            // NOTE: Neither the name nor the accessibility of a PEFieldSymbol is lazy.
-            foreach (PEFieldSymbol candidateAssociatedField in privateFieldNameToSymbols[_name])
-            {
-                Debug.Assert(candidateAssociatedField.DeclaredAccessibility == Accessibility.Private);
+            NamedTypeSymbol token = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationToken;
 
-                // Unfortunately, this will cause us to realize the type of the field, which would
-                // otherwise have been lazy.
-                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
-
-                if (isWindowsRuntimeEvent)
-                {
-                    NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
-                    if (TypeSymbol.Equals(eventRegistrationTokenTable_T, candidateAssociatedFieldType.OriginalDefinition, TypeCompareKind.ConsiderEverything2) &&
-                        TypeSymbol.Equals(_eventTypeWithAnnotations.Type, ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, TypeCompareKind.ConsiderEverything2))
-                    {
-                        return candidateAssociatedField;
-                    }
-                }
-                else
-                {
-                    if (TypeSymbol.Equals(candidateAssociatedFieldType, _eventTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
-                    {
-                        return candidateAssociatedField;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public override bool IsWindowsRuntimeEvent
-        {
-            get
-            {
-                NamedTypeSymbol token = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationToken;
-
-                // If the addMethod returns an EventRegistrationToken
-                // and the removeMethod accepts an EventRegistrationToken
-                // then the Event is a WinRT type event and can be called
-                // using += and -=.
-                // NOTE: this check mimics the one in the native compiler
-                // (see IMPORTER::ImportEvent).  In particular, it specifically
-                // does not check whether the containing type is a WinRT type -
-                // it was a design goal to accept any events of this form.
-                return
-                    TypeSymbol.Equals(_addMethod.ReturnType, token, TypeCompareKind.ConsiderEverything2) &&
-                    _addMethod.ParameterCount == 1 &&
-                    _removeMethod.ParameterCount == 1 &&
-                    TypeSymbol.Equals(_removeMethod.Parameters[0].Type, token, TypeCompareKind.ConsiderEverything2);
-            }
-        }
-
-        internal override FieldSymbol? AssociatedField
-        {
-            get
-            {
-                return _associatedFieldOpt;
-            }
-        }
-
-        public override Symbol ContainingSymbol
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
-
-        public override NamedTypeSymbol ContainingType
-        {
-            get
-            {
-                return _containingType;
-            }
-        }
-
-        public override string Name
-        {
-            get { return _name; }
-        }
-
-        public override int MetadataToken
-        {
-            get { return MetadataTokens.GetToken(_handle); }
-        }
-
-        internal override bool HasSpecialName
-        {
-            get { return (_flags & Flags.IsSpecialName) != 0; }
-        }
-
-        internal override bool HasRuntimeSpecialName
-        {
-            get { return (_flags & Flags.IsRuntimeSpecialName) != 0; }
-        }
-
-        internal EventDefinitionHandle Handle
-        {
-            get
-            {
-                return _handle;
-            }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                if (_lazyDeclaredAccessibility == UnsetAccessibility)
-                {
-                    Accessibility accessibility = PEPropertyOrEventHelpers.GetDeclaredAccessibilityFromAccessors(_addMethod, _removeMethod);
-                    Interlocked.CompareExchange(ref _lazyDeclaredAccessibility, (int)accessibility, UnsetAccessibility);
-                }
-
-                return (Accessibility)_lazyDeclaredAccessibility;
-            }
-        }
-
-        public override bool IsExtern
-        {
-            get
-            {
-                // Some accessor extern.
-                return _addMethod.IsExtern || _removeMethod.IsExtern;
-            }
-        }
-
-        public override bool IsAbstract
-        {
-            get
-            {
-                // Some accessor abstract.
-                return _addMethod.IsAbstract || _removeMethod.IsAbstract;
-            }
-        }
-
-        public override bool IsSealed
-        {
-            get
-            {
-                // Some accessor sealed. (differs from properties)
-                return _addMethod.IsSealed || _removeMethod.IsSealed;
-            }
-        }
-
-        public override bool IsVirtual
-        {
-            get
-            {
-                // Some accessor virtual (as long as another isn't override or abstract).
-                return !IsOverride && !IsAbstract && (_addMethod.IsVirtual || _removeMethod.IsVirtual);
-            }
-        }
-
-        public override bool IsOverride
-        {
-            get
-            {
-                // Some accessor override.
-                return _addMethod.IsOverride || _removeMethod.IsOverride;
-            }
-        }
-
-        public override bool IsStatic
-        {
-            get
-            {
-                // All accessors static.
-                return _addMethod.IsStatic && _removeMethod.IsStatic;
-            }
-        }
-
-        public override TypeWithAnnotations TypeWithAnnotations
-        {
-            get { return _eventTypeWithAnnotations; }
-        }
-
-        public override MethodSymbol AddMethod
-        {
-            get { return _addMethod; }
-        }
-
-        public override MethodSymbol RemoveMethod
-        {
-            get { return _removeMethod; }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return ImmutableArray<SyntaxReference>.Empty;
-            }
-        }
-
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-        {
-            if (_lazyCustomAttributes.IsDefault)
-            {
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-                containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
-            }
-            return _lazyCustomAttributes;
-        }
-
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
-        {
-            return GetAttributes();
-        }
-
-        /// <summary>
-        /// Intended behavior: this event, E, explicitly implements an interface event, IE, 
-        /// if E.add explicitly implements IE.add and E.remove explicitly implements IE.remove.
-        /// </summary>
-        public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
-        {
-            get
-            {
-                if (_addMethod.ExplicitInterfaceImplementations.Length == 0 &&
-                    _removeMethod.ExplicitInterfaceImplementations.Length == 0)
-                {
-                    return ImmutableArray<EventSymbol>.Empty;
-                }
-
-                var implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_addMethod);
-
-                if (implementedEvents.Count != 0)
-                {
-                    implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_removeMethod));
-                }
-
-                var builder = ArrayBuilder<EventSymbol>.GetInstance();
-
-                foreach (var @event in implementedEvents)
-                {
-                    builder.Add(@event);
-                }
-
-                return builder.ToImmutableAndFree();
-            }
-        }
-
-        internal override bool MustCallMethodsDirectly
-        {
-            get { return (_flags & Flags.CallMethodsDirectly) != 0; }
-        }
-
-        private static bool DoSignaturesMatch(
-            PEModuleSymbol moduleSymbol,
-            TypeSymbol eventType,
-            PEMethodSymbol addMethod,
-            PEMethodSymbol removeMethod)
-        {
+            // If the addMethod returns an EventRegistrationToken
+            // and the removeMethod accepts an EventRegistrationToken
+            // then the Event is a WinRT type event and can be called
+            // using += and -=.
+            // NOTE: this check mimics the one in the native compiler
+            // (see IMPORTER::ImportEvent).  In particular, it specifically
+            // does not check whether the containing type is a WinRT type -
+            // it was a design goal to accept any events of this form.
             return
-                (eventType.IsDelegateType() || eventType.IsErrorType()) &&
-                DoesSignatureMatch(moduleSymbol, eventType, addMethod) &&
-                DoesSignatureMatch(moduleSymbol, eventType, removeMethod) &&
-                DoModifiersMatch(addMethod, removeMethod);
+                TypeSymbol.Equals(_addMethod.ReturnType, token, TypeCompareKind.ConsiderEverything2) &&
+                _addMethod.ParameterCount == 1 &&
+                _removeMethod.ParameterCount == 1 &&
+                TypeSymbol.Equals(_removeMethod.Parameters[0].Type, token, TypeCompareKind.ConsiderEverything2);
         }
+    }
 
-        private static bool DoModifiersMatch(PEMethodSymbol addMethod, PEMethodSymbol removeMethod)
+    internal override FieldSymbol? AssociatedField
+    {
+        get
         {
-            // CONSIDER: unlike for properties, a non-bogus event can have one abstract accessor
-            // and one sealed accessor.  Since the event is not bogus, the abstract accessor cannot
-            // be overridden separately.  Consequently, the type cannot be extended.
-
-            return
-                (addMethod.IsExtern == removeMethod.IsExtern) &&
-                // (addMethod.IsAbstract == removeMethod.IsAbstract) && // NOTE: Dev10 accepts one abstract accessor (same as for events)
-                // (addMethod.IsSealed == removeMethod.IsSealed) && // NOTE: Dev10 accepts one sealed accessor (for events, not for properties)
-                // (addMethod.IsOverride == removeMethod.IsOverride) && // NOTE: Dev10 accepts one override accessor (for events, not for properties)
-                (addMethod.IsStatic == removeMethod.IsStatic);
+            return _associatedFieldOpt;
         }
+    }
 
-        private static bool DoesSignatureMatch(
-            PEModuleSymbol moduleSymbol,
-            TypeSymbol eventType,
-            PEMethodSymbol method)
+    public override Symbol ContainingSymbol
+    {
+        get
         {
-            // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
-            var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
-            SignatureHeader signatureHeader;
-            BadImageFormatException? mrEx;
-            var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
+            return _containingType;
+        }
+    }
 
-            if (mrEx != null)
+    public override NamedTypeSymbol ContainingType
+    {
+        get
+        {
+            return _containingType;
+        }
+    }
+
+    public override string Name
+    {
+        get { return _name; }
+    }
+
+    public override int MetadataToken
+    {
+        get { return MetadataTokens.GetToken(_handle); }
+    }
+
+    internal override bool HasSpecialName
+    {
+        get { return (_flags & Flags.IsSpecialName) != 0; }
+    }
+
+    internal override bool HasRuntimeSpecialName
+    {
+        get { return (_flags & Flags.IsRuntimeSpecialName) != 0; }
+    }
+
+    internal EventDefinitionHandle Handle
+    {
+        get
+        {
+            return _handle;
+        }
+    }
+
+    public override Accessibility DeclaredAccessibility
+    {
+        get
+        {
+            if (_lazyDeclaredAccessibility == UnsetAccessibility)
             {
-                return false;
+                Accessibility accessibility = PEPropertyOrEventHelpers.GetDeclaredAccessibilityFromAccessors(_addMethod, _removeMethod);
+                Interlocked.CompareExchange(ref _lazyDeclaredAccessibility, (int)accessibility, UnsetAccessibility);
             }
 
-            return metadataDecoder.DoesSignatureMatchEvent(eventType, methodParams);
+            return (Accessibility)_lazyDeclaredAccessibility;
         }
+    }
 
-        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+    public override bool IsExtern
+    {
+        get
         {
-            return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
+            // Some accessor extern.
+            return _addMethod.IsExtern || _removeMethod.IsExtern;
         }
+    }
 
-        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+    public override bool IsAbstract
+    {
+        get
         {
-            AssemblySymbol primaryDependency = PrimaryDependency;
+            // Some accessor abstract.
+            return _addMethod.IsAbstract || _removeMethod.IsAbstract;
+        }
+    }
 
-            if (!_lazyCachedUseSiteInfo.IsInitialized)
+    public override bool IsSealed
+    {
+        get
+        {
+            // Some accessor sealed. (differs from properties)
+            return _addMethod.IsSealed || _removeMethod.IsSealed;
+        }
+    }
+
+    public override bool IsVirtual
+    {
+        get
+        {
+            // Some accessor virtual (as long as another isn't override or abstract).
+            return !IsOverride && !IsAbstract && (_addMethod.IsVirtual || _removeMethod.IsVirtual);
+        }
+    }
+
+    public override bool IsOverride
+    {
+        get
+        {
+            // Some accessor override.
+            return _addMethod.IsOverride || _removeMethod.IsOverride;
+        }
+    }
+
+    public override bool IsStatic
+    {
+        get
+        {
+            // All accessors static.
+            return _addMethod.IsStatic && _removeMethod.IsStatic;
+        }
+    }
+
+    public override TypeWithAnnotations TypeWithAnnotations
+    {
+        get { return _eventTypeWithAnnotations; }
+    }
+
+    public override MethodSymbol AddMethod
+    {
+        get { return _addMethod; }
+    }
+
+    public override MethodSymbol RemoveMethod
+    {
+        get { return _removeMethod; }
+    }
+
+    public override ImmutableArray<Location> Locations
+    {
+        get
+        {
+            return _containingType.ContainingPEModule.MetadataLocation.Cast<MetadataLocation, Location>();
+        }
+    }
+
+    public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+    {
+        get
+        {
+            return ImmutableArray<SyntaxReference>.Empty;
+        }
+    }
+
+    public override ImmutableArray<CSharpAttributeData> GetAttributes()
+    {
+        if (_lazyCustomAttributes.IsDefault)
+        {
+            var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
+            containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
+        }
+        return _lazyCustomAttributes;
+    }
+
+    internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
+    {
+        return GetAttributes();
+    }
+
+    /// <summary>
+    /// Intended behavior: this event, E, explicitly implements an interface event, IE, 
+    /// if E.add explicitly implements IE.add and E.remove explicitly implements IE.remove.
+    /// </summary>
+    public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
+    {
+        get
+        {
+            if (_addMethod.ExplicitInterfaceImplementations.Length == 0 &&
+                _removeMethod.ExplicitInterfaceImplementations.Length == 0)
             {
-                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
-                CalculateUseSiteDiagnostic(ref result);
-                deriveCompilerFeatureRequiredUseSiteInfo(ref result);
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+                return ImmutableArray<EventSymbol>.Empty;
             }
 
-            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+            var implementedEvents = PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_addMethod);
 
-            void deriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+            if (implementedEvents.Count != 0)
             {
-                var containingType = (PENamedTypeSymbol)ContainingType;
-                PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
-                var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
-                    this,
-                    containingPEModule,
-                    Handle,
-                    allowedFeatures: CompilerFeatureRequiredFeatures.None,
-                    new MetadataDecoder(containingPEModule, containingType));
+                implementedEvents.IntersectWith(PEPropertyOrEventHelpers.GetEventsForExplicitlyImplementedAccessor(_removeMethod));
+            }
 
-                diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
+            var builder = ArrayBuilder<EventSymbol>.GetInstance();
 
-                if (diag != null)
-                {
-                    result = new UseSiteInfo<AssemblySymbol>(diag);
-                }
+            foreach (var @event in implementedEvents)
+            {
+                builder.Add(@event);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+    }
+
+    internal override bool MustCallMethodsDirectly
+    {
+        get { return (_flags & Flags.CallMethodsDirectly) != 0; }
+    }
+
+    private static bool DoSignaturesMatch(
+        PEModuleSymbol moduleSymbol,
+        TypeSymbol eventType,
+        PEMethodSymbol addMethod,
+        PEMethodSymbol removeMethod)
+    {
+        return
+            (eventType.IsDelegateType() || eventType.IsErrorType()) &&
+            DoesSignatureMatch(moduleSymbol, eventType, addMethod) &&
+            DoesSignatureMatch(moduleSymbol, eventType, removeMethod) &&
+            DoModifiersMatch(addMethod, removeMethod);
+    }
+
+    private static bool DoModifiersMatch(PEMethodSymbol addMethod, PEMethodSymbol removeMethod)
+    {
+        // CONSIDER: unlike for properties, a non-bogus event can have one abstract accessor
+        // and one sealed accessor.  Since the event is not bogus, the abstract accessor cannot
+        // be overridden separately.  Consequently, the type cannot be extended.
+
+        return
+            (addMethod.IsExtern == removeMethod.IsExtern) &&
+            // (addMethod.IsAbstract == removeMethod.IsAbstract) && // NOTE: Dev10 accepts one abstract accessor (same as for events)
+            // (addMethod.IsSealed == removeMethod.IsSealed) && // NOTE: Dev10 accepts one sealed accessor (for events, not for properties)
+            // (addMethod.IsOverride == removeMethod.IsOverride) && // NOTE: Dev10 accepts one override accessor (for events, not for properties)
+            (addMethod.IsStatic == removeMethod.IsStatic);
+    }
+
+    private static bool DoesSignatureMatch(
+        PEModuleSymbol moduleSymbol,
+        TypeSymbol eventType,
+        PEMethodSymbol method)
+    {
+        // CONSIDER: It would be nice if we could reuse this signature information in the PEMethodSymbol.
+        var metadataDecoder = new MetadataDecoder(moduleSymbol, method);
+        SignatureHeader signatureHeader;
+        BadImageFormatException? mrEx;
+        var methodParams = metadataDecoder.GetSignatureForMethod(method.Handle, out signatureHeader, out mrEx, setParamHandles: false);
+
+        if (mrEx != null)
+        {
+            return false;
+        }
+
+        return metadataDecoder.DoesSignatureMatchEvent(eventType, methodParams);
+    }
+
+    public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+    {
+        return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
+    }
+
+    internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+    {
+        AssemblySymbol primaryDependency = PrimaryDependency;
+
+        if (!_lazyCachedUseSiteInfo.IsInitialized)
+        {
+            UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
+            CalculateUseSiteDiagnostic(ref result);
+            deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+            _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+        }
+
+        return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+
+        void deriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        {
+            var containingType = (PENamedTypeSymbol)ContainingType;
+            PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                this,
+                containingPEModule,
+                Handle,
+                allowedFeatures: CompilerFeatureRequiredFeatures.None,
+                new MetadataDecoder(containingPEModule, containingType));
+
+            diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
+
+            if (diag != null)
+            {
+                result = new UseSiteInfo<AssemblySymbol>(diag);
             }
         }
+    }
 
-        internal override ObsoleteAttributeData ObsoleteAttributeData
+    internal override ObsoleteAttributeData ObsoleteAttributeData
+    {
+        get
         {
-            get
-            {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
-                return _lazyObsoleteAttributeData;
-            }
+            ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
+            return _lazyObsoleteAttributeData;
         }
+    }
 
-        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
-        {
-            get { return null; }
-        }
+    internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
+    {
+        get { return null; }
     }
 }

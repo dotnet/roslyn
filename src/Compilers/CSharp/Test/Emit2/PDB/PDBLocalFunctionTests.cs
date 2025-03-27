@@ -9,14 +9,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
+
+public class PDBLocalFunctionTests : CSharpPDBTestBase
 {
-    public class PDBLocalFunctionTests : CSharpPDBTestBase
+    [Fact]
+    public void ClosuresInCtor()
     {
-        [Fact]
-        public void ClosuresInCtor()
-        {
-            var source = WithWindowsLineBreaks(@"
+        var source = WithWindowsLineBreaks(@"
 using System;
 
 class B
@@ -39,10 +39,10 @@ class C : B
 }
 ");
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb(@"
+        c.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -130,12 +130,12 @@ class C : B
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForEachStatement_Array()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForEachStatement_Array()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -154,11 +154,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -210,12 +210,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void ForStatement1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void ForStatement1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -232,11 +232,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -286,12 +286,12 @@ class C
   </methods>
 </symbols>
 ");
-        }
+    }
 
-        [Fact]
-        public void SwitchStatement1()
-        {
-            var source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void SwitchStatement1()
+    {
+        var source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -323,10 +323,10 @@ class C
     }
 }
 ");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            c.VerifyPdb("C.F", @"
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -375,12 +375,12 @@ class C
     </method>
   </methods>
 </symbols>");
-        }
+    }
 
-        [Fact]
-        public void UsingStatement1()
-        {
-            string source = WithWindowsLineBreaks(@"
+    [Fact]
+    public void UsingStatement1()
+    {
+        string source = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -404,11 +404,11 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyDiagnostics();
+        var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+        c.VerifyDiagnostics();
 
-            // note that the two closures have a different syntax offset
-            c.VerifyPdb("C.F", @"
+        // note that the two closures have a different syntax offset
+        c.VerifyPdb("C.F", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -469,6 +469,5 @@ class C
   </methods>
 </symbols>
 ");
-        }
     }
 }
