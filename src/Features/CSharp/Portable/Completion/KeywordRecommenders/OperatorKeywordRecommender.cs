@@ -17,7 +17,6 @@ internal sealed class OperatorKeywordRecommender() : AbstractSyntacticSingleKeyw
         var token = context.TargetToken;
 
         return
-            token.Kind() is SyntaxKind.ImplicitKeyword or
-            SyntaxKind.ExplicitKeyword;
+            token.Kind() is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword;
     }
 }

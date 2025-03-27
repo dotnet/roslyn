@@ -333,4 +333,21 @@ public sealed class InterfaceKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public async Task TestNotAfterInterface()
         => await VerifyAbsenceAsync(@"interface $$");
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

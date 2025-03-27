@@ -938,4 +938,19 @@ public sealed class VoidKeywordRecommenderTests : KeywordRecommenderTests
     {
         await VerifyAbsenceAsync("using T = $$");
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

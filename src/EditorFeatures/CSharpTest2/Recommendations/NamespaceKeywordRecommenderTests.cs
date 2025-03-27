@@ -543,4 +543,19 @@ public sealed class NamespaceKeywordRecommenderTests : KeywordRecommenderTests
     $$
     """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

@@ -700,8 +700,23 @@ public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
     public async Task TestAfterUsingKeywordBeforeTopLevelStatement()
     {
         await VerifyKeywordAsync("""
-using $$
-var i = 1;
-""");
+            using $$
+            var i = 1;
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
     }
 }

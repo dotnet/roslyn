@@ -407,4 +407,19 @@ public sealed class VirtualKeywordRecommenderTests : KeywordRecommenderTests
                 private protected $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

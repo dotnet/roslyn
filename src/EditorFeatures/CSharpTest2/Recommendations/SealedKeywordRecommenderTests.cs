@@ -471,4 +471,19 @@ public sealed class SealedKeywordRecommenderTests : KeywordRecommenderTests
                 int Goo { get; internal $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

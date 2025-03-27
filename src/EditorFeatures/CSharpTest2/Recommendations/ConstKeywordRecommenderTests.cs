@@ -443,9 +443,26 @@ public sealed class ConstKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-               int Goo {
-                 get {
-                   $$
+                int Goo {
+                    get {
+                    $$
             """);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
     }
 }

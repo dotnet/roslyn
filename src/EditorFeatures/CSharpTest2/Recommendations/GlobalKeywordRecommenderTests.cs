@@ -26,7 +26,6 @@ public sealed class GlobalKeywordRecommenderTests : KeywordRecommenderTests
                 {
                     $$
                 }
-            }
             """);
     }
 
@@ -528,4 +527,19 @@ public sealed class GlobalKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     #endregion
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

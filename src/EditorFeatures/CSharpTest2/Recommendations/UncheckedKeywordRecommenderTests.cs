@@ -115,6 +115,23 @@ public sealed class UncheckedKeywordRecommenderTests : KeywordRecommenderTests
     public async Task TestAfterRefExpression()
     {
         await VerifyKeywordAsync(AddInsideMethod(
-@"ref int x = ref $$"));
+            @"ref int x = ref $$"));
+    }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
     }
 }

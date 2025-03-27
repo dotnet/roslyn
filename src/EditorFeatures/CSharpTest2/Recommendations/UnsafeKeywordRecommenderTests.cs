@@ -497,4 +497,19 @@ public sealed class UnsafeKeywordRecommenderTests : KeywordRecommenderTests
     {
         await VerifyKeywordAsync("global using static $$");
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

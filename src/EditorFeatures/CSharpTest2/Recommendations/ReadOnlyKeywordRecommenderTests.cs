@@ -716,9 +716,25 @@ public sealed class ReadOnlyKeywordRecommenderTests : KeywordRecommenderTests
     [InlineData("ref readonly")]
     public async Task TestNotInFunctionPointerTypeAfterOtherRefModifier(string modifier)
     {
-        await VerifyAbsenceAsync($@"
-class C
-{{
-    delegate*<{modifier} $$");
+        await VerifyAbsenceAsync($$"""
+            class C
+            {
+                delegate*<{{modifier}} $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
     }
 }

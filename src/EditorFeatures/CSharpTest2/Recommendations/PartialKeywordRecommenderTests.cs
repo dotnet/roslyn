@@ -495,4 +495,19 @@ public sealed class PartialKeywordRecommenderTests : KeywordRecommenderTests
                 virtual $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

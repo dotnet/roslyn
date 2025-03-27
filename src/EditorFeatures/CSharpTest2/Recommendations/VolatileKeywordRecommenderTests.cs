@@ -504,8 +504,23 @@ public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyAbsenceAsync(
             """
             class C {
-               void Goo() {
-                 $$
+                void Goo() {
+                    $$
             """);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
     }
 }

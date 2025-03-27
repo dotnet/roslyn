@@ -142,8 +142,8 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-              void Goo() {}
-              $$
+                void Goo() {}
+                $$
             """);
     }
 
@@ -153,8 +153,8 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-              int i;
-              $$
+                int i;
+                $$
             """);
     }
 
@@ -164,8 +164,8 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-              int i { get; }
-              $$
+                int i { get; }
+                $$
             """);
     }
 
@@ -235,8 +235,8 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-              [goo]
-              $$
+                [goo]
+                $$
             """);
     }
 
@@ -245,7 +245,7 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
     {
         await VerifyAbsenceAsync("""
             enum E {
-               $$
+                $$
             """);
     }
 
@@ -255,7 +255,7 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             struct S {
-               $$
+                $$
             """);
     }
 
@@ -264,7 +264,7 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
     {
         await VerifyKeywordAsync("""
             interface I {
-               $$
+                $$
             """);
     }
 
@@ -274,7 +274,7 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
         await VerifyKeywordAsync(
             """
             class C {
-               $$
+                $$
             """);
     }
 
@@ -329,4 +329,21 @@ public sealed class EnumKeywordRecommenderTests : KeywordRecommenderTests
     [Fact]
     public async Task TestNotAfterEnum()
         => await VerifyAbsenceAsync(@"enum $$");
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }
