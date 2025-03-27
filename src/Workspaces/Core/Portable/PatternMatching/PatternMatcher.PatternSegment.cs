@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     /// <summary>
     /// First we break up the pattern given by dots.  Each portion of the pattern between the

@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias => GetText("ProjectFiles.CSharp.ExternAlias.csproj");
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
+                public static string InvalidTFM => GetText("ProjectFiles.CSharp.InvalidTFM.csproj");
                 public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
                 public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
                 public static string MSBuildExecutionError => GetText("ProjectFiles.CSharp.MSBuildExecutionError.csproj");

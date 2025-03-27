@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+    [CompilerTrait(CompilerFeature.RefLocalsReturns, CompilerFeature.RefLifetime)]
     public class RefLocalsAndReturnsTests : CompilingTestBase
     {
         [Fact]

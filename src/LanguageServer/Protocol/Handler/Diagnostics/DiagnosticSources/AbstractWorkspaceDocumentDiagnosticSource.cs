@@ -64,7 +64,7 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
             }
 
             var result = await lazyDiagnostics.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return result[Document.Id].ToImmutableArray();
+            return [.. result[Document.Id]];
 
             AsyncLazy<ILookup<DocumentId, DiagnosticData>> GetLazyDiagnostics()
             {

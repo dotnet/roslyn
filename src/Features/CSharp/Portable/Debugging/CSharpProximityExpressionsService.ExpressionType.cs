@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 
-internal partial class CSharpProximityExpressionsService
+internal sealed partial class CSharpProximityExpressionsService
 {
     // Flags used for "collecting" terms for proximity expressions.  The flags are somewhat
     // confusing.  The key point to remember is that an expression will be placed in the result

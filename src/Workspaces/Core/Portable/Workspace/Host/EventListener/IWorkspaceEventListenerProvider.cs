@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.Host
             return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace.Kind, eventListeners));
         }
 
-        internal class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
+        internal sealed class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
         {
             private readonly object _gate = new();
             private bool _initialized = false;
-            private readonly ImmutableArray<IEventListener<object>> _eventListeners = eventListeners.ToImmutableArray();
+            private readonly ImmutableArray<IEventListener<object>> _eventListeners = [.. eventListeners];
 
             public void EnsureListeners()
             {

@@ -261,6 +261,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ' <summary>
+        ' Indicates whether a type is managed or not in C# terms (i.e. you can take a pointer to it).
+        ' </summary>
+        Friend MustOverride Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+
         ' Only the compiler can create TypeSymbols.
         Friend Sub New()
         End Sub
@@ -588,8 +593,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_IsUnmanagedType As Boolean Implements ITypeSymbol.IsUnmanagedType
             Get
-                ' VB has no concept of unmanaged types
-                Return False
+                Return GetManagedKind(CompoundUseSiteInfo(Of AssemblySymbol).Discarded) <> ManagedKind.Managed
             End Get
         End Property
 

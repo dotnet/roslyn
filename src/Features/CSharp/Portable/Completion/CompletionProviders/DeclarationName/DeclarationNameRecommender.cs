@@ -318,8 +318,8 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         {
             return baseMethod switch
             {
-                MethodDeclarationSyntax method => namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>().ToImmutableArray(),
-                ConstructorDeclarationSyntax constructor => namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>().ToImmutableArray(),
+                MethodDeclarationSyntax method => [.. namedType.GetMembers(method.Identifier.ValueText).OfType<IMethodSymbol>()],
+                ConstructorDeclarationSyntax constructor => [.. namedType.GetMembers(WellKnownMemberNames.InstanceConstructorName).OfType<IMethodSymbol>()],
                 _ => []
             };
         }

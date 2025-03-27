@@ -11,9 +11,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers;
 
-internal partial class ModifiersOrganizer
+internal static partial class ModifiersOrganizer
 {
-    private class Comparer : IComparer<SyntaxToken>
+    private sealed class Comparer : IComparer<SyntaxToken>
     {
         // TODO(cyrusn): Allow users to specify the ordering they want
         private enum Ordering

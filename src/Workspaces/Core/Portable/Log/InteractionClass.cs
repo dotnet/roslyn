@@ -29,7 +29,7 @@ internal enum InteractionClass
 }
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = false)]
-internal class PerfGoalAttribute(InteractionClass interactionClass) : Attribute
+internal sealed class PerfGoalAttribute(InteractionClass interactionClass) : Attribute
 {
     public InteractionClass InteractionClass => interactionClass;
 }

@@ -105,7 +105,7 @@ class A
         }
 
         [Theory, CombinatorialData]
-        public async Task TestDoesNotShutdownServerIfCacheEntryMissing(bool mutatingLspWorkspace)
+        public async Task TestReturnsInlayHintsEvenIfCacheMisses(bool mutatingLspWorkspace)
         {
             var markup =
 @"class A
@@ -148,12 +148,9 @@ class A
             // Assert that the first result id is no longer in the cache.
             Assert.Null(cache.GetCachedEntry(firstResultId));
 
-            // Assert that the request throws because the item no longer exists in the cache.
-            await Assert.ThrowsAsync<RemoteInvocationException>(async () => await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, firstInlayHint, CancellationToken.None));
-
-            // Assert that the server did not shutdown and that we can resolve the latest inlay hint request we made.
-            var lastInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, lastInlayHints.First(), CancellationToken.None);
-            Assert.NotNull(lastInlayHint?.ToolTip);
+            // Assert that the resolve request returns the inlay hint even if not in the cache.
+            var firstResolvedHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, firstInlayHint, CancellationToken.None);
+            Assert.NotNull(firstResolvedHint?.ToolTip);
         }
 
         private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace, bool hasTextEdits = true)

@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal class DiagnosticProviderMetadata(IDictionary<string, object> data) : ILanguageMetadata
+internal sealed class DiagnosticProviderMetadata(IDictionary<string, object> data) : ILanguageMetadata
 {
     public string Name { get; } = (string)data.GetValueOrDefault("Name");
     public string Language { get; } = (string)data.GetValueOrDefault("Language");

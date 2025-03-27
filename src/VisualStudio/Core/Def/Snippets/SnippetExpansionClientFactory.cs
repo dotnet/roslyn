@@ -39,7 +39,7 @@ internal class SnippetExpansionClientFactory(
     private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider = signatureHelpControllerProvider;
     private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
-    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = argumentProviders.ToImmutableArray();
+    private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders = [.. argumentProviders];
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
     public SnippetExpansionClient? TryGetSnippetExpansionClient(ITextView textView)

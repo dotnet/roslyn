@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using var workspace = CreateWorkspaceFromFile(code, options);
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
 
-            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            var analyzerReference = new AnalyzerImageReference([analyzer]);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 get
                 {
-                    return ImmutableArray.Create(_descriptor);
+                    return [_descriptor];
                 }
             }
 

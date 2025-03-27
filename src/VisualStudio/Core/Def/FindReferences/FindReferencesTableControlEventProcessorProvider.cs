@@ -77,7 +77,7 @@ internal class FindUsagesTableControlEventProcessorProvider : ITableControlEvent
             {
                 using var token = listener.BeginAsyncOperation(nameof(ProcessNavigateAsync));
                 using var context = operationExecutor.BeginExecute(
-                    ServicesVSResources.IntelliSense,
+                    EditorFeaturesResources.IntelliSense,
                     EditorFeaturesResources.Navigating,
                     allowCancellation: true,
                     showProgress: false);

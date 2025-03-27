@@ -97,6 +97,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedLocalFunction\RemoveUnusedLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReplaceDefaultLiteral\ReplaceDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqTypeCheckAndCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\TransposeRecordKeywordTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForFluentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForCreateTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForNewTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForStackAllocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForArrayTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
@@ -126,6 +128,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\UseDeconstructionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\UseDefaultLiteralTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitArrayInExpressionTree\UseExplicitArrayInExpressionTreeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdasAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
@@ -184,6 +187,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUnboundGenericTypeInNameOf\UseUnboundGenericTypeInNameOfTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />

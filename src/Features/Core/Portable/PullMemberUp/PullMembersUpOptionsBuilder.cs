@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 
-internal class PullMembersUpOptionsBuilder
+internal sealed class PullMembersUpOptionsBuilder
 {
     public static PullMembersUpOptions BuildPullMembersUpOptions(
         INamedTypeSymbol destination,

@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {
     private readonly struct ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
     {

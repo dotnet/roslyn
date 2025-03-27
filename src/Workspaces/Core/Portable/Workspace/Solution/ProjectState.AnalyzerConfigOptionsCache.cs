@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class ProjectState
+internal sealed partial class ProjectState
 {
     /// <summary>
     /// Holds on a map from source path to <see cref="AnalyzerConfigData"/> calculated by the compiler and chained to <paramref name="fallbackOptions"/>.

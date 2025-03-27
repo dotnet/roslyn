@@ -190,7 +190,7 @@ internal sealed class RenameTrackingTestState : IDisposable
         // There should only be one code action for the tag
         var codeAction = await TryGetCodeActionAsync(tag.Span.Span.ToTextSpan());
         Assert.NotNull(codeAction);
-        Assert.Equal(string.Format(EditorFeaturesResources.Rename_0_to_1, expectedFromName, expectedToName), codeAction.Title);
+        Assert.Equal(string.Format(WorkspacesResources.Rename_0_to_1, expectedFromName, expectedToName), codeAction.Title);
 
         if (invokeAction)
         {

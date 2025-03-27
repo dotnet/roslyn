@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -36,16 +37,15 @@ internal readonly record struct ExtractMethodGenerationOptions
 
     public AddImportPlacementOptions AddImportOptions => CodeCleanupOptions.AddImportOptions;
     public LineFormattingOptions LineFormattingOptions => CodeCleanupOptions.FormattingOptions.LineFormatting;
+    public SimplifierOptions SimplifierOptions => CodeCleanupOptions.SimplifierOptions;
 }
 
 internal static class ExtractMethodGenerationOptionsProviders
 {
     public static async ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        return new ExtractMethodGenerationOptions()
+        => new()
         {
             CodeGenerationOptions = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false),
             CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false),
         };
-    }
 }

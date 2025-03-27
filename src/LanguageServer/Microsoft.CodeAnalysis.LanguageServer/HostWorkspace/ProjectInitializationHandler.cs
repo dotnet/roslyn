@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -111,6 +112,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         public void OnNext(ProjectInitializationCompletionState value)
         {
             _logger.LogDebug("Devkit project initialization completed");
+            VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
             _ = SendProjectInitializationCompleteNotificationAsync().ReportNonFatalErrorAsync();
         }
     }

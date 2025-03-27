@@ -17,8 +17,11 @@ internal static partial class EditorConfigNamingStyleParser
         SymbolSpecification symbolSpec,
         NamingStyle namingStyle,
         IReadOnlyDictionary<string, string> conventionsDictionary,
-        [NotNullWhen(true)] out SerializableNamingRule? serializableNamingRule)
+        [NotNullWhen(true)] out SerializableNamingRule? serializableNamingRule,
+        out int priority)
     {
+        priority = GetRulePriority(namingRuleTitle, conventionsDictionary);
+
         if (!TryGetRuleSeverity(namingRuleTitle, conventionsDictionary, out var severity))
         {
             serializableNamingRule = null;
@@ -34,6 +37,12 @@ internal static partial class EditorConfigNamingStyleParser
 
         return true;
     }
+
+    private static int GetRulePriority(string namingRuleName, IReadOnlyDictionary<string, string> conventionsDictionary)
+        => conventionsDictionary.TryGetValue($"dotnet_naming_rule.{namingRuleName}.priority", out var value) &&
+           int.TryParse(value, out var result)
+            ? result
+            : 0;
 
     internal static bool TryGetRuleSeverity(
         string namingRuleName,

@@ -103,6 +103,6 @@ internal class StaticMemberSelectionViewModel : AbstractNotifyPropertyChanged
             }
         }
 
-        return result.ToImmutableHashSet();
+        return [.. result];
     }
 }

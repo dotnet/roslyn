@@ -11,6 +11,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -127,14 +128,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => VerifySynthesizedMembers(displayTypeKind: false, expected);
 
             public void VerifySynthesizedMembers(bool displayTypeKind, params string[] expected)
-                => Verify(() =>
-                {
-                    var actual = GetSynthesizedMembers().Select(e =>
-                        $"{(displayTypeKind && e.Key is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{e.Key}: " +
-                        $"{{{string.Join(", ", e.Value.Select(v => v.Name))}}}");
-
-                    AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-                });
+                => Verify(() => CompilationDifference.VerifySynthesizedMembers(GetSynthesizedMembers(), displayTypeKind, expected));
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
                 => Verify(() =>
@@ -207,6 +201,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         Debug.Assert(generationInfo.CompilationDifference != null);
                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedIL);
                     }
+                });
+
+            public void VerifyLocalSignature(string qualifiedMethodName, string expectedSignature)
+                => Verify(() =>
+                {
+                    var testData = generationInfo.CompilationVerifier?.TestData ?? generationInfo.CompilationDifference!.TestData;
+                    var ilBuilder = testData.GetMethodData(qualifiedMethodName).ILBuilder;
+                    var actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true);
                 });
         }
     }

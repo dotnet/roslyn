@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
         public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
         {
             if (_impl == null)
-                return ImmutableArray<TaskListItem>.Empty;
+                return [];
 
             var result = await _impl.GetTaskListItemsAsync(
                 document,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
                 cancellationToken).ConfigureAwait(false);
 
             if (result.Length == 0)
-                return ImmutableArray<TaskListItem>.Empty;
+                return [];
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 

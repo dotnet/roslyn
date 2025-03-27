@@ -11,6 +11,7 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
+Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -45,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyObsoleteAttributeData As ObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
 
         Private _lazyIsRequired As ThreeState = ThreeState.Unknown
+        Private _lazyOverloadResolutionPriority As StrongBox(Of Integer)
 
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
@@ -219,6 +221,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                        (Me._setMethod IsNot Nothing AndAlso Me._setMethod.IsOverloads)
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            If _lazyOverloadResolutionPriority Is Nothing Then
+
+                Dim priority As Integer
+                If Not _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) Then
+                    priority = 0
+                End If
+
+                Interlocked.CompareExchange(_lazyOverloadResolutionPriority, New StrongBox(Of Integer)(priority), Nothing)
+            End If
+
+            Return _lazyOverloadResolutionPriority.Value
+        End Function
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get

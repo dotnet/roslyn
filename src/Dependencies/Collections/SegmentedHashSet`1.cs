@@ -899,10 +899,10 @@ namespace Microsoft.CodeAnalysis.Collections
             Debug.Assert(_entries.Length > 0, "_entries should be non-empty");
             Debug.Assert(newSize >= _entries.Length);
 
-            var entries = new SegmentedArray<Entry>(newSize);
-
             var count = _count;
-            SegmentedArray.Copy(_entries, entries, count);
+
+            // Rather than creating a copy of _entries, instead reuse as much of it's data as possible.
+            var entries = CreateNewSegmentedArrayReusingOldSegments(_entries, newSize);
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _buckets = new SegmentedArray<int>(newSize);
@@ -919,6 +919,28 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             _entries = entries;
+        }
+
+        private static SegmentedArray<Entry> CreateNewSegmentedArrayReusingOldSegments(SegmentedArray<Entry> oldArray, int newSize)
+        {
+            var segments = SegmentedCollectionsMarshal.AsSegments(oldArray);
+
+            var oldSegmentCount = segments.Length;
+            var newSegmentCount = (newSize + SegmentedArrayHelper.GetSegmentSize<Entry>() - 1) >> SegmentedArrayHelper.GetSegmentShift<Entry>();
+
+            // Grow the array of segments, if necessary
+            Array.Resize(ref segments, newSegmentCount);
+
+            // Resize all segments to full segment size from the last old segment to the next to last
+            // new segment.
+            for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
+                Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<Entry>());
+
+            // Resize the last segment
+            var lastSegmentSize = newSize - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<Entry>());
+            Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
+
+            return SegmentedCollectionsMarshal.AsSegmentedArray(newSize, segments);
         }
 
         /// <summary>

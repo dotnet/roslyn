@@ -59,39 +59,35 @@ internal static class ClassificationHelpers
     }
 
     private static bool IsControlKeyword(SyntaxToken token)
-    {
-        if (token.Parent is null || !IsControlKeywordKind(token.Kind()))
-        {
-            return false;
-        }
-
-        return IsControlStatementKind(token.Parent.Kind());
-    }
+        => token.Parent is not null &&
+            IsControlKeywordKind(token.Kind()) &&
+            IsControlStatementKind(token.Parent.Kind());
 
     private static bool IsControlKeywordKind(SyntaxKind kind)
     {
         switch (kind)
         {
-            case SyntaxKind.IfKeyword:
-            case SyntaxKind.ElseKeyword:
-            case SyntaxKind.WhileKeyword:
-            case SyntaxKind.ForKeyword:
-            case SyntaxKind.ForEachKeyword:
-            case SyntaxKind.DoKeyword:
-            case SyntaxKind.SwitchKeyword:
-            case SyntaxKind.CaseKeyword:
-            case SyntaxKind.TryKeyword:
-            case SyntaxKind.CatchKeyword:
-            case SyntaxKind.FinallyKeyword:
-            case SyntaxKind.GotoKeyword:
+            case SyntaxKind.AwaitKeyword:
             case SyntaxKind.BreakKeyword:
+            case SyntaxKind.CaseKeyword:
+            case SyntaxKind.CatchKeyword:
             case SyntaxKind.ContinueKeyword:
-            case SyntaxKind.ReturnKeyword:
-            case SyntaxKind.ThrowKeyword:
-            case SyntaxKind.YieldKeyword:
             case SyntaxKind.DefaultKeyword: // Include DefaultKeyword as it can be part of a DefaultSwitchLabel
+            case SyntaxKind.DoKeyword:
+            case SyntaxKind.ElseKeyword:
+            case SyntaxKind.FinallyKeyword:
+            case SyntaxKind.ForEachKeyword:
+            case SyntaxKind.ForKeyword:
+            case SyntaxKind.GotoKeyword:
+            case SyntaxKind.IfKeyword:
             case SyntaxKind.InKeyword: // Include InKeyword as it can be part of an ForEachStatement
+            case SyntaxKind.ReturnKeyword:
+            case SyntaxKind.SwitchKeyword:
+            case SyntaxKind.ThrowKeyword:
+            case SyntaxKind.TryKeyword:
             case SyntaxKind.WhenKeyword: // Include WhenKeyword as it can be part of a CatchFilterClause or a pattern WhenClause
+            case SyntaxKind.WhileKeyword:
+            case SyntaxKind.YieldKeyword:
                 return true;
             default:
                 return false;
@@ -103,34 +99,35 @@ internal static class ClassificationHelpers
         switch (kind)
         {
             // Jump Statements
-            case SyntaxKind.GotoStatement:
-            case SyntaxKind.GotoCaseStatement:
-            case SyntaxKind.GotoDefaultStatement:
             case SyntaxKind.BreakStatement:
             case SyntaxKind.ContinueStatement:
-            case SyntaxKind.ReturnStatement:
-            case SyntaxKind.YieldReturnStatement:
-            case SyntaxKind.YieldBreakStatement:
-            case SyntaxKind.ThrowStatement:
-            case SyntaxKind.WhileStatement:
             case SyntaxKind.DoStatement:
-            case SyntaxKind.ForStatement:
             case SyntaxKind.ForEachStatement:
             case SyntaxKind.ForEachVariableStatement:
+            case SyntaxKind.ForStatement:
+            case SyntaxKind.GotoCaseStatement:
+            case SyntaxKind.GotoDefaultStatement:
+            case SyntaxKind.GotoStatement:
+            case SyntaxKind.ReturnStatement:
+            case SyntaxKind.ThrowStatement:
+            case SyntaxKind.WhileStatement:
+            case SyntaxKind.YieldBreakStatement:
+            case SyntaxKind.YieldReturnStatement:
             // Checked Statements
-            case SyntaxKind.IfStatement:
-            case SyntaxKind.ElseClause:
-            case SyntaxKind.SwitchStatement:
-            case SyntaxKind.SwitchSection:
-            case SyntaxKind.CaseSwitchLabel:
+            case SyntaxKind.AwaitExpression:
             case SyntaxKind.CasePatternSwitchLabel:
-            case SyntaxKind.DefaultSwitchLabel:
-            case SyntaxKind.TryStatement:
+            case SyntaxKind.CaseSwitchLabel:
             case SyntaxKind.CatchClause:
             case SyntaxKind.CatchFilterClause:
+            case SyntaxKind.DefaultSwitchLabel:
+            case SyntaxKind.ElseClause:
             case SyntaxKind.FinallyClause:
+            case SyntaxKind.IfStatement:
             case SyntaxKind.SwitchExpression:
+            case SyntaxKind.SwitchSection:
+            case SyntaxKind.SwitchStatement:
             case SyntaxKind.ThrowExpression:
+            case SyntaxKind.TryStatement:
             case SyntaxKind.WhenClause:
                 return true;
             default:

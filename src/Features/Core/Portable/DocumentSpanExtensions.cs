@@ -22,7 +22,8 @@ internal static class DocumentSpanExtensions
     public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
     {
         var (workspace, service) = GetNavigationParts(documentSpan);
-        return service.GetLocationForSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, allowInvalidSpan: false, cancellationToken);
+        return service.GetLocationForPositionAsync(
+            workspace, documentSpan.Document.Id, documentSpan.SourceSpan.Start, cancellationToken);
     }
 
     public static async Task<bool> IsHiddenAsync(

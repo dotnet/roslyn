@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
             => new(characters, nonInsertCharacters);
 
         public static XamlCommitCharacters Create(ImmutableArray<char> characters, params char[] nonInsertCharacters)
-            => new(characters, nonInsertCharacters?.ToImmutableArray() ?? ImmutableArray<char>.Empty);
+            => new(characters, nonInsertCharacters?.ToImmutableArray() ?? []);
 
         public static XamlCommitCharacters Create(char[] characters, params char[] nonInsertCharacters)
             => Create(characters.ToImmutableArray(), nonInsertCharacters);

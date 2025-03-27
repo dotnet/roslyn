@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -135,7 +136,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         return typeInfo.Nullability.FlowState;
     }
 
-    protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         var position = context.Position;
@@ -151,12 +152,18 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         {
             return null;
         }
+        if (document.IsRazorDocument())
+        {
+            return null;
+        }
 
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
-            document, position, cancellationToken).ConfigureAwait(false);
+            document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
-        if (symbol is null)
+        // Don't show on-the-fly-docs for namespace symbols.
+        if (symbol is null || symbol.IsNamespace())
         {
             return null;
         }
@@ -196,6 +203,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
     }
 }

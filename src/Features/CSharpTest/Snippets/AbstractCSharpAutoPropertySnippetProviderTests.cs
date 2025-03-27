@@ -56,11 +56,14 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
-    [Fact]
-    public async Task InsertSnippetInRecordTest()
+    [Theory]
+    [InlineData("record")]
+    [InlineData("record struct")]
+    [InlineData("record class")]
+    public async Task InsertSnippetInRecordTest(string recordType)
     {
-        await VerifyDefaultPropertyAsync("""
-            record MyRecord
+        await VerifyDefaultPropertyAsync($$"""
+            {{recordType}} MyRecord
             {
                 $$
             }
@@ -90,7 +93,7 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
     // so it is tested separately for all of them
     [Fact]
-    public abstract Task InsertSnippetInInterfaceTest();
+    public abstract Task VerifySnippetInInterfaceTest();
 
     [Fact]
     public async Task InsertSnippetNamingTest()
@@ -143,9 +146,7 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
-    [Theory]
-    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
+    public virtual async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
     {
         await VerifyPropertyAsync($$"""
             class Program
@@ -162,6 +163,6 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
         await VerifySnippetAsync(markup, expectedCode);
     }
 
-    protected Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
+    protected virtual Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
         => VerifyPropertyAsync(markup, $$"""public {|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
 }

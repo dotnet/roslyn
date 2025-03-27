@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
     /// <summary>
     /// data that will be used in an interval tree related to indentation.

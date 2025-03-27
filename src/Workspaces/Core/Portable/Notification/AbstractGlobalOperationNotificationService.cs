@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -18,15 +19,20 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
     private readonly HashSet<IDisposable> _registrations = [];
     private readonly HashSet<string> _operations = [];
 
-    private readonly TaskQueue _eventQueue;
+    private readonly AsyncBatchingWorkQueue<bool> _eventQueue;
 
     public event EventHandler? Started;
     public event EventHandler? Stopped;
 
     protected AbstractGlobalOperationNotificationService(
-        IAsynchronousOperationListenerProvider listenerProvider)
+        IAsynchronousOperationListenerProvider listenerProvider,
+        CancellationToken disposalToken)
     {
-        _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
+        _eventQueue = new AsyncBatchingWorkQueue<bool>(
+            TimeSpan.Zero,
+            ProcessEventsAsync,
+            listenerProvider.GetListener(FeatureAttribute.GlobalOperation),
+            disposalToken);
     }
 
     ~AbstractGlobalOperationNotificationService()
@@ -38,18 +44,15 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
         }
     }
 
-    private void RaiseGlobalOperationStarted()
+    private ValueTask ProcessEventsAsync(ImmutableSegmentedList<bool> list, CancellationToken cancellationToken)
     {
-        var started = this.Started;
-        if (started != null)
-            _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStarted), () => this.Started?.Invoke(this, EventArgs.Empty), CancellationToken.None);
-    }
+        foreach (var value in list)
+        {
+            var eventHandler = value ? Started : Stopped;
+            eventHandler?.Invoke(this, EventArgs.Empty);
+        }
 
-    private void RaiseGlobalOperationStopped()
-    {
-        var stopped = this.Stopped;
-        if (stopped != null)
-            _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+        return ValueTaskFactory.CompletedTask;
     }
 
     public IDisposable Start(string operation)
@@ -67,7 +70,7 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
             if (_registrations.Count == 1)
             {
                 Contract.ThrowIfFalse(_operations.Count == 1);
-                RaiseGlobalOperationStarted();
+                _eventQueue.AddWork(true);
             }
 
             return registration;
@@ -84,7 +87,7 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
             if (_registrations.Count == 0)
             {
                 _operations.Clear();
-                RaiseGlobalOperationStopped();
+                _eventQueue.AddWork(false);
             }
         }
     }

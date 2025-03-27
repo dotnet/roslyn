@@ -561,6 +561,8 @@ class D : B
                 Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
                 configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
 
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -585,8 +587,11 @@ class D : B
                     edit.Apply()
                 End Using
 
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
+                Dim textView = cursorDocument.GetTextView()
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext, textView),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
@@ -622,9 +627,7 @@ class D : B
                 End Using
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
-                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
                 Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
-                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host

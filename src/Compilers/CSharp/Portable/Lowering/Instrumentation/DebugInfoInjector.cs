@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentForStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
 
-        public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
             var syntax = (IfStatementSyntax)original.Syntax;
             // <Metalama> changed from constructor call to call to Create method
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TextSpan.FromBounds(
                     syntax.IfKeyword.SpanStart,
                     syntax.CloseParenToken.Span.End),
-                base.InstrumentIfStatement(original, rewritten),
+                base.InstrumentIfStatementConditionalGoto(original, rewritten),
                 original.HasErrors);
             // </Metalama>
         }

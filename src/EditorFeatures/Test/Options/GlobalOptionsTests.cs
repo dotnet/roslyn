@@ -12,13 +12,11 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -27,7 +25,6 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -36,10 +33,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public class GlobalOptionsTests
+public sealed class GlobalOptionsTests
 {
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
-    internal class TestGlobalOptions : IGlobalOptionService
+    internal sealed class TestGlobalOptions : IGlobalOptionService
     {
         public readonly List<OptionKey2> AccessedOptionKeys = [];
 
@@ -123,7 +120,11 @@ public class GlobalOptionsTests
 
                     if (OptionDefinition.IsSupportedOptionType(property.PropertyType))
                     {
-                        if (IsStoredInGlobalOptions(property, language))
+                        // Skip validation of ReloadChangedAnalyzerReferences.  The test options store returns 'true'
+                        // for 'null' (which the option uses to mean 'try the feature flag').  Which is also equivalent
+                        // to the default for this option.
+                        if (IsStoredInGlobalOptions(property, language) &&
+                            property.Name != nameof(WorkspaceConfigurationOptions.ReloadChangedAnalyzerReferences))
                         {
                             Assert.False(Equals(value, defaultValue), $"{type.FullName}.{property.Name} not initialized from global options");
                         }

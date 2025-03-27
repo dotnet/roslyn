@@ -16,38 +16,41 @@ namespace Microsoft.CodeAnalysis.MSBuild
     [DataContract]
     internal sealed class ProjectFileInfo
     {
-        [DataMember(Order = 0)]
-        public bool IsEmpty { get; }
+        [DataMember]
+        public bool IsEmpty { get; init; }
 
         /// <summary>
         /// The language of this project.
         /// </summary>
-        [DataMember(Order = 1)]
-        public string Language { get; }
+        [DataMember]
+        public required string Language { get; init; }
 
         /// <summary>
         /// The path to the project file for this project.
         /// </summary>
-        [DataMember(Order = 2)]
-        public string? FilePath { get; }
+        [DataMember]
+        public string? FilePath { get; init; }
 
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
-        [DataMember(Order = 3)]
-        public string? OutputFilePath { get; }
+        [DataMember]
+        public string? OutputFilePath { get; init; }
 
         /// <summary>
         /// The path to the reference assembly output file this project generates.
         /// </summary>
-        [DataMember(Order = 4)]
-        public string? OutputRefFilePath { get; }
+        [DataMember]
+        public string? OutputRefFilePath { get; init; }
 
         /// <summary>
         /// The path to the intermediate output file this project generates.
         /// </summary>
-        [DataMember(Order = 5)]
-        public string? IntermediateOutputFilePath { get; }
+        [DataMember]
+        public string? IntermediateOutputFilePath { get; init; }
+
+        [DataMember]
+        public string? GeneratedFilesOutputDirectory { get; init; }
 
         /// <summary>
         /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -60,200 +63,106 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// In the future, we might consider officially exposing "default namespace" for VB project 
         /// (e.g. through a "defaultnamespace" msbuild property)
         /// </remarks>
-        [DataMember(Order = 6)]
-        public string? DefaultNamespace { get; }
+        [DataMember]
+        public string? DefaultNamespace { get; init; }
 
         /// <summary>
         /// The target framework of this project.
         /// This takes the form of the 'short name' form used by NuGet (e.g. net46, netcoreapp2.0, etc.)
         /// </summary>
-        [DataMember(Order = 7)]
-        public string? TargetFramework { get; }
+        [DataMember]
+        public string? TargetFramework { get; init; }
 
         /// <summary>
         /// The target framework identifier of this project.
         /// Used to determine if a project is targeting .net core.
         /// </summary>
-        [DataMember(Order = 8)]
-        public string? TargetFrameworkIdentifier { get; }
+        [DataMember]
+        public string? TargetFrameworkIdentifier { get; init; }
 
         /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
-        [DataMember(Order = 9)]
-        public ImmutableArray<string> CommandLineArgs { get; }
+        [DataMember]
+        public ImmutableArray<string> CommandLineArgs { get; init; }
 
         /// <summary>
         /// The source documents.
         /// </summary>
-        [DataMember(Order = 10)]
-        public ImmutableArray<DocumentFileInfo> Documents { get; }
+        [DataMember]
+        public ImmutableArray<DocumentFileInfo> Documents { get; init; }
 
         /// <summary>
         /// The additional documents.
         /// </summary>
-        [DataMember(Order = 11)]
-        public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; }
+        [DataMember]
+        public ImmutableArray<DocumentFileInfo> AdditionalDocuments { get; init; }
 
         /// <summary>
         /// The analyzer config documents.
         /// </summary>
-        [DataMember(Order = 12)]
-        public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; }
+        [DataMember]
+        public ImmutableArray<DocumentFileInfo> AnalyzerConfigDocuments { get; init; }
 
         /// <summary>
         /// References to other projects.
         /// </summary>
-        [DataMember(Order = 13)]
-        public ImmutableArray<ProjectFileReference> ProjectReferences { get; }
+        [DataMember]
+        public ImmutableArray<ProjectFileReference> ProjectReferences { get; init; }
 
         /// <summary>
         /// The msbuild project capabilities.
         /// </summary>
-        [DataMember(Order = 14)]
-        public ImmutableArray<string> ProjectCapabilities { get; }
+        [DataMember]
+        public ImmutableArray<string> ProjectCapabilities { get; init; }
 
         /// <summary>
         /// The paths to content files included in the project.
         /// </summary>
-        [DataMember(Order = 15)]
-        public ImmutableArray<string> ContentFilePaths { get; }
+        [DataMember]
+        public ImmutableArray<string> ContentFilePaths { get; init; }
 
         /// <summary>
         /// The path to the project.assets.json path in obj/.
         /// </summary>
-        [DataMember(Order = 16)]
-        public string? ProjectAssetsFilePath { get; }
+        [DataMember]
+        public string? ProjectAssetsFilePath { get; init; }
 
         /// <summary>
         /// Any package references defined on the project.
         /// </summary>
-        [DataMember(Order = 17)]
-        public ImmutableArray<PackageReference> PackageReferences { get; }
+        [DataMember]
+        public ImmutableArray<PackageReference> PackageReferences { get; init; }
 
         /// <summary>
         /// Target framework version (for .net framework projects)
         /// </summary>
-        [DataMember(Order = 18)]
-        public string? TargetFrameworkVersion { get; }
+        [DataMember]
+        public string? TargetFrameworkVersion { get; init; }
 
-        [DataMember(Order = 19)]
-        public ImmutableArray<FileGlobs> FileGlobs { get; }
+        [DataMember]
+        public ImmutableArray<FileGlobs> FileGlobs { get; init; }
 
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
                 : $"{FilePath} ({TargetFramework})";
 
-        public ProjectFileInfo(
-            bool isEmpty,
-            string language,
-            string? filePath,
-            string? outputFilePath,
-            string? outputRefFilePath,
-            string? intermediateOutputFilePath,
-            string? defaultNamespace,
-            string? targetFramework,
-            string? targetFrameworkIdentifier,
-            string? targetFrameworkVersion,
-            string? projectAssetsFilePath,
-            ImmutableArray<string> commandLineArgs,
-            ImmutableArray<DocumentFileInfo> documents,
-            ImmutableArray<DocumentFileInfo> additionalDocuments,
-            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
-            ImmutableArray<ProjectFileReference> projectReferences,
-            ImmutableArray<PackageReference> packageReferences,
-            ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            ImmutableArray<FileGlobs> fileGlobs)
-        {
-            RoslynDebug.Assert(filePath != null);
-
-            this.IsEmpty = isEmpty;
-            this.Language = language;
-            this.FilePath = filePath;
-            this.OutputFilePath = outputFilePath;
-            this.OutputRefFilePath = outputRefFilePath;
-            this.IntermediateOutputFilePath = intermediateOutputFilePath;
-            this.DefaultNamespace = defaultNamespace;
-            this.TargetFramework = targetFramework;
-            this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
-            this.TargetFrameworkVersion = targetFrameworkVersion;
-            this.ProjectAssetsFilePath = projectAssetsFilePath;
-            this.CommandLineArgs = commandLineArgs;
-            this.Documents = documents;
-            this.AdditionalDocuments = additionalDocuments;
-            this.AnalyzerConfigDocuments = analyzerConfigDocuments;
-            this.ProjectReferences = projectReferences;
-            this.PackageReferences = packageReferences;
-            this.ProjectCapabilities = projectCapabilities;
-            this.ContentFilePaths = contentFilePaths;
-            this.FileGlobs = fileGlobs;
-        }
-
-        public static ProjectFileInfo Create(
-            string language,
-            string? filePath,
-            string? outputFilePath,
-            string? outputRefFilePath,
-            string? intermediateOutputFilePath,
-            string? defaultNamespace,
-            string? targetFramework,
-            string? targetFrameworkIdentifier,
-            string? targetFrameworkVersion,
-            string? projectAssetsFilePath,
-            ImmutableArray<string> commandLineArgs,
-            ImmutableArray<DocumentFileInfo> documents,
-            ImmutableArray<DocumentFileInfo> additionalDocuments,
-            ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
-            ImmutableArray<ProjectFileReference> projectReferences,
-            ImmutableArray<PackageReference> packageReferences,
-            ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths,
-            ImmutableArray<FileGlobs> fileGlobs)
-            => new(
-                isEmpty: false,
-                language,
-                filePath,
-                outputFilePath,
-                outputRefFilePath,
-                intermediateOutputFilePath,
-                defaultNamespace,
-                targetFramework,
-                targetFrameworkIdentifier,
-                targetFrameworkVersion,
-                projectAssetsFilePath,
-                commandLineArgs,
-                documents,
-                additionalDocuments,
-                analyzerConfigDocuments,
-                projectReferences,
-                packageReferences,
-                projectCapabilities,
-                contentFilePaths,
-                fileGlobs);
-
         public static ProjectFileInfo CreateEmpty(string language, string? filePath)
-            => new(
-                isEmpty: true,
-                language,
-                filePath,
-                outputFilePath: null,
-                outputRefFilePath: null,
-                intermediateOutputFilePath: null,
-                defaultNamespace: null,
-                targetFramework: null,
-                targetFrameworkIdentifier: null,
-                targetFrameworkVersion: null,
-                projectAssetsFilePath: null,
-                commandLineArgs: [],
-                documents: [],
-                additionalDocuments: [],
-                analyzerConfigDocuments: [],
-                projectReferences: [],
-                packageReferences: [],
-                projectCapabilities: [],
-                contentFilePaths: [],
-                fileGlobs: []);
+            => new()
+            {
+                IsEmpty = true,
+                Language = language,
+                FilePath = filePath,
+                CommandLineArgs = [],
+                Documents = [],
+                AdditionalDocuments = [],
+                AnalyzerConfigDocuments = [],
+                ProjectReferences = [],
+                PackageReferences = [],
+                ProjectCapabilities = [],
+                ContentFilePaths = [],
+                FileGlobs = []
+            };
     }
 }

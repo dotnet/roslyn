@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateOverrides;
 
-internal partial class GenerateOverridesCodeRefactoringProvider
+internal sealed partial class GenerateOverridesCodeRefactoringProvider
 {
     private sealed class GenerateOverridesWithDialogCodeAction(
         GenerateOverridesCodeRefactoringProvider service,

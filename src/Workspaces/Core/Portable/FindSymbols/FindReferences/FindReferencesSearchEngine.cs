@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 // <Metalama> Changed from C# 12 using for a tuple to direct usages of the tuple type in this file, so avoid breaking .Net 6 JSON source generator
 // using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location);
 
-internal partial class FindReferencesSearchEngine(
+internal sealed partial class FindReferencesSearchEngine(
     Solution solution,
     IImmutableSet<Document>? documents,
     ImmutableArray<IReferenceFinder> finders,
@@ -209,7 +209,7 @@ internal partial class FindReferencesSearchEngine(
     {
         var projects = _documents != null
             ? _documents.Select(d => d.Project).ToImmutableHashSet()
-            : _solution.Projects.ToImmutableHashSet();
+            : [.. _solution.Projects];
 
         return DependentProjectsFinder.GetDependentProjectsAsync(_solution, symbols, projects, cancellationToken);
     }

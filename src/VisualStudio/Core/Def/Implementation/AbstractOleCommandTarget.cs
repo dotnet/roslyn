@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -35,6 +36,7 @@ internal abstract partial class AbstractOleCommandTarget : IOleCommandTarget
     }
 
     public IComponentModel ComponentModel { get; }
+    protected IThreadingContext ThreadingContext => ComponentModel.GetService<IThreadingContext>();
 
     public IVsEditorAdaptersFactoryService EditorAdaptersFactory
     {

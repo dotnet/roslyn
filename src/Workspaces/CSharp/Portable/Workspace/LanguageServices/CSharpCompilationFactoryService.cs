@@ -54,10 +54,8 @@ internal class CSharpCompilationFactoryService : ICompilationFactoryService
         return new CSharpCompilationOptions(outputKind: outputKind);
     }
 
-    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
-    {
-        return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);
-    }
+    GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, string? generatedFilesBaseDirectory)
+        => CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider, new GeneratorDriverOptions(baseDirectory: generatedFilesBaseDirectory));
 
     // <Metalama> This code is used by Try.Metalama.
     public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)> GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)

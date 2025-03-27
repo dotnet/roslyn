@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,7 +67,7 @@ internal sealed class CompilationWithAnalyzersPair
         }
     }
 
-    public async Task<(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)> GetAnalysisResultAsync(CancellationToken cancellationToken)
+    public async Task<AnalysisResultPair?> GetAnalysisResultAsync(CancellationToken cancellationToken)
     {
         var projectAnalysisResult = ProjectCompilationWithAnalyzers is not null
             ? await ProjectCompilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false)
@@ -75,10 +76,10 @@ internal sealed class CompilationWithAnalyzersPair
             ? await HostCompilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false)
             : null;
 
-        return (projectAnalysisResult, hostAnalysisResult);
+        return AnalysisResultPair.FromResult(projectAnalysisResult, hostAnalysisResult);
     }
 
-    public async Task<(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)> GetAnalysisResultAsync(SyntaxTree tree, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
+    public async Task<AnalysisResultPair?> GetAnalysisResultAsync(SyntaxTree tree, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
     {
         var projectAnalysisResult = projectAnalyzers.Any()
             ? await ProjectCompilationWithAnalyzers!.GetAnalysisResultAsync(tree, filterSpan, projectAnalyzers, cancellationToken).ConfigureAwait(false)
@@ -87,10 +88,10 @@ internal sealed class CompilationWithAnalyzersPair
             ? await HostCompilationWithAnalyzers!.GetAnalysisResultAsync(tree, filterSpan, hostAnalyzers, cancellationToken).ConfigureAwait(false)
             : null;
 
-        return (projectAnalysisResult, hostAnalysisResult);
+        return AnalysisResultPair.FromResult(projectAnalysisResult, hostAnalysisResult);
     }
 
-    public async Task<(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)> GetAnalysisResultAsync(AdditionalText file, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
+    public async Task<AnalysisResultPair?> GetAnalysisResultAsync(AdditionalText file, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
     {
         var projectAnalysisResult = projectAnalyzers.Any()
             ? await ProjectCompilationWithAnalyzers!.GetAnalysisResultAsync(file, filterSpan, projectAnalyzers, cancellationToken).ConfigureAwait(false)
@@ -99,10 +100,10 @@ internal sealed class CompilationWithAnalyzersPair
             ? await HostCompilationWithAnalyzers!.GetAnalysisResultAsync(file, filterSpan, hostAnalyzers, cancellationToken).ConfigureAwait(false)
             : null;
 
-        return (projectAnalysisResult, hostAnalysisResult);
+        return AnalysisResultPair.FromResult(projectAnalysisResult, hostAnalysisResult);
     }
 
-    public async Task<(AnalysisResult? projectAnalysisResult, AnalysisResult? hostAnalysisResult)> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
+    public async Task<AnalysisResultPair?> GetAnalysisResultAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
     {
         var projectAnalysisResult = projectAnalyzers.Any()
             ? await ProjectCompilationWithAnalyzers!.GetAnalysisResultAsync(model, filterSpan, projectAnalyzers, cancellationToken).ConfigureAwait(false)
@@ -111,6 +112,6 @@ internal sealed class CompilationWithAnalyzersPair
             ? await HostCompilationWithAnalyzers!.GetAnalysisResultAsync(model, filterSpan, hostAnalyzers, cancellationToken).ConfigureAwait(false)
             : null;
 
-        return (projectAnalysisResult, hostAnalysisResult);
+        return AnalysisResultPair.FromResult(projectAnalysisResult, hostAnalysisResult);
     }
 }

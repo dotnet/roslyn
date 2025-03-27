@@ -88,7 +88,7 @@ internal class BreakpointResolver(Solution solution, string text) : AbstractBrea
         if (!foundIncompleteParameterList && (lengthOfParsedText == text.Length) &&
             !parts.Any(p => p.IsKind(SyntaxKind.AliasQualifiedName)))
         {
-            nameParts = parts.Cast<SimpleNameSyntax>().Select(p => new NameAndArity(p.Identifier.ValueText, p.Arity)).ToList();
+            nameParts = [.. parts.Cast<SimpleNameSyntax>().Select(p => new NameAndArity(p.Identifier.ValueText, p.Arity))];
         }
         else
         {

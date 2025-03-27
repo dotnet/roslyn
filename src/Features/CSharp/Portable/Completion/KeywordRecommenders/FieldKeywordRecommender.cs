@@ -25,7 +25,7 @@ internal sealed class FieldKeywordRecommender()
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // `[field:` is legal in an attribute within a type.
-        if (context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken))
+        if (context.IsMemberAttributeContext(s_validTypeDeclarations, includingRecordParameters: true, cancellationToken))
             return true;
 
         // Check if we're within a property accessor where the `field` keyword is legal.  Note: we do not do a lang

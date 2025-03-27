@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
-internal partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
+internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
     private sealed class GenerateLocalCodeAction(TService service, Document document, State state) : CodeAction
     {

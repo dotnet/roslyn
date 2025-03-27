@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -13,5 +14,5 @@ internal interface ICodeActionComputer
     /// <summary>
     /// Produces the actual top-level code wrapping actions for the original node provided.
     /// </summary>
-    Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync();
+    Task<ImmutableArray<CodeAction>> GetTopLevelCodeActionsAsync(CancellationToken cancellationToken);
 }

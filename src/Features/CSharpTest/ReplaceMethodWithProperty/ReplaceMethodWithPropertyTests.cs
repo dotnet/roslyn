@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMethodWithProperty;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ReplaceMethodWithPropertyCodeRefactoringProvider();

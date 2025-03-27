@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("ConstructorInitializerSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -145,7 +145,7 @@ internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSh
             GetPreambleParts(constructor, semanticModel, position),
             GetSeparatorParts(),
             GetPostambleParts(),
-            constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList());
+            [.. constructor.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService))]);
         return item;
     }
 

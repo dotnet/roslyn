@@ -19,7 +19,7 @@ internal interface IChangeSignatureOptionsService : IWorkspaceService
     /// <param name="parameters">existing parameters of the symbol</param>
     /// <returns></returns>
     ChangeSignatureOptionsResult? GetChangeSignatureOptions(
-        Document document,
+        SemanticDocument document,
         int positionForTypeBinding,
         ISymbol symbol,
         ParameterConfiguration parameters);

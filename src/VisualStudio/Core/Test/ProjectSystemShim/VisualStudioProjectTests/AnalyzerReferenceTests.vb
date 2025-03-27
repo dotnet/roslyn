@@ -211,11 +211,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
 
+                ' Ensure HasSdkCodeStyleAnalyzers is proper.
+                Assert.False(project.HasSdkCodeStyleAnalyzers)
+
                 ' These are the in-box C# codestyle analyzers that ship with the SDK
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"))
+
+                ' Ensure HasSdkCodeStyleAnalyzers is being properly updated.
+                Assert.True(project.HasSdkCodeStyleAnalyzers)
 
                 ' Ensure they are not returned when getting AnalyzerReferences
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
@@ -228,6 +234,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 {
                     Path.Combine(TempRoot.Root, "Dir", "File.dll")
                 }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
+
+                ' Remove codestyle analyzers
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"))
+
+                ' Ensure HasSdkCodeStyleAnalyzers is being properly updated.
+                Assert.False(project.HasSdkCodeStyleAnalyzers)
             End Using
         End Function
 
@@ -237,11 +252,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.VisualBasic, CancellationToken.None)
 
+                ' Ensure HasSdkCodeStyleAnalyzers is proper.
+                Assert.False(project.HasSdkCodeStyleAnalyzers)
+
                 ' These are the in-box VB codestyle analyzers that ship with the SDK
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.CodeStyle.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"))
                 project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"))
+
+                ' Ensure HasSdkCodeStyleAnalyzers is being properly updated.
+                Assert.True(project.HasSdkCodeStyleAnalyzers)
 
                 ' Ensure they are not returned when getting AnalyzerReferences
                 Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
@@ -254,6 +275,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 {
                     Path.Combine(TempRoot.Root, "Dir", "File.dll")
                 }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
+
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.CodeStyle.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.dll"))
+                project.RemoveAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "vb", "Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.dll"))
+
+                ' Ensure HasSdkCodeStyleAnalyzers is being properly updated.
+                Assert.False(project.HasSdkCodeStyleAnalyzers)
             End Using
         End Function
     End Class

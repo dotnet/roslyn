@@ -46,9 +46,10 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
-                                         .OrderByDescending(i => i.SpanStart)
-                                         .ToImmutableArray();
+        var invocationNodes = diagnostics
+            .Select(d => GetInvocationExpression(d, cancellationToken))
+            .OrderByDescending(i => i.SpanStart)
+            .ToImmutableArray();
         var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
         await editor.ApplyExpressionLevelSemanticEditsAsync(
@@ -88,7 +89,7 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         var argument = Argument(rangeExpression).WithAdditionalAnnotations(Formatter.Annotation);
         var arguments = SingletonSeparatedList(argument);
 
-        if (result.MemberInfo.OverloadedMethodOpt == null)
+        if (result.MemberInfo.OverloadedMethod == null)
         {
             var argList = invocation.ArgumentList;
             var argumentList = BracketedArgumentList(
@@ -130,46 +131,12 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
 
     private static RangeExpressionSyntax CreateComputedRange(Result result)
     {
-        // We have enough information now to generate `start..end`.  However, this will often
-        // not be what the user wants.  For example, generating `start..expr.Length` is not as
-        // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
-        // `start..^1`.  
-
-        var startOperation = result.Op1;
-        var endOperation = result.Op2;
-
-        var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
         var instance = result.InvocationOperation.Instance;
+        var lengthLikeProperty = result.MemberInfo.LengthLikeProperty;
+
         Contract.ThrowIfNull(instance);
 
-        // If our start-op is actually equivalent to `expr.Length - val`, then just change our
-        // start-op to be `val` and record that we should emit it as `^val`.
-        var startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
-        var startExpr = (ExpressionSyntax)startOperation.Syntax;
-
-        var endFromEnd = false;
-        ExpressionSyntax? endExpr = null;
-
-        if (endOperation is not null)
-        {
-            // We need to do the same for the second argument, since it's present.
-            // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
-            // change our end-op to be `val` and record that we should emit it as `^val`.
-            endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
-
-            // Check if the range goes to 'expr.Length'; if it does, we leave off
-            // the end part of the range, i.e. `start..`.
-            if (!IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
-                endExpr = (ExpressionSyntax)endOperation.Syntax;
-        }
-
-        // If we're starting the range operation from 0, then we can just leave off the start of
-        // the range. i.e. `..end`
-        if (startOperation.ConstantValue.HasValue &&
-            startOperation.ConstantValue.Value is 0)
-        {
-            startExpr = null;
-        }
+        var (startExpr, startFromEnd, endExpr, endFromEnd) = GetComputedRangeData();
 
         // expressions that the iops point to may be skip certain expressions actually in source (like checked
         // exprs).  Walk upwards so we grab all of that when producing the final range expression.
@@ -179,6 +146,80 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
         return RangeExpression(
             startExpr != null && startFromEnd ? IndexExpression(startExpr) : startExpr?.Parenthesize(),
             endExpr != null && endFromEnd ? IndexExpression(endExpr) : endExpr?.Parenthesize());
+
+        (ExpressionSyntax? startExpr, bool startFromEnd, ExpressionSyntax? endExpr, bool endFromEnd) GetComputedRangeData()
+        {
+            if (IsStringRemoveMethod(result.InvocationOperation.TargetMethod))
+            {
+                if (result.Invocation.ArgumentList.Arguments.Count == 1)
+                {
+                    if (IsSubtraction(result.InvocationOperation.Arguments[0].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(string.Length - x)` becomes `string[..^x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)subtraction.RightOperand.Syntax, endFromEnd: true);
+                    }
+                    else
+                    {
+                        // `string.Remove(x)` becomes `string[..x]`
+                        return (startExpr: null, startFromEnd: false, (ExpressionSyntax)result.InvocationOperation.Arguments[0].Value.Syntax, endFromEnd: false);
+                    }
+                }
+                else
+                {
+                    if (IsSubtraction(result.InvocationOperation.Arguments[1].Value, out var subtraction) &&
+                        IsInstanceLengthCheck(lengthLikeProperty, instance, subtraction.LeftOperand))
+                    {
+                        // `string.Remove(0, string.Length - x)` becomes `string[^x..]`
+                        return ((ExpressionSyntax)subtraction.RightOperand.Syntax, startFromEnd: true, endExpr: null, endFromEnd: false);
+                    }
+                    else
+                    {
+                        // `string.Remove(0, x)` becomes `string[x..]`
+                        return ((ExpressionSyntax)result.InvocationOperation.Arguments[1].Value.Syntax, startFromEnd: false, endExpr: null, endFromEnd: false);
+                    }
+                }
+            }
+
+            // We have enough information now to generate `start..end`.  However, this will often
+            // not be what the user wants.  For example, generating `start..expr.Length` is not as
+            // desirable as `start..`.  Similarly, `start..(expr.Length - 1)` is not as desirable as
+            // `start..^1`.  
+
+            var startOperation = result.Op1;
+            var endOperation = result.Op2;
+
+            // If our start-op is actually equivalent to `expr.Length - val`, then just change our
+            // start-op to be `val` and record that we should emit it as `^val`.
+            var startFromEnd = IsFromEnd(lengthLikeProperty, instance, ref startOperation);
+            var startExpr = (ExpressionSyntax)startOperation.Syntax;
+
+            var endFromEnd = false;
+            ExpressionSyntax? endExpr = null;
+
+            if (endOperation is not null)
+            {
+                // We need to do the same for the second argument, since it's present.
+                // Similarly, if our end-op is actually equivalent to `expr.Length - val`, then just
+                // change our end-op to be `val` and record that we should emit it as `^val`.
+                endFromEnd = IsFromEnd(lengthLikeProperty, instance, ref endOperation);
+
+                // Check if the range goes to 'expr.Length'; if it does, we leave off
+                // the end part of the range, i.e. `start..`.
+                if (!IsInstanceLengthCheck(lengthLikeProperty, instance, endOperation))
+                    endExpr = (ExpressionSyntax)endOperation.Syntax;
+            }
+
+            // If we're starting the range operation from 0, then we can just leave off the start of
+            // the range. i.e. `..end`
+            if (startOperation.ConstantValue.HasValue &&
+                startOperation.ConstantValue.Value is 0)
+            {
+                startExpr = null;
+            }
+
+            return (startExpr, startFromEnd, endExpr, endFromEnd);
+        }
     }
 
     [return: NotNullIfNotNull(nameof(expr))]
@@ -192,6 +233,20 @@ internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBase
 
     private static RangeExpressionSyntax CreateConstantRange(Result result, SyntaxGenerator generator)
     {
+        if (IsStringRemoveMethod(result.InvocationOperation.TargetMethod))
+        {
+            if (result.Op1 == result.InvocationOperation.Arguments[0].Value)
+            {
+                // `string.Remove(x, string.Length - x)` becomes `string[..x]`
+                return RangeExpression(leftOperand: null, WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax));
+            }
+            else
+            {
+                // `string.Remove(string.Length - x, x)` becomes `string[..^x]`
+                return RangeExpression(leftOperand: null, IndexExpression(WalkUpCheckedExpressions((ExpressionSyntax)result.Op1.Syntax)));
+            }
+        }
+
         Contract.ThrowIfNull(result.Op2);
 
         // the form is s.Slice(constant1, s.Length - constant2).  Want to generate

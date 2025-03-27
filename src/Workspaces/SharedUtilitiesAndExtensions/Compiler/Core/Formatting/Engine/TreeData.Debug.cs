@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class TreeData
 {
-    private class Debug(SyntaxNode root, SourceText text) : NodeAndText(root, text)
+    private sealed class Debug(SyntaxNode root, SourceText text) : NodeAndText(root, text)
     {
         private readonly TreeData _debugNodeData = new Node(root);
 

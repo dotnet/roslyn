@@ -18,15 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
 internal static partial class CompilationUnitSyntaxExtensions
 {
-    public static bool CanAddUsingDirectives(this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
+    public static bool CanAddUsingDirectives(
+        this SyntaxNode contextNode, bool allowInHiddenRegions, CancellationToken cancellationToken)
     {
-        var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-        if (usingDirectiveAncestor?.Parent is CompilationUnitSyntax)
-        {
-            // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
-            return false;
-        }
-
         if (!allowInHiddenRegions && contextNode.SyntaxTree.HasHiddenRegions())
         {
             var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
@@ -34,14 +28,7 @@ internal static partial class CompilationUnitSyntaxExtensions
             var span = GetUsingsSpan(root, namespaceDeclaration);
 
             if (contextNode.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken))
-            {
                 return false;
-            }
-        }
-
-        if (cancellationToken.IsCancellationRequested)
-        {
-            return false;
         }
 
         return true;

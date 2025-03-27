@@ -6,9 +6,9 @@
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    private class PatchService : IPatchService
+    private sealed class PatchService : IPatchService
     {
         public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
             => NativePatching.ApplyPatch(databaseBytes, patchBytes);

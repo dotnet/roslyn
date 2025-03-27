@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                        baseToken As SyntaxToken,
                                        startToken As SyntaxToken,
                                        endToken As SyntaxToken)
-            If Not TypeOf node.Parent Is XmlNodeSyntax Then
+            If TypeOf node.Parent IsNot XmlNodeSyntax Then
                 SetAlignmentBlockOperation(operations, baseToken, startToken, endToken)
             End If
 
@@ -241,12 +241,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                       alignmentEndToken As SyntaxToken,
                                                       indentationStartToken As SyntaxToken,
                                                       indentationEndToken As SyntaxToken)
-            If Not TypeOf xmlNode.Parent Is XmlNodeSyntax Then
+            If TypeOf xmlNode.Parent IsNot XmlNodeSyntax Then
                 SetAlignmentBlockOperation(operations, baseToken, alignmentStartToken, alignmentEndToken)
             End If
 
             ' if parent is not xml node
-            If Not TypeOf xmlNode.Parent Is XmlNodeSyntax Then
+            If TypeOf xmlNode.Parent IsNot XmlNodeSyntax Then
                 AddIndentBlockOperation(operations, baseToken, indentationStartToken, indentationEndToken)
                 Return
             End If

@@ -113,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         // then pass it continuously from one priority group to the next.
                         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
-                        using var _2 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total");
+                        using var _2 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total");
 
                         // Collectors are in priority order.  So just walk them from highest to lowest.
                         foreach (var collector in collectors)
                         {
                             if (TryGetPriority(collector.Priority) is CodeActionRequestPriority priority)
                             {
-                                using var _3 = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
+                                using var _3 = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{(int)priority}");
 
                                 var allSets = GetCodeFixesAndRefactoringsAsync(
                                     state, requestedActionCategories, document,
@@ -229,13 +229,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetCodeFixesAsync)}");
 
                     if (owner._codeFixService == null ||
                         !supportsFeatureService.SupportsCodeFixes(target.SubjectBuffer) ||
                         !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                     {
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
@@ -245,26 +245,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
+                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Summary, $"Total.Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetRefactoringsAsync)}");
 
                     if (!selection.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
                         Trace.WriteLine("given range is not current");
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     if (!this.GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                         owner._codeRefactoringService == null ||
                         !supportsFeatureService.SupportsRefactorings(subjectBuffer))
                     {
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
                     }
 
                     // 'CodeActionRequestPriority.Lowest' is reserved for suppression/configuration code fixes.
                     // No code refactoring should have this request priority.
                     if (priorityProvider.Priority == CodeActionRequestPriority.Lowest)
-                        return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
+                        return [];
 
                     // If we are computing refactorings outside the 'Refactoring' context, i.e. for example, from the lightbulb under a squiggle or selection,
                     // then we want to filter out refactorings outside the selection span.

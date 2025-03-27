@@ -241,7 +241,7 @@ internal static partial class ISymbolExtensions
             try
             {
                 var element = XElement.Parse(xmlText, LoadOptions.PreserveWhitespace);
-                element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
+                element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, [.. element.Nodes()], cancellationToken));
                 xmlText = element.ToString(SaveOptions.DisableFormatting);
             }
             catch (XmlException)
@@ -324,7 +324,7 @@ internal static partial class ISymbolExtensions
 
         if (oldNodes != null)
         {
-            var rewritten = RewriteMany(symbol, visitedSymbols, compilation, oldNodes.ToArray(), cancellationToken);
+            var rewritten = RewriteMany(symbol, visitedSymbols, compilation, [.. oldNodes], cancellationToken);
             container.ReplaceNodes(rewritten);
         }
 

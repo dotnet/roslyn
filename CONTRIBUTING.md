@@ -19,9 +19,9 @@ If you can't find an existing issue, log a new issue in this GitHub repository.
 - **DO** use a descriptive title that identifies the issue to be addressed or the requested feature. For example, when describing an issue where the compiler is not behaving as expected, write your bug title in terms of what the compiler should do rather than what it is doing – “C# compiler should report CS1234 when Xyz is used in Abcd.”
 - **DO** specify a detailed description of the issue or requested feature.
 - **DO** provide the following for bug reports
-    - Describe the expected behavior and the actual behavior. If it is not self-evident such as in the case of a crash, provide an explanation for why the expected behavior is expected.
-    - Provide example code that reproduces the issue.
-    - Specify any relevant exception messages and stack traces.
+  - Describe the expected behavior and the actual behavior. If it is not self-evident such as in the case of a crash, provide an explanation for why the expected behavior is expected.
+  - Provide example code that reproduces the issue.
+  - Specify any relevant exception messages and stack traces.
 - **DO** subscribe to notifications for the created issue in case there are any follow up questions.
 
 ## Reporting security issues and bugs
@@ -40,18 +40,17 @@ Security issues and bugs should be reported privately, via email, to the Microso
 
   If you would like to make a contribution to an area not documented here, first open an issue with a description of the change you would like to make and the problem it solves so it can be discussed before a pull request is submitted.
 
-  
 ### Resources to help you get started
 
 Here are some resources to help you get started on how to contribute code or new content.
 
-* Look at the [Contributor documentation](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) to get started on building the source code on your own.
-* Finding a bug to fix in the [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
-* Finding a feature to implement in the [IDE](https://aka.ms/roslyn-ide-feature-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
+- Look at the [Contributor documentation](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) to get started on building the source code on your own.
+- Finding a bug to fix in the [IDE](https://aka.ms/roslyn-ide-bugs-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-bugs-help-wanted)
+- Finding a feature to implement in the [IDE](https://aka.ms/roslyn-ide-feature-help-wanted) or [Compiler](https://aka.ms/roslyn-compiler-feature-help-wanted)
 
 ### Identifying the scale
 
-If you would like to contribute to one of our repositories, first identify the scale of what you would like to contribute. If it is small (grammar/spelling or a bug fix) feel free to start working on a fix. 
+If you would like to contribute to one of our repositories, first identify the scale of what you would like to contribute. If it is small (grammar/spelling or a bug fix) feel free to start working on a fix.
 
 If you are submitting a feature or substantial code contribution, please discuss it with the team and ensure it follows the product roadmap.
 You might also read these two blogs posts on contributing code: [Open Source Contribution Etiquette](http://tirania.org/blog/archive/2010/Dec-31.html) by Miguel de Icaza and [Don't "Push" Your Pull Requests](https://www.igvita.com/2011/12/19/dont-push-your-pull-requests/) by Ilya Grigorik. 
@@ -60,7 +59,7 @@ All code submissions will be rigorously reviewed and tested further by the Rosly
 
 ### Before writing code
 
-  To file a API proposal, look for the relevant issue in the `New issue` page or simply click [this link](https://github.com/dotnet/roslyn/issues/new?assignees=&labels=Feature+Request%2CConcept-API&projects=&template=api-suggestion.md), as part of the [API review process](<docs/contributing/API Review Process.md>).
+To file a API proposal, look for the relevant issue in the `New issue` page or simply click [this link](https://github.com/dotnet/roslyn/issues/new?assignees=&labels=Feature+Request%2CConcept-API&projects=&template=api-suggestion.md), as part of the [API review process](<docs/contributing/API Review Process.md>).
 
 ## Coding Style
 
@@ -80,9 +79,9 @@ if (argument == null)
 
 - **DO** use `Debug.Assert()` for checks not needed in release builds. Always include a “message” string in your assert to identify failure conditions. Add assertions to document assumptions on non-local program state or parameter values, e.g. “At this point in parsing the scanner should have been advanced to a ‘.’ token by the caller”.
 - **DO** avoid allocations in compiler hot paths:
-    - Avoid LINQ.
-    - Avoid using `foreach` over collections that do not have a `struct` enumerator.
-    - Consider using an object pool. There are many usages of object pools in the compiler to see an example.
+  - Avoid LINQ.
+  - Avoid using `foreach` over collections that do not have a `struct` enumerator.
+  - Consider using an object pool. There are many usages of object pools in the compiler to see an example.
 
 ### Visual Basic Conventions
 
@@ -90,6 +89,7 @@ if (argument == null)
 - **DO** place all field declarations at the beginning of a type definition
 
 ### Tips 'n' Tricks
+
 Our team finds using [this enhanced source view](http://sourceroslyn.io/) of Roslyn helpful when developing.
 
 ## How to submit a PR
@@ -101,19 +101,19 @@ To help you be successful we've put together a few simple rules to follow when y
 
 Before submitting a pull request, make sure that it checks the following requirements:
 
-* You find an existing issue with the "help-wanted" label or discuss with the team to agree on adding a new issue with that label
-* You post a high-level description of how it will be implemented and receive a positive acknowledgement from the team before getting too committed to the approach or investing too much effort in implementing it.
-* You add test coverage following existing patterns within the codebase
-* Your code matches the existing syntax conventions within the codebase
-* Your PR is small, focused, and avoids making unrelated changes
+- You find an existing issue with the "help-wanted" label or discuss with the team to agree on adding a new issue with that label
+- You post a high-level description of how it will be implemented and receive a positive acknowledgement from the team before getting too committed to the approach or investing too much effort in implementing it.
+- You add test coverage following existing patterns within the codebase
+- Your code matches the existing syntax conventions within the codebase
+- Your PR is small, focused, and avoids making unrelated changes
 
 If your pull request contains any of the below, it's less likely to be merged.
 
-* Changes that break backward compatibility
-* Changes that are only wanted by one person/company. Changes need to benefit a large enough proportion of Roslyn developers.
-* Changes that add entirely new feature areas without prior agreement
-* Changes that are mostly about refactoring existing code or code style
-* Very large PRs that would take hours to review (remember, we're trying to help lots of people at once). For larger work areas, please discuss with us to find ways of breaking it down into smaller, incremental pieces that can go into separate PRs.
+- Changes that break backward compatibility
+- Changes that are only wanted by one person/company. Changes need to benefit a large enough proportion of Roslyn developers.
+- Changes that add entirely new feature areas without prior agreement
+- Changes that are mostly about refactoring existing code or code style
+- Very large PRs that would take hours to review (remember, we're trying to help lots of people at once). For larger work areas, please discuss with us to find ways of breaking it down into smaller, incremental pieces that can go into separate PRs.
 
 ### Submitting a pull request
 
@@ -146,6 +146,7 @@ Your pull request will now go through extensive checks by the subject matter exp
 A core contributor will review your pull request and provide feedback.
 
 ### Automatic repo rules
+
 To ensure that there is not a large backlog of inactive PRs, the pull request will be marked as stale after two weeks of no activity. After another two weeks, it will be reset  to 'Draft' state.
 
 ## Merging pull requests

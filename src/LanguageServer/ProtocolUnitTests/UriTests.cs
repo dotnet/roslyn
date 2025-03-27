@@ -295,6 +295,34 @@ public class UriTests : AbstractLanguageServerProtocolTests
                 new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }), CancellationToken.None));
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestDoesNotCrashIfUnableToDetermineLanguageInfo(bool mutatingLspWorkspace)
+    {
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Open an empty loose file that hasn't been saved with a name.
+        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+        await testLspServer.OpenDocumentAsync(looseFileUri, "hello", languageId: "csharp").ConfigureAwait(false);
+
+        // Verify file is added to the misc file workspace.
+        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri }, CancellationToken.None);
+        Assert.True(workspace is LspMiscellaneousFilesWorkspace);
+        AssertEx.NotNull(document);
+        Assert.Equal(looseFileUri, document.GetURI());
+        Assert.Equal(looseFileUri.OriginalString, document.FilePath);
+
+        // Close the document (deleting the saved language information)
+        await testLspServer.CloseDocumentAsync(looseFileUri);
+
+        // Assert that the request throws but the server does not crash.
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = looseFileUri }), CancellationToken.None));
+        Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
+        Assert.False(testLspServer.GetQueueAccessor()!.Value.IsComplete());
+    }
+
     private record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
     private record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
 

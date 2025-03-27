@@ -153,6 +153,7 @@ internal static class IDEDiagnosticIds
     public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
 
     public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+    public const string SimplifyLinqTypeCheckAndCastDiagnosticId = "IDE0121";
 
     public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
 
@@ -198,10 +199,13 @@ internal static class IDEDiagnosticIds
     public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
     public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
     public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+    public const string UseCollectionExpressionForNewDiagnosticId = "IDE0306";
 
     public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0320";
 
     public const string UseSystemThreadingLockDiagnosticId = "IDE0330";
+
+    public const string UseUnboundGenericTypeInNameOfDiagnosticId = "IDE0340";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";

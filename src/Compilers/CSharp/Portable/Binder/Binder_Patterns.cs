@@ -1734,100 +1734,145 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
-            if (isDisjunction)
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var binaryPatternStack = ArrayBuilder<(BinaryPatternSyntax pat, bool permitDesignations)>.GetInstance();
+            BinaryPatternSyntax? currentNode = node;
+
+            do
             {
-                MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
+                permitDesignations = permitDesignations && currentNode.IsKind(SyntaxKind.AndPattern);
+                binaryPatternStack.Push((currentNode, permitDesignations));
+                currentNode = currentNode.Left as BinaryPatternSyntax;
+            } while (currentNode != null);
 
-                permitDesignations = false; // prevent designators under 'or'
-                var left = BindPattern(node.Left, inputType, permitDesignations, hasErrors, diagnostics);
-                var right = BindPattern(node.Right, inputType, permitDesignations, hasErrors, diagnostics);
+            Debug.Assert(binaryPatternStack.Count > 0);
 
-                // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
-                var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
-                collectCandidates(left, narrowedTypeCandidates);
-                collectCandidates(right, narrowedTypeCandidates);
-                var narrowedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
-                narrowedTypeCandidates.Free();
+            var binaryPatternAndPermitDesignations = binaryPatternStack.Pop();
+            BoundPattern result = BindPattern(binaryPatternAndPermitDesignations.pat.Left, inputType, binaryPatternAndPermitDesignations.permitDesignations, hasErrors, diagnostics);
+            var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
+            collectCandidates(result, narrowedTypeCandidates);
 
-                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
+            do
+            {
+                result = bindBinaryPattern(
+                    result,
+                    this,
+                    binaryPatternAndPermitDesignations.pat,
+                    binaryPatternAndPermitDesignations.permitDesignations,
+                    inputType,
+                    narrowedTypeCandidates,
+                    hasErrors,
+                    diagnostics);
+            } while (binaryPatternStack.TryPop(out binaryPatternAndPermitDesignations));
 
-                static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
+            binaryPatternStack.Free();
+            narrowedTypeCandidates.Free();
+            return result;
+
+            static BoundPattern bindBinaryPattern(
+                BoundPattern preboundLeft,
+                Binder binder,
+                BinaryPatternSyntax node,
+                bool permitDesignations,
+                TypeSymbol inputType,
+                ArrayBuilder<TypeSymbol> narrowedTypeCandidates,
+                bool hasErrors,
+                BindingDiagnosticBag diagnostics)
+            {
+                bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
+                if (isDisjunction)
                 {
-                    if (pat is BoundBinaryPattern { Disjunction: true } p)
-                    {
-                        collectCandidates(p.Left, candidates);
-                        collectCandidates(p.Right, candidates);
-                    }
-                    else
-                    {
-                        candidates.Add(pat.NarrowedType);
-                    }
-                }
+                    Debug.Assert(!permitDesignations);
+                    MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-                TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
-                {
-                    Debug.Assert(candidates.Count >= 2);
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    TypeSymbol? bestSoFar = candidates[0];
-                    // first pass: select a candidate for which no other has been shown to be an improvement.
-                    for (int i = 1, n = candidates.Count; i < n; i++)
+                    var right = binder.BindPattern(node.Right, inputType, permitDesignations, hasErrors, diagnostics);
+
+                    // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
+                    collectCandidates(right, narrowedTypeCandidates);
+                    var narrowedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
+
+                    return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
+
+                    TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
                     {
-                        TypeSymbol candidate = candidates[i];
-                        bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo) ?? bestSoFar;
-                    }
-                    // second pass: check that it is no more specific than any candidate.
-                    for (int i = 0, n = candidates.Count; i < n; i++)
-                    {
-                        TypeSymbol candidate = candidates[i];
-                        TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo);
-                        if (spoiler is null)
+                        Debug.Assert(candidates.Count >= 2);
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                        TypeSymbol? bestSoFar = candidates[0];
+                        // first pass: select a candidate for which no other has been shown to be an improvement.
+                        for (int i = 1, n = candidates.Count; i < n; i++)
                         {
-                            bestSoFar = null;
-                            break;
+                            TypeSymbol candidate = candidates[i];
+                            bestSoFar = lessSpecificCandidate(bestSoFar, candidate, ref useSiteInfo) ?? bestSoFar;
+                        }
+                        // second pass: check that it is no more specific than any candidate.
+                        for (int i = 0, n = candidates.Count; i < n; i++)
+                        {
+                            TypeSymbol candidate = candidates[i];
+                            TypeSymbol? spoiler = lessSpecificCandidate(candidate, bestSoFar, ref useSiteInfo);
+                            if (spoiler is null)
+                            {
+                                bestSoFar = null;
+                                break;
+                            }
+
+                            // Our specificity criteria are transitive
+                            Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
                         }
 
-                        // Our specificity criteria are transitive
-                        Debug.Assert(spoiler.Equals(bestSoFar, TypeCompareKind.ConsiderEverything));
+                        diagnostics.Add(node, useSiteInfo);
+                        return bestSoFar;
                     }
 
-                    diagnostics.Add(node, useSiteInfo);
-                    return bestSoFar;
+                    // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
+                    TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                    {
+                        if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            // When the types are equivalent, merge them.
+                            return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
+                        }
+                        else if (binder.Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                        {
+                            // When there is an implicit reference conversion from T to U, U is less specific
+                            return possiblyLessSpecificCandidate;
+                        }
+                        else if (binder.Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
+                        {
+                            // when there is a boxing conversion from T to U, U is less specific.
+                            return possiblyLessSpecificCandidate;
+                        }
+                        else
+                        {
+                            // We have no improved candidate to offer.
+                            return null;
+                        }
+                    }
                 }
-
-                // Given a candidate least specific type so far, attempt to refine it with a possibly less specific candidate.
-                TypeSymbol? lessSpecificCandidate(TypeSymbol bestSoFar, TypeSymbol possiblyLessSpecificCandidate, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                else
                 {
-                    if (bestSoFar.Equals(possiblyLessSpecificCandidate, TypeCompareKind.AllIgnoreOptions))
-                    {
-                        // When the types are equivalent, merge them.
-                        return bestSoFar.MergeEquivalentTypes(possiblyLessSpecificCandidate, VarianceKind.Out);
-                    }
-                    else if (Conversions.HasImplicitReferenceConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                    {
-                        // When there is an implicit reference conversion from T to U, U is less specific
-                        return possiblyLessSpecificCandidate;
-                    }
-                    else if (Conversions.HasBoxingConversion(bestSoFar, possiblyLessSpecificCandidate, ref useSiteInfo))
-                    {
-                        // when there is a boxing conversion from T to U, U is less specific.
-                        return possiblyLessSpecificCandidate;
-                    }
-                    else
-                    {
-                        // We have no improved candidate to offer.
-                        return null;
-                    }
+                    MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
+
+                    var right = binder.BindPattern(node.Right, preboundLeft.NarrowedType, permitDesignations, hasErrors, diagnostics);
+                    narrowedTypeCandidates.Clear();
+                    narrowedTypeCandidates.Add(right.NarrowedType);
+                    return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: right.NarrowedType, hasErrors);
                 }
             }
-            else
-            {
-                MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-                var left = BindPattern(node.Left, inputType, permitDesignations, hasErrors, diagnostics);
-                var right = BindPattern(node.Right, left.NarrowedType, permitDesignations, hasErrors, diagnostics);
-                return new BoundBinaryPattern(node, disjunction: isDisjunction, left, right, inputType: inputType, narrowedType: right.NarrowedType, hasErrors);
+            static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
+            {
+                if (pat is BoundBinaryPattern { Disjunction: true } p)
+                {
+                    collectCandidates(p.Left, candidates);
+                    collectCandidates(p.Right, candidates);
+                }
+                else
+                {
+                    candidates.Add(pat.NarrowedType);
+                }
             }
+
         }
     }
 }

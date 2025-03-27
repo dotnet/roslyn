@@ -106,10 +106,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 oldSolutionAndNewSolution = await TestOperationsAsync(
                     testState.Workspace, expected, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.ExistingDocument.Id);
             }
             else
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 Assert.NotNull(expectedTextWithUsings);
                 await TestOperationsAsync(testState.Workspace, expectedTextWithUsings, operations,
-                    conflictSpans: ImmutableArray<TextSpan>.Empty,
-                    renameSpans: ImmutableArray<TextSpan>.Empty,
-                    warningSpans: ImmutableArray<TextSpan>.Empty,
-                    navigationSpans: ImmutableArray<TextSpan>.Empty,
+                    conflictSpans: [],
+                    renameSpans: [],
+                    warningSpans: [],
+                    navigationSpans: [],
                     expectedChangedDocumentId: testState.InvocationDocument.Id);
             }
 
@@ -167,9 +167,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 if (assertGenerateTypeDialogOptions != null)
                 {
-                    Assert.True(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility == generateTypeDialogOptions.IsPublicOnlyAccessibility);
-                    Assert.True(assertGenerateTypeDialogOptions.TypeKindOptions == generateTypeDialogOptions.TypeKindOptions);
-                    Assert.True(assertGenerateTypeDialogOptions.IsAttribute == generateTypeDialogOptions.IsAttribute);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsPublicOnlyAccessibility, generateTypeDialogOptions.IsPublicOnlyAccessibility);
+                    Assert.Equal(assertGenerateTypeDialogOptions.TypeKindOptions, generateTypeDialogOptions.TypeKindOptions);
+                    Assert.Equal(assertGenerateTypeDialogOptions.IsAttribute, generateTypeDialogOptions.IsAttribute);
                 }
 
                 if (assertTypeKindPresent != null)

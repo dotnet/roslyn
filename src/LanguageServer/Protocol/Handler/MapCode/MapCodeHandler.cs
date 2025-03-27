@@ -65,7 +65,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                 DocumentChanges = uriToEditsMap.Select(kvp => new TextDocumentEdit
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = kvp.Key },
-                    Edits = kvp.Value.Select(v => new SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(v)).ToArray(),
+                    Edits = [.. kvp.Value.Select(v => new SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(v))],
                 }).ToArray()
             };
         }
@@ -82,7 +82,8 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             var textDocument = codeMapping.TextDocument
                 ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");
 
-            if (context.Solution.GetDocument(textDocument) is not Document document)
+            var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+            if (document is null)
                 throw new ArgumentException($"mapCode sub-request for {textDocument.Uri} failed: can't find this document in the workspace.");
 
             var codeMapper = document.GetRequiredLanguageService<IMapCodeService>();

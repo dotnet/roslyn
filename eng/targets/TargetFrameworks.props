@@ -3,7 +3,7 @@
 
   <!-- 
     This props file manages the target framework properties for Roslyn. The strategy for these properties
-    is convered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    is covered in "docs/contributing/target-framework-strategy.md". Please see that for documentation
     on what these values mean.
 
     Requirements: 
@@ -12,14 +12,14 @@
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <NetRoslyn>net8.0</NetRoslyn>
+    <NetRoslyn>net9.0</NetRoslyn>
     <!-- <Metalama> added .Net 6 -->
-    <NetRoslynAll>net6.0;net7.0;net8.0</NetRoslynAll>
+    <NetRoslynAll>net6.0;net8.0;net9.0</NetRoslynAll>
     <MetalamaNetRoslyn>net6.0;net8.0</MetalamaNetRoslyn>
     <!-- </Metalama> -->
     <NetVS>net8.0</NetVS>
     <NetVSCode>net8.0</NetVSCode>
-    <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
@@ -56,8 +56,8 @@
     <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
-        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
-        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent)</NetRoslynAll>
         <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>
@@ -70,10 +70,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <NetRoslyn>net8.0</NetRoslyn>
-        <!-- <Metalama> added .Net 6 -->
-        <NetRoslynSourceBuild>net6.0;net7.0;net8.0</NetRoslynSourceBuild>
-        <!-- </Metalama> -->
+        <NetRoslynSourceBuild>$(NetRoslynAll)</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
   </Choose>
