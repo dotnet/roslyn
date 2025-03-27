@@ -244,10 +244,9 @@ public sealed class DiagnosticAnalyzerServiceTests
             new Priority15Analyzer(),
             new Priority10Analyzer(),
             new Priority1Analyzer(),
-            new Priority0Analyzer(),
+            new PriorityNegativeOneAnalyzer(),
             new CSharpCompilerDiagnosticAnalyzer(),
             new Analyzer()
-,
         ]);
 
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
@@ -270,8 +269,8 @@ public sealed class DiagnosticAnalyzerServiceTests
             typeof(FileContentLoadAnalyzer),
             typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
             typeof(CSharpCompilerDiagnosticAnalyzer),
+            typeof(PriorityNegativeOneAnalyzer),
             typeof(Analyzer),
-            typeof(Priority0Analyzer),
             typeof(Priority1Analyzer),
             typeof(Priority10Analyzer),
             typeof(Priority15Analyzer),
@@ -964,9 +963,9 @@ public sealed class DiagnosticAnalyzerServiceTests
         public Priority1Analyzer() : base(priority: 1) { }
     }
 
-    private sealed class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class PriorityNegativeOneAnalyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
-        public Priority0Analyzer() : base(priority: -1) { }
+        public PriorityNegativeOneAnalyzer() : base(priority: -1) { }
     }
 
     private class PriorityTestDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
