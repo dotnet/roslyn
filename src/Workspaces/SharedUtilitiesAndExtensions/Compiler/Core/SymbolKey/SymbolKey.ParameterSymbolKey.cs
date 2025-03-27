@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -69,6 +68,9 @@ internal partial struct SymbolKey
                             Resolve(result, reader, metadataName, ordinal, delegateInvoke.Parameters);
                         }
 
+                        break;
+                    case INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter }:
+                        Resolve(result, reader, metadataName, ordinal, [extensionParameter]);
                         break;
                 }
             }

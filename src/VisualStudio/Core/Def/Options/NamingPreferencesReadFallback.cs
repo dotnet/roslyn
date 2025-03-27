@@ -7,7 +7,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;

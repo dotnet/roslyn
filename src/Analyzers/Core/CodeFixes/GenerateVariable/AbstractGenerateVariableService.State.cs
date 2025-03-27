@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -462,7 +461,9 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             // Substitute 'object' for all captured method type parameters.  Note: we may need to
             // do this for things like anonymous types, as well as captured type parameters that
             // aren't in scope in the destination type.
-            var capturedMethodTypeParameters = inferredType.GetReferencedMethodTypeParameters();
+            using var _1 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var capturedMethodTypeParameters);
+            inferredType.AddReferencedMethodTypeParameters(capturedMethodTypeParameters);
+
             var mapping = capturedMethodTypeParameters.ToDictionary(tp => tp,
                 tp => compilation.ObjectType);
 
@@ -474,7 +475,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             var enclosingMethodSymbol = _document.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
             if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
             {
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
+                using var _2 = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                 combinedTypeParameters.AddRange(availableTypeParameters);
                 combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
                 LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);

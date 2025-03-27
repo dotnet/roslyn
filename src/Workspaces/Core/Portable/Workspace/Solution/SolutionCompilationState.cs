@@ -1385,7 +1385,12 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
+                    // We should never be wrapping a WithFrozenSourceGeneratedDocumentsCompilationTracker with another
+                    // WithFrozenSourceGeneratedDocumentsCompilationTracker.  If we do, that's a straight bug that
+                    // should fail immediately.  So blind casting is here is appropriate.
+                    var regularCompilationTracker = (RegularCompilationTracker)existingTracker;
+                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(
+                        regularCompilationTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),

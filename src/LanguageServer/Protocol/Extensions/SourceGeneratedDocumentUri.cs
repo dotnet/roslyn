@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Specialized;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
