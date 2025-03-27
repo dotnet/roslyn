@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         private readonly TempDirectory _nugetCacheDir;
 
-        public NetCoreTests()
+        public NetCoreTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
             _nugetCacheDir = SolutionDirectory.CreateDirectory(".packages");
         }
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertNetCoreMultiTFMProject(projectFilePath);
         }
 
-        private static async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        private async Task AssertNetCoreMultiTFMProject(string projectFilePath)
         {
             using var workspace = CreateMSBuildWorkspace();
             await workspace.OpenProjectAsync(projectFilePath);
@@ -502,8 +503,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // Assert that there is a project reference between VBProject.vbproj and Library.csproj
             AssertSingleProjectReference(project, libraryFilePath);
 
-            // Assert that the project does not have any diagnostics in Program.vb
             var document = project.Documents.First(d => d.Name == "Program.vb");
+            Assert.Empty(document.Folders);
+
+            // Assert that the project does not have any diagnostics in Program.vb
             var semanticModel = await document.GetSemanticModelAsync();
             var diagnostics = semanticModel.GetDiagnostics();
             Assert.Empty(diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -322,7 +321,8 @@ internal readonly struct EmbeddedLanguageDetector(
                 semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
                 semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
 
-            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, container, semanticModel, cancellationToken, out identifier);
+            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, container, semanticModel, cancellationToken, out identifier) ||
+                   IsFieldConsumedByApiWithStringSyntaxAttribute(symbol, container, semanticModel, cancellationToken, out identifier);
         }
 
         return false;
@@ -336,46 +336,83 @@ internal readonly struct EmbeddedLanguageDetector(
         [NotNullWhen(true)] out string? identifier)
     {
         identifier = null;
-        if (symbol is not ILocalSymbol localSymbol)
+        if (symbol is not ILocalSymbol { Name: not "" } localSymbol)
             return false;
 
         var blockFacts = this.Info.BlockFacts;
-        var syntaxFacts = this.Info.SyntaxFacts;
 
         var block = tokenParent.AncestorsAndSelf().FirstOrDefault(blockFacts.IsExecutableBlock);
         if (block is null)
             return false;
 
-        var localName = localSymbol.Name;
-        if (localName == "")
-            return false;
-
         // Now look at the next statements that follow for usages of this local variable.
         foreach (var statement in blockFacts.GetExecutableBlockStatements(block))
         {
-            foreach (var descendent in statement.DescendantNodesAndSelf())
+            if (CheckDescendants(localSymbol, semanticModel, statement, cancellationToken, out identifier))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsFieldConsumedByApiWithStringSyntaxAttribute(
+        ISymbol? symbol,
+        SyntaxNode tokenParent,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        identifier = null;
+        if (symbol is not IFieldSymbol { Name: not "" } fieldSymbol)
+            return false;
+
+        var isConst = fieldSymbol.IsConst;
+        var isStaticReadonly = fieldSymbol.IsStatic && fieldSymbol.IsReadOnly;
+        if (!isConst && !isStaticReadonly)
+            return false;
+
+        var syntaxFacts = this.Info.SyntaxFacts;
+
+        var typeDeclaration = tokenParent.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsTypeDeclaration);
+        if (typeDeclaration is null)
+            return false;
+
+        return CheckDescendants(fieldSymbol, semanticModel, typeDeclaration, cancellationToken, out identifier);
+    }
+
+    private bool CheckDescendants(
+        ISymbol symbol,
+        SemanticModel semanticModel,
+        SyntaxNode node,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        var symbolName = symbol.Name;
+        var syntaxFacts = this.Info.SyntaxFacts;
+
+        foreach (var descendent in node.DescendantNodesAndSelf())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!syntaxFacts.IsIdentifierName(descendent))
+                continue;
+
+            var identifierToken = syntaxFacts.GetIdentifierOfIdentifierName(descendent);
+            if (identifierToken.ValueText != symbolName)
+                continue;
+
+            var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
+
+            // Only do a direct check here.  We don't want to continually do indirect checks where a string literal
+            // is assigned to one local, assigned to another local, assigned to another local, and so on.
+            if (symbol.Equals(otherSymbol) &&
+                IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (!syntaxFacts.IsIdentifierName(descendent))
-                    continue;
-
-                var identifierToken = syntaxFacts.GetIdentifierOfIdentifierName(descendent);
-                if (identifierToken.ValueText != localName)
-                    continue;
-
-                var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
-
-                // Only do a direct check here.  We don't want to continually do indirect checks where a string literal
-                // is assigned to one local, assigned to another local, assigned to another local, and so on.
-                if (localSymbol.Equals(otherSymbol) &&
-                    IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
+        identifier = null;
         return false;
     }
 

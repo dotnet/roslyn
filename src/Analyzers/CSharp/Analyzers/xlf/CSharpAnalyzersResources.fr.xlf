@@ -82,6 +82,11 @@
         <target state="translated">Les instructions imbriquées doivent être placées sur leur propre ligne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">L'indexation peut être simplifiée</target>
@@ -434,7 +439,7 @@
       </trans-unit>
       <trans-unit id="Use_unbound_generic_type">
         <source>Use unbound generic type</source>
-        <target state="new">Use unbound generic type</target>
+        <target state="translated">Utiliser un type générique indépendant</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

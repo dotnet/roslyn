@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<LSP.CompletionList?> GetCompletionListAsync(
+        public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
             Document document,
             int position,
             LSP.CompletionContext? completionContext,

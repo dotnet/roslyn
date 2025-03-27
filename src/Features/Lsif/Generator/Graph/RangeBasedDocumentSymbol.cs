@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 

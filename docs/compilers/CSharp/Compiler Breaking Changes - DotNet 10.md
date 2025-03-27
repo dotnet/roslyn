@@ -291,3 +291,69 @@ unsafe record struct R(
     public bool Equals(R other) => true;
 }
 ```
+
+## Emitting metadata-only executables requires an entrypoint
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+Previously, the entrypoint was [unintentionally unset](https://github.com/dotnet/roslyn/issues/76707)
+when emitting executables in metadata-only mode (also known as ref assemblies).
+That is now corrected but it also means that a missing entrypoint is a compilation error:
+
+```cs
+// previously successful, now fails:
+CSharpCompilation.Create("test").Emit(new MemoryStream(),
+    options: EmitOptions.Default.WithEmitMetadataOnly(true))
+
+CSharpCompilation.Create("test",
+    // workaround - mark as DLL instead of EXE (the default):
+    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+    .Emit(new MemoryStream(),
+        options: EmitOptions.Default.WithEmitMetadataOnly(true))
+```
+
+Similarly this can be observed when using the command-line argument `/refonly`
+or the `ProduceOnlyReferenceAssembly` MSBuild property.
+
+## `partial` cannot be a return type of methods
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The [partial events and constructors](https://github.com/dotnet/csharplang/issues/9058) language feature
+allows the `partial` modifier in more places and so it cannot be a return type unless escaped:
+
+```cs
+class C
+{
+    partial F() => new partial(); // previously worked
+    @partial F() => new partial(); // workaround
+}
+
+class partial { }
+```
+
+## `extension` treated as a contextual keyword
+
+PROTOTYPE record which version this break is introduced in
+
+Starting with C# 14, the `extension` keyword serves a special purpose in denoting extension containers. 
+This changes how the compiler interprets certain code constructs.
+
+If you need to use "extension" as an identifier rather than a keyword, escape it with the `@` prefix: `@extension`. This tells the compiler to treat it as a regular identifier instead of a keyword.
+
+The compiler will parse this as an extension container rather than a constructor.
+```csharp
+class extension
+{
+    extension(object o) { } // parsed as an extension container
+}
+```
+
+The compiler will fail to parse this as a method with return type `extension`.
+```csharp
+class extension
+{
+    extension M() { } // will not compile
+}
+```
+

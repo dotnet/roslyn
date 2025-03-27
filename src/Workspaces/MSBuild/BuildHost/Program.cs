@@ -8,7 +8,6 @@ using System.CommandLine;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -52,7 +51,7 @@ internal static class Program
         var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
         await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
 
-        var server = new RpcServer(sendingStream: pipeServer, receivingStream: pipeServer);
+        var server = new RpcServer(pipeServer);
 
         var targetObject = server.AddTarget(new BuildHost(logger, propertiesBuilder.ToImmutable(), binaryLogPath, server));
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");

@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,21 +22,25 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts;
+using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     public class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
+        public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
+        {
+        }
+
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public void TestCreateMSBuildWorkspace()
         {
@@ -58,6 +63,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.Projects.First();
             var document = project.Documents.First();
+            Assert.Empty(document.Folders);
             var tree = await document.GetSyntaxTreeAsync();
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
@@ -194,7 +200,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         private static Metadata GetMetadata(MetadataReference metadataReference)
             => ((PortableExecutableReference)metadataReference).GetMetadata();
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552981")]
         public async Task TestOpenSolution_DuplicateProjectGuids()
         {
@@ -1132,7 +1138,7 @@ class C1
             Assert.Equal(expected, e.Message);
         }
 
-        private readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
+        private static readonly IEnumerable<Assembly> _defaultAssembliesWithoutCSharp = MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp"));
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/3931")]
@@ -2708,7 +2714,7 @@ class C1
             }
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeSelfReferential()
         {
@@ -2734,7 +2740,7 @@ class C1
             Assert.Empty(libraryProject.AllProjectReferences);
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled), AlwaysSkip = "https://github.com/microsoft/vs-solutionpersistence/issues/95")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/792912")]
         public async Task TestOpenSolution_WithDuplicatedGuidsBecomeCircularReferential()
         {
@@ -2893,13 +2899,14 @@ class C { }";
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
-            // update root blindly again, after observing encoding, see that encoding is overridden to null
+            // update root blindly again, after observing encoding, see that encoding is preserved
+            // 🐉 Tools rely on encoding preservation; see https://github.com/dotnet/sdk/issues/46780
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();
-            Assert.Null(doc3text.Encoding);
+            Assert.Same(text.Encoding, doc3text.Encoding);
             var doc3tree = await doc3.GetSyntaxTreeAsync();
-            Assert.Null(doc3tree.Encoding);
-            Assert.Null(doc3tree.GetText().Encoding);
+            Assert.Same(text.Encoding, doc3tree.Encoding);
+            Assert.Same(text.Encoding, doc3tree.GetText().Encoding);
 
             // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = await document.GetSyntaxRootAsync();

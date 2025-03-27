@@ -38,7 +38,8 @@ public class IDEDiagnosticIDConfigurationTests
                     ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
                     if (diagnosticId.StartsWith("ENC") ||
-                        !char.IsDigit(diagnosticId[^1]))
+                        !char.IsDigit(diagnosticId[^1]) ||
+                        diagnosticId == IDEDiagnosticIds.CopilotImplementNotImplementedExceptionDiagnosticId)
                     {
                         // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                         // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)

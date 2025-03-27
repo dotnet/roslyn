@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Private ReadOnly _newCaretPosition As Integer?
 
         Public Sub New(snapshotSpan As SnapshotSpan, replacementText As String, newCaretPosition As Integer?)
-            ThrowIfNull(replacementText)
+            Contract.ThrowIfNull(replacementText)
 
             _snapshotSpan = snapshotSpan
             _replacementText = replacementText

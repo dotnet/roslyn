@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -97,9 +96,9 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         throw ExceptionUtilities.UnexpectedValue(token);
     }
 
-    protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
     {
-        return CompletionUtilities.GetTargetCaretNodeForInsertedMember(caretTarget).GetLocation().SourceSpan.End;
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(caretTarget);
     }
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)

@@ -82,6 +82,11 @@
         <target state="translated">Las instrucciones incrustadas deben estar en su propia línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">La indexación de direcciones se puede simplificar</target>
@@ -434,7 +439,7 @@
       </trans-unit>
       <trans-unit id="Use_unbound_generic_type">
         <source>Use unbound generic type</source>
-        <target state="new">Use unbound generic type</target>
+        <target state="translated">Usar tipo genérico no enlazado</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

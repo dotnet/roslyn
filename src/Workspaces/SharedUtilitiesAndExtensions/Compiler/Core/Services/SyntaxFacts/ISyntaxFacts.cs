@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
@@ -410,13 +411,14 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
+    void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
     // Violation.  This is a feature level API.
-    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
+    void AddTopLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
+    // Violation.  This is a feature level API.
+    void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
+
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
-    // Violation.  This is a feature level API.
-    bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
     // Violation.  This is a feature level API.
     TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 

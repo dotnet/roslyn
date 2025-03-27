@@ -356,7 +356,8 @@ internal class DiagnosticComputer
             }
         }
 
-        var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);
+        var skippedAnalyzersInfo = _project.Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(
+            _project.State, _analyzerInfoCache);
 
         return await AnalyzeAsync(compilationWithAnalyzers, analyzerToIdMap, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
             logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
@@ -401,8 +402,7 @@ internal class DiagnosticComputer
         {
             builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default,
-                projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
+                _project, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, cancellationToken).ConfigureAwait(false));
         }
 
         var telemetry = getTelemetryInfo
@@ -506,7 +506,11 @@ internal class DiagnosticComputer
         if (hostAnalyzerIds.Any())
         {
             // If any host analyzers are active, make sure to also include any project diagnostic suppressors
-            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+            var projectSuppressors = projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            // Make sure to remove any project suppressors already in the host analyzer array so we don't end up with
+            // duplicates.
+            hostBuilder.RemoveRange(projectSuppressors);
+            hostBuilder.AddRange(projectSuppressors);
         }
 
         return (projectAnalyzers, hostBuilder.ToImmutableAndClear());
@@ -576,6 +580,7 @@ internal class DiagnosticComputer
             {
                 hostAnalyzerBuilder.AddRange(analyzers);
             }
+
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 
@@ -590,7 +595,13 @@ internal class DiagnosticComputer
 
             var analyzers = reference.GetAnalyzers(_project.Language);
             projectAnalyzerBuilder.AddRange(analyzers);
-            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+
+            var projectSuppressors = analyzers.WhereAsArray(static a => a is DiagnosticSuppressor);
+            // Make sure to remove any project suppressors already in the host analyzer array so we don't end up with
+            // duplicates.
+            hostAnalyzerBuilder.RemoveRange(projectSuppressors);
+            hostAnalyzerBuilder.AddRange(projectSuppressors);
+
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 

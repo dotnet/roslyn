@@ -83,7 +83,7 @@ internal partial class StreamingFindUsagesPresenter
             var service = documentSpan.Document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (service == null)
             {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
+                return new MappedSpanResult(documentSpan.Document.FilePath!, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
             }
 
             var results = await service.MapSpansAsync(
@@ -91,7 +91,7 @@ internal partial class StreamingFindUsagesPresenter
 
             if (results.IsDefaultOrEmpty)
             {
-                return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
+                return new MappedSpanResult(documentSpan.Document.FilePath!, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);
             }
 
             // if span mapping service filtered out the span, make sure

@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState!, progressTracker, cancellationToken)).ConfigureAwait(false);
             Contract.ThrowIfNull(solution);
 
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
@@ -202,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // Compute diagnostics for everything that is not an IDE analyzer
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
                 shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
-                includeCompilerDiagnostics: true,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 DiagnosticKind.All, isExplicit: false,
                 cancellationToken).ConfigureAwait(false);

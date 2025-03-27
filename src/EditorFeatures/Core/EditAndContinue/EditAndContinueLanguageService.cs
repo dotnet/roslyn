@@ -378,10 +378,19 @@ internal sealed class EditAndContinueLanguageService(
         var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectIds, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-        // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-        if (result.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        switch (result.ModuleUpdates.Status)
         {
-            _pendingUpdatedDesignTimeSolution = designTimeSolution;
+            case ModuleUpdateStatus.Ready:
+                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+                // based on whether the updates will be applied successfully or not.
+                _pendingUpdatedDesignTimeSolution = designTimeSolution;
+                break;
+
+            case ModuleUpdateStatus.None:
+                // No significant changes have been made.
+                // Commit the solution to apply any changes in comments that do not generate updates.
+                _committedDesignTimeSolution = designTimeSolution;
+                break;
         }
 
         UpdateApplyChangesDiagnostics(result.Diagnostics);

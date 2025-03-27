@@ -598,25 +598,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    if (kind is SymbolKind.Method or SymbolKind.Property)
+                    if (kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
                     {
                         if (InSpan(sym.GetFirstLocation(), this.syntaxTree, memberSpan))
                         {
                             return true;
                         }
 
-                        // If this is a partial member, the member represents the defining part,
-                        // not the implementation (member.Locations includes both parts). If the
-                        // span is in fact in the implementation, return that member instead.
-                        if (sym switch
-#pragma warning disable format
-                            {
-                                MethodSymbol method => (Symbol)method.PartialImplementationPart,
-                                SourcePropertySymbol property => property.PartialImplementationPart,
-                                _ => throw ExceptionUtilities.UnexpectedValue(sym)
-                            }
-#pragma warning restore format
-                            is { } implementation)
+                        // If this is a partial member, the member represents the defining part, not the implementation.
+                        // If the span is in fact in the implementation, return that member instead.
+                        if (sym.GetPartialImplementationPart() is { } implementation)
                         {
                             if (InSpan(implementation.GetFirstLocation(), this.syntaxTree, memberSpan))
                             {
@@ -790,6 +781,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 resultBinder = new WithClassTypeParametersBinder(typeSymbol, resultBinder);
                             }
+
+                            if (typeSymbol.IsExtension)
+                            {
+                                resultBinder = new WithExtensionParameterBinder(typeSymbol, resultBinder);
+                            }
                         }
                     }
 
@@ -817,6 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
+                => VisitTypeDeclarationCore(node);
+
+            public override Binder VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
             public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)

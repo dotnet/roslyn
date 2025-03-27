@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return node.Update(operatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ConstrainedToTypeOpt, node.ResultKind, loweredLeft, loweredRight, type);
+                return node.Update(operatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ConstrainedToTypeOpt, node.ResultKind, originalUserDefinedOperatorsOpt: default, loweredLeft, loweredRight, type);
             }
 
             BoundAssignmentOperator tempAssignment;
@@ -125,6 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitUtf8Addition(node);
             }
 
+            if (IsBinaryStringConcatenation(node))
+            {
+                Debug.Assert(applyParentUnaryOperator is null);
+                return VisitStringConcatenation(node);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -135,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValueOpt == null; current = current.Left as BoundBinaryOperator)
             {
                 // The regular visit mechanism will handle this.
-                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition)
+                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition || IsBinaryStringConcatenation(current))
                 {
                     Debug.Assert(stack.Count >= 1);
                     break;
@@ -208,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
                     case BinaryOperatorKind.StringConcatenation:
-                        return RewriteStringConcatenation(syntax, operatorKind, loweredLeft, loweredRight, type);
+                        throw ExceptionUtilities.UnexpectedValue(operatorKind);
                     case BinaryOperatorKind.DelegateCombination:
                         return RewriteDelegateOperation(syntax, operatorKind, loweredLeft, loweredRight, type, SpecialMember.System_Delegate__Combine);
                     case BinaryOperatorKind.DelegateRemoval:
@@ -256,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.ObjectAndStringConcatenation:
                     case BinaryOperatorKind.StringAndObjectConcatenation:
                     case BinaryOperatorKind.StringConcatenation:
-                        return RewriteStringConcatenation(syntax, operatorKind, loweredLeft, loweredRight, type);
+                        throw ExceptionUtilities.UnexpectedValue(operatorKind);
 
                     case BinaryOperatorKind.StringEqual:
                         return RewriteStringEquality(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type, SpecialMember.System_String__op_Equality);

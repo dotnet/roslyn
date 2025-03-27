@@ -92,11 +92,7 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
 
     public abstract bool CompletionStartsOnQuestionMark { get; }
 
-    protected abstract string StatementTerminator { get; }
-
-    protected abstract int GetAdjustedContextPoint(int contextPoint, Document document);
-
-    protected abstract ITrackingSpan GetPreviousStatementBufferAndSpan(int lastTokenEndPoint, Document document);
+    protected abstract IProjectionBuffer GetAdjustedBuffer(int contextPoint, Document document, ITrackingSpan debuggerMappedSpan);
 
     // Since the immediate window doesn't actually tell us when we change lines, we'll have to
     // determine ourselves when to rebuild our tracking spans to include only the last (input)
@@ -152,21 +148,10 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
             regionEdit.Apply();
         }
 
-        // Adjust the context point to ensure that the right information is in scope.
-        // For example, we may need to move the point to the end of the last statement in a method body
-        // in order to be able to access all local variables.
         var contextPoint = this.ContextBuffer.CurrentSnapshot.GetLineFromLineNumber(CurrentStatementSpan.iEndLine).Start + CurrentStatementSpan.iEndIndex;
-        var adjustedContextPoint = GetAdjustedContextPoint(contextPoint, document);
 
-        // Get the previous span/text. We might have to insert another newline or something.
-        var previousStatementSpan = GetPreviousStatementBufferAndSpan(adjustedContextPoint, document);
-
-        // Build the tracking span that includes the rest of the file
-        var restOfFileSpan = ContextBuffer.CurrentSnapshot.CreateTrackingSpanFromIndexToEnd(adjustedContextPoint, SpanTrackingMode.EdgePositive);
-
-        // Put it all into a projection buffer
-        _projectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
-            [previousStatementSpan, debuggerMappedSpan, this.StatementTerminator, restOfFileSpan], ProjectionBufferOptions.None, ContentType);
+        // Get the adjusted buffer
+        _projectionBuffer = GetAdjustedBuffer(contextPoint, document, debuggerMappedSpan);
 
         // Fork the solution using this new primary buffer for the document and all of its linked documents.
         var forkedSolution = solution.WithDocumentText(document.Id, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
