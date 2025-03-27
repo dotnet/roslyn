@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,107 +24,74 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
         public async Task TestFormatDocumentOnTypeAsync(bool mutatingLspWorkspace)
         {
             var markup =
-                """
-                class A
-                {
-                    void M()
-                    {
-                        if (true)
-                            {{|type:|}
-                    }
-                }
-                """;
+@"class A
+{
+    void M()
+    {
+        if (true)
+            {{|type:|}
+    }
+}";
             var expected =
-                """
-                class A
-                {
-                    void M()
-                    {
-                        if (true)
-                        {
-                    }
-                }
-                """;
+@"class A
+{
+    void M()
+    {
+        if (true)
+        {
+    }
+}";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
-            await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected);
+            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
+
+            var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
         }
 
         [Theory, CombinatorialData]
         public async Task TestFormatDocumentOnType_UseTabsAsync(bool mutatingLspWorkspace)
         {
             var markup =
-                """
-                class A
-                {
-                	void M()
-                	{
-                		if (true)
-                			{{|type:|}
-                	}
-                }
-                """;
+@"class A
+{
+	void M()
+	{
+		if (true)
+			{{|type:|}
+	}
+}";
             var expected =
-                """
-                class A
-                {
-                	void M()
-                	{
-                		if (true)
-                		{
-                	}
-                }
-                """;
+@"class A
+{
+	void M()
+	{
+		if (true)
+		{
+	}
+}";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
-            await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected, insertSpaces: false, tabSize: 4);
+            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
+
+            var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, insertSpaces: false, tabSize: 4);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestFormatDocumentOnType_NewLine(bool mutatingLspWorkspace)
-        {
-            var markup =
-                """
-                class A
-                {
-                    void M() {
-                        {|type:|}
-                    }
-                }
-                """;
-            var expected =
-                """
-                class A
-                {
-                    void M()
-                    {
-                        
-                    }
-                }
-                """;
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var characterTyped = "\n";
-            var locationTyped = testLspServer.GetLocations("type").Single();
-            await AssertFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, expected);
-        }
-
-        private static async Task AssertFormatDocumentOnTypeAsync(
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentOnTypeAsync(
             TestLspServer testLspServer,
             string characterTyped,
             LSP.Location locationTyped,
-            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedText,
             bool insertSpaces = true,
             int tabSize = 4)
         {
-            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
-            var results = await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(
-                LSP.Methods.TextDocumentOnTypeFormattingName,
-                CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped, insertSpaces, tabSize),
-                CancellationToken.None);
-            var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expectedText, actualText);
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentOnTypeFormattingName,
+                CreateDocumentOnTypeFormattingParams(
+                    characterTyped, locationTyped, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentOnTypeFormattingParams CreateDocumentOnTypeFormattingParams(
