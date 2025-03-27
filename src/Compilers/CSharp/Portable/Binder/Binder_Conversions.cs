@@ -1098,15 +1098,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(convertedElement);
                 }
             }
-            else if (elementType is { } && ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var elementKeyType, out var elementValueType))
+            else if (elementType is { } && ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType) is (var elementKeyType, var elementValueType))
             {
                 var elementConversions = conversion.UnderlyingConversions;
 
                 Debug.Assert(elementType is { });
                 Debug.Assert(elementConversions.All(c => c.Exists));
                 Debug.Assert(implicitReceiver is { });
-                Debug.Assert(elementKeyType is { });
-                Debug.Assert(elementValueType is { });
 
                 int conversionIndex = 0;
                 foreach (var element in elements)
@@ -2218,7 +2216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Compare with similar loop in Conversions.GetCollectionExpressionConversion().
-                bool usesKeyValuePairs = ConversionsBase.CollectionUsesKeyValuePairs(Compilation, collectionTypeKind, elementType, out var keyType, out var valueType);
+                var keyValueTypes = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, collectionTypeKind, elementType);
                 var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 foreach (var element in elements)
                 {
@@ -2236,11 +2234,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
                                 else if (expressionElement.Type is { } &&
-                                    usesKeyValuePairs &&
+                                    keyValueTypes is (var keyType, var valueType) &&
                                     ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
                                 {
-                                    Debug.Assert(keyType is { });
-                                    Debug.Assert(valueType is { });
                                     generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
                                     generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
                                 }
@@ -2267,11 +2263,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         continue;
                                     }
-                                    else if (usesKeyValuePairs &&
+                                    else if (keyValueTypes is (var keyType, var valueType) &&
                                         ConversionsBase.IsKeyValuePairType(Compilation, enumeratorInfo.ElementType, out var itemKeyType, out var itemValueType))
                                     {
-                                        Debug.Assert(keyType is { });
-                                        Debug.Assert(valueType is { });
                                         generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemKeyType, keyType, ref useSiteInfo, ref reportedErrors);
                                         generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, itemValueType, valueType, ref useSiteInfo, ref reportedErrors);
                                     }
@@ -2284,17 +2278,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         case BoundKeyValuePairElement keyValuePairElement:
-                            if (usesKeyValuePairs)
                             {
-                                Debug.Assert(keyType is { });
-                                Debug.Assert(valueType is { });
-                                generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Key, keyType, ref useSiteInfo, ref reportedErrors);
-                                generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Value, valueType, ref useSiteInfo, ref reportedErrors);
-                            }
-                            else
-                            {
-                                Error(diagnostics, ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, keyValuePairElement.Syntax, targetType);
-                                reportedErrors = true;
+                                if (keyValueTypes is (var keyType, var valueType))
+                                {
+                                    generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Key, keyType, ref useSiteInfo, ref reportedErrors);
+                                    generateImplicitConversionFromExpressionError(diagnostics, keyValuePairElement.Value, valueType, ref useSiteInfo, ref reportedErrors);
+                                }
+                                else
+                                {
+                                    Error(diagnostics, ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, keyValuePairElement.Syntax, targetType);
+                                    reportedErrors = true;
+                                }
                             }
                             break;
                         default:
