@@ -5695,7 +5695,7 @@ static class Program
         }
 
         [Fact]
-        public void InterfaceType()
+        public void InterfaceType_ComImport()
         {
             string source = """
                 using System;
@@ -5736,6 +5736,94 @@ static class Program
                 // (27,13): error CS9174: Cannot initialize type 'I' with a collection expression because the type is not constructible.
                 //         i = [3, 4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3, 4]").WithArguments("I").WithLocation(27, 13));
+        }
+
+        [Fact]
+        public void InterfaceType_ImplementsIEnumerable_01()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                interface IMyCollection1<T> : IEnumerable
+                {
+                    void Add(T t);
+                }
+                interface IMyCollection2<T> : IEnumerable<T>
+                {
+                    void Add(T t);
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection1<int> x;
+                        x = [];
+                        x = [1];
+                        IMyCollection2<int> y;
+                        y = [];
+                        y = [2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
+                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
+                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
+                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
+        }
+
+        [Fact]
+        public void InterfaceType_ImplementsIEnumerable_02()
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                interface IMyCollection1<T> : IEnumerable
+                {
+                    void Add(T t) { }
+                }
+                interface IMyCollection2<T> : IEnumerable<T>
+                {
+                    void Add(T t) { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        IMyCollection1<int> x;
+                        x = [];
+                        x = [1];
+                        IMyCollection2<int> y;
+                        y = [];
+                        y = [2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (16,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection1<int>").WithLocation(16, 13),
+                // (17,13): error CS9174: Cannot initialize type 'IMyCollection1<int>' with a collection expression because the type is not constructible.
+                //         x = [1];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("IMyCollection1<int>").WithLocation(17, 13),
+                // (19,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[]").WithArguments("IMyCollection2<int>").WithLocation(19, 13),
+                // (20,13): error CS9174: Cannot initialize type 'IMyCollection2<int>' with a collection expression because the type is not constructible.
+                //         y = [2];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[2]").WithArguments("IMyCollection2<int>").WithLocation(20, 13));
         }
 
         [Fact]
@@ -9342,25 +9430,15 @@ static class Program
                     {
                         Dictionary<int, int> d;
                         d = [default];
+                        d.Report();
                         d = [new KeyValuePair<int, int>(1, 2)];
+                        d.Report();
                         d = [3:4];
+                        d.Report();
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [default];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [new KeyValuePair<int, int>(1, 2)];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13),
-                // (9,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 13),
-                // (9,14): error CS9275: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(9, 14));
+            CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: "[[0, 0]], [[1, 2]], [[3, 4]], ");
         }
 
         [Fact]
@@ -14203,6 +14281,25 @@ namespace System
                 // (6,22): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a];
+                }
+                {
+                    IEnumerable<object?> a = [null];
+                    List<object> b = [..a!];
+                }
+                """;
+            // https://github.com/dotnet/roslyn/issues/68786: Should report warning for [..a].
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
@@ -27508,7 +27605,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
                 // (4,52): error CS9215: Collection expression type 'Dictionary<string, object>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //     Dictionary<string, object> Config => /*<bind>*/[
@@ -38548,8 +38645,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsArray_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsArray_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38578,7 +38677,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ");
 
@@ -38627,8 +38729,10 @@ partial class Program
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72461")]
-        [Fact]
-        public void Add_ParamsCollection_01()
+        [Theory]
+        [CombinatorialData]
+        public void Add_ParamsCollection_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System;
@@ -38657,7 +38761,10 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "(a, b), (c, d), ").VerifyDiagnostics();
 
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,

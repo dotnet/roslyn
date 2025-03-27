@@ -3795,6 +3795,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalue(keyValuePair.Value);
                         // PROTOTYPE: Check nullability from conversions of key and value.
                         break;
+                    case BoundKeyValuePairExpressionElement keyValuePairExpressionElement:
+                        VisitRvalue(keyValuePairExpressionElement.Expression);
+                        // PROTOTYPE: Check nullability from conversions of key and value.
+                        break;
                     default:
                         var elementExpr = (BoundExpression)element;
                         if (!targetElementType.HasType)

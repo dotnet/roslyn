@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1676,6 +1675,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.CollectionBuilder;
             }
+            else if (destination.IsInterfaceType())
+            {
+                if (destination.IsArrayInterface(out elementType))
+                {
+                    return CollectionExpressionTypeKind.ArrayInterface;
+                }
+                else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                    (isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IDictionary_KV, out elementType) ||
+                    isDictionaryType(compilation, destination, WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV, out elementType)))
+                {
+                    return CollectionExpressionTypeKind.DictionaryInterface;
+                }
+            }
             else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
             {
                 // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
@@ -1687,30 +1699,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementType = default;
                 return CollectionExpressionTypeKind.ImplementsIEnumerable;
             }
-            else if (destination.IsArrayInterface(out elementType))
-            {
-                return CollectionExpressionTypeKind.ArrayInterface;
-            }
-            else if (isDictionaryInterface(compilation, destination, out elementType))
-            {
-                return CollectionExpressionTypeKind.DictionaryInterface;
-            }
 
             elementType = default;
             return CollectionExpressionTypeKind.None;
 
             static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
             {
+                Debug.Assert(!targetType.IsInterfaceType());
                 var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
 
-            static bool isDictionaryInterface(CSharpCompilation compilation, TypeSymbol targetType, out TypeWithAnnotations elementType)
+            static bool isDictionaryType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType dictionaryType, out TypeWithAnnotations elementType)
             {
                 if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
-                    (ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)) ||
-                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))))
+                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(dictionaryType)))
                 {
                     elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).
                         Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
@@ -1748,17 +1752,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool CollectionUsesKeyValuePairs(CSharpCompilation compilation, CollectionExpressionTypeKind collectionTypeKind, TypeSymbol elementType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
+        internal static bool IsKeyValuePairType(
+            CSharpCompilation compilation,
+            TypeSymbol? type,
+            [NotNullWhen(true)] out TypeSymbol? keyType,
+            [NotNullWhen(true)] out TypeSymbol? valueType)
+        {
+            if (IsKeyValuePairType(compilation, type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var keyTypeWithAnnotations, out var valueTypeWithAnnotations))
+            {
+                keyType = keyTypeWithAnnotations.Type;
+                valueType = valueTypeWithAnnotations.Type;
+                return true;
+            }
+            keyType = null;
+            valueType = null;
+            return false;
+        }
+
+        internal static bool CollectionUsesKeyValuePairs(
+            CSharpCompilation compilation,
+            CollectionExpressionTypeKind collectionTypeKind,
+            TypeSymbol elementType,
+            [NotNullWhen(true)] out TypeSymbol? keyType,
+            [NotNullWhen(true)] out TypeSymbol? valueType)
         {
             // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
-            if (collectionTypeKind == CollectionExpressionTypeKind.DictionaryInterface)
+            if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
-                bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
+                bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, out keyType, out valueType);
                 Debug.Assert(usesKeyValuePairs);
                 return usesKeyValuePairs;
             }
-            keyType = default;
-            valueType = default;
+            keyType = null;
+            valueType = null;
             return false;
         }
 #nullable disable
