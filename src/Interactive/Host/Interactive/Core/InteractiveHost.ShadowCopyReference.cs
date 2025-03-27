@@ -4,38 +4,39 @@
 
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Interactive;
-
-internal partial class InteractiveHost
+namespace Microsoft.CodeAnalysis.Interactive
 {
-    /// <summary>
-    /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
-    /// Logically this reference represents that file, the fact that we load the image from a copy is an implementation detail.
-    /// </summary>
-    private sealed class ShadowCopyReference : PortableExecutableReference
+    internal partial class InteractiveHost
     {
-        private readonly MetadataShadowCopyProvider _provider;
-
-        public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
-            : base(properties, originalPath)
+        /// <summary>
+        /// Specialize <see cref="PortableExecutableReference"/> with path being the original path of the copy.
+        /// Logically this reference represents that file, the fact that we load the image from a copy is an implementation detail.
+        /// </summary>
+        private sealed class ShadowCopyReference : PortableExecutableReference
         {
-            _provider = provider;
-        }
+            private readonly MetadataShadowCopyProvider _provider;
 
-        protected override DocumentationProvider CreateDocumentationProvider()
-        {
-            // TODO (tomat): use file next to the dll (or shadow copy)
-            return DocumentationProvider.Default;
-        }
+            public ShadowCopyReference(MetadataShadowCopyProvider provider, string originalPath, MetadataReferenceProperties properties)
+                : base(properties, originalPath)
+            {
+                _provider = provider;
+            }
 
-        protected override Metadata GetMetadataImpl()
-        {
-            return _provider.GetMetadata(FilePath, Properties.Kind);
-        }
+            protected override DocumentationProvider CreateDocumentationProvider()
+            {
+                // TODO (tomat): use file next to the dll (or shadow copy)
+                return DocumentationProvider.Default;
+            }
 
-        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-        {
-            return new ShadowCopyReference(_provider, FilePath!, properties);
+            protected override Metadata GetMetadataImpl()
+            {
+                return _provider.GetMetadata(FilePath, Properties.Kind);
+            }
+
+            protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
+            {
+                return new ShadowCopyReference(_provider, FilePath!, properties);
+            }
         }
     }
 }

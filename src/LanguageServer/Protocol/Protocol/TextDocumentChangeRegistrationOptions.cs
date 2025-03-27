@@ -16,7 +16,7 @@ internal sealed class TextDocumentChangeRegistrationOptions : TextDocumentRegist
 {
     /// <summary>
     /// How documents are synced to the server. See <see cref="TextDocumentSyncKind.Full"/>
-	    /// and <see cref="TextDocumentSyncKind.Incremental"/>.
+    /// and <see cref="TextDocumentSyncKind.Incremental"/>.
     /// </summary>
     [JsonPropertyName("syncKind")]
     public TextDocumentSyncKind SyncKind

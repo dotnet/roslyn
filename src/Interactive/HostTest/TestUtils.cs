@@ -4,9 +4,10 @@
 
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Interactive;
-
-internal static class TestUtils
+namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    public static readonly string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(TestUtils).Assembly.Location)!, "Host");
+    internal static class TestUtils
+    {
+        public static readonly string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(TestUtils).Assembly.Location)!, "Host");
+    }
 }

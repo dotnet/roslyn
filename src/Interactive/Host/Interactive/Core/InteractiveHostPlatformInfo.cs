@@ -11,46 +11,47 @@ using System.Linq;
 using Roslyn.Utilities;
 using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Interactive;
-
-internal readonly struct InteractiveHostPlatformInfo
+namespace Microsoft.CodeAnalysis.Interactive
 {
-    internal sealed class Data
+    internal readonly struct InteractiveHostPlatformInfo
     {
-        public string[] PlatformAssemblyPaths = null!;
-        public bool HasGlobalAssemblyCache;
-
-        public InteractiveHostPlatformInfo Deserialize()
-            => new InteractiveHostPlatformInfo(
-                [.. PlatformAssemblyPaths],
-                HasGlobalAssemblyCache);
-    }
-
-    private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location)!;
-
-    public readonly ImmutableArray<string> PlatformAssemblyPaths;
-    public readonly bool HasGlobalAssemblyCache;
-
-    public InteractiveHostPlatformInfo(ImmutableArray<string> platformAssemblyPaths, bool hasGlobalAssemblyCache)
-    {
-        Debug.Assert(!platformAssemblyPaths.IsDefault);
-
-        HasGlobalAssemblyCache = hasGlobalAssemblyCache;
-        PlatformAssemblyPaths = platformAssemblyPaths;
-    }
-
-    public Data Serialize()
-        => new Data()
+        internal sealed class Data
         {
-            HasGlobalAssemblyCache = HasGlobalAssemblyCache,
-            PlatformAssemblyPaths = [.. PlatformAssemblyPaths],
-        };
+            public string[] PlatformAssemblyPaths = null!;
+            public bool HasGlobalAssemblyCache;
 
-    public static InteractiveHostPlatformInfo GetCurrentPlatformInfo()
-        => new InteractiveHostPlatformInfo(
-            [.. RuntimeMetadataReferenceResolver.GetTrustedPlatformAssemblyPaths().Where(IsNotHostAssembly)],
-            GacFileResolver.IsAvailable);
+            public InteractiveHostPlatformInfo Deserialize()
+                => new InteractiveHostPlatformInfo(
+                    [.. PlatformAssemblyPaths],
+                    HasGlobalAssemblyCache);
+        }
 
-    private static bool IsNotHostAssembly(string path)
-        => !StringComparer.OrdinalIgnoreCase.Equals(PathUtilities.GetDirectoryName(path), s_hostDirectory);
+        private static readonly string s_hostDirectory = PathUtilities.GetDirectoryName(typeof(InteractiveHostPlatformInfo).Assembly.Location)!;
+
+        public readonly ImmutableArray<string> PlatformAssemblyPaths;
+        public readonly bool HasGlobalAssemblyCache;
+
+        public InteractiveHostPlatformInfo(ImmutableArray<string> platformAssemblyPaths, bool hasGlobalAssemblyCache)
+        {
+            Debug.Assert(!platformAssemblyPaths.IsDefault);
+
+            HasGlobalAssemblyCache = hasGlobalAssemblyCache;
+            PlatformAssemblyPaths = platformAssemblyPaths;
+        }
+
+        public Data Serialize()
+            => new Data()
+            {
+                HasGlobalAssemblyCache = HasGlobalAssemblyCache,
+                PlatformAssemblyPaths = [.. PlatformAssemblyPaths],
+            };
+
+        public static InteractiveHostPlatformInfo GetCurrentPlatformInfo()
+            => new InteractiveHostPlatformInfo(
+                [.. RuntimeMetadataReferenceResolver.GetTrustedPlatformAssemblyPaths().Where(IsNotHostAssembly)],
+                GacFileResolver.IsAvailable);
+
+        private static bool IsNotHostAssembly(string path)
+            => !StringComparer.OrdinalIgnoreCase.Equals(PathUtilities.GetDirectoryName(path), s_hostDirectory);
+    }
 }

@@ -10,76 +10,77 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Interactive;
-
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-
-[Trait(Traits.Feature, Traits.Features.InteractiveHost)]
-public sealed class InteractiveHostDesktopInitTests : AbstractInteractiveHostTests
+namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
-    internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop32;
-    internal override bool UseDefaultInitializationFile => true;
+    using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
-    [Fact]
-    public async Task SearchPaths1()
+    [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
+    public sealed class InteractiveHostDesktopInitTests : AbstractInteractiveHostTests
     {
-        var fxDir = await GetHostRuntimeDirectoryAsync();
+        internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop32;
+        internal override bool UseDefaultInitializationFile => true;
 
-        var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
-        var srcDir = Temp.CreateDirectory();
-        var dllDir = Path.GetDirectoryName(dll.Path)!;
-        srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
+        [Fact]
+        public async Task SearchPaths1()
+        {
+            var fxDir = await GetHostRuntimeDirectoryAsync();
 
-        // print default:
-        await Host.ExecuteAsync(@"ReferencePaths");
-        var output = await ReadOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir), output);
+            var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);
+            var srcDir = Temp.CreateDirectory();
+            var dllDir = Path.GetDirectoryName(dll.Path)!;
+            srcDir.CreateFile("goo.csx").WriteAllText("ReferencePaths.Add(@\"" + dllDir + "\");");
 
-        await Host.ExecuteAsync(@"SourcePaths");
-        output = await ReadOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(), output);
+            // print default:
+            await Host.ExecuteAsync(@"ReferencePaths");
+            var output = await ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir), output);
 
-        // add and test if added:
-        await Host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");");
+            await Host.ExecuteAsync(@"SourcePaths");
+            output = await ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(), output);
 
-        await Host.ExecuteAsync(@"SourcePaths");
+            // add and test if added:
+            await Host.ExecuteAsync("SourcePaths.Add(@\"" + srcDir + "\");");
 
-        output = await ReadOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(srcDir.Path), output);
+            await Host.ExecuteAsync(@"SourcePaths");
 
-        // execute file (uses modified search paths), the file adds a reference path
-        await Host.ExecuteFileAsync("goo.csx");
+            output = await ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(srcDir.Path), output);
 
-        await Host.ExecuteAsync(@"ReferencePaths");
+            // execute file (uses modified search paths), the file adds a reference path
+            await Host.ExecuteFileAsync("goo.csx");
 
-        output = await ReadOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir, dllDir), output);
+            await Host.ExecuteAsync(@"ReferencePaths");
 
-        await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
+            output = await ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir, dllDir), output);
 
-        await Host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
+            await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
 
-        var error = await ReadErrorOutputToEnd();
-        output = await ReadOutputToEnd();
-        Assert.Equal("", error);
-        Assert.Equal("[Metadata.ICSProp]\r\n", output);
-    }
+            await Host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
-    [Fact]
-    public async Task AddReference_AssemblyAlreadyLoaded()
-    {
-        var result = await LoadReference("System.Core");
-        var output = await ReadOutputToEnd();
-        var error = await ReadErrorOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
-        Assert.True(result);
+            var error = await ReadErrorOutputToEnd();
+            output = await ReadOutputToEnd();
+            Assert.Equal("", error);
+            Assert.Equal("[Metadata.ICSProp]\r\n", output);
+        }
 
-        result = await LoadReference("System.Core.dll");
-        output = await ReadOutputToEnd();
-        error = await ReadErrorOutputToEnd();
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
-        AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
-        Assert.True(result);
+        [Fact]
+        public async Task AddReference_AssemblyAlreadyLoaded()
+        {
+            var result = await LoadReference("System.Core");
+            var output = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
+            Assert.True(result);
+
+            result = await LoadReference("System.Core.dll");
+            output = await ReadOutputToEnd();
+            error = await ReadErrorOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
+            Assert.True(result);
+        }
     }
 }
