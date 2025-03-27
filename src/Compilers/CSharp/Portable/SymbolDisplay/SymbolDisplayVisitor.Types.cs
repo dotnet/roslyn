@@ -332,54 +332,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            string? symbolName = null;
-
-            // It would be nice to handle VB NoPia symbols too, but it's not worth the effort.
-
             NamedTypeSymbol? underlyingTypeSymbol = (symbol as Symbols.PublicModel.NamedTypeSymbol)?.UnderlyingNamedTypeSymbol;
-            var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
-
-            if (illegalGenericInstantiationSymbol is not null)
+            if (symbol.IsExtension)
             {
-                symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
-            }
-            else
-            {
-                var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
-                if (ambiguousCanonicalTypeSymbol is not null)
+                if (Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames))
                 {
-                    symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
+                    var extensionIdentifier = underlyingTypeSymbol!.ExtensionName; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : use public API once it's available
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.ClassName, symbol, extensionIdentifier));
                 }
                 else
                 {
-                    var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
-
-                    if (missingCanonicalTypeSymbol is not null)
-                    {
-                        symbolName = missingCanonicalTypeSymbol.FullTypeName;
-                    }
+                    AddKeyword(SyntaxKind.ExtensionKeyword);
                 }
-            }
-
-            if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
-            {
-                symbolName = "<anonymous delegate>";
-            }
-
-            var partKind = GetPartKind(symbol);
-
-            symbolName ??= symbol.Name;
-
-            if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
-                partKind == SymbolDisplayPartKind.ErrorTypeName &&
-                string.IsNullOrEmpty(symbolName))
-            {
-                Builder.Add(CreatePart(partKind, symbol, "?"));
             }
             else
             {
-                symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
-                Builder.Add(CreatePart(partKind, symbol, symbolName));
+                string? symbolName = null;
+
+                // It would be nice to handle VB NoPia symbols too, but it's not worth the effort.
+
+                var illegalGenericInstantiationSymbol = underlyingTypeSymbol as NoPiaIllegalGenericInstantiationSymbol;
+
+                if (illegalGenericInstantiationSymbol is not null)
+                {
+                    symbol = illegalGenericInstantiationSymbol.UnderlyingSymbol.GetPublicSymbol();
+                }
+                else
+                {
+                    var ambiguousCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaAmbiguousCanonicalTypeSymbol;
+                    if (ambiguousCanonicalTypeSymbol is not null)
+                    {
+                        symbol = ambiguousCanonicalTypeSymbol.FirstCandidate.GetPublicSymbol();
+                    }
+                    else
+                    {
+                        var missingCanonicalTypeSymbol = underlyingTypeSymbol as NoPiaMissingCanonicalTypeSymbol;
+
+                        if (missingCanonicalTypeSymbol is not null)
+                        {
+                            symbolName = missingCanonicalTypeSymbol.FullTypeName;
+                        }
+                    }
+                }
+
+                if (symbolName is null && symbol.IsAnonymousType && symbol.TypeKind == TypeKind.Delegate)
+                {
+                    symbolName = "<anonymous delegate>";
+                }
+
+                var partKind = GetPartKind(symbol);
+
+                symbolName ??= symbol.Name;
+
+                if (Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) &&
+                    partKind == SymbolDisplayPartKind.ErrorTypeName &&
+                    string.IsNullOrEmpty(symbolName))
+                {
+                    Builder.Add(CreatePart(partKind, symbol, "?"));
+                }
+                else
+                {
+                    symbolName = RemoveAttributeSuffixIfNecessary(symbol, symbolName);
+                    Builder.Add(CreatePart(partKind, symbol, symbolName));
+                }
             }
 
             if (Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes))
@@ -410,9 +425,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddTypeArguments(symbol, GetTypeArgumentsModifiers(underlyingTypeSymbol));
                     AddDelegateParameters(symbol);
 
+                    if (symbol.IsExtension)
+                    {
+                        addExtensionParameter(symbol);
+                    }
+
                     // TODO: do we want to skip these if we're being visited as a containing type?
                     AddTypeParameterConstraints(symbol.TypeArguments);
                 }
+            }
+            else if (symbol.IsExtension)
+            {
+                addExtensionParameter(symbol);
             }
             else
             {
@@ -427,6 +451,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.OpenBracketToken);
                 Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing"));
                 AddPunctuation(SyntaxKind.CloseBracketToken);
+            }
+
+            return;
+
+            void addExtensionParameter(INamedTypeSymbol symbol)
+            {
+                if (!Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames)
+                    && symbol.ExtensionParameter is { } extensionParameter)
+                {
+                    AddPunctuation(SyntaxKind.OpenParenToken);
+                    AddParameterModifiersAndType(extensionParameter);
+                    AddPunctuation(SyntaxKind.CloseParenToken);
+                }
             }
         }
 

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Test.Utilities;

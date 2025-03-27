@@ -4,10 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security.Principal;
-using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 

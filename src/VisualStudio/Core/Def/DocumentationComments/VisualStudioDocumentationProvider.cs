@@ -9,7 +9,6 @@ using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DocumentationComments;
 

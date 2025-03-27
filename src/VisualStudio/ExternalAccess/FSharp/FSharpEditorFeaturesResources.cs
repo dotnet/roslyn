@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.Editor;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 {
