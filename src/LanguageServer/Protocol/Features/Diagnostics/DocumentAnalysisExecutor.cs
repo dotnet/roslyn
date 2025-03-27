@@ -98,8 +98,11 @@ internal sealed partial class DocumentAnalysisExecutor
         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
         {
             // DocumentDiagnosticAnalyzer is a host-only analyzer
+            var tree = document is null
+                ? null
+                : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, cancellationToken).ConfigureAwait(false);
+                documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, tree, cancellationToken).ConfigureAwait(false);
 
             return ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
         }
