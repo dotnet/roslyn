@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
 
-            // PROTOTYPE: Implement IOperation support.
+            // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            // PROTOTYPE: Type inference should succeed for Identity([1:default, default:"2"]);.
+            // https://github.com/dotnet/roslyn/issues/77873: Type inference should succeed for Identity([1:default, default:"2"]);.
             comp.VerifyEmitDiagnostics(
                 // (6,9): error CS0411: The type arguments for method 'Program.Identity<K, V>(IDictionary<K, V>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Identity([default:default]);

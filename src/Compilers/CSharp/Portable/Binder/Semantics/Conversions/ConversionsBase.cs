@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out TypeSymbol? keyType,
             [NotNullWhen(true)] out TypeSymbol? valueType)
         {
-            // PROTOTYPE: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
+            // https://github.com/dotnet/roslyn/issues/77871: Should apply to any collection of KeyValuePair<,>, not just dictionaries.
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface)
             {
                 bool usesKeyValuePairs = IsKeyValuePairType(compilation, elementType, out keyType, out valueType);
