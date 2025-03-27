@@ -92,7 +92,7 @@ internal sealed partial class RenameCommandHandler(
             }
 
             errorReportingService.ShowGlobalErrorInfo(
-                message: string.Format(EditorFeaturesResources.Error_performing_rename_0, ex.Message),
+                message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
                 TelemetryFeatureName.InlineRename,
                 ex,
                 new InfoBarUI(
