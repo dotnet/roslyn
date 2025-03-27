@@ -40,9 +40,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
             _stateManager = new StateManager(analyzerInfoCache);
 
-            var enabled = globalOptionService.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler);
-            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(
-                enabled, analyzerInfoCache, analyzerService.Listener);
+            _diagnosticAnalyzerRunner = new InProcOrRemoteHostAnalyzerRunner(analyzerInfoCache, analyzerService.Listener);
         }
 
         internal IGlobalOptionService GlobalOptions { get; }
