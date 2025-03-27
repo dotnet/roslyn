@@ -69,13 +69,6 @@ internal sealed class DiagnosticArguments
     [DataMember(Order = 7)]
     public ImmutableArray<string> HostAnalyzerIds;
 
-    /// <summary>
-    /// Indicates diagnostic computation for an explicit user-invoked request,
-    /// such as a user-invoked Ctrl + Dot operation to bring up the light bulb.
-    /// </summary>
-    [DataMember(Order = 8)]
-    public bool IsExplicit;
-
     public DiagnosticArguments(
         bool logPerformanceInfo,
         bool getTelemetryInfo,
@@ -101,6 +94,5 @@ internal sealed class DiagnosticArguments
         ProjectId = projectId;
         ProjectAnalyzerIds = projectAnalyzerIds;
         HostAnalyzerIds = hostAnalyzerIds;
-        IsExplicit = isExplicit;
     }
 }
