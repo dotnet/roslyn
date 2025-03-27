@@ -102,7 +102,7 @@ internal abstract class InteractiveCommandHandler :
 
         using (var edit = buffer.CreateEdit())
         using (var waitScope = context.OperationContext.AddScope(allowCancellation: true,
-            EditorFeaturesResources.Copying_selection_to_Interactive_Window))
+            EditorFeaturesWpfResources.Copying_selection_to_Interactive_Window))
         {
             var text = GetSelectedText(args, context.OperationContext.UserCancellationToken);
 
