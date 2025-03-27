@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()
             {
                 var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
-                var loader = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory: baseDirectory);
-                var task = loader.DeleteLeftoverDirectoriesTask;
+                var shadowResolver = new ShadowCopyAnalyzerPathResolver(baseDirectory);
+                var task = shadowResolver.DeleteLeftoverDirectoriesTask;
                 await task;
                 Assert.False(task.IsFaulted);
             }

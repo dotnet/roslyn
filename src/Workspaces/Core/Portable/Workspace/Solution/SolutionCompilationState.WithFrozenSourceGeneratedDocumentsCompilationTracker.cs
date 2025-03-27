@@ -35,7 +35,7 @@ internal sealed partial class SolutionCompilationState
         [DisallowNull]
         private Compilation? _compilationWithReplacements;
 
-        public ICompilationTracker UnderlyingTracker { get; }
+        public RegularCompilationTracker UnderlyingTracker { get; }
         public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
         public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
@@ -46,7 +46,7 @@ internal sealed partial class SolutionCompilationState
         private SkeletonReferenceCache _skeletonReferenceCache;
 
         public WithFrozenSourceGeneratedDocumentsCompilationTracker(
-            ICompilationTracker underlyingTracker,
+            RegularCompilationTracker underlyingTracker,
             TextDocumentStates<SourceGeneratedDocumentState> replacementDocumentStates)
         {
             this.UnderlyingTracker = underlyingTracker;

@@ -821,8 +821,9 @@ internal sealed class EditSession
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
 
-            var isBlocked = false;
+            var blockUpdates = false;
             var hasEmitErrors = false;
+            var hadDocumentReadError = false;
             foreach (var newProject in solution.Projects)
             {
                 if (!newProject.SupportsEditAndContinue(Log))
@@ -866,7 +867,7 @@ internal sealed class EditSession
                     diagnostics.Add(new(newProject.Id, [mvidReadError]));
 
                     Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, ImmutableArray.Create(mvidReadError.Descriptor.Id));
-                    isBlocked = true;
+                    blockUpdates = true;
                     continue;
                 }
 
@@ -899,6 +900,11 @@ internal sealed class EditSession
                     // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state,
                     // and we consider any further changes to it for application.
                     diagnostics.Add(new(newProject.Id, documentDiagnostics));
+
+                    if (documentDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error))
+                    {
+                        blockUpdates = hadDocumentReadError = true;
+                    }
                 }
 
                 foreach (var changedDocumentAnalysis in changedDocumentAnalyses)
@@ -935,12 +941,12 @@ internal sealed class EditSession
                 if (isModuleEncBlocked)
                 {
                     diagnostics.Add(new(newProject.Id, moduleDiagnostics));
-                    isBlocked = true;
+                    blockUpdates = true;
                 }
 
                 if (projectSummary is ProjectAnalysisSummary.SyntaxErrors or ProjectAnalysisSummary.RudeEdits)
                 {
-                    isBlocked = true;
+                    blockUpdates = true;
                 }
 
                 // Report rude edit diagnostics - these can be blocking (errors) or non-blocking (warnings):
@@ -972,7 +978,7 @@ internal sealed class EditSession
                     diagnostics.Add(new(newProject.Id, createBaselineErrors));
                     Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, createBaselineErrors);
 
-                    isBlocked = true;
+                    blockUpdates = true;
                     await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                     continue;
                 }
@@ -1050,7 +1056,7 @@ internal sealed class EditSession
                     if (!emitResult.Success)
                     {
                         // error
-                        isBlocked = hasEmitErrors = true;
+                        blockUpdates = hasEmitErrors = true;
                         emitDiagnostics = emitResult.Diagnostics;
                         break;
                     }
@@ -1062,7 +1068,7 @@ internal sealed class EditSession
                     {
                         emitDiagnostics = [unsupportedChangesDiagnostic];
                         diagnostics.Add(new(newProject.Id, emitDiagnostics));
-                        isBlocked = true;
+                        blockUpdates = true;
                         break;
                     }
 
@@ -1127,13 +1133,17 @@ internal sealed class EditSession
             }
 
             // log capabilities for edit sessions with changes or reported errors:
-            if (isBlocked || deltas.Count > 0)
+            if (blockUpdates || deltas.Count > 0)
             {
                 Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            var update = isBlocked
-                ? SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors)
+            var update = blockUpdates
+                ? SolutionUpdate.Empty(
+                    diagnostics.ToImmutable(),
+                    documentsWithRudeEdits.ToImmutable(),
+                    syntaxError,
+                    syntaxError != null || hasEmitErrors || hadDocumentReadError ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired)
                 : new SolutionUpdate(
                     new ModuleUpdates(
                         (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,

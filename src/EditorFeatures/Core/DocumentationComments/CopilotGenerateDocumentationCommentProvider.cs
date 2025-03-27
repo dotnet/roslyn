@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -97,8 +98,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
             if (summaryEndTag != -1 && summaryStartTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), symbolName: null, DocumentationCommentTagType.Summary));
             }
+
+            // We may receive remarks from the model. In that case, we want to insert the remark tags and remark directly after the summary.
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(summaryEndTag + "</summary>".Length + startIndex, 0), symbolName: null, DocumentationCommentTagType.Remarks));
 
             while (true)
             {
@@ -145,7 +149,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
             if (returnsEndTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), null, DocumentationCommentTagType.Returns));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), symbolName: null, DocumentationCommentTagType.Returns));
             }
 
             while (true)
@@ -218,7 +222,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length),
-                    AddNewLinesToCopilotText(copilotStatement, indentText, characterLimit: 120));
+                    AddNewLinesToCopilotText(copilotStatement, indentText, edit.TagType, characterLimit: 120));
                 list.Add(proposedEdit);
             }
 
@@ -229,6 +233,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
                 {
                     return summary;
+                }
+                else if (edit.TagType == DocumentationCommentTagType.Remarks && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Remarks.ToString(), out var remarks) && !string.IsNullOrEmpty(remarks))
+                {
+                    return remarks;
                 }
                 else if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(symbolKey!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
                 {
@@ -250,11 +258,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            static string AddNewLinesToCopilotText(string copilotText, string? indentText, int characterLimit)
+            static string AddNewLinesToCopilotText(string copilotText, string? indentText, DocumentationCommentTagType tagType, int characterLimit)
             {
                 // Double check that the resultant from Copilot does not produce any strings containing new line characters.
                 copilotText = Regex.Replace(copilotText, @"\r?\n", " ");
                 var builder = new StringBuilder();
+                copilotText = BuildCopilotTextForRemarks(copilotText, indentText, tagType, builder);
+
                 var words = copilotText.Split(' ');
                 var currentLineLength = 0;
                 characterLimit -= (indentText!.Length + "/// ".Length);
@@ -279,6 +289,22 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 return builder.ToString();
+
+                static string BuildCopilotTextForRemarks(string copilotText, string? indentText, DocumentationCommentTagType tagType, StringBuilder builder)
+                {
+                    if (tagType is DocumentationCommentTagType.Remarks)
+                    {
+                        builder.AppendLine();
+                        builder.Append(indentText);
+                        builder.Append("/// <remarks>");
+                        builder.Append(copilotText);
+                        builder.Append("</remarks>");
+                        copilotText = builder.ToString();
+                        builder.Clear();
+                    }
+
+                    return copilotText;
+                }
             }
         }
 
