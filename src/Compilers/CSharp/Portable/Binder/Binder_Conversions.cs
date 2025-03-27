@@ -2224,6 +2224,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (element)
                     {
+                        case BoundCollectionExpressionWithElement:
+                            // Collection arguments do not affect convertibility.
+                            break;
+                        case BoundExpression expressionElement:
+                            {
+                                var expressionSyntax = expressionElement.Syntax;
+                                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
+                                if (elementConversion.Exists)
+                                {
+                                    continue;
+                                }
+                                else if (expressionElement.Type is { } &&
+                                    usesKeyValuePairs &&
+                                    ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
+                                {
+                                    Debug.Assert(keyType is { });
+                                    Debug.Assert(valueType is { });
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
+                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
+                                }
+                                else
+                                {
+                                    GenerateImplicitConversionError(diagnostics, expressionSyntax, elementConversion, expressionElement, elementType);
+                                    reportedErrors = true;
+                                }
+                            }
+                            break;
                         case BoundCollectionExpressionSpreadElement spreadElement:
                             {
                                 var expressionSyntax = spreadElement.Expression.Syntax;
@@ -2268,33 +2295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(diagnostics, ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, keyValuePairElement.Syntax, targetType);
                                 reportedErrors = true;
-                            }
-                            break;
-                        case BoundCollectionExpressionWithElement:
-                            // Collection arguments do not affect convertibility.
-                            break;
-                        case BoundExpression expressionElement:
-                            {
-                                var expressionSyntax = expressionElement.Syntax;
-                                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(expressionElement, elementType, ref useSiteInfo);
-                                if (elementConversion.Exists)
-                                {
-                                    continue;
-                                }
-                                else if (expressionElement.Type is { } &&
-                                    usesKeyValuePairs &&
-                                    ConversionsBase.IsKeyValuePairType(Compilation, expressionElement.Type, out var elementKeyType, out var elementValueType))
-                                {
-                                    Debug.Assert(keyType is { });
-                                    Debug.Assert(valueType is { });
-                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementKeyType, keyType, ref useSiteInfo, ref reportedErrors);
-                                    generateImplicitConversionFromTypeError(diagnostics, expressionSyntax, elementValueType, valueType, ref useSiteInfo, ref reportedErrors);
-                                }
-                                else
-                                {
-                                    GenerateImplicitConversionError(diagnostics, expressionSyntax, elementConversion, expressionElement, elementType);
-                                    reportedErrors = true;
-                                }
                             }
                             break;
                         default:
