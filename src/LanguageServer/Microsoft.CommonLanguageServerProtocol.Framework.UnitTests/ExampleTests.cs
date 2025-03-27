@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-public partial class ExampleTests
+public sealed partial class ExampleTests
 {
     [Fact]
     public void InitializeServer_WithMethodRegisteredTwice_Fails()

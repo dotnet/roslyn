@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Id)]
-internal class AnalyzerIdColumnDefinition : TableColumnDefinitionBase
+internal sealed class AnalyzerIdColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

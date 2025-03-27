@@ -21,7 +21,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;

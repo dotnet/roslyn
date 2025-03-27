@@ -5,28 +5,27 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CodeFixes
+namespace Microsoft.CodeAnalysis.CodeFixes;
+
+internal sealed partial class CodeFixService
 {
-    internal partial class CodeFixService
+    private sealed class ProjectCodeFixProvider
+        : AbstractProjectExtensionProvider<ProjectCodeFixProvider, CodeFixProvider, ExportCodeFixProviderAttribute>
     {
-        private class ProjectCodeFixProvider
-            : AbstractProjectExtensionProvider<ProjectCodeFixProvider, CodeFixProvider, ExportCodeFixProviderAttribute>
+        protected override ImmutableArray<string> GetLanguages(ExportCodeFixProviderAttribute exportAttribute)
+            => [.. exportAttribute.Languages];
+
+        protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
         {
-            protected override ImmutableArray<string> GetLanguages(ExportCodeFixProviderAttribute exportAttribute)
-                => [.. exportAttribute.Languages];
-
-            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
+            // check whether the analyzer reference knows how to return fixers directly.
+            if (reference is ICodeFixProviderFactory codeFixProviderFactory)
             {
-                // check whether the analyzer reference knows how to return fixers directly.
-                if (reference is ICodeFixProviderFactory codeFixProviderFactory)
-                {
-                    extensions = codeFixProviderFactory.GetFixers();
-                    return true;
-                }
-
-                extensions = default;
-                return false;
+                extensions = codeFixProviderFactory.GetFixers();
+                return true;
             }
+
+            extensions = default;
+            return false;
         }
     }
 }

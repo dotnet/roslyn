@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [UseExportProvider]
-public class ArgumentProviderOrderTests
+public sealed class ArgumentProviderOrderTests
 {
     /// <summary>
     /// Verifies the exact order of all built-in argument providers.

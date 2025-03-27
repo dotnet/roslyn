@@ -30,7 +30,7 @@ using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 
 [UseExportProvider]
-public class DiagnosticAnalyzerServiceTests
+public sealed class DiagnosticAnalyzerServiceTests
 {
     private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
         .AddParts(typeof(TestDocumentTrackingService));
@@ -471,7 +471,7 @@ public class DiagnosticAnalyzerServiceTests
         Assert.Empty(diagnostics);
     }
 
-    private class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
+    private sealed class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
     {
         public AdditionalFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
             : base(registerFromInitialize, diagnosticSpan, id)
@@ -899,7 +899,7 @@ public class DiagnosticAnalyzerServiceTests
         return (syntax, semantic);
     }
 
-    private class Analyzer : DiagnosticAnalyzer
+    private sealed class Analyzer : DiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
         internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
@@ -915,7 +915,7 @@ public class DiagnosticAnalyzerServiceTests
         }
     }
 
-    private class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
+    private sealed class DisabledByDefaultAnalyzer : DiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
         internal static readonly DiagnosticDescriptor s_semanticRule = new DiagnosticDescriptor("semantic", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: false);
@@ -931,7 +931,7 @@ public class DiagnosticAnalyzerServiceTests
         }
     }
 
-    private class NoNameAnalyzer : DocumentDiagnosticAnalyzer
+    private sealed class NoNameAnalyzer : DocumentDiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -944,27 +944,27 @@ public class DiagnosticAnalyzerServiceTests
             => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
-    private class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority20Analyzer() : base(priority: 20) { }
     }
 
-    private class Priority15Analyzer : PriorityTestProjectDiagnosticAnalyzer
+    private sealed class Priority15Analyzer : PriorityTestProjectDiagnosticAnalyzer
     {
         public Priority15Analyzer() : base(priority: 15) { }
     }
 
-    private class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority10Analyzer() : base(priority: 10) { }
     }
 
-    private class Priority1Analyzer : PriorityTestProjectDiagnosticAnalyzer
+    private sealed class Priority1Analyzer : PriorityTestProjectDiagnosticAnalyzer
     {
         public Priority1Analyzer() : base(priority: 1) { }
     }
 
-    private class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
+    private sealed class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
     {
         public Priority0Analyzer() : base(priority: -1) { }
     }
@@ -993,7 +993,7 @@ public class DiagnosticAnalyzerServiceTests
             => Task.FromResult(ImmutableArray<Diagnostic>.Empty);
     }
 
-    private class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
+    private sealed class LeakDocumentAnalyzer : DocumentDiagnosticAnalyzer
     {
         internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("leak", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
@@ -1009,7 +1009,7 @@ public class DiagnosticAnalyzerServiceTests
             => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
     }
 
-    private class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
+    private sealed class LeakProjectAnalyzer : ProjectDiagnosticAnalyzer
     {
         private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor("project", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_rule];
@@ -1017,7 +1017,7 @@ public class DiagnosticAnalyzerServiceTests
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    private class NamedTypeAnalyzer : DiagnosticAnalyzer
+    private sealed class NamedTypeAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "test";
         private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;

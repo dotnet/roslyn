@@ -5,10 +5,9 @@
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+
+[Guid(Guids.CSharpCodePageEditorFactoryIdString)]
+internal sealed class CSharpCodePageEditorFactory(AbstractEditorFactory editorFactory) : AbstractCodePageEditorFactory(editorFactory)
 {
-    [Guid(Guids.CSharpCodePageEditorFactoryIdString)]
-    internal sealed class CSharpCodePageEditorFactory(AbstractEditorFactory editorFactory) : AbstractCodePageEditorFactory(editorFactory)
-    {
-    }
 }

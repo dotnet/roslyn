@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseNullPropagationCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)]
-public partial class UseNullPropagationTests
+public sealed partial class UseNullPropagationTests
 {
     private static async Task TestInRegularAndScript1Async(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UpdateLegacySuppression
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateLegacySuppressions)]
 [WorkItem("https://github.com/dotnet/roslyn/issues/44362")]
-public class UpdateLegacySuppressionsTests
+public sealed class UpdateLegacySuppressionsTests
 {
     [Theory, CombinatorialData]
     public void TestStandardProperty(AnalyzerProperty property)

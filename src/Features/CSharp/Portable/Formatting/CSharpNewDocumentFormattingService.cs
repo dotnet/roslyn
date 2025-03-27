@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers) : AbstractNewDocumentFormattingService(providers)
+internal sealed class CSharpNewDocumentFormattingService([ImportMany] IEnumerable<Lazy<INewDocumentFormattingProvider, LanguageMetadata>> providers) : AbstractNewDocumentFormattingService(providers)
 {
     protected override string Language => LanguageNames.CSharp;
 }

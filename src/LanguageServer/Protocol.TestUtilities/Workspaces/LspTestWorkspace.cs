@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
+public sealed partial class LspTestWorkspace : TestWorkspace, ILspWorkspace
 {
     private readonly bool _supportsLspMutation;
 

@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// TODO: document.
 /// </summary>
-internal class DocumentUriConverter : JsonConverter<Uri>
+internal sealed class DocumentUriConverter : JsonConverter<Uri>
 {
     public override Uri Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     => new(reader.GetString());

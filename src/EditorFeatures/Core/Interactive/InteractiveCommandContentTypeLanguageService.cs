@@ -11,19 +11,18 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+[ExportContentTypeLanguageService(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName, InteractiveLanguageNames.InteractiveCommand), Shared]
+internal sealed class InteractiveCommandContentTypeLanguageService : IContentTypeLanguageService
 {
-    [ExportContentTypeLanguageService(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName, InteractiveLanguageNames.InteractiveCommand), Shared]
-    internal class InteractiveCommandContentTypeLanguageService : IContentTypeLanguageService
-    {
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
+    private readonly IContentTypeRegistryService _contentTypeRegistry;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InteractiveCommandContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
-            => _contentTypeRegistry = contentTypeRegistry;
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InteractiveCommandContentTypeLanguageService(IContentTypeRegistryService contentTypeRegistry)
+        => _contentTypeRegistry = contentTypeRegistry;
 
-        public IContentType GetDefaultContentType()
-            => _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-    }
+    public IContentType GetDefaultContentType()
+        => _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
 }

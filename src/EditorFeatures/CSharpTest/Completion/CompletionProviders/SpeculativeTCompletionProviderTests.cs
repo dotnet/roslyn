@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
-public class SpeculativeTCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class SpeculativeTCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SpeculativeTCompletionProvider);

@@ -44,13 +44,18 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
     protected override async Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsInCurrentProcessAsync(
         Document document, bool supportsCodeGeneration, CancellationToken cancellationToken)
     {
-        var typesInFile = await GetTypesInFileAsync(document, cancellationToken).ConfigureAwait(false);
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        return GetMembersInTypes(document.Project.Solution, tree, typesInFile, cancellationToken);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        using var _ = PooledHashSet<INamedTypeSymbol>.GetInstance(out var typesInFile);
+
+        AddTypesInFile(semanticModel, typesInFile, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return [];
+
+        return GetMembersInTypes(document.Project.Solution, semanticModel.SyntaxTree, typesInFile, cancellationToken);
     }
 
     private static ImmutableArray<RoslynNavigationBarItem> GetMembersInTypes(
-        Solution solution, SyntaxTree tree, IEnumerable<INamedTypeSymbol> types, CancellationToken cancellationToken)
+        Solution solution, SyntaxTree tree, HashSet<INamedTypeSymbol> types, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
         {
@@ -121,18 +126,11 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
         }
     }
 
-    private static async Task<IEnumerable<INamedTypeSymbol>> GetTypesInFileAsync(Document document, CancellationToken cancellationToken)
-    {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        return GetTypesInFile(semanticModel, cancellationToken);
-    }
-
-    private static IEnumerable<INamedTypeSymbol> GetTypesInFile(SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static void AddTypesInFile(
+        SemanticModel semanticModel, HashSet<INamedTypeSymbol> types, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetTypesInFile_CSharp, cancellationToken))
         {
-            var types = new HashSet<INamedTypeSymbol>();
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToVisit);
 
             nodesToVisit.Push(semanticModel.SyntaxTree.GetRoot(cancellationToken));
@@ -140,36 +138,27 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
             while (nodesToVisit.TryPop(out var node))
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return [];
+                    return;
 
-                var type = GetType(semanticModel, node, cancellationToken);
-
-                if (type != null)
-                {
-                    types.Add((INamedTypeSymbol)type);
-                }
+                types.AddIfNotNull(GetType(semanticModel, node, cancellationToken));
 
                 if (node is BaseMethodDeclarationSyntax or
-                    BasePropertyDeclarationSyntax or
-                    BaseFieldDeclarationSyntax or
-                    StatementSyntax or
-                    ExpressionSyntax)
+                            BasePropertyDeclarationSyntax or
+                            BaseFieldDeclarationSyntax or
+                            StatementSyntax or
+                            ExpressionSyntax)
                 {
                     // quick bail out to prevent us from creating every nodes exist in current file
                     continue;
                 }
 
                 foreach (var child in node.ChildNodes())
-                {
                     nodesToVisit.Push(child);
-                }
             }
-
-            return types;
         }
     }
 
-    private static ISymbol? GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+    private static INamedTypeSymbol? GetType(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         => node switch
         {
             BaseTypeDeclarationSyntax t => semanticModel.GetDeclaredSymbol(t, cancellationToken),
@@ -189,7 +178,7 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
         return false;
     }
 
-    private static RoslynNavigationBarItem? CreateItemForMember(
+    private static SymbolItem? CreateItemForMember(
         Solution solution, ISymbol member, SyntaxTree tree, CancellationToken cancellationToken)
     {
         var location = GetSymbolLocation(solution, member, tree, cancellationToken);

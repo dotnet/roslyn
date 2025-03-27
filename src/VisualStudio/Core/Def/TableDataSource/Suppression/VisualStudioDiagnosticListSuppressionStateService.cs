@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 /// </summary>
 [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
 [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
-internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
+internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
 {
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspace _workspace;

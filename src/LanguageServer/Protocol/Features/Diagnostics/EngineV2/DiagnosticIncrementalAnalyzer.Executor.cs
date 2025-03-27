@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// Return all diagnostics that belong to given project for the given <see cref="DiagnosticAnalyzer"/> either

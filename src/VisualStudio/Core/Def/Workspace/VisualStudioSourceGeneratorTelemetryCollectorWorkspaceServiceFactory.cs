@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices;
 /// </summary>
 [Export]
 [ExportWorkspaceServiceFactory(typeof(ISourceGeneratorTelemetryCollectorWorkspaceService)), Shared]
-internal class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, IVsSolutionEvents
+internal sealed class VisualStudioSourceGeneratorTelemetryCollectorWorkspaceServiceFactory : IWorkspaceServiceFactory, IVsSolutionEvents
 {
     /// <summary>
     /// The collector that's used to collect all the telemetry for operations within <see

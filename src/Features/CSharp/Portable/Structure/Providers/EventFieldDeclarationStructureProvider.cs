@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class EventFieldDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EventFieldDeclarationSyntax>
+internal sealed class EventFieldDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EventFieldDeclarationSyntax>
 {
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
