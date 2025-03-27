@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -26,12 +25,21 @@ internal sealed class FileContentLoadAnalyzer : DocumentDiagnosticAnalyzer
 
     public override int Priority => -4;
 
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(
+        TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
     {
-        var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-        return loadDiagnostic != null ? [loadDiagnostic] : [];
-    }
+        var exceptionMessage = await textDocument.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).ConfigureAwait(false);
+        if (exceptionMessage is null)
+            return [];
 
-    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+        var location = tree is null
+            ? textDocument.FilePath is null ? Location.None : Location.Create(textDocument.FilePath, textSpan: default, lineSpan: default)
+            : tree.GetLocation(span: default);
+
+        var filePath = textDocument.FilePath;
+        var display = filePath ?? "<no path>";
+
+        return [Diagnostic.Create(
+            WorkspaceDiagnosticDescriptors.ErrorReadingFileContent, location, display, exceptionMessage)];
+    }
 }

@@ -3916,9 +3916,9 @@ End Class";
         var doc = solution.GetDocument(did);
         var text = await doc.GetTextAsync().ConfigureAwait(false);
 
-        var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
+        var exceptionMessage = await doc.State.GetFailedToLoadExceptionMessageAsync(CancellationToken.None).ConfigureAwait(false);
 
-        Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
+        Assert.NotNull(exceptionMessage);
         Assert.Equal("", text.ToString());
 
         // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).

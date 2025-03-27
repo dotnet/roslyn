@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -127,19 +128,23 @@ internal sealed partial class DiagnosticAnalyzerService
                     {
                         var builder = new DiagnosticAnalysisResultBuilder(project);
 
-                        foreach (var document in project.Documents)
+                        foreach (var textDocument in project.AdditionalDocuments.Concat(project.Documents))
                         {
-                            // don't analyze documents whose content failed to load
-                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            var tree = textDocument is Document document
+                                ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                                : null;
+                            var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
+                            var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
+
                             if (tree != null)
                             {
-                                builder.AddSyntaxDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                builder.AddSemanticDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
+                                builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
                             }
                             else
                             {
-                                builder.AddExternalSyntaxDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                builder.AddExternalSemanticDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                builder.AddExternalSyntaxDiagnostics(textDocument.Id, syntaxDiagnostics);
+                                builder.AddExternalSemanticDiagnostics(textDocument.Id, semanticDiagnostics);
                             }
                         }
 
