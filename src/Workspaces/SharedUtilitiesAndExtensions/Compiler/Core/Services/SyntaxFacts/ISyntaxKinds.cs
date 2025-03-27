@@ -56,6 +56,7 @@ internal interface ISyntaxKinds
     int? GlobalStatement { get; }
     int IfKeyword { get; }
     int NewKeyword { get; }
+    int PartialKeyword { get; }
     int TrueKeyword { get; }
     int UsingKeyword { get; }
 

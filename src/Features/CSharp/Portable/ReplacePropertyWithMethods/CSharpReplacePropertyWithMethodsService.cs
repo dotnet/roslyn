@@ -35,7 +35,7 @@ internal sealed partial class CSharpReplacePropertyWithMethodsService() :
         Document document,
         IPropertySymbol property,
         SyntaxNode propertyDeclarationNode,
-        IFieldSymbol propertyBackingField,
+        IFieldSymbol? propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
         CancellationToken cancellationToken)
