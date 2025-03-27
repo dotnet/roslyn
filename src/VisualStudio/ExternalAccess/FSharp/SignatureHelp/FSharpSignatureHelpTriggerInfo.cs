@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp
 {
     internal readonly struct FSharpSignatureHelpTriggerInfo

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse;
 

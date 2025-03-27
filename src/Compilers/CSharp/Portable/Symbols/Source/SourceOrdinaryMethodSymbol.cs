@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : these validation rules should also be applied to extension declarations
                 var syntax = GetSyntax();
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
@@ -243,23 +244,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-
-                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
-                    if ((object)attributeConstructor == null)
-                    {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
-                        diagnostics.Add(
-                            ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisKeyword.GetLocation(),
-                            memberDescriptor.DeclaringTypeMetadataName);
-                    }
-                    else
-                    {
-                        diagnostics.Add(useSiteInfo, thisKeyword);
-                    }
+                    CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+        }
+
+        internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            var attributeConstructor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
+
+            if ((object)attributeConstructor == null)
+            {
+                var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
+                diagnostics.Add(
+                    ErrorCode.ERR_ExtensionAttrNotFound,
+                    location,
+                    memberDescriptor.DeclaringTypeMetadataName);
+            }
+            else
+            {
+                diagnostics.Add(useSiteInfo, location);
             }
         }
 
@@ -1136,23 +1141,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
-                    for (int i = 0; i < result.Count; i++)
+                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                    bool checkForDuplicates = true;
+
+                    if ((object)tpEnclosing != null)
                     {
-                        if (name == result[i].Name)
+                        if (tpEnclosing.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                            break;
+                            diagnostics.Add(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, location, name);
+                            checkForDuplicates = false;
+                        }
+                        else
+                        {
+                            // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                            diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                        }
+                    }
+
+                    if (checkForDuplicates)
+                    {
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            if (name == result[i].Name)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                                break;
+                            }
                         }
                     }
 
                     SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-
-                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                    if ((object)tpEnclosing != null)
-                    {
-                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                    }
 
                     var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
                     var locations = ImmutableArray.Create(location);
