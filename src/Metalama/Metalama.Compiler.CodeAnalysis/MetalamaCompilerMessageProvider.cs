@@ -158,8 +158,6 @@ namespace Metalama.Compiler
 
         public override int ERR_ModuleEmitFailure => throw new NotImplementedException();
 
-        public override int ERR_EncUpdateFailedMissingAttribute => throw new NotImplementedException();
-
         public override int ERR_InvalidDebugInfo => throw new NotImplementedException();
 
         public override int WRN_GeneratorFailedDuringInitialization => throw new NotImplementedException();
@@ -173,6 +171,8 @@ namespace Metalama.Compiler
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => throw new NotImplementedException();
 
         public override int? WRN_ByValArraySizeConstRequired => throw new NotImplementedException();
+
+        public override int ERR_EncUpdateFailedMissingSymbol => throw new NotImplementedException();
 
         #endregion
 

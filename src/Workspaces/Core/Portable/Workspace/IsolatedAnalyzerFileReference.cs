@@ -91,8 +91,22 @@ internal sealed class IsolatedAnalyzerFileReference(
         // it points at) stays alive as long as the generator instance stays alive.
         var items = getItems(this.UnderlyingAnalyzerFileReference, arg);
 
+        // <Metalama>
+        // .NET 6.0 used by Metalama does not have TryAdd
+        
         foreach (var item in items)
-            table.TryAdd(item, _isolatedAnalyzerReferenceSet);
+        {
+            try
+            {
+                if (!table.TryGetValue(item, out _))
+                    table.Add(item, _isolatedAnalyzerReferenceSet);            
+            }
+            catch {}
+        }
+
+        //foreach (var item in items)
+        //    table.TryAdd(item, _isolatedAnalyzerReferenceSet);
+        // </Metalama>
 
         // Note: we want to keep ourselves alive during this call so that neither we nor our reference set get GC'ed
         // while we're computing the items.
