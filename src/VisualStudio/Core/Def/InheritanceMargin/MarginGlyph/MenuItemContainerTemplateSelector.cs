@@ -4,7 +4,7 @@
 
 using System.Windows;
 using System.Windows.Controls;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 

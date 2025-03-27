@@ -28,7 +28,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public async Task LspFileWatcherNotSupportedWithoutClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), TestOutputLogger, MefCacheDirectory.Path);
+        await using var testLspServer = await TestLspServer.CreateAsync(new ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path);
 
         Assert.False(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -36,7 +36,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public async Task LspFileWatcherSupportedWithClientSupport()
     {
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
 
         Assert.True(LspFileChangeWatcher.SupportsLanguageServerHost(testLspServer.LanguageServerHost));
     }
@@ -46,7 +46,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
@@ -76,7 +76,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
-        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger, MefCacheDirectory.Path);
+        await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, LoggerFactory, MefCacheDirectory.Path);
         var lspFileChangeWatcher = new LspFileChangeWatcher(
             testLspServer.LanguageServerHost,
             testLspServer.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());

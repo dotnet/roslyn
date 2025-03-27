@@ -9,7 +9,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class VolatileKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class VolatileKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()
@@ -507,6 +507,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                    void Goo() {
                      $$
                 """);
+        }
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
         }
     }
 }

@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -479,7 +478,11 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var solutionX = workspace.CurrentSolution;
 
         var document1 = new EditorTestHostDocument(@"public class C { }");
-        var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+        var project1 = new EditorTestHostProject(workspace, document1, name: "project1",
+            compilationOptions: solutionX.Services
+                .GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
         var document2 = new EditorTestHostDocument("""
             Public Class D 
@@ -533,7 +536,11 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var solutionX = workspace.CurrentSolution;
 
         var document1 = new EditorTestHostDocument(@"public class C { }");
-        var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+        var project1 = new EditorTestHostProject(workspace, document1, name: "project1",
+            compilationOptions: solutionX.Services
+                .GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
         var document2 = new EditorTestHostDocument("""
             Public Class D 
@@ -601,7 +608,11 @@ public class WorkspaceTests_EditorFeatures : TestBase
         var solutionX = workspace.CurrentSolution;
 
         var document1 = new EditorTestHostDocument(@"public class C { }");
-        var project1 = new EditorTestHostProject(workspace, document1, name: "project1");
+        var project1 = new EditorTestHostProject(workspace, document1, name: "project1",
+            compilationOptions: solutionX.Services
+                .GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
         var document2 = new EditorTestHostDocument("""
             Public Class D 

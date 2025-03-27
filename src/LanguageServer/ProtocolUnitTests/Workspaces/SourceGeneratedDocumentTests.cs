@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -171,7 +169,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
         // In automatic mode this should trigger generators to re-run.
         // In balanced mode generators should not re-run.
         await testLspServer.TestWorkspace.ChangeDocumentAsync(testLspServer.TestWorkspace.Documents.Single(d => !d.IsSourceGenerated).Id, SourceText.From("new text"));
-        await WaitForSourceGeneratorsAsync(testLspServer.TestWorkspace);
+        await testLspServer.WaitForSourceGeneratorsAsync();
 
         // Ask for the source generated text again.
         var secondRequest = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
@@ -216,7 +214,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
 
         // Updating the execution version should trigger source generators to run in both automatic and balanced mode.
         testLspServer.TestWorkspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-        await WaitForSourceGeneratorsAsync(testLspServer.TestWorkspace);
+        await testLspServer.WaitForSourceGeneratorsAsync();
 
         var secondRequest = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
             new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { Uri = sourceGeneratorDocumentUri }, ResultId: text.ResultId), CancellationToken.None);
@@ -279,12 +277,6 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
 
         Assert.NotNull(secondRequest);
         Assert.Null(secondRequest.Text);
-    }
-
-    private static async Task WaitForSourceGeneratorsAsync(EditorTestWorkspace workspace)
-    {
-        var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.SourceGenerators]);
     }
 
     private async Task<TestLspServer> CreateTestLspServerWithGeneratorAsync(bool mutatingLspWorkspace, string generatedDocumentText)

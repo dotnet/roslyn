@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class StructKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class StructKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.StructKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -24,18 +24,13 @@ internal class StructKeywordRecommender : AbstractSyntacticSingleKeywordRecommen
             SyntaxKind.FileKeyword,
         };
 
-    public StructKeywordRecommender()
-        : base(SyntaxKind.StructKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
             context.IsGlobalStatementContext ||
             context.IsTypeDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken) ||
             context.IsRecordDeclarationContext(s_validModifiers, cancellationToken) ||

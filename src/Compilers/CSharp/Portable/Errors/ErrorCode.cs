@@ -2332,8 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyMissingAccessor = 9252,
         ERR_PartialPropertyUnexpectedAccessor = 9253,
         ERR_PartialPropertyInitMismatch = 9254,
-        ERR_PartialPropertyTypeDifference = 9255,
-        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialMemberTypeDifference = 9255,
+        WRN_PartialMemberSignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
         WRN_FieldIsAmbiguous = 9258,
@@ -2359,6 +2359,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EmbeddedAttributeMustFollowPattern = 9271,
         ERR_ImplicitlyTypedParamsParameter = 9272,
         ERR_VariableDeclarationNamedField = 9273,
+
+        ERR_DataSectionStringLiteralHashCollision = 9274,
+
+        ERR_PartialMemberMissingImplementation = 9275,
+        ERR_PartialMemberMissingDefinition = 9276,
+        ERR_PartialMemberDuplicateDefinition = 9277,
+        ERR_PartialMemberDuplicateImplementation = 9278,
+        ERR_PartialEventInitializer = 9279,
+        ERR_PartialConstructorInitializer = 9280,
+
+        ERR_ExtensionDisallowsName = 9281,
+        ERR_ExtensionDisallowsMember = 9282,
+        ERR_BadExtensionContainingType = 9283,
+        ERR_ExtensionParameterDisallowsDefaultValue = 9284,
+        ERR_ReceiverParameterOnlyOne = 9285,
+        ERR_ExtensionResolutionFailed = 9286,
+        ERR_ReceiverParameterSameNameAsTypeParameter = 9287,
+        ERR_LocalSameNameAsExtensionTypeParameter = 9288,
+        ERR_TypeParameterSameNameAsExtensionTypeParameter = 9289,
+        ERR_LocalSameNameAsExtensionParameter = 9290,
+        ERR_ValueParameterSameNameAsExtensionParameter = 9291,
+        ERR_TypeParameterSameNameAsExtensionParameter = 9292,
+        ERR_InvalidExtensionParameterReference = 9293,
+        ERR_ValueParameterSameNameAsExtensionTypeParameter = 9294,
+        ERR_UnderspecifiedExtension = 9295,
+        ERR_ExpressionTreeContainsExtensionPropertyAccess = 9296,
 
         ERR_OperatorsMustBePublic = 9501, // PROTOTYPE: Pack numbers
         ERR_BadIncrementOpArgs = 9502,

@@ -594,6 +594,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_DataSectionStringLiteralHashCollision As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
         ' Generators
         Public Overrides ReadOnly Property WRN_GeneratorFailedDuringInitialization As Integer
             Get

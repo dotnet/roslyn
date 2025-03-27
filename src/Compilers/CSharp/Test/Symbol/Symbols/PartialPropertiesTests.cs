@@ -1552,15 +1552,15 @@ public partial class C
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,20): error CS9255: Both partial property declarations must have the same type.
+                // (6,20): error CS9255: Both partial member declarations must have the same type.
                 //     partial string P1 { get => ""; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P1").WithLocation(6, 20),
-                // (9,26): error CS9255: Both partial property declarations must have the same type.
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "P1").WithLocation(6, 20),
+                // (9,26): error CS9255: Both partial member declarations must have the same type.
                 //     partial List<string> P2 { get => []; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P2").WithLocation(9, 26),
-                // (12,33): error CS9255: Both partial property declarations must have the same type.
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "P2").WithLocation(9, 26),
+                // (12,33): error CS9255: Both partial member declarations must have the same type.
                 //     partial IEnumerable<string> P3 { get => []; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P3").WithLocation(12, 33));
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "P3").WithLocation(12, 33));
         }
 
         [Fact]
@@ -1585,18 +1585,18 @@ public partial class C
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,20): error CS9256: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                // (5,20): error CS9256: Partial member declarations 'string? C.P1' and 'string C.P1' have signature differences.
                 //     partial string P1 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(5, 20),
-                // (8,21): error CS9256: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(5, 20),
+                // (8,21): error CS9256: Partial member declarations 'string C.P2' and 'string? C.P2' have signature differences.
                 //     partial string? P2 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(8, 21),
-                // (11,22): error CS9256: Partial property declarations 'string?[] C.P3' and 'string[] C.P3' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(8, 21),
+                // (11,22): error CS9256: Partial member declarations 'string?[] C.P3' and 'string[] C.P3' have signature differences.
                 //     partial string[] P3 { get => []; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P3").WithArguments("string?[] C.P3", "string[] C.P3").WithLocation(11, 22),
-                // (14,23): error CS9256: Partial property declarations 'string[] C.P4' and 'string?[] C.P4' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P3").WithArguments("string?[] C.P3", "string[] C.P3").WithLocation(11, 22),
+                // (14,23): error CS9256: Partial member declarations 'string[] C.P4' and 'string?[] C.P4' have signature differences.
                 //     partial string?[] P4 { get => []; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P4").WithArguments("string[] C.P4", "string?[] C.P4").WithLocation(14, 23));
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P4").WithArguments("string[] C.P4", "string?[] C.P4").WithLocation(14, 23));
         }
 
         [Fact]
@@ -1623,12 +1623,12 @@ public partial class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
             comp.VerifyEmitDiagnostics(
-                // (4,27): warning CS9256: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                // (4,27): warning CS9256: Partial member declarations 'string? C.P1' and 'string C.P1' have signature differences.
                 //     public partial string P1 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
-                // (7,28): warning CS9256: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9256: Partial member declarations 'string C.P2' and 'string? C.P2' have signature differences.
                 //     public partial string? P2 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
                 // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
                 //     public partial string M1() => "";
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27),
@@ -1638,12 +1638,12 @@ public partial class C
 
             comp = CreateCompilation(source, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Annotations));
             comp.VerifyEmitDiagnostics(
-                // (4,27): warning CS9256: Partial property declarations 'string? C.P1' and 'string C.P1' have signature differences.
+                // (4,27): warning CS9256: Partial member declarations 'string? C.P1' and 'string C.P1' have signature differences.
                 //     public partial string P1 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
-                // (7,28): warning CS9256: Partial property declarations 'string C.P2' and 'string? C.P2' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P1").WithArguments("string? C.P1", "string C.P1").WithLocation(4, 27),
+                // (7,28): warning CS9256: Partial member declarations 'string C.P2' and 'string? C.P2' have signature differences.
                 //     public partial string? P2 { get => ""; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "P2").WithArguments("string C.P2", "string? C.P2").WithLocation(7, 28),
                 // (10,27): warning CS8826: Partial method declarations 'string? C.M1()' and 'string C.M1()' have signature differences.
                 //     public partial string M1() => "";
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("string? C.M1()", "string C.M1()").WithLocation(10, 27));
@@ -1734,24 +1734,24 @@ public partial class C
 
             var verifier = CompileAndVerify(source, symbolValidator: verify, sourceSymbolValidator: verify);
             verifier.VerifyDiagnostics(
-                // (5,28): warning CS9256: Partial property declarations 'string C.this[string? x]' and 'string? C.this[string x]' have signature differences.
+                // (5,28): warning CS9256: Partial member declarations 'string C.this[string? x]' and 'string? C.this[string x]' have signature differences.
                 //     public partial string? this[string x] // 1
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string C.this[string? x]", "string? C.this[string x]").WithLocation(5, 28),
-                // (12,27): warning CS9256: Partial property declarations 'string? C.this[string x, bool ignored]' and 'string C.this[string? x, bool ignored]' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("string C.this[string? x]", "string? C.this[string x]").WithLocation(5, 28),
+                // (12,27): warning CS9256: Partial member declarations 'string? C.this[string x, bool ignored]' and 'string C.this[string? x, bool ignored]' have signature differences.
                 //     public partial string this[string? x, bool ignored] // 2
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string? C.this[string x, bool ignored]", "string C.this[string? x, bool ignored]").WithLocation(12, 27),
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("string? C.this[string x, bool ignored]", "string C.this[string? x, bool ignored]").WithLocation(12, 27),
                 // (14,16): warning CS8602: Dereference of a possibly null reference.
                 //         get => x.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(14, 16),
                 // (15,16): warning CS8602: Dereference of a possibly null reference.
                 //         set => x.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 16),
-                // (19,28): warning CS9256: Partial property declarations 'string C.this[bool ignored]' and 'string? C.this[bool ignored]' have signature differences.
+                // (19,28): warning CS9256: Partial member declarations 'string C.this[bool ignored]' and 'string? C.this[bool ignored]' have signature differences.
                 //     public partial string? this[bool ignored] // 5
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string C.this[bool ignored]", "string? C.this[bool ignored]").WithLocation(19, 28),
-                // (25,27): warning CS9256: Partial property declarations 'string? C.this[int ignored]' and 'string C.this[int ignored]' have signature differences.
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("string C.this[bool ignored]", "string? C.this[bool ignored]").WithLocation(19, 28),
+                // (25,27): warning CS9256: Partial member declarations 'string? C.this[int ignored]' and 'string C.this[int ignored]' have signature differences.
                 //     public partial string this[int ignored] // 6
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("string? C.this[int ignored]", "string C.this[int ignored]").WithLocation(25, 27),
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("string? C.this[int ignored]", "string C.this[int ignored]").WithLocation(25, 27),
                 // (27,16): warning CS8603: Possible null reference return.
                 //         get => null; // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(27, 16),
@@ -1913,9 +1913,9 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,52): error CS9255: Both partial property declarations must have the same type.
+                // (6,52): error CS9255: Both partial member declarations must have the same type.
                 //     public partial ref readonly (long x, string y) Prop => throw null!;
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "Prop").WithLocation(6, 52),
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "Prop").WithLocation(6, 52),
                 // (6,52): error CS8818: Partial member declarations must have matching ref return values.
                 //     public partial ref readonly (long x, string y) Prop => throw null!;
                 Diagnostic(ErrorCode.ERR_PartialMemberRefReturnDifference, "Prop").WithLocation(6, 52));
@@ -2411,9 +2411,9 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (15,26): error CS9255: Both partial property declarations must have the same type.
+                // (15,26): error CS9255: Both partial member declarations must have the same type.
                 //     public partial MyInt P3 { get => 3; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "P3").WithLocation(15, 26));
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "P3").WithLocation(15, 26));
         }
 
         [Fact]
@@ -2779,9 +2779,9 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,24): warning CS9256: Partial property declarations 'int C.this[string s]' and 'int C.this[string? s]' have signature differences.
+                // (5,24): warning CS9256: Partial member declarations 'int C.this[string s]' and 'int C.this[string? s]' have signature differences.
                 //     public partial int this[string? s] { get => 1; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[string s]", "int C.this[string? s]").WithLocation(5, 24));
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[string s]", "int C.this[string? s]").WithLocation(5, 24));
         }
 
         [Fact]
@@ -2798,9 +2798,9 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,24): warning CS9256: Partial property declarations 'int C.this[dynamic[] s]' and 'int C.this[object[] s]' have signature differences. 
+                // (5,24): warning CS9256: Partial member declarations 'int C.this[dynamic[] s]' and 'int C.this[object[] s]' have signature differences. 
                 //     public partial int this[object[] s] { get => 1; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[dynamic[] s]", "int C.this[object[] s]").WithLocation(5, 24));
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[dynamic[] s]", "int C.this[object[] s]").WithLocation(5, 24));
         }
 
         [Fact]
@@ -3253,9 +3253,9 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,29): error CS9255: Both partial property declarations must have the same type.
+                // (4,29): error CS9255: Both partial member declarations must have the same type.
                 //     public partial string[] this[int x] { get => []; set { } }
-                Diagnostic(ErrorCode.ERR_PartialPropertyTypeDifference, "this").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_PartialMemberTypeDifference, "this").WithLocation(4, 29));
         }
 
         [Fact]
@@ -4689,9 +4689,9 @@ public partial class C
 
             var verifier = CompileAndVerify(source, expectedOutput: "1", symbolValidator: verify, sourceSymbolValidator: verify);
             verifier.VerifyDiagnostics(
-                // (6,24): warning CS9256: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
+                // (6,24): warning CS9256: Partial member declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
                 //     public partial int this[int p2] { get => p2; set { } }
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(6, 24));
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(6, 24));
 
             void verify(ModuleSymbol module)
             {
@@ -4761,9 +4761,9 @@ public partial class C
                 // (20,18): error CS0103: The name 'p2' does not exist in the current context
                 //     [Attr(nameof(p2))] // 4
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(20, 18),
-                // (21,24): warning CS9256: Partial property declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
+                // (21,24): warning CS9256: Partial member declarations 'int C.this[int p1]' and 'int C.this[int p2]' have signature differences.
                 //     public partial int this[int p2] // 5
-                Diagnostic(ErrorCode.WRN_PartialPropertySignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(21, 24),
+                Diagnostic(ErrorCode.WRN_PartialMemberSignatureDifference, "this").WithArguments("int C.this[int p1]", "int C.this[int p2]").WithLocation(21, 24),
                 // (25,29): error CS0103: The name 'p1' does not exist in the current context
                 //         [param: Attr(nameof(p1))] // 6
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p1").WithArguments("p1").WithLocation(25, 29),
@@ -5107,7 +5107,37 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("S1",
+"""
+.class private sequential ansi sealed beforefieldinit S1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 06 4d 79 4e 61 6d 65 00 00
+    )
+    .pack 0
+    .size 1
+    // Methods
+    .method public hidebysig specialname 
+        instance int32 get_MyName (
+            int32 x
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    } // end of method S1::get_MyName
+    // Properties
+    .property instance int32 MyName(
+        int32 x
+    )
+    {
+        .get instance int32 S1::get_MyName(int32)
+    }
+} // end of class S1
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76842")]
@@ -5126,7 +5156,39 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+
+            // Note, the indexer name in metadata is "Item", expected "MyName"
+            CompileAndVerify(comp).VerifyDiagnostics().VerifyTypeIL("S1",
+"""
+.class private sequential ansi sealed beforefieldinit S1
+    extends [mscorlib]System.ValueType
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    .pack 0
+    .size 1
+    // Methods
+    .method public hidebysig specialname 
+        instance int32 get_Item (
+            int32 x
+        ) cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldarg.1
+        IL_0001: ret
+    } // end of method S1::get_Item
+    // Properties
+    .property instance int32 Item(
+        int32 x
+    )
+    {
+        .get instance int32 S1::get_Item(int32)
+    }
+} // end of class S1
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
     }
 }

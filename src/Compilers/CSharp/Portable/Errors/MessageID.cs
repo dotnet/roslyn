@@ -297,6 +297,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
 
+        IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
+
+        IDS_FeatureExtensions = MessageBase + 12853,
+
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12901, // PROTOTYPE: Pack numbers
     }
 
@@ -482,6 +486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureFirstClassSpan:
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
+                case MessageID.IDS_FeaturePartialEventsAndConstructors:
+                case MessageID.IDS_FeatureExtensions:
                 case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
                     return LanguageVersion.Preview;
 

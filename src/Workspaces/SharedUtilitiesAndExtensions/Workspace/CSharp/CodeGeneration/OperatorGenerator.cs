@@ -8,8 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
@@ -48,8 +48,9 @@ internal static class OperatorGenerator
         var declaration = GenerateOperatorDeclarationWorker(method, destination, info, cancellationToken);
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
-        return AddAnnotationsTo(method,
+        declaration = AddAnnotationsTo(method,
             ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
+        return declaration.WithAdditionalAnnotations(Formatter.Annotation);
     }
 
     private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(

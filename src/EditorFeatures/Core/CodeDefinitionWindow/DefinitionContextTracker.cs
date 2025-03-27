@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -185,7 +186,7 @@ internal class DefinitionContextTracker : ITextViewConnectionListener
                     var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     locations.Add(new CodeDefinitionWindowLocation(
-                        symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
+                        symbol.ToDisplayString(), declarationFile.FilePath!, identifierSpan.Start));
                 }
             }
         }

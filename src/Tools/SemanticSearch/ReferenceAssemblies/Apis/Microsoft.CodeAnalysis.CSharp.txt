@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo)
 Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(System.Object)
@@ -407,6 +407,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExplicitInterfaceSpecifi
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExpressionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExtensionDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitExternAliasDirective(Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFieldDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax)
@@ -701,6 +702,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExplicitInterfaceSpecifie
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExpressionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExtensionDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitExternAliasDirective(Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFieldDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax)
@@ -949,6 +951,7 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExplicitInterfaceSpecif
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExpressionColon(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionColonSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExpressionElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionElementSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExpressionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax)
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExtensionDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitExternAliasDirective(Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitFieldDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax)
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax)
@@ -1177,6 +1180,7 @@ Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_GetEnumeratorMethod
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_IsAsynchronous
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.get_MoveNextMethod
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation
+Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(Microsoft.CodeAnalysis.CSharp.InterceptableLocation)
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(System.Object)
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetHashCode
@@ -2450,6 +2454,38 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax.get_AttributeList
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax.get_Expression
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax.get_SemicolonToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddAttributeLists(Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddConstraintClauses(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddMembers(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddModifiers(Microsoft.CodeAnalysis.SyntaxToken[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddParameterListParameters(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.AddTypeParameterListParameters(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterSyntax[])
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.Update(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.SyntaxTokenList,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax})
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithCloseBraceToken(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithConstraintClauses(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax})
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithMembers(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax})
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithModifiers(Microsoft.CodeAnalysis.SyntaxTokenList)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithOpenBraceToken(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.WithTypeParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax)
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_AttributeLists
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_BaseList
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_CloseBraceToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_ConstraintClauses
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_Identifier
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_Keyword
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_Members
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_Modifiers
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_OpenBraceToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_ParameterList
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_SemicolonToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ExtensionDeclarationSyntax.get_TypeParameterList
 Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor)
 Microsoft.CodeAnalysis.CSharp.Syntax.ExternAliasDirectiveSyntax.Accept``1(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor{``0})
@@ -4946,6 +4982,9 @@ Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionStatement(Microsoft.CodeAn
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionStatement(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExpressionStatement(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.SyntaxToken)
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExtensionDeclaration
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExtensionDeclaration(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.SyntaxTokenList,Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax})
+Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExtensionDeclaration(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax},Microsoft.CodeAnalysis.SyntaxTokenList,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax},Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExternAliasDirective(Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExternAliasDirective(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.SyntaxToken)
 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ExternAliasDirective(System.String)
@@ -5821,6 +5860,8 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExplicitKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionColon
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionElement
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExpressionStatement
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionDeclaration
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExtensionKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExternAliasDirective
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ExternKeyword
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FalseKeyword

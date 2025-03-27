@@ -24,6 +24,13 @@ internal static partial class OperationExtensions
     /// Returns the <see cref="ValueUsageInfo"/> for the given operation.
     /// This extension can be removed once https://github.com/dotnet/roslyn/issues/25057 is implemented.
     /// </summary>
+    /// <remarks>
+    /// When referring to a variable, this method should only return a 'write' result if the variable is entirely
+    /// overwritten.  Not if the variable is written <em>through</em>.  For example, a write to a property on a struct
+    /// variable is not a write to the struct variable (though at runtime it might impact the value in some fashion).
+    /// <para/> Put another way, this only returns 'write' when certain that the entire value <em>is</em> absolutely
+    /// entirely overwritten.
+    /// </remarks>
     public static ValueUsageInfo GetValueUsageInfo(this IOperation operation, ISymbol containingSymbol)
     {
         /*
@@ -204,12 +211,6 @@ internal static partial class OperationExtensions
         else if (operation.IsInLeftOfDeconstructionAssignment(out _))
         {
             return ValueUsageInfo.Write;
-        }
-        else if (operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation })
-        {
-            // accessing an indexer/property off of a value type will read/write the value type depending on how the
-            // indexer/property itself is used.
-            return GetValueUsageInfo(operation.Parent, containingSymbol);
         }
         else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
         {
