@@ -39,10 +39,10 @@
 
   <!-- <Metalama> downgraded to a version that supports .Net 6 -->
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.6.3" />
   </ItemGroup>
   <!-- </Metalama> -->
 
