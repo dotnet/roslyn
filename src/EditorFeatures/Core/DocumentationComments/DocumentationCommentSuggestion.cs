@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 "DismissSuggestionSession",
                 async () =>
                 {
-                    await ClearSuggestionAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);/*_suggestionSession!.DismissAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);*/
+                    await ClearSuggestionAsync(ReasonForDismiss.DismissedDueToInvalidProposal, cancellationToken).ConfigureAwait(false);
                     return true;
                 },
                 cancellationToken).ConfigureAwait(false);
