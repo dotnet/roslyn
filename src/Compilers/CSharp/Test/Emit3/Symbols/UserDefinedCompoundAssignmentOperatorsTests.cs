@@ -5334,8 +5334,13 @@ public class C4 : C3
 
             var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
 
-            // PROTOTYPE: Overriding errors are expected for C2 and C4.
             comp2.VerifyDiagnostics(
+                // (4,35): error CS9505: 'C2.operator ++()': cannot override inherited member 'C1.op_Increment()' because one of them is not an operator.
+                //     public override void operator ++() {}
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "++").WithArguments("C2.operator ++()", "C1.op_Increment()").WithLocation(4, 35),
+                // (9,26): error CS9505: 'C4.op_Increment()': cannot override inherited member 'C3.operator ++()' because one of them is not an operator.
+                //     public override void op_Increment() {}
+                Diagnostic(ErrorCode.ERR_OperatorMismatchOnOverride, "op_Increment").WithArguments("C4.op_Increment()", "C3.operator ++()").WithLocation(9, 26)
                 );
         }
 
@@ -5380,12 +5385,12 @@ public class C4 : I2
 
             var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
             comp2.VerifyDiagnostics(
-                // (2,19): error CS0535: 'C1' does not implement interface member 'I1.op_Increment()'
+                // (2,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
                 // public class C1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.op_Increment()").WithLocation(2, 19),
-                // (7,19): error CS0535: 'C2' does not implement interface member 'I2.operator ++()'
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 19),
+                // (7,19): error CS9504: 'C2' does not implement interface member 'I2.operator ++()'. 'C2.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
                 // public class C2 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C2", "I2.operator ++()").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C2", "I2.operator ++()", "C2.op_Increment()").WithLocation(7, 19),
                 // (12,19): error CS0535: 'C3' does not implement interface member 'I1.op_Increment()'
                 // public class C3 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C3", "I1.op_Increment()").WithLocation(12, 19),
@@ -5401,8 +5406,426 @@ public class C4 : I2
                 );
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Increment_096_Implement_RegularVsOperatorMismatch(bool fromMetadata)
+        {
+            var source1 = @"
+public interface I1
+{
+    void op_Increment();
+}
+
+public interface I2
+{
+    void operator ++();
+}
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 = @"
+public class C11
+{
+    public void operator ++() {}
+}
+
+public class C12 : C11, I1
+{
+}
+
+public class C21
+{
+    public void op_Increment() {}
+}
+
+public class C22 : C21, I2
+{
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics(
+                // (7,25): error CS9504: 'C12' does not implement interface member 'I1.op_Increment()'. 'C11.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // public class C12 : C11, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C12", "I1.op_Increment()", "C11.operator ++()").WithLocation(7, 25),
+                // (16,25): error CS9504: 'C22' does not implement interface member 'I2.operator ++()'. 'C21.op_Increment()' cannot implement 'I2.operator ++()' because one of them is not an operator.
+                // public class C22 : C21, I2
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I2").WithArguments("C22", "I2.operator ++()", "C21.op_Increment()").WithLocation(16, 25)
+                );
+        }
+
         [Fact]
-        public void Increment_096_Consumption_Implementation()
+        public void Increment_097_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator ++()
+    {
+        System.Console.Write(""[I1.operator]"");
+    } 
+}
+
+public class C1 : I1
+{
+    public virtual void op_Increment()
+    {
+        System.Console.Write(""[C1.op_Increment]"");
+    } 
+}
+
+public class C2
+{
+    public virtual void op_Increment()
+    {
+        System.Console.Write(""[C2.op_Increment]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        ++x;
+        x = new C3();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.operator ++()", "C1.op_Increment()").WithLocation(10, 19),
+                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.operator ++()'. 'C2.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C2.op_Increment()").WithLocation(26, 23)
+                );
+        }
+
+        [Fact]
+        public void Increment_098_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void op_Increment()
+    {
+        System.Console.Write(""[I1.operator]"");
+    } 
+}
+
+public class C1 : I1
+{
+    public virtual void operator ++()
+    {
+        System.Console.Write(""[C1.operator]"");
+    } 
+}
+
+public class C2
+{
+    public virtual void operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C1();
+        x.op_Increment();
+        x = new C3();
+        x.op_Increment();
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (10,19): error CS9504: 'C1' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // public class C1 : I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C1", "I1.op_Increment()", "C1.operator ++()").WithLocation(10, 19),
+                // (26,23): error CS9504: 'C3' does not implement interface member 'I1.op_Increment()'. 'C2.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C2.operator ++()").WithLocation(26, 23)
+                );
+        }
+
+        [Fact]
+        public void Increment_099_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void operator ++();
+}
+
+public class C2 : I1
+{
+    void I1.operator ++()
+    {
+        System.Console.Write(""[C2.operator]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+    public virtual void op_Increment()
+    {
+        System.Console.Write(""[C3.op_Increment]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C3();
+        ++x;
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.operator ++()'. 'C3.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.operator ++()", "C3.op_Increment()").WithLocation(15, 23)
+                );
+        }
+
+        [Fact]
+        public void Increment_100_Implement_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public interface I1
+{
+    public void op_Increment();
+}
+
+public class C2 : I1
+{
+    void I1.op_Increment()
+    {
+        System.Console.Write(""[C2.op_Increment]"");
+    } 
+}
+
+public class C3 : C2, I1
+{
+    public virtual void operator ++()
+    {
+        System.Console.Write(""[C3.operator]"");
+    } 
+}
+
+public class Program
+{
+    static void Main()
+    {
+        I1 x = new C3();
+        x.op_Increment();
+    } 
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (15,23): error CS9504: 'C3' does not implement interface member 'I1.op_Increment()'. 'C3.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // public class C3 : C2, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C3", "I1.op_Increment()", "C3.operator ++()").WithLocation(15, 23)
+                );
+        }
+
+        [Fact]
+        public void Increment_101_Implement_RegularVsOperatorMismatch()
+        {
+            /*
+                public interface I1
+                {
+                    public void operator++();
+                }
+
+                public class C1 : I1
+                {
+                    public virtual void op_Increment()
+                    {
+                        System.Console.Write(1);
+                    }
+                }
+            */
+            var ilSource = @"
+.class interface public auto ansi abstract beforefieldinit I1
+{
+    .method public hidebysig newslot abstract virtual specialname
+        instance void op_Increment () cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+    implements I1
+{
+    .method public hidebysig newslot virtual 
+        instance void op_Increment () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: call void [mscorlib]System.Console::Write(int32)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1, I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource);
+
+            compilation1.VerifyDiagnostics(
+                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.operator ++()'. 'C1.op_Increment()' cannot implement 'I1.operator ++()' because one of them is not an operator.
+                // public class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.operator ++()", "C1.op_Increment()").WithLocation(2, 23)
+                );
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        c1.op_Increment();
+        I1 x = c1;
+        ++x;
+    }
+}
+";
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation2, expectedOutput: "11", verify: Verification.Skipped).VerifyDiagnostics();
+
+            var i1M1 = compilation1.GetTypeByMetadataName("I1").GetMembers().Single();
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            AssertEx.Equal("C1.op_Increment()", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_102_Implement_RegularVsOperatorMismatch()
+        {
+            /*
+                public interface I1
+                {
+                    public void op_Increment();
+                }
+
+                public class C1 : I1
+                {
+                    public virtual void operator++()
+                    {
+                        System.Console.Write(1);
+                    }
+                }
+            */
+            var ilSource = @"
+.class interface public auto ansi abstract beforefieldinit I1
+{
+    .method public hidebysig newslot abstract virtual 
+        instance void op_Increment () cil managed 
+    {
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends [mscorlib]System.Object
+    implements I1
+{
+    .method public hidebysig newslot virtual specialname
+        instance void op_Increment () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldc.i4.1
+        IL_0001: call void [mscorlib]System.Console::Write(int32)
+        IL_0006: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var source1 =
+@"
+public class C2 : C1, I1
+{
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource);
+
+            compilation1.VerifyDiagnostics(
+                // (2,23): error CS9504: 'C2' does not implement interface member 'I1.op_Increment()'. 'C1.operator ++()' cannot implement 'I1.op_Increment()' because one of them is not an operator.
+                // public class C2 : C1, I1
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch, "I1").WithArguments("C2", "I1.op_Increment()", "C1.operator ++()").WithLocation(2, 23)
+                );
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        ++c1;
+        I1 x = c1;
+        x.op_Increment();
+    }
+}
+";
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation2, expectedOutput: "11", verify: Verification.Skipped).VerifyDiagnostics();
+
+            var i1M1 = compilation1.GetTypeByMetadataName("I1").GetMembers().Single();
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            AssertEx.Equal("C1.operator ++()", c1.FindImplementationForInterfaceMember(i1M1).ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_103_Consumption_Implementation()
         {
             var source = @"
 public interface I1
@@ -5443,7 +5866,7 @@ public class Program
         }
 
         [Fact]
-        public void Increment_097_Consumption_Overriding()
+        public void Increment_104_Consumption_Overriding()
         {
             var source = @"
 public abstract class C1
@@ -5471,6 +5894,48 @@ public class Program
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "[C2.operator]").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_105_Shadow_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public class C1
+{
+    public void operator ++(){}
+    public static C1 operator ++(C1 x) => x;
+}
+
+public class C2 : C1
+{
+    public void op_Increment(){}
+    public static C1 op_Increment(C1 x) => x;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_106_Shadow_RegularVsOperatorMismatch()
+        {
+            var source = @"
+public class C2
+{
+    public void op_Increment(){}
+    public static C1 op_Increment(C1 x) => x;
+}
+
+public class C1 : C2
+{
+    public void operator ++(){}
+    public static C1 operator ++(C1 x) => x;
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
