@@ -180,9 +180,7 @@ internal static partial class ISymbolExtensions
 
     public static bool IsImplementableMember([NotNullWhen(true)] this ISymbol? symbol)
     {
-        if (symbol != null &&
-            symbol.ContainingType != null &&
-            symbol.ContainingType.TypeKind == TypeKind.Interface)
+        if (symbol is { ContainingType.TypeKind: TypeKind.Interface })
         {
             if (symbol.Kind == SymbolKind.Event)
             {
@@ -230,7 +228,7 @@ internal static partial class ISymbolExtensions
         => symbol is ITypeSymbol { TypeKind: TypeKind.Interface };
 
     public static bool IsArrayType([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol?.Kind == SymbolKind.ArrayType;
+        => symbol is { Kind: SymbolKind.ArrayType };
 
     public static bool IsTupleType([NotNullWhen(true)] this ISymbol? symbol)
         => symbol is ITypeSymbol { IsTupleType: true };
@@ -266,7 +264,7 @@ internal static partial class ISymbolExtensions
         => symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension };
 
     public static bool IsEnumMember([NotNullWhen(true)] this ISymbol? symbol)
-        => symbol?.Kind == SymbolKind.Field && symbol.ContainingType.IsEnumType();
+        => symbol is { Kind: SymbolKind.Field, ContainingType.TypeKind: TypeKind.Enum };
 
     public static bool IsExtensionMethod(this ISymbol symbol)
         => symbol is IMethodSymbol { IsExtensionMethod: true };

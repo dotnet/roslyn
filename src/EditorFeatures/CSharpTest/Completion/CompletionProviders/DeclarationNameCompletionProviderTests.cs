@@ -344,7 +344,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             public {{record}} R(MyClass $$
             """;
-        await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
+        await VerifyItemExistsAsync(markup, "MyClass", glyph: Glyph.PropertyPublic);
     }
 
     [Theory]
@@ -371,9 +371,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 MyClass $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
-        await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
-        await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
+        await VerifyItemExistsAsync(markup, "myClass", glyph: Glyph.FieldPublic);
+        await VerifyItemExistsAsync(markup, "MyClass", glyph: Glyph.PropertyPublic);
+        await VerifyItemExistsAsync(markup, "GetMyClass", glyph: Glyph.MethodPublic);
     }
 
     [Fact]
@@ -500,7 +500,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(CancellationToken $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
@@ -513,7 +513,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(int x, CancellationToken c$$
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(CancellationToken c$$) {}
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
@@ -540,7 +540,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(CancellationToken c$$) {}
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
@@ -553,7 +553,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
@@ -565,7 +565,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             void Other(CancellationToken cancellationToken) {}
             void Goo(CancellationToken c$$) {}
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
             void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
@@ -590,7 +590,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 int this[CancellationToken c$$] => throw null;
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45492")]
@@ -604,7 +604,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 int this[CancellationToken cancellationToken, CancellationToken c$$] => throw null;
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: Glyph.Parameter);
     }
 
     [InlineData(LanguageVersion.CSharp7)]
@@ -624,16 +624,16 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         var markup = GetMarkup(source, languageVersion);
-        await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "dbContext", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "db", glyph: Glyph.Parameter);
 
         if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
         {
-            await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context", glyph: Glyph.Parameter);
         }
         else
         {
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: Glyph.Parameter);
         }
     }
 
@@ -655,16 +655,16 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         var markup = GetMarkup(source, languageVersion);
-        await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "dbContext", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "db", glyph: Glyph.Parameter);
 
         if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
         {
-            await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context", glyph: Glyph.Parameter);
         }
         else
         {
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: Glyph.Parameter);
         }
     }
 
@@ -686,16 +686,16 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         var markup = GetMarkup(source, languageVersion);
-        await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "dbContext", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "db", glyph: Glyph.Parameter);
 
         if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
         {
-            await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context", glyph: Glyph.Parameter);
         }
         else
         {
-            await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "context1", glyph: Glyph.Parameter);
         }
     }
 
@@ -717,7 +717,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(CancellationToken $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
         await VerifyItemIsAbsentAsync(markup, "CancellationToken");
     }
 
@@ -733,8 +733,8 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void M(CancellationToken $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "myTok", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "myTok", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
@@ -749,8 +749,8 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 public C(string firstName, string $$)
             }
             """;
-        await VerifyItemExistsAsync(markup, "middleName", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "lastName", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "middleName", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "lastName", glyph: Glyph.Parameter);
         await VerifyItemIsAbsentAsync(markup, "firstName");
     }
 
@@ -779,7 +779,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         await VerifyItemIsAbsentAsync(markup, "myTok");
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
@@ -823,9 +823,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(StringBuilder $$) {}
             }
             """;
-        await VerifyItemExistsAsync(markup, "stringBuilder", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "@string", glyph: (int)Glyph.Parameter);
-        await VerifyItemExistsAsync(markup, "builder", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "stringBuilder", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "@string", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "builder", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
@@ -838,7 +838,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 void Goo(For $$) {}
             }
             """;
-        await VerifyItemExistsAsync(markup, "@for", glyph: (int)Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "@for", glyph: Glyph.Parameter);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19260")]
@@ -1183,9 +1183,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 MyClass $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-        await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-        await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemExistsAsync(markup, "myClass", glyph: Glyph.FieldPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemExistsAsync(markup, "MyClass", glyph: Glyph.PropertyPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemExistsAsync(markup, "GetMyClass", glyph: Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
     [Fact]
@@ -1200,7 +1200,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.Local, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemExistsAsync(markup, "myClass", glyph: Glyph.Local, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemIsAbsentAsync(markup, "MyClass");
         await VerifyItemIsAbsentAsync(markup, "GetMyClass");
     }
@@ -2366,11 +2366,11 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 Configuration $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
+        await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: Glyph.FieldPublic,
             expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-        await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
+        await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: Glyph.PropertyPublic,
             expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-        await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
+        await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: Glyph.MethodPublic,
             expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
         await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
@@ -2397,9 +2397,9 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: Glyph.Local,
             expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-        await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
+        await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: Glyph.MethodPublic,
             expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
         await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
@@ -2426,7 +2426,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         await VerifyItemIsAbsentAsync(markup, "classB");
-        await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB1", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2445,7 +2445,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         await VerifyItemIsAbsentAsync(markup, "classB");
-        await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB1", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2465,7 +2465,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2485,7 +2485,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2505,7 +2505,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         await VerifyItemIsAbsentAsync(markup, "classB");
-        await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB1", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2527,7 +2527,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             """;
         await VerifyItemIsAbsentAsync(markup, "classB");
         await VerifyItemIsAbsentAsync(markup, "classB1");
-        await VerifyItemExistsAsync(markup, "classB2", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB2", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2550,7 +2550,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
             }
             """;
         await VerifyItemIsAbsentAsync(markup, "classB");
-        await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB1", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2566,7 +2566,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classA", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classA", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2589,7 +2589,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2615,7 +2615,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
 
         if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
         {
-            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+            await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Parameter,
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
         else
@@ -2708,7 +2708,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Parameter,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2729,7 +2729,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Parameter,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2750,7 +2750,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2774,7 +2774,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+        await VerifyItemExistsAsync(markup, "classB", glyph: Glyph.Local,
                 expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
     }
 
@@ -2814,7 +2814,7 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
+        await VerifyItemExistsAsync(markup, "myClass1", glyph: Glyph.Local);
     }
 
     [Fact]
