@@ -48,12 +48,7 @@ public class DiagnosticAnalyzerDriverTests
             // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
             SyntaxKind.WithExpression,
             SyntaxKind.RecordDeclaration,
-            // PROTOTYPE: Add these to all in one.
-            SyntaxKind.CollectionExpression,
-            SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement,
-            SyntaxKind.KeyValuePairElement,
-            SyntaxKind.WithElement,
+            SyntaxKind.WithElement, // Needed when language version is updated.
         };
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
