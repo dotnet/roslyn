@@ -299,14 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
 
         IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
-<<<<<<< HEAD
-
-        IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // PROTOTYPE(nca): pack
-||||||| ccbcec9ae56
-=======
-
         IDS_FeatureExtensions = MessageBase + 12853,
->>>>>>> upstream/main
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -492,12 +486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
                 case MessageID.IDS_FeaturePartialEventsAndConstructors:
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureNullConditionalAssignment:
-||||||| ccbcec9ae56
-=======
                 case MessageID.IDS_FeatureExtensions:
->>>>>>> upstream/main
+                case MessageID.IDS_FeatureNullConditionalAssignment:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

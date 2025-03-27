@@ -4424,7 +4424,6 @@ public partial class Program
             Await TestAsync(workspace)
         End Function
 
-<<<<<<< HEAD
         <WpfFact>
         Public Async Function TestCSharpGotoDefinitionNullConditionalAwait() As Task
             Dim workspace =
@@ -4448,9 +4447,6 @@ public partial class Program
         End Function
 
 #Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
-||||||| ccbcec9ae56
-#Enable Warning RSEXPERIMENTAL002 ' Type is for evaluation purposes only and is subject to change or removal in future updates.
-=======
         <WpfFact>
         Public Async Function TestCSharpGoToExtensionMethod1() As Task
             Dim workspace =
@@ -4534,6 +4530,5 @@ public partial class Program
 
             Await TestAsync(workspace)
         End Function
->>>>>>> upstream/main
     End Class
 End Namespace

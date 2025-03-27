@@ -12503,7 +12503,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
     {
         await AssertFormatAsync(expected, text);
     }
-<<<<<<< HEAD
 
     [Fact]
     public async Task FormatNullConditionalAssignment()
@@ -12516,8 +12515,6 @@ public sealed class FormattingTests : CSharpFormattingTestBase
              x ? . y  =  z ;
             """);
     }
-||||||| ccbcec9ae56
-=======
 
     [Fact]
     public async Task TestExtension1()
@@ -12547,5 +12544,4 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
     }
->>>>>>> upstream/main
 }

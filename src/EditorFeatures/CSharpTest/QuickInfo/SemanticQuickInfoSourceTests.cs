@@ -10701,7 +10701,6 @@ AnonymousTypes(
             """,
             MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
     }
-<<<<<<< HEAD
 
     [Fact]
     public async Task NullConditionalAssignment()
@@ -10719,8 +10718,6 @@ AnonymousTypes(
             """,
             MainDescription($"({FeaturesResources.field}) string C.s"));
     }
-||||||| ccbcec9ae56
-=======
 
     [Fact]
     public async Task TestModernExtension1()
@@ -10881,5 +10878,4 @@ AnonymousTypes(
             """,
             MainDescription($"Extensions.extension(System.String)"));
     }
->>>>>>> upstream/main
 }

@@ -12,12 +12,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.ExternalAccess.Pythia.Api
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
-<<<<<<< HEAD
-Imports Microsoft.CodeAnalysis.CSharp.[Shared].Extensions
-||||||| ccbcec9ae56
-=======
 Imports Microsoft.CodeAnalysis.CSharp.Shared.Extensions
->>>>>>> upstream/main
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -12824,7 +12819,6 @@ internal class Program
                 Await state.AssertCompletionItemsContain("C", displayTextSuffix:="")
             End Using
         End Function
-<<<<<<< HEAD
 
         <WpfTheory, CombinatorialData>
         Public Async Function NullConditionalAssignment1(showCompletionInArgumentLists As Boolean) As Task
@@ -12877,8 +12871,6 @@ public class Class1
                 Await state.AssertSelectedCompletionItem("E", isHardSelected:=True)
             End Using
         End Function
-||||||| ccbcec9ae56
-=======
 
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/5399")>
@@ -13004,6 +12996,5 @@ public class Class1
                 Await state.AssertCompletionItemsContain("EM", displayTextSuffix:="")
             End Using
         End Function
->>>>>>> upstream/main
     End Class
 End Namespace
