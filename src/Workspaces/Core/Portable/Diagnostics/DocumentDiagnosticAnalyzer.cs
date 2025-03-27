@@ -16,14 +16,14 @@ internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
 {
     public const int DefaultPriority = 50;
 
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, CancellationToken cancellationToken)
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
     {
         return textDocument is Document document
             ? AnalyzeSyntaxAsync(document, cancellationToken)
             : SpecializedTasks.EmptyImmutableArray<Diagnostic>();
     }
 
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, CancellationToken cancellationToken)
+    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
     {
         return textDocument is Document document
             ? AnalyzeSemanticsAsync(document, cancellationToken)

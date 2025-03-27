@@ -25,15 +25,13 @@ internal sealed class FileContentLoadAnalyzer : DocumentDiagnosticAnalyzer
 
     public override int Priority => -4;
 
-    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, CancellationToken cancellationToken)
+    public override async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(
+        TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
     {
         var exceptionMessage = await textDocument.State.GetFailedToLoadExceptionMessageAsync(cancellationToken).ConfigureAwait(false);
         if (exceptionMessage is null)
             return [];
 
-        var tree = textDocument is Document document
-            ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
-            : null;
         var location = tree is null
             ? textDocument.FilePath is null ? Location.None : Location.Create(textDocument.FilePath, textSpan: default, lineSpan: default)
             : tree.GetLocation(span: default);

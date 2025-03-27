@@ -150,12 +150,14 @@ internal sealed partial class DiagnosticAnalyzerService
                             case DocumentDiagnosticAnalyzer documentAnalyzer:
                                 foreach (var textDocument in project.AdditionalDocuments.Concat(project.Documents))
                                 {
-                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false);
-                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false);
+                                    var tree = textDocument is Document document
+                                        ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                                        : null;
+                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
+                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
 
-                                    if (textDocument is Document { SupportsSyntaxTree: true } document)
+                                    if (tree != null)
                                     {
-                                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                         builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
                                         builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
                                     }
