@@ -1279,6 +1279,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
+  | ignored_directive_trivia
   | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
@@ -1331,6 +1332,10 @@ end_region_directive_trivia
 
 error_directive_trivia
   : '#' 'error'
+  ;
+
+ignored_directive_trivia
+  : '#' ':'
   ;
 
 line_or_span_directive_trivia
