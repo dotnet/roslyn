@@ -149,17 +149,19 @@ internal sealed partial class DiagnosticAnalyzerService
                             case DocumentDiagnosticAnalyzer documentAnalyzer:
                                 foreach (var document in project.Documents)
                                 {
-                                    // don't analyze documents whose content failed to load
+                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false);
+                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false);
+
                                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                                     if (tree != null)
                                     {
-                                        builder.AddSyntaxDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                        builder.AddSemanticDiagnostics(tree, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                        builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
+                                        builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
                                     }
                                     else
                                     {
-                                        builder.AddExternalSyntaxDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Syntax, compilation, cancellationToken).ConfigureAwait(false));
-                                        builder.AddExternalSemanticDiagnostics(document.Id, await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, document, AnalysisKind.Semantic, compilation, cancellationToken).ConfigureAwait(false));
+                                        builder.AddExternalSyntaxDiagnostics(document.Id, syntaxDiagnostics);
+                                        builder.AddExternalSemanticDiagnostics(document.Id, semanticDiagnostics);
                                     }
                                 }
 
