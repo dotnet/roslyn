@@ -599,6 +599,6 @@ internal sealed class VisualStudioSuppressionFixService(
         return finalBuilder.ToImmutableDictionary();
 
         // Local functions
-        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null && d.ProjectId != null;
+        static bool IsProjectDiagnostic(DiagnosticData d) => d.DataLocation == null;
     }
 }
