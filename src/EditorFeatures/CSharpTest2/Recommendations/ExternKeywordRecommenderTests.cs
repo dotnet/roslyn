@@ -346,4 +346,19 @@ public sealed class ExternKeywordRecommenderTests : KeywordRecommenderTests
                 public $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

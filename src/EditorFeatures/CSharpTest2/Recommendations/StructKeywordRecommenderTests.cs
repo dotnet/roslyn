@@ -708,4 +708,21 @@ public sealed class StructKeywordRecommenderTests : KeywordRecommenderTests
             class C<T> where T : class, allows $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

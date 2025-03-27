@@ -540,4 +540,21 @@ public sealed class RecordKeywordRecommenderTests : KeywordRecommenderTests
         // readonly record struct is allowed.
         await VerifyKeywordAsync("readonly $$");
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

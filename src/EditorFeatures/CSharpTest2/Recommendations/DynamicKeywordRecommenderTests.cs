@@ -771,4 +771,19 @@ public sealed class DynamicKeywordRecommenderTests : RecommenderTests
                 delegate*$$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

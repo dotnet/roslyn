@@ -587,4 +587,21 @@ public sealed class UsingKeywordRecommenderTests : KeywordRecommenderTests
             [assembly: Call()]
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

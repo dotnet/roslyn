@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                static bool hasReturnTypeOrParameter(LocalFunctionSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
+                static bool hasReturnTypeOrParameter(MethodSymbol localFunction, Func<TypeWithAnnotations, bool> predicate) =>
                     predicate(localFunction.ReturnTypeWithAnnotations) || localFunction.ParameterTypesWithAnnotations.Any(predicate);
             }
 

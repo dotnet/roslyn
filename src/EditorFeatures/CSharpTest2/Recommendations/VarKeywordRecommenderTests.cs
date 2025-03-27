@@ -483,4 +483,21 @@ public sealed class VarKeywordRecommenderTests : RecommenderTests
         await VerifyKeywordAsync(AddInsideMethod("scoped $$"));
         await VerifyKeywordAsync("scoped $$");
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

@@ -139,4 +139,36 @@ public sealed class OperatorKeywordRecommenderTests : KeywordRecommenderTests
                 public static int $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension1()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension2()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    public static explicit $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

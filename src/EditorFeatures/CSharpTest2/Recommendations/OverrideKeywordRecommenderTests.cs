@@ -443,4 +443,19 @@ public sealed class OverrideKeywordRecommenderTests : KeywordRecommenderTests
                 private protected $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """, CSharpNextParseOptions);
+    }
 }

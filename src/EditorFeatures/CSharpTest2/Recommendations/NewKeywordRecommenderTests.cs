@@ -1325,4 +1325,21 @@ public sealed class NewKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     #endregion
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyAbsenceAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }

@@ -7,54 +7,54 @@
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A distinct scope that may expose extension methods. For a particular Binder,  there
+    /// A distinct scope that may expose extensions. For a particular Binder,  there
     /// are two possible scopes: one for the namespace, and another for any using statements
     /// in the namespace. The namespace scope is searched before the using scope.
     /// </summary>
-    internal readonly struct ExtensionMethodScope
+    internal readonly struct ExtensionScope
     {
         public readonly Binder Binder;
 
-        public ExtensionMethodScope(Binder binder)
+        public ExtensionScope(Binder binder)
         {
             this.Binder = binder;
         }
     }
 
     /// <summary>
-    /// An enumerable collection of extension method scopes in search
+    /// An enumerable collection of extension scopes in search
     /// order, from the given Binder, out through containing Binders.
     /// </summary>
-    internal readonly struct ExtensionMethodScopes
+    internal readonly struct ExtensionScopes
     {
         private readonly Binder _binder;
 
-        public ExtensionMethodScopes(Binder binder)
+        public ExtensionScopes(Binder binder)
         {
             _binder = binder;
         }
 
-        public ExtensionMethodScopeEnumerator GetEnumerator()
+        public ExtensionScopeEnumerator GetEnumerator()
         {
-            return new ExtensionMethodScopeEnumerator(_binder);
+            return new ExtensionScopeEnumerator(_binder);
         }
     }
 
     /// <summary>
-    /// An enumerator over ExtensionMethodScopes.
+    /// An enumerator over ExtensionScopes.
     /// </summary>
-    internal struct ExtensionMethodScopeEnumerator
+    internal struct ExtensionScopeEnumerator
     {
         private readonly Binder _binder;
-        private ExtensionMethodScope _current;
+        private ExtensionScope _current;
 
-        public ExtensionMethodScopeEnumerator(Binder binder)
+        public ExtensionScopeEnumerator(Binder binder)
         {
             _binder = binder;
-            _current = new ExtensionMethodScope();
+            _current = new ExtensionScope();
         }
 
-        public ExtensionMethodScope Current
+        public ExtensionScope Current
         {
             get { return _current; }
         }
@@ -68,24 +68,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var binder = _current.Binder;
-                // Return a scope for the next Binder that supports extension methods.
+                // Return a scope for the next Binder that supports extensions.
                 _current = GetNextScope(binder.Next);
             }
 
             return (_current.Binder != null);
         }
 
-        private static ExtensionMethodScope GetNextScope(Binder binder)
+        private static ExtensionScope GetNextScope(Binder binder)
         {
             for (var scope = binder; scope != null; scope = scope.Next)
             {
-                if (scope.SupportsExtensionMethods)
+                if (scope.SupportsExtensions)
                 {
-                    return new ExtensionMethodScope(scope);
+                    return new ExtensionScope(scope);
                 }
             }
 
-            return new ExtensionMethodScope();
+            return new ExtensionScope();
         }
     }
 }

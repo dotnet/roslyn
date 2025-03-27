@@ -25,7 +25,7 @@ internal sealed class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyCh
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         INotificationService notificationService,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         ImmutableArray<LanguageServices.Utilities.MemberSymbolViewModel> memberViewModels,
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
@@ -47,7 +47,7 @@ internal sealed class ExtractInterfaceDialogViewModel : AbstractNotifyPropertyCh
             languageName,
             defaultNamespace,
             generatedNameTypeParameterSuffix,
-            [.. conflictingTypeNames],
+            conflictingTypeNames,
             syntaxFactsService,
             canAddDocument);
     }

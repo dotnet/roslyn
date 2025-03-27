@@ -476,4 +476,21 @@ public sealed class InternalKeywordRecommenderTests : KeywordRecommenderTests
                 int this[int i] { get { } protected $$
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    $$
+                }
+            }
+            """,
+            CSharpNextParseOptions,
+            CSharpNextScriptParseOptions);
+    }
 }
