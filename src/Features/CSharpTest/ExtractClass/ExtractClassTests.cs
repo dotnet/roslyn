@@ -1269,6 +1269,7 @@ public class ExtractClassTests
             // this is my real document header
 
             namespace ConsoleApp185;
+
             using System;
             using System.Collections.Generic;
 
