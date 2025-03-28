@@ -13,6 +13,8 @@ internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
 
     private NoOpLspLogger() { }
 
+    public override IDisposable? CreateContext(string context) => null;
+
     public override void LogDebug(string message, params object[] @params)
     {
     }
