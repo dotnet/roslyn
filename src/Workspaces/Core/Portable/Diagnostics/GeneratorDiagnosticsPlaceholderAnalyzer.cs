@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -29,6 +30,23 @@ internal sealed class GeneratorDiagnosticsPlaceholderAnalyzer : DocumentDiagnost
         var project = textDocument.Project;
 
         var diagnostics = await Extensions.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-        return diagnostics.WhereAsArray(Extensions.IsReportedInDocument, textDocument);
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
+
+        foreach (var diagnostic in diagnostics)
+        {
+            if (Extensions.IsReportedInDocument(diagnostic, textDocument))
+            {
+                // Diagnostic reported directly against this document.  Include in the result set.
+                result.Add(diagnostic);
+            }
+            else if (diagnostic.Location.Kind == LocationKind.None &&
+                textDocument.Id == project.DocumentIds[0])
+            {
+                // Diagnostic reported against no location.  Include in the result set for the first document of the project.
+                result.Add(diagnostic);
+            }
+        }
+
+        return result.ToImmutableAndClear();
     }
 }
