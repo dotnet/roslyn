@@ -785,12 +785,9 @@ internal sealed partial class SolutionCompilationState
     /// <remarks>
     /// This method supports updating ordinary documents and source generated documents.
     /// </remarks>
-    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
+    internal SolutionCompilationState WithDocumentTexts1(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
     {
-        ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)> sourceGeneratedUpdates = [];
-        var ordinaryDocuments = texts.Any(static d => d.documentId.IsSourceGenerated)
-            ? GetOrdinaryAndSourceGeneratedDocuments(out sourceGeneratedUpdates)
-            : texts;
+        var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
 
         var state = UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
             ordinaryDocuments,
@@ -798,17 +795,15 @@ internal sealed partial class SolutionCompilationState
             updateDocument: static (oldDocumentState, text, mode) =>
                 SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
 
-        if (!sourceGeneratedUpdates.IsEmpty)
-        {
-            state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedUpdates);
-        }
+        state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
 
         return state;
 
-        ImmutableArray<(DocumentId, SourceText)> GetOrdinaryAndSourceGeneratedDocuments(out ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)> sourceGeneratedUpdates)
+        (ImmutableArray<(DocumentId, SourceText)>,
+         ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
         {
             using var _1 = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(capacity: texts.Length, out var ordinaryDocuments);
-            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)>.GetInstance(out var sourceGeneratedUpdatesBuilder);
+            using var _2 = ArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)>.GetInstance(out var sourceGeneratedDocuments);
             foreach (var doc in texts)
             {
                 if (!doc.documentId.IsSourceGenerated)
@@ -817,12 +812,11 @@ internal sealed partial class SolutionCompilationState
                 }
                 else if (TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(doc.documentId) is { Identity: var identity })
                 {
-                    sourceGeneratedUpdatesBuilder.Add((identity, DateTime.UtcNow, doc.text, syntaxNode: null));
+                    sourceGeneratedDocuments.Add((identity, DateTime.UtcNow, doc.text, syntaxNode: null));
                 }
             }
 
-            sourceGeneratedUpdates = sourceGeneratedUpdatesBuilder.ToImmutableAndClear();
-            return ordinaryDocuments.ToImmutableAndClear();
+            return (ordinaryDocuments.ToImmutableAndClear(), sourceGeneratedDocuments.ToImmutableAndClear());
         }
     }
 
