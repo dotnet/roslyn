@@ -34,12 +34,4 @@ internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
     public override void LogError(string message, params object[] @params)
     {
     }
-
-    public override void LogStartContext(string message, params object[] @params)
-    {
-    }
-
-    public override void LogEndContext(string message, params object[] @params)
-    {
-    }
 }
