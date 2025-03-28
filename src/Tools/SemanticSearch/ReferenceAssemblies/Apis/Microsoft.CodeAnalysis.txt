@@ -1471,8 +1471,10 @@ Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.ITypeSymbol.WithNullableAnnotation(Microsoft.CodeAnalysis.NullableAnnotation)
 Microsoft.CodeAnalysis.ITypeSymbol.get_AllInterfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_BaseType
+Microsoft.CodeAnalysis.ITypeSymbol.get_ExtensionParameter
 Microsoft.CodeAnalysis.ITypeSymbol.get_Interfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsAnonymousType
+Microsoft.CodeAnalysis.ITypeSymbol.get_IsExtension
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsNativeIntegerType
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsReadOnly
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsRecord
@@ -3957,6 +3959,7 @@ Microsoft.CodeAnalysis.TypeKind.Delegate
 Microsoft.CodeAnalysis.TypeKind.Dynamic
 Microsoft.CodeAnalysis.TypeKind.Enum
 Microsoft.CodeAnalysis.TypeKind.Error
+Microsoft.CodeAnalysis.TypeKind.Extension
 Microsoft.CodeAnalysis.TypeKind.FunctionPointer
 Microsoft.CodeAnalysis.TypeKind.Interface
 Microsoft.CodeAnalysis.TypeKind.Module

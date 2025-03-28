@@ -25,7 +25,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                void M()
+                void {|IDE3000:M|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|}
                 }
@@ -64,7 +64,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public C()
+                public {|IDE3000:C|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -85,7 +85,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                ~C()
+                ~{|IDE3000:C|}()
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -108,8 +108,8 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             {
                 public int this[int index]
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
                 }
             }
             """,
@@ -130,8 +130,8 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
             {
                 public event EventHandler MyEvent
                 {
-                    add { {|IDE3000:throw new NotImplementedException();|} }
-                    remove { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:add|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:remove|} { {|IDE3000:throw new NotImplementedException();|} }
                 }
             }
             """,
@@ -150,7 +150,7 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
 
             class C
             {
-                public static C operator +(C a, C b)
+                public static C operator {|IDE3000:+|}(C a, C b)
                 {
                     {|IDE3000:throw new NotImplementedException();|} 
                 }
@@ -168,20 +168,157 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
         {
             TestCode = """
             using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
 
             class C
             {
-                void M1()
+                void {|IDE3000:M1|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
-                void M2()
+                void {|IDE3000:M1WithComment|}()
+                {
+                    // Some comment
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+
+                void {|IDE3000:M2|}()
                 {
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
                 }
 
-                void M3()
+                int P1
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                int P2
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                int this[int index]
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} }
+                    {|IDE3000:set|} { {|IDE3000:throw new NotImplementedException();|} }
+                }
+
+                int P11
+                {
+                    {|IDE3000:get|} { {|IDE3000:throw new NotImplementedException();|} /*I am a comment*/ }
+                }
+
+                void {|IDE3000:M6|}()
+                {
+                    {|IDE3000:throw new NotImplementedException();|}
+                }
+
+                void {|IDE3000:M7|}()
+                {
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+
+                public double {|IDE3000:CalculateSquareRoot|}(double number) => {|IDE3000:throw new NotImplementedException("CalculateSquareRoot method not implemented")|};
+
+                internal void ThrowOnAllStatements(bool condition)
+                {
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task WhenShouldNotReportOnMember()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            class C
+            {
+                private string _name;
+                public string Name
+                {
+                    get => _name;
+                    set => _name = value ?? {|IDE3000:throw new NotImplementedException()|};
+                }
+
+                void LambdaThrowWithFunc()
+                {
+                    Func<int> func = () => {|IDE3000:throw new NotImplementedException()|};
+                    func();
+                }
+
+                void LambdaThrow()
+                {
+                    Action action = () => {|IDE3000:throw new NotImplementedException()|};
+                    action();
+                }
+
+                void AnonymousMethodThrow()
+                {
+                    Action action = delegate 
+                    { 
+                        {|IDE3000:throw new NotImplementedException();|}
+                    };
+                    action();
+                }
+
+                void LocalFunctionThrow()
+                {
+                    void Local() 
+                    { 
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+
+                    Local();
+                }
+
+                void NestedBlockThrow()
+                {
+                    if (true)
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+
+                void LoopThrow()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+
+                public int GetValue(string type) =>
+                    type switch
+                    {
+                        "A" => 1,
+                        "B" => 2,
+                        _ => {|IDE3000:throw new NotImplementedException($"Type '{type}' not implemented")|}
+                    };
+
+                void UsingThrow()
+                {
+                    using (var resource = new System.IO.MemoryStream())
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+
+                void TryCatchThrow()
                 {
                     try
                     {
@@ -193,43 +330,121 @@ public sealed class CSharpImplementNotImplementedExceptionDiagnosticAnalyzerTest
                     }
                 }
 
-                int P1
+                void LockThrow()
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
+                    lock (new object())
+                    {
+                        {|IDE3000:throw new NotImplementedException();|}
+                    }
                 }
 
-                int P2
+                void TernaryThrow(bool condition)
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    var result = condition ? 1 : {|IDE3000:throw new NotImplementedException()|};
                 }
 
-                int this[int index]
+                void AnonymousTypeWithLambdaThrow()
                 {
-                    get { {|IDE3000:throw new NotImplementedException();|} }
-                    set { {|IDE3000:throw new NotImplementedException();|} }
+                    var result = new { Value = (Func<int>)(() => {|IDE3000:throw new NotImplementedException()|}) };
                 }
 
-                void M4()
+                void LinqThrow()
                 {
-                    Action action = () => {|IDE3000:throw new NotImplementedException()|};
-                    action();
+                    var result = new[] { 1, 2, 3 }.Select(x => x > 0 ? x : {|IDE3000:throw new NotImplementedException()|});
                 }
 
-                void M5()
+                public int[] ComplexQuery()
                 {
-                    Func<int> func = () => {|IDE3000:throw new NotImplementedException()|};
-                    func();
+                    return new[] { 1, 2, 3 }
+                        .Where(x => x > 0)
+                        .Select(x => x * 2)
+                        .Where(x => x > 0 ? true : {|IDE3000:throw new NotImplementedException()|})
+                        .ToArray();
                 }
 
-                void M6()
+                public void ProcessData(List<object> data)
                 {
-                    {|IDE3000:throw new NotImplementedException();|}
+                    var result = data.Select(item => item switch 
+                    {
+                        string s => s.ToUpper(),
+                        int i => i.ToString(),
+                        DateTime d => d.ToShortDateString(),
+                        _ => {|IDE3000:throw new NotImplementedException("Unsupported data type")|}
+                    });
                 }
 
-                void M7()
+                internal Person CreatePerson(string name, int age)
                 {
+                    return new Person
+                    {
+                        Name = name ?? {|IDE3000:throw new NotImplementedException("Name cannot be null")|},
+                        Age = age < 0 ? {|IDE3000:throw new NotImplementedException("Age must be positive")|} : age,
+                        Skills = new() { "C#", "F#" }
+                    };
+                }
+
+                public void ProcessWithLocalMethod(string input)
+                {
+                    string ParseInput(string text)
+                    {
+                        return text?.Length > 5 ? text : {|IDE3000:throw new NotImplementedException("Input too short")|};
+                    }
+                }
+
+                public Func<int, int> GetCalculator(string operation)
+                {
+                    return operation switch
+                    {
+                        "square" => x => x * x,
+                        "double" => x => x * 2,
+                        _ => {|IDE3000:throw new NotImplementedException($"Operation {operation} not implemented")|}
+                    };
+                }
+
+                public void ProcessWithNestedDelegates()
+                {
+                    Func<int, Func<int, int>> createOperation = x => 
+                        y => x > 0 ? x + y : {|IDE3000:throw new NotImplementedException("Negative values not implemented")|};
+                }
+
+                public async Task<Person> GetPersonAsync(int id)
+                {
+                    var supervisor = id > 100 
+                        ? new Person { Name = "Manager" } 
+                        : {|IDE3000:throw new NotImplementedException("Non-manager employees not implemented")|};
+
+                    return supervisor;
+                }
+
+                void SwitchThrow(int value)
+                {
+                    switch (value)
+                    {
+                        case 1:
+                            {|IDE3000:throw new NotImplementedException();|}
+                    }
+                }
+
+                internal void WontReportOnMemberWhenThrowIsNotDirect(bool condition)
+                {
+                    var result = condition ? 1 : {|IDE3000:throw new NotImplementedException()|};
+
                     {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+
+                internal void WontReportOnMemberWhenNonThrowStatementsExist(bool condition)
+                {
+                    Console.WriteLine(condition ? 1 : 0);
+
+                    {|IDE3000:throw new NotImplementedException("Not implemented");|}
+                }
+
+                internal class Person
+                {
+                    public string Name { get; set; }
+                    public int Age { get; set; }
+                    public List<string> Skills { get; set; }
+                    public Person Supervisor { get; set; }
                 }
             }
             """,

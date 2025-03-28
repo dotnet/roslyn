@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -13,22 +15,23 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Language.Proposals;
 using Microsoft.VisualStudio.Language.Suggestions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
+    internal sealed class CopilotGenerateDocumentationCommentProvider : SuggestionProviderBase
     {
         private SuggestionManagerBase? _suggestionManager;
         private readonly ICopilotCodeAnalysisService _copilotService;
 
         public readonly IThreadingContext ThreadingContext;
 
+        [MemberNotNullWhen(true, nameof(_suggestionManager))]
         public bool Enabled => _enabled && (_suggestionManager != null);
         private bool _enabled = true;
 
@@ -46,14 +49,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         public async Task GenerateDocumentationProposalAsync(DocumentationCommentSnippet snippet,
             ITextSnapshot oldSnapshot, VirtualSnapshotPoint oldCaret, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
-
+            // Checks to see if the feature is enabled and if the suggestionManager is available
             if (!Enabled)
             {
                 return;
             }
 
-            // MemberNode is not null at this point, checked when determining if the file is exluded.
+            await TaskScheduler.Default;
+
+            // MemberNode is not null at this point, checked when determining if the file is excluded.
             var snippetProposal = GetSnippetProposal(snippet.SnippetText, snippet.MemberNode!, snippet.Position, snippet.CaretOffset);
 
             if (snippetProposal is null)
@@ -61,22 +65,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return;
             }
 
-            // Do not do IntelliCode line completions if we're about to generate a documentation comment
-            // so that won't have interfering grey text.
-            var intellicodeLineCompletionsDisposable = await _suggestionManager!.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
+            // We need to disable IntelliCode Line Completions when starting a documentation comment session. Our suggestions take precedence to line completions in the documentation comment case.
+            // It needs to be disposed of in any case we have left the session, either after a user has accepted grey text or if we needed to bail out earlier in the process.
+            // Disposing of the provider is necessary to reenable the provider.
+            var intelliCodeLineCompletionsDisposable = await _suggestionManager.DisableProviderAsync(SuggestionServiceNames.IntelliCodeLineCompletions, cancellationToken).ConfigureAwait(false);
 
-            var proposalEdits = await GetProposedEditsAsync(snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
-
-            var proposal = Proposal.TryCreateProposal(null, proposalEdits, oldCaret, flags: ProposalFlags.SingleTabToAccept);
-
-            if (proposal is null)
+            var suggestion = new DocumentationCommentSuggestion(this, _suggestionManager, intelliCodeLineCompletionsDisposable);
+            Func<CancellationToken, Task<ProposalBase?>> generateProposal = async (cancellationToken) =>
             {
-                await intellicodeLineCompletionsDisposable.DisposeAsync().ConfigureAwait(false);
-                return;
-            }
+                var proposalEdits = await GetProposedEditsAsync(
+                    snippetProposal, _copilotService, oldSnapshot, snippet.IndentText, cancellationToken).ConfigureAwait(false);
 
-            var suggestion = new DocumentationCommentSuggestion(this, proposal, _suggestionManager, intellicodeLineCompletionsDisposable);
-            await suggestion.TryDisplaySuggestionAsync(cancellationToken).ConfigureAwait(false);
+                return Proposal.TryCreateProposal(description: null, proposalEdits, oldCaret, flags: ProposalFlags.ShowCommitHighlight);
+            };
+
+            await suggestion.StartSuggestionSessionWithProposalAsync(generateProposal, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -97,8 +100,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var summaryEndTag = comments.IndexOf("</summary>", index, StringComparison.Ordinal);
             if (summaryEndTag != -1 && summaryStartTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), null, DocumentationCommentTagType.Summary));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(caret + startIndex, 0), symbolName: null, DocumentationCommentTagType.Summary));
             }
+
+            // We may receive remarks from the model. In that case, we want to insert the remark tags and remark directly after the summary.
+            proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(summaryEndTag + "</summary>".Length + startIndex, 0), symbolName: null, DocumentationCommentTagType.Remarks));
 
             while (true)
             {
@@ -145,7 +151,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var returnsEndTag = comments.IndexOf("</returns>", index, StringComparison.Ordinal);
             if (returnsEndTag != -1)
             {
-                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), null, DocumentationCommentTagType.Returns));
+                proposedEdits.Add(new DocumentationCommentProposedEdit(new TextSpan(returnsEndTag + startIndex, 0), symbolName: null, DocumentationCommentTagType.Returns));
             }
 
             while (true)
@@ -218,7 +224,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 var proposedEdit = new ProposedEdit(new SnapshotSpan(oldSnapshot, textSpan.Start, textSpan.Length),
-                    AddNewLinesToCopilotText(copilotStatement, indentText, characterLimit: 120));
+                    AddNewLinesToCopilotText(copilotStatement, indentText, edit.TagType, characterLimit: 120));
                 list.Add(proposedEdit);
             }
 
@@ -229,6 +235,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 if (edit.TagType == DocumentationCommentTagType.Summary && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Summary.ToString(), out var summary) && !string.IsNullOrEmpty(summary))
                 {
                     return summary;
+                }
+                else if (edit.TagType == DocumentationCommentTagType.Remarks && documentationCommentDictionary.TryGetValue(DocumentationCommentTagType.Remarks.ToString(), out var remarks) && !string.IsNullOrEmpty(remarks))
+                {
+                    return remarks;
                 }
                 else if (edit.TagType == DocumentationCommentTagType.TypeParam && documentationCommentDictionary.TryGetValue(symbolKey!, out var typeParam) && !string.IsNullOrEmpty(typeParam))
                 {
@@ -250,11 +260,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 return null;
             }
 
-            static string AddNewLinesToCopilotText(string copilotText, string? indentText, int characterLimit)
+            static string AddNewLinesToCopilotText(string copilotText, string? indentText, DocumentationCommentTagType tagType, int characterLimit)
             {
                 // Double check that the resultant from Copilot does not produce any strings containing new line characters.
                 copilotText = Regex.Replace(copilotText, @"\r?\n", " ");
                 var builder = new StringBuilder();
+                copilotText = BuildCopilotTextForRemarks(copilotText, indentText, tagType, builder);
+
                 var words = copilotText.Split(' ');
                 var currentLineLength = 0;
                 characterLimit -= (indentText!.Length + "/// ".Length);
@@ -279,6 +291,22 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 return builder.ToString();
+
+                static string BuildCopilotTextForRemarks(string copilotText, string? indentText, DocumentationCommentTagType tagType, StringBuilder builder)
+                {
+                    if (tagType is DocumentationCommentTagType.Remarks)
+                    {
+                        builder.AppendLine();
+                        builder.Append(indentText);
+                        builder.Append("/// <remarks>");
+                        builder.Append(copilotText);
+                        builder.Append("</remarks>");
+                        copilotText = builder.ToString();
+                        builder.Clear();
+                    }
+
+                    return copilotText;
+                }
             }
         }
 
