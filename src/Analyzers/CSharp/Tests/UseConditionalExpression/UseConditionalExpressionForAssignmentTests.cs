@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2486,5 +2487,41 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestOnNullConditionalAssignment1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    [|if|] (true)
+                    {
+                        c?.i = 0;
+                    }
+                    else
+                    {
+                        c?.i = 1;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    c?.i = true ? 0 : 1;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
     }
 }

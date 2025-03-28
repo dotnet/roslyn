@@ -54,7 +54,7 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
         TContext context,
         CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
             return [];

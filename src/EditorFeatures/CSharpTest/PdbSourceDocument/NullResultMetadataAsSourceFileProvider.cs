@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 internal class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
 {
     // Represents a null result
-    public static MetadataAsSourceFile NullResult = new("", null, null, null);
+    public static MetadataAsSourceFile NullResult = new("", null!, null!, null!);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

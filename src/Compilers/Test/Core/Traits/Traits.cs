@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
             public const string CodeActionsConvertToRawString = "CodeActions.CodeActionsConvertToRawString";
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
+            public const string CodeActionsConvertToExtension = "CodeActions.ConvertToExtension";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
             public const string CodeActionsConvertToRecord = "CodeActions.ConvertToRecord";
@@ -290,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string NetCore = nameof(NetCore);
             public const string NormalizeModifiersOrOperators = nameof(NormalizeModifiersOrOperators);
             public const string ObjectBrowser = nameof(ObjectBrowser);
+            public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
             public const string Options = nameof(Options);
             public const string Organizing = nameof(Organizing);
             public const string Outlining = nameof(Outlining);

@@ -44,6 +44,19 @@
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
     <PublishDir Condition="'$(RuntimeIdentifier)' == ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/neutral</PublishDir>
 
+    <!-- List of runtime identifiers that we want to publish an executable for. -->
+    <!-- When building a VMR vertical, we don't need to pack everything. Just pack the passed in TargetRid or BaseOS.
+         TargetRid and BaseOS are provided to roslyn via the build arguments passed in the VMR orchestrator's repo project.
+         https://github.com/dotnet/dotnet/blob/main/repo-projects/roslyn.proj. For definitions of the TargetRid
+         and other common properties, see https://github.com/dotnet/arcade/blob/main/Documentation/UnifiedBuild/Unified-Build-Controls.md -->
+    <RuntimeIdentifiers Condition="'$(TargetRid)' != ''">$(TargetRid)</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(BaseOS)' != ''">$(BaseOS)</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(TargetRid)' == '' and '$(BaseOS)' == ''">win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+
+    <!-- These indicate that the runtime/apphost packages should not be downloaded as part of build/restore -->
+    <EnableRuntimePackDownload>false</EnableRuntimePackDownload>
+    <EnableAppHostPackDownload>false</EnableAppHostPackDownload>
+
     <!-- Publish ready to run executables when we're publishing platform specific executables. -->
     <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != '' AND '$(Configuration)' == 'Release' ">true</PublishReadyToRun>
 
@@ -65,7 +78,7 @@
   <Target Name="SetCrossgen2ExtraArgs" BeforeTargets="ResolveReadyToRunCompilers" Condition="'$(PublishReadyToRun)' == 'true'">
     <PropertyGroup>
       <!-- Define extra crossgen2 args.  This must be done in a target as TargetName isn't available in evaluation -->
-      <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--opt-cross-module:*;--non-local-generics-module:"$(TargetName)"</PublishReadyToRunCrossgen2ExtraArgs>
+      <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--non-local-generics-module:"$(TargetName)"</PublishReadyToRunCrossgen2ExtraArgs>
     </PropertyGroup>
   </Target>
 
@@ -86,6 +99,7 @@
     <ProjectReference Include="..\..\Tools\ExternalAccess\Xaml\Microsoft.CodeAnalysis.ExternalAccess.Xaml.csproj" />
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
     <ProjectReference Include="..\ExternalAccess\Copilot\Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot.csproj" />
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>

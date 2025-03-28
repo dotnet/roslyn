@@ -9,7 +9,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -28,6 +28,7 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
 {
     private IExternalCSharpCopilotCodeAnalysisService? AnalysisService { get; }
     private IExternalCSharpCopilotGenerateDocumentationService? GenerateDocumentationService { get; }
+    private IExternalCSharpOnTheFlyDocsService? OnTheFlyDocsService { get; }
     private IExternalCSharpCopilotGenerateImplementationService? GenerateImplementationService { get; }
 
     [ImportingConstructor]
@@ -35,21 +36,26 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
     public CSharpCopilotCodeAnalysisService(
         [Import(AllowDefault = true)] IExternalCSharpCopilotCodeAnalysisService? externalCopilotService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateDocumentationService? externalCSharpCopilotGenerateDocumentationService,
+        [Import(AllowDefault = true)] IExternalCSharpOnTheFlyDocsService? externalCSharpOnTheFlyDocsService,
         [Import(AllowDefault = true)] IExternalCSharpCopilotGenerateImplementationService? externalCSharpCopilotGenerateImplementationService,
         IDiagnosticsRefresher diagnosticsRefresher
         ) : base(diagnosticsRefresher)
     {
         if (externalCopilotService is null)
-            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCopilotService)), ErrorSeverity.Diagnostic);
 
         if (externalCSharpCopilotGenerateDocumentationService is null)
             FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateDocumentationService)), ErrorSeverity.Diagnostic);
 
-        if (externalCSharpCopilotGenerateDocumentationService is null)
+        if (externalCSharpOnTheFlyDocsService is null)
+            FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpOnTheFlyDocsService)), ErrorSeverity.Diagnostic);
+
+        if (externalCSharpCopilotGenerateImplementationService is null)
             FatalError.ReportAndCatch(new ArgumentNullException(nameof(externalCSharpCopilotGenerateImplementationService)), ErrorSeverity.Diagnostic);
 
         AnalysisService = externalCopilotService;
         GenerateDocumentationService = externalCSharpCopilotGenerateDocumentationService;
+        OnTheFlyDocsService = externalCSharpOnTheFlyDocsService;
         GenerateImplementationService = externalCSharpCopilotGenerateImplementationService;
     }
 
@@ -93,10 +99,18 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return Task.CompletedTask;
     }
 
-    protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
+    protected override Task<string> GetOnTheFlyDocsPromptCoreAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
     {
-        if (AnalysisService is not null)
-            return AnalysisService.GetOnTheFlyDocsAsync(symbolSignature, declarationCode, language, cancellationToken);
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.GetOnTheFlyDocsPromptAsync(new CopilotOnTheFlyDocsInfoWrapper(onTheFlyDocsInfo), cancellationToken);
+
+        return Task.FromResult(string.Empty);
+    }
+
+    protected override Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseCoreAsync(string prompt, CancellationToken cancellationToken)
+    {
+        if (OnTheFlyDocsService is not null)
+            return OnTheFlyDocsService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken);
 
         return Task.FromResult((string.Empty, false));
     }
@@ -142,15 +156,15 @@ internal sealed class CSharpCopilotCodeAnalysisService : AbstractCopilotCodeAnal
         return GenerateImplementationService is not null;
     }
 
-    protected override async Task<ImmutableDictionary<MemberDeclarationSyntax, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
+    protected override async Task<ImmutableDictionary<SyntaxNode, ImplementationDetails>> ImplementNotImplementedExceptionsCoreAsync(
         Document document,
-        ImmutableDictionary<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>> methodOrProperties,
+        ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(GenerateImplementationService);
         var nodeToWrappers = await GenerateImplementationService.ImplementNotImplementedExceptionsAsync(document, methodOrProperties, cancellationToken).ConfigureAwait(false);
 
-        var resultBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImplementationDetails>();
+        var resultBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImplementationDetails>();
         foreach (var nodeToWrapper in nodeToWrappers)
         {
             resultBuilder.Add(

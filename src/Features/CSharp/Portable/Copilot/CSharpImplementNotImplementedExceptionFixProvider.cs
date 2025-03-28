@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -56,10 +55,11 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
             return;
         }
 
-        var throwNode = context.Diagnostics[0].Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var diagnosticNode = context.Diagnostics[0].Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         // Preliminary analysis before registering fix
-        var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+        var methodOrProperty = diagnosticNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
         if (methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax)
         {
             // Pull out the computation into a lazy computation here.  That way if we compute (and thus cache) the
@@ -80,13 +80,14 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<MemberDeclarationSyntax, ImmutableArray<ReferencedSymbol>>();
+        var memberReferencesBuilder = ImmutableDictionary.CreateBuilder<SyntaxNode, ImmutableArray<ReferencedSymbol>>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
         {
-            var throwNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var methodOrProperty = throwNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+            var diagnosticNode = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var methodOrProperty = diagnosticNode.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+
             Contract.ThrowIfFalse(methodOrProperty is BasePropertyDeclarationSyntax or BaseMethodDeclarationSyntax);
 
             if (!memberReferencesBuilder.ContainsKey(methodOrProperty))
@@ -103,8 +104,10 @@ internal sealed class CSharpImplementNotImplementedExceptionFixProvider() : Synt
         var copilotService = document.GetRequiredLanguageService<ICopilotCodeAnalysisService>();
         var memberImplementationDetails = await copilotService.ImplementNotImplementedExceptionsAsync(document, memberReferencesBuilder.ToImmutable(), cancellationToken).ConfigureAwait(false);
 
-        foreach (var methodOrProperty in memberReferencesBuilder.Keys)
+        foreach (var node in memberReferencesBuilder.Keys)
         {
+            var methodOrProperty = (MemberDeclarationSyntax)node;
+
             Contract.ThrowIfFalse(memberImplementationDetails.TryGetValue(methodOrProperty, out var implementationDetails));
 
             var replacement = implementationDetails.ReplacementNode;
