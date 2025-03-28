@@ -6626,12 +6626,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destinationValueType,
                     diagnostics));
 
-            static BoundCall bindKeyOrValue(SyntaxNode syntax, BoundExpression expr, MethodSymbol getMethod)
+            BoundCall bindKeyOrValue(SyntaxNode syntax, BoundExpression expr, MethodSymbol getMethod)
             {
                 return new BoundCall(
                     syntax,
                     receiverOpt: expr,
-                    initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(expr, getMethod),
                     method: getMethod,
                     arguments: [],
                     argumentNamesOpt: default,
