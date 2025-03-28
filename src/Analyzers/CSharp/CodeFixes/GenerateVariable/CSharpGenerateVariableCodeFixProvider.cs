@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -39,14 +38,8 @@ internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerate
 
     protected override SyntaxNode? GetTargetNode(SyntaxNode node)
     {
-        if (node.IsKind(SyntaxKind.MemberBindingExpression))
-        {
-            var nameNode = node.ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.IdentifierName));
-            if (nameNode != null)
-            {
-                return nameNode;
-            }
-        }
+        if (node is MemberBindingExpressionSyntax memberBinding)
+            return memberBinding.Name;
 
         return base.GetTargetNode(node);
     }

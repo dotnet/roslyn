@@ -75,36 +75,9 @@ internal static class Completion
         CancellationToken cancellationToken)
     {
         // Razor can't construct a RazorCohostRequestContext so we need to handle the null case, for their tests
-        var logger = context is { } razorContext ? razorContext.GetRequiredService<ILspLogger>() : new EmptyLogger();
+        var logger = context is { } razorContext ? razorContext.GetRequiredService<ILspLogger>() : NoOpLspLogger.Instance;
         var xmlSnippetParser = document.Project.Solution.Services.ExportProvider.GetService<XmlSnippetParser>();
 
         return InlineCompletionsHandler.GetInlineCompletionItemsAsync(logger, document, position, options, xmlSnippetParser, cancellationToken);
-    }
-
-    private sealed class EmptyLogger : ILspLogger
-    {
-        public void LogStartContext(string message, params object[] @params)
-        {
-        }
-
-        public void LogEndContext(string message, params object[] @params)
-        {
-        }
-
-        public void LogInformation(string message, params object[] @params)
-        {
-        }
-
-        public void LogWarning(string message, params object[] @params)
-        {
-        }
-
-        public void LogError(string message, params object[] @params)
-        {
-        }
-
-        public void LogException(Exception exception, string? message = null, params object[] @params)
-        {
-        }
     }
 }
