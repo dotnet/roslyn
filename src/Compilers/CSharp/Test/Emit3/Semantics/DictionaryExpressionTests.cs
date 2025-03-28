@@ -1857,6 +1857,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp12, "IEnumerable<KeyValuePair<K, V>>")]
+        [InlineData(LanguageVersion.Preview, "IEnumerable<KeyValuePair<K, V>>")]
+        [InlineData(LanguageVersion.Preview, "IDictionary<K, V>")]
+        [InlineData(LanguageVersion.Preview, "Dictionary<K, V>")]
+        public void KeyValuePairConversions_Dynamic_04(LanguageVersion languageVersion, string typeName)
+        {
+            string source = $$"""
+                using System.Collections;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var y = new[] { new KeyValuePair<int, string>(3, "three") };
+                        FromSpread1<int, string>(y);
+                        FromSpread2<int, string>(y);
+                    }
+                    static {{typeName}} FromSpread1<K, V>(dynamic e) => [..e];
+                    static {{typeName}} FromSpread2<K, V>(IEnumerable e) => [..e];
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (11,64): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //     static Dictionary<K, V> FromSpread1<K, V>(dynamic e) => [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(11, 64),
+                // (12,68): error CS0029: Cannot implicitly convert type 'object' to 'System.Collections.Generic.KeyValuePair<K, V>'
+                //     static Dictionary<K, V> FromSpread2<K, V>(IEnumerable e) => [..e];
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("object", "System.Collections.Generic.KeyValuePair<K, V>").WithLocation(12, 68));
+        }
+
         [Fact]
         public void KeyValuePairConversions_Dynamic_MultipleIndexers()
         {
