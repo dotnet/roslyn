@@ -7,25 +7,60 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 #if NET
-using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.Loader;
 #endif
 
 namespace Microsoft.CodeAnalysis.Host;
 
+/// <summary>
+/// This is an implementation of <see cref="IAnalyzerAssemblyLoader"/> which will never 
+/// actually load the <see cref="Assembly"/>. It is used in places where we need to create
+/// a <see cref="AnalyzerReference"/> for other purposes, like communicating the underlying
+/// file path, but do not actually want to load it.
+/// </summary>
+internal sealed class NoLoadAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
+{
+    internal static NoLoadAnalyzerAssemblyLoader Instance { get; } = new();
+
+    private NoLoadAnalyzerAssemblyLoader()
+    {
+    }
+
+    public void AddDependencyLocation(string fullPath)
+    {
+    }
+
+    public Assembly LoadFromPath(string fullPath) =>
+        throw ExceptionUtilities.Unreachable();
+}
+
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
-    IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
-
 #if NET
+
     /// <summary>
     /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
     /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
     /// </summary>
     IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
+
+#else
+
+    /// <summary>
+    /// This is the shared instance that should be used by all <see cref="AnalyzerReference"/> in the 
+    /// current process.
+    /// </summary>
+    /// <remarks>
+    /// This is not available in .NET Core because there is no single shared loader and instead we 
+    /// partition into AssemblyLoadContext based on the usage context.
+    /// </remarks>
+    IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
+
 #endif
 }
 
@@ -36,17 +71,12 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
 #if NET
-    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _assemblyResolvers;
 
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> assemblyResolvers)
     {
         _assemblyResolvers = [.. assemblyResolvers];
-        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
-
-    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
-        => _shadowCopyLoader.Value;
 
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
@@ -54,6 +84,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
                 pathResolvers: default,
                 _assemblyResolvers));
 #else
+
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider()
@@ -61,10 +92,10 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
 
-    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
-        => _shadowCopyLoader.Value;
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader =>
+        _shadowCopyLoader.Value;
 
-    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+    private IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(AnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
                 pathResolvers: default));
