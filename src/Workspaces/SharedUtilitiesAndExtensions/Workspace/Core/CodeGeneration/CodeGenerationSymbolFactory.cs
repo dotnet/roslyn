@@ -83,7 +83,7 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
         ITypeSymbol type, RefKind refKind, ImmutableArray<IPropertySymbol> explicitInterfaceImplementations, string name,
         ImmutableArray<IParameterSymbol> parameters, IMethodSymbol? getMethod, IMethodSymbol? setMethod,
-        bool isIndexer = false)
+        bool isIndexer = false, SyntaxNode? initializer = null)
     {
         return CreatePropertySymbol(
             containingType: null,
@@ -97,7 +97,8 @@ internal static class CodeGenerationSymbolFactory
             parameters: parameters,
             getMethod: getMethod,
             setMethod: setMethod,
-            isIndexer: isIndexer);
+            isIndexer: isIndexer,
+            initializer: initializer);
     }
 
     /// <summary>
@@ -286,7 +287,7 @@ internal static class CodeGenerationSymbolFactory
     /// <summary>
     /// Creates a parameter symbol that can be used to describe a parameter declaration.
     /// </summary>
-    internal static IParameterSymbol CreateParameterSymbol(
+    public static IParameterSymbol CreateParameterSymbol(
         IParameterSymbol parameter,
         ImmutableArray<AttributeData>? attributes = null,
         RefKind? refKind = null,
@@ -453,7 +454,7 @@ internal static class CodeGenerationSymbolFactory
             containingAssembly, null, attributes, accessibility, modifiers, isRecord, typeKind, name,
             typeParameters, baseType, interfaces, specialType, nullableAnnotation,
             members.WhereAsArray(m => m is not INamedTypeSymbol),
-            members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol()).ToImmutableArray(),
+            [.. members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol())],
             enumUnderlyingType: null);
     }
 
@@ -551,7 +552,8 @@ internal static class CodeGenerationSymbolFactory
         string? name = null,
         bool? isIndexer = null,
         IMethodSymbol? getMethod = null,
-        IMethodSymbol? setMethod = null)
+        IMethodSymbol? setMethod = null,
+        SyntaxNode? initializer = null)
     {
         return CreatePropertySymbol(
             attributes,
@@ -564,7 +566,8 @@ internal static class CodeGenerationSymbolFactory
             parameters ?? property.Parameters,
             getMethod,
             setMethod,
-            isIndexer ?? property.IsIndexer);
+            isIndexer ?? property.IsIndexer,
+            initializer: initializer);
     }
 
     internal static IEventSymbol CreateEventSymbol(

@@ -84,6 +84,6 @@ internal static partial class IMethodSymbolExtensions
         // "C<int>.Goo(int t)" (method2).
         p1 = method1.OriginalDefinition.Parameters;
         p2 = method2.OriginalDefinition.Parameters;
-        return p1.Select(p => p.Type).ToList().AreMoreSpecificThan(p2.Select(p => p.Type).ToList());
+        return p1.Select(p => p.Type).ToList().AreMoreSpecificThan([.. p2.Select(p => p.Type)]);
     }
 }

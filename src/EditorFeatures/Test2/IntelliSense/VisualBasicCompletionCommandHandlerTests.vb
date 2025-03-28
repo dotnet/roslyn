@@ -3147,7 +3147,7 @@ Class C
 
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
+        <ConditionalWpfFact(GetType(IsEnglishLocal), Skip:="https://github.com/dotnet/roslyn/issues/29938"), WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         Public Async Function TestMatchWithTurkishIWorkaround9() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -3165,13 +3165,16 @@ Class C
         $$]]></Document>)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertSelectedCompletionItem("If")
+
+                    ' ICustomFormatter is better than `if` as the user used full-caps, which makes it more likely that
+                    ' they wanted to camel case match
+                    Await state.AssertSelectedCompletionItem("ICustomFormatter")
                 End Using
             End Using
 
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
+        <ConditionalWpfFact(GetType(IsEnglishLocal), Skip:="https://github.com/dotnet/roslyn/issues/29938"), WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         Public Async Function TestMatchWithTurkishIWorkaround10() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -3190,7 +3193,10 @@ Class C
 ]]></Document>)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertSelectedCompletionItem("If")
+
+                    ' ICustomFormatter is better than `if` as the user used full-caps, which makes it more likely that
+                    ' they wanted to camel case match
+                    Await state.AssertSelectedCompletionItem("ICustomFormatter")
                 End Using
             End Using
         End Function

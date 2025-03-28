@@ -38,15 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParameters, TypeMap typeMap)
+        protected SynthesizedContainer(string name)
         {
             Debug.Assert(name != null);
-            Debug.Assert(!typeParameters.IsDefault);
-            Debug.Assert(typeMap != null);
 
             Name = name;
-            _typeParameters = typeParameters;
-            TypeMap = typeMap;
+            _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            TypeMap = TypeMap.Empty;
         }
 
         internal TypeMap TypeMap { get; }
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsInterface => this.TypeKind == TypeKind.Interface;
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -101,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
 
         internal sealed override bool IsInterpolatedStringHandlerType => false;
 

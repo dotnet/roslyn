@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging;
@@ -78,8 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             return
             [
-                new CodeStylePreference(ServicesVSResources.Yes, isChecked: true),
-                new CodeStylePreference(ServicesVSResources.No, isChecked: false),
+                new CodeStylePreference(EditorFeaturesResources.Yes, isChecked: true),
+                new CodeStylePreference(EditorFeaturesResources.No, isChecked: false),
             ];
         }
     }

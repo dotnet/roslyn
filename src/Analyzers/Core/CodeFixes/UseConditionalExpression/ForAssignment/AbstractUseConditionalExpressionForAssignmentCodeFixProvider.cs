@@ -56,8 +56,11 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
     /// formatted specially.
     /// </summary>
     protected override async Task FixOneAsync(
-        Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        Document document,
+        Diagnostic diagnostic,
+        SyntaxEditor editor,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
@@ -66,7 +69,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
         var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
         if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
-                syntaxFacts, ifOperation, out var isRef,
+                syntaxFacts, ifOperation, cancellationToken, out var isRef,
                 out var trueStatement, out var falseStatement,
                 out var trueAssignment, out var falseAssignment))
         {

@@ -150,7 +150,7 @@ class C
             var input = "class [|C|] { public C(int i) { } }";
             var expected = "class C { public C() : this(42) { } public C(int i) { } }";
             await TestAddConstructorAsync(input, expected,
-                thisArguments: ImmutableArray.Create<SyntaxNode>(CS.SyntaxFactory.ParseExpression("42")));
+                thisArguments: [CS.SyntaxFactory.ParseExpression("42")]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -490,8 +490,8 @@ class C
     }
 }";
             await TestAddEventAsync(input, expected,
-                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
+                removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol([], Accessibility.NotApplicable, []),
                 context: new CodeGenerationContext(addImports: false));
         }
 
@@ -622,7 +622,7 @@ class C
 }";
             await TestAddMethodAsync(input, expected,
                 returnType: typeof(int),
-                typeParameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")),
+                typeParameters: [CodeGenerationSymbolFactory.CreateTypeParameterSymbol("T")],
                 statements: "return new T().GetHashCode();");
         }
 
@@ -678,7 +678,7 @@ class C : I
                 returnType: typeof(void),
                 parameters: Parameters(Parameter(typeof(int), "i")),
                 modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
-                getExplicitInterfaces: s => s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>().ToImmutableArray());
+                getExplicitInterfaces: s => [.. s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>()]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -696,7 +696,7 @@ class C : I
                 name: "M",
                 returnType: typeof(void),
                 parameters: Parameters(Parameter(typeof(int), "i")),
-                getExplicitInterfaces: s => s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>().ToImmutableArray());
+                getExplicitInterfaces: s => [.. s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>()]);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

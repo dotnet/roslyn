@@ -17,7 +17,9 @@ internal static partial class SyntaxTreeExtensions
 {
     public static bool OverlapsHiddenPosition([NotNullWhen(returnValue: true)] this SyntaxTree? tree, TextSpan span, CancellationToken cancellationToken)
     {
-        if (tree == null)
+        // Short-circuit if there are no line mappings to avoid potentially realizing the source text.
+        // All lines are visible if there are no line mappings.
+        if (tree == null || tree.GetLineMappings(cancellationToken).IsEmpty())
         {
             return false;
         }
@@ -47,7 +49,7 @@ internal static partial class SyntaxTreeExtensions
         CancellationToken cancellationToken,
         bool findInsideTrivia = false)
     {
-        return GetTouchingTokenAsync(syntaxTree, position, syntaxFacts.IsWord, cancellationToken, findInsideTrivia);
+        return GetTouchingTokenAsync(syntaxTree, semanticModel: null, position, (_, t) => syntaxFacts.IsWord(t), cancellationToken, findInsideTrivia);
     }
 
     public static Task<SyntaxToken> GetTouchingTokenAsync(
@@ -56,13 +58,14 @@ internal static partial class SyntaxTreeExtensions
         CancellationToken cancellationToken,
         bool findInsideTrivia = false)
     {
-        return GetTouchingTokenAsync(syntaxTree, position, _ => true, cancellationToken, findInsideTrivia);
+        return GetTouchingTokenAsync(syntaxTree, semanticModel: null, position, (_, _) => true, cancellationToken, findInsideTrivia);
     }
 
     public static async Task<SyntaxToken> GetTouchingTokenAsync(
         this SyntaxTree syntaxTree,
+        SemanticModel? semanticModel,
         int position,
-        Predicate<SyntaxToken> predicate,
+        Func<SemanticModel?, SyntaxToken, bool> predicate,
         CancellationToken cancellationToken,
         bool findInsideTrivia = false)
     {
@@ -76,14 +79,14 @@ internal static partial class SyntaxTreeExtensions
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(position, findInsideTrivia);
 
-        if ((token.Span.Contains(position) || token.Span.End == position) && predicate(token))
+        if ((token.Span.Contains(position) || token.Span.End == position) && predicate(semanticModel, token))
         {
             return token;
         }
 
         token = token.GetPreviousToken();
 
-        if (token.Span.End == position && predicate(token))
+        if (token.Span.End == position && predicate(semanticModel, token))
         {
             return token;
         }

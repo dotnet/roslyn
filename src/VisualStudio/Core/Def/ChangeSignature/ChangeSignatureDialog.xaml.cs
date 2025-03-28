@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -23,7 +24,7 @@ internal partial class ChangeSignatureDialog : DialogWindow
     private readonly ChangeSignatureDialogViewModel _viewModel;
 
     // Expose localized strings for binding
-    public static string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
+    public static string ChangeSignatureDialogTitle { get { return EditorFeaturesResources.Change_Signature; } }
     public static string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
     public static string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
     public static string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
@@ -32,7 +33,7 @@ internal partial class ChangeSignatureDialog : DialogWindow
     public static string Restore { get { return ServicesVSResources.Restore; } }
     public static string Add { get { return ServicesVSResources.Add; } }
     public static string OK { get { return ServicesVSResources.OK; } }
-    public static string Cancel { get { return ServicesVSResources.Cancel; } }
+    public static string Cancel { get { return EditorFeaturesResources.Cancel; } }
     public static string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
     public static string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 

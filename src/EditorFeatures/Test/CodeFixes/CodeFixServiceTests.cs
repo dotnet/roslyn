@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,7 +43,7 @@ public class CodeFixServiceTests
 ";
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
@@ -74,13 +74,11 @@ public class CodeFixServiceTests
         // Add duplicate analyzers to get duplicate diagnostics.
         var analyzerReference = new MockAnalyzerReference(
                 codeFix,
-                ImmutableArray.Create<DiagnosticAnalyzer>(
-                    new MockAnalyzerReference.MockDiagnosticAnalyzer(),
-                    new MockAnalyzerReference.MockDiagnosticAnalyzer()));
+                [new MockAnalyzerReference.MockDiagnosticAnalyzer(), new MockAnalyzerReference.MockDiagnosticAnalyzer()]);
 
         var tuple = ServiceSetup(codeFix);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify that we do not crash when computing fixes.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
@@ -98,15 +96,16 @@ public class CodeFixServiceTests
         // Add analyzers with duplicate ID and/or category to get duplicate diagnostics.
         var analyzerReference = new MockAnalyzerReference(
                 codeFix,
-                ImmutableArray.Create<DiagnosticAnalyzer>(
+                [
                     new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category1"),
                     new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category1"),
                     new MockAnalyzerReference.MockDiagnosticAnalyzer("ID1", "Category2"),
-                    new MockAnalyzerReference.MockDiagnosticAnalyzer("ID2", "Category2")));
+                    new MockAnalyzerReference.MockDiagnosticAnalyzer("ID2", "Category2"),
+                ]);
 
         var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: true);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify registered configuration code actions do not have duplicates.
         var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
@@ -137,7 +136,7 @@ public class CodeFixServiceTests
 
         var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: true);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
@@ -161,7 +160,7 @@ public class CodeFixServiceTests
         // We need to ensure that we don't skip these document analyzers
         // when computing the diagnostics/code fixes for "Normal" priority bucket, which
         // normally only execute those analyzers which report at least one fixable supported diagnostic.
-        var documentDiagnosticAnalyzer = new MockAnalyzerReference.MockDocumentDiagnosticAnalyzer(reportedDiagnosticIds: ImmutableArray<string>.Empty);
+        var documentDiagnosticAnalyzer = new MockAnalyzerReference.MockDocumentDiagnosticAnalyzer(reportedDiagnosticIds: []);
         Assert.Empty(documentDiagnosticAnalyzer.SupportedDiagnostics);
 
         var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(documentDiagnosticAnalyzer);
@@ -173,7 +172,7 @@ public class CodeFixServiceTests
 
         var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: false);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify both analyzers are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
@@ -203,7 +202,7 @@ public class CodeFixServiceTests
 
         var tuple = ServiceSetup(codeFix, includeConfigurationFixProviders: false);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager, analyzerReference);
 
         Assert.False(codeFix.Called);
         var fixCollectionSet = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
@@ -289,8 +288,8 @@ public class CodeFixServiceTests
         var errorReported = false;
         errorReportingService.OnError = message => errorReported = true;
 
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
-        var reference = new MockAnalyzerReference(codefix, ImmutableArray.Create(diagnosticAnalyzer));
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager);
+        var reference = new MockAnalyzerReference(codefix, [diagnosticAnalyzer]);
         var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
         document = project.Documents.Single();
         var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
@@ -316,7 +315,7 @@ public class CodeFixServiceTests
         var errorReported = false;
         errorReportingService.OnError = message => errorReported = true;
 
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
+        GetDocumentAndExtensionManager(workspace, out var document, out var extensionManager);
         var unused = await tuple.codeFixService.GetMostSevereFixAsync(
             document, TextSpan.FromBounds(0, 0), new DefaultCodeActionRequestPriorityProvider(), CancellationToken.None);
         Assert.True(extensionManager.IsDisabled(codefix));
@@ -324,15 +323,15 @@ public class CodeFixServiceTests
         Assert.True(errorReported);
     }
 
-    private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         CodeFixProvider codefix,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
         EditorTestHostDocument? additionalDocument = null,
         string code = "class Program { }")
-        => ServiceSetup(ImmutableArray.Create(codefix), includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
+        => ServiceSetup([codefix], includeConfigurationFixProviders, throwExceptionInFixerCreation, additionalDocument, code);
 
-    private static (EditorTestWorkspace workspace, DiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
+    private static (EditorTestWorkspace workspace, IDiagnosticAnalyzerService analyzerService, CodeFixService codeFixService, IErrorLoggerService errorLogger) ServiceSetup(
         ImmutableArray<CodeFixProvider> codefixers,
         bool includeConfigurationFixProviders = false,
         bool throwExceptionInFixerCreation = false,
@@ -356,7 +355,7 @@ public class CodeFixServiceTests
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
         var errorLogger = logger.First().Value;
 
@@ -374,25 +373,13 @@ public class CodeFixServiceTests
     }
 
     private static void GetDocumentAndExtensionManager(
-        DiagnosticAnalyzerService diagnosticService,
         EditorTestWorkspace workspace,
         out TextDocument document,
         out EditorLayerExtensionManager.ExtensionManager extensionManager,
-        MockAnalyzerReference? analyzerReference = null,
-        TextDocumentKind documentKind = TextDocumentKind.Document)
-            => GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager, out _, analyzerReference, documentKind);
-
-    private static void GetDocumentAndExtensionManager(
-        DiagnosticAnalyzerService diagnosticService,
-        EditorTestWorkspace workspace,
-        out TextDocument document,
-        out EditorLayerExtensionManager.ExtensionManager extensionManager,
-        out DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer,
         MockAnalyzerReference? analyzerReference = null,
         TextDocumentKind documentKind = TextDocumentKind.Document)
     {
         // register diagnostic engine to solution crawler
-        diagnosticIncrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)!;
 
         var reference = analyzerReference ?? new MockAnalyzerReference();
         var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -423,7 +410,7 @@ public class CodeFixServiceTests
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(Id); }
+            get { return [Id]; }
         }
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -443,14 +430,15 @@ public class CodeFixServiceTests
         }
     }
 
-    private class MockAnalyzerReference : AnalyzerReference, ICodeFixProviderFactory
+    private class MockAnalyzerReference
+        : AnalyzerReference, ICodeFixProviderFactory, SerializerService.TestAccessor.IAnalyzerReferenceWithGuid
     {
         public readonly ImmutableArray<CodeFixProvider> Fixers;
         public readonly ImmutableArray<DiagnosticAnalyzer> Analyzers;
         public readonly ImmutableArray<ISourceGenerator> Generators;
 
-        private static readonly ImmutableArray<CodeFixProvider> s_defaultFixers = ImmutableArray.Create<CodeFixProvider>(new MockFixer());
-        private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new MockDiagnosticAnalyzer());
+        private static readonly ImmutableArray<CodeFixProvider> s_defaultFixers = [new MockFixer()];
+        private static readonly ImmutableArray<DiagnosticAnalyzer> s_defaultAnalyzers = [new MockDiagnosticAnalyzer()];
 
         public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<ISourceGenerator> generators)
         {
@@ -460,12 +448,12 @@ public class CodeFixServiceTests
         }
 
         public MockAnalyzerReference(ImmutableArray<CodeFixProvider> fixers, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : this(fixers, analyzers, ImmutableArray<ISourceGenerator>.Empty)
+            : this(fixers, analyzers, [])
         {
         }
 
         public MockAnalyzerReference(CodeFixProvider? fixer, ImmutableArray<DiagnosticAnalyzer> analyzers)
-            : this(fixer != null ? ImmutableArray.Create(fixer) : ImmutableArray<CodeFixProvider>.Empty,
+            : this(fixer != null ? [fixer] : [],
                    analyzers)
         {
         }
@@ -504,11 +492,13 @@ public class CodeFixServiceTests
             }
         }
 
+        public Guid Guid { get; } = Guid.NewGuid();
+
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             => Analyzers;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => ImmutableArray<DiagnosticAnalyzer>.Empty;
+            => [];
 
         public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
             => Generators;
@@ -694,14 +684,14 @@ public class CodeFixServiceTests
             nugetFixer: new NuGetCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: reportedDiagnosticIds,
             vsixFixer: null,
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [],
             diagnosticAnalyzer);
 
         // Only Vsix code fix provider which fixes both reported diagnostic IDs.
         // Verify only Vsix fixer's code action registered and they fix all IDs.
         await TestNuGetAndVsixCodeFixersCoreAsync(
             nugetFixer: null,
-            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: [],
             vsixFixer: new VsixCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: reportedDiagnosticIds,
             diagnosticAnalyzer);
@@ -712,26 +702,26 @@ public class CodeFixServiceTests
             nugetFixer: new NuGetCodeFixProvider(reportedDiagnosticIds),
             expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: reportedDiagnosticIds,
             vsixFixer: new VsixCodeFixProvider(reportedDiagnosticIds),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray<string>.Empty,
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [],
             diagnosticAnalyzer);
 
         // Both NuGet and Vsix code fix provider register different fixable IDs.
         // Verify both NuGet and Vsix fixer's code actions registered.
         await TestNuGetAndVsixCodeFixersCoreAsync(
-            nugetFixer: new NuGetCodeFixProvider(ImmutableArray.Create(id1)),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: ImmutableArray.Create(id1),
-            vsixFixer: new VsixCodeFixProvider(ImmutableArray.Create(id2)),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray.Create(id2),
+            nugetFixer: new NuGetCodeFixProvider([id1]),
+            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: [id1],
+            vsixFixer: new VsixCodeFixProvider([id2]),
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [id2],
             diagnosticAnalyzer);
 
         // NuGet code fix provider registers subset of Vsix code fix provider fixable IDs.
         // Verify both NuGet and Vsix fixer's code actions registered,
         // there are no duplicates and NuGet ones are preferred for duplicates.
         await TestNuGetAndVsixCodeFixersCoreAsync(
-            nugetFixer: new NuGetCodeFixProvider(ImmutableArray.Create(id1)),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: ImmutableArray.Create(id1),
+            nugetFixer: new NuGetCodeFixProvider([id1]),
+            expectedDiagnosticIdsWithRegisteredCodeActionsByNuGetFixer: [id1],
             vsixFixer: new VsixCodeFixProvider(reportedDiagnosticIds),
-            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: ImmutableArray.Create(id2),
+            expectedDiagnosticIdsWithRegisteredCodeActionsByVsixFixer: [id2],
             diagnosticAnalyzer);
     }
 
@@ -767,7 +757,7 @@ public class CodeFixServiceTests
 
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService, openDocuments: true);
 
-        var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
+        var diagnosticService = workspace.GetService<IDiagnosticAnalyzerService>();
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
         var fixService = new CodeFixService(
@@ -844,7 +834,7 @@ public class CodeFixServiceTests
             _equivalenceKey = equivalenceKey;
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(_diagnosticId);
+        public override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -875,12 +865,12 @@ public class CodeFixServiceTests
         var fixer3 = new AdditionalFileFixerWithDocumentExtensions();
         var fixer4 = new AdditionalFileFixerWithoutDocumentKindsAndExtensions();
         var fixers = ImmutableArray.Create<CodeFixProvider>(fixer1, fixer2, fixer3, fixer4);
-        var analyzerReference = new MockAnalyzerReference(fixers, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+        var analyzerReference = new MockAnalyzerReference(fixers, [analyzer]);
 
         // Verify available code fixes for .txt additional document
         var tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.txt"));
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
+        GetDocumentAndExtensionManager(workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
         var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         Assert.Equal(2, txtDocumentCodeFixes.Length);
         var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
@@ -897,7 +887,7 @@ public class CodeFixServiceTests
         // Verify available code fixes for .log additional document
         tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.log"));
         using var workspace2 = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
+        GetDocumentAndExtensionManager(workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
         var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         var logDocumentCodeFix = Assert.Single(logDocumentCodeFixes);
         var logDocumentCodeFixTitle = logDocumentCodeFix.Fixes.Single().Action.Title;
@@ -910,7 +900,7 @@ public class CodeFixServiceTests
         public const string DiagnosticId = "AFA0001";
         private readonly DiagnosticDescriptor _descriptor = new(DiagnosticId, "AdditionalFileAnalyzer", "AdditionalFileAnalyzer", "AdditionalFileAnalyzer", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -937,7 +927,7 @@ public class CodeFixServiceTests
         protected AbstractAdditionalFileCodeFixProvider(string title)
             => Title = title;
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AdditionalFileAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => [AdditionalFileAnalyzer.DiagnosticId];
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -1000,6 +990,15 @@ public class CodeFixServiceTests
         bool editOnFixLine,
         bool addNewLineWithEdit)
     {
+        // Disable these cases due to:
+        // https://github.com/dotnet/roslyn/issues/77036
+        if (actionKind is DeprioritizedAnalyzer.ActionKind.SemanticModel or DeprioritizedAnalyzer.ActionKind.SymbolStartEnd &&
+            diagnosticOnFixLineInPriorSnapshot &&
+            !addNewLineWithEdit)
+        {
+            return;
+        }
+
         // This test validates analyzer de-prioritization logic in diagnostic service for lightbulb code path.
         // Basically, we have a certain set of heuristics (detailed in the next comment below), under which an analyzer
         // which is deemed to be an expensive analyzer is moved down from 'Normal' priority code fix bucket to
@@ -1030,12 +1029,13 @@ class C
 
         var codeFix = new FixerForDeprioritizedAnalyzer();
         var analyzer = new DeprioritizedAnalyzer(actionKind);
-        var analyzerReference = new MockAnalyzerReference(codeFix, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+        var analyzerReference = new MockAnalyzerReference(codeFix, [analyzer]);
 
         var tuple = ServiceSetup(codeFix, code: code);
         using var workspace = tuple.workspace;
-        GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document,
-            out var extensionManager, out var diagnosticIncrementalAnalyzer, analyzerReference);
+        var analyzerService = tuple.analyzerService;
+        GetDocumentAndExtensionManager(workspace, out var document,
+            out var extensionManager, analyzerReference);
 
         var sourceDocument = (Document)document;
         var root = await sourceDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
@@ -1047,8 +1047,9 @@ class C
         // We enable full solution analysis so the 'AnalyzeDocumentAsync' doesn't skip analysis based on whether the document is active/open.
         workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution);
 
-        await diagnosticIncrementalAnalyzer.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
-        await VerifyCachedDiagnosticsAsync(sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnosticIncrementalAnalyzer);
+        var diagnostics = await analyzerService.ForceAnalyzeProjectAsync(sourceDocument.Project, CancellationToken.None);
+        await VerifyCachedDiagnosticsAsync(
+            sourceDocument, expectedCachedDiagnostic: diagnosticOnFixLineInPriorSnapshot, testSpan, diagnostics);
 
         // Compute and apply code edit
         if (editOnFixLine)
@@ -1077,10 +1078,10 @@ class C
             ? root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.VariableDeclarationSyntax>().First().Span
             : root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax>().First().Span;
 
-        await diagnosticIncrementalAnalyzer.GetDiagnosticsForIdsAsync(
-            sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
-            includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-        await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
+        await analyzerService.GetDiagnosticsForIdsAsync(
+            sourceDocument.Project, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null,
+            includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+        // await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
         var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzerData);
@@ -1140,10 +1141,14 @@ class C
             return addNewLineWithEdit;
         }
 
-        static async Task VerifyCachedDiagnosticsAsync(Document sourceDocument, bool expectedCachedDiagnostic, TextSpan testSpan, DiagnosticIncrementalAnalyzer diagnosticIncrementalAnalyzer)
+        static async Task VerifyCachedDiagnosticsAsync(
+            Document sourceDocument,
+            bool expectedCachedDiagnostic,
+            TextSpan testSpan,
+            ImmutableArray<DiagnosticData> cachedDiagnostics)
         {
-            var cachedDiagnostics = await diagnosticIncrementalAnalyzer.GetCachedDiagnosticsAsync(sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id,
-                includeSuppressedDiagnostics: false, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
+            cachedDiagnostics = cachedDiagnostics.WhereAsArray(d => !d.IsSuppressed);
+
             if (!expectedCachedDiagnostic)
             {
                 Assert.Empty(cachedDiagnostics);
@@ -1176,7 +1181,7 @@ class C
             _actionKind = actionKind;
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
 
         public override void Initialize(AnalysisContext context)
         {
@@ -1217,7 +1222,7 @@ class C
     private sealed class FixerForDeprioritizedAnalyzer : CodeFixProvider
     {
         public static readonly string Title = $"Fix {DeprioritizedAnalyzer.Descriptor.Id}";
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DeprioritizedAnalyzer.Descriptor.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds => [DeprioritizedAnalyzer.Descriptor.Id];
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {

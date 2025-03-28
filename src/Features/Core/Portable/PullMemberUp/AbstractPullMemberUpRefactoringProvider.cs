@@ -62,10 +62,12 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider(IPullMem
                 selectedMembers.IsSingle()
                     ? string.Format(FeaturesResources.Pull_0_up_to, selectedMembers.Single().ToNameDisplayString())
                     : FeaturesResources.Pull_selected_members_up,
-                allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
-                    .WhereNotNull()
-                    .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service))
-                    .ToImmutableArray(),
+                [
+                    .. allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
+                        .WhereNotNull()
+,
+                    new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service),
+                ],
                 isInlinable: false),
             // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
             TextSpan.FromBounds(

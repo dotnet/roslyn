@@ -144,15 +144,19 @@ public class A { }";
                 "background_analysis.dotnet_compiler_diagnostics_scope",
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
+                "auto_insert.dotnet_enable_auto_insert",
                 "projects.dotnet_binary_log_path",
                 "projects.dotnet_enable_automatic_restore",
-                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
+                "formatting.dotnet_organize_imports_on_format",
             };
 
-            AssertEx.SetEqual(expectedNames, actualNames);
+            AssertEx.EqualOrDiff(
+                string.Join(Environment.NewLine, expectedNames),
+                string.Join(Environment.NewLine, actualNames));
         }
 
-        private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)
+        private static void VerifyValuesInServer(LspTestWorkspace workspace, List<string> expectedValues)
         {
             var globalOptionService = workspace.GetService<IGlobalOptionService>();
             var supportedOptions = DidChangeConfigurationNotificationHandler.SupportedOptions;
@@ -240,7 +244,7 @@ public class A { }";
                 => value switch
                 {
                     null => "null",
-                    _ => value.ToString()
+                    _ => value.ToString()!
                 };
 
             private static string GenerateNonDefaultValue(IOption2 option)

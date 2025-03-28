@@ -4,7 +4,6 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -19,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// with different computation costs to determine if the previous cached data is still valid.
 /// </summary>
 internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>(string uniqueKey)
-    where TComputedData : notnull
 {
     /// <summary>
     /// Map of workspace and diagnostic source to the data used to make the last pull report.
@@ -59,9 +57,9 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
     /// 
     /// Note - this will run under the semaphore in <see cref="CacheItem._gate"/>.
     /// </summary>
-    public abstract Task<ImmutableArray<TComputedData>> ComputeDataAsync(TState state, CancellationToken cancellationToken);
+    public abstract Task<TComputedData> ComputeDataAsync(TState state, CancellationToken cancellationToken);
 
-    public abstract Checksum ComputeChecksum(ImmutableArray<TComputedData> data);
+    public abstract Checksum ComputeChecksum(TComputedData data, string language);
 
     /// <summary>
     /// If results have changed since the last request this calculates and returns a new
@@ -70,21 +68,23 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
     /// <param name="idToClientLastResult">a map of roslyn document or project id to the previous result the client sent us for that doc.</param>
     /// <param name="projectOrDocumentId">the id of the project or document that we are checking to see if it has changed.</param>
     /// <returns>Null when results are unchanged, otherwise returns a non-null new resultId.</returns>
-    public async Task<(string ResultId, ImmutableArray<TComputedData> Data)?> GetOrComputeNewDataAsync(
+    public async Task<(string ResultId, TComputedData Data)?> GetOrComputeNewDataAsync(
         Dictionary<ProjectOrDocumentId, PreviousPullResult> idToClientLastResult,
         ProjectOrDocumentId projectOrDocumentId,
         Project project,
         TState state,
         CancellationToken cancellationToken)
     {
-        var workspace = project.Solution.Workspace;
-
         // We have to make sure we've been fully loaded before using cached results as the previous results may not be complete.
         var isFullyLoaded = await IsFullyLoadedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
         var previousResult = IDictionaryExtensions.GetValueOrDefault(idToClientLastResult, projectOrDocumentId);
 
-        var cacheEntry = _idToLastReportedResult.GetOrAdd((project.Solution.Workspace, projectOrDocumentId), (_) => new CacheItem(uniqueKey));
-        return await cacheEntry.UpdateCacheItemAsync(this, previousResult, isFullyLoaded, state, cancellationToken).ConfigureAwait(false);
+        var cacheEntry = _idToLastReportedResult.GetOrAdd(
+            (project.Solution.Workspace, projectOrDocumentId),
+            static (_, uniqueKey) => new CacheItem(uniqueKey),
+            uniqueKey);
+        return await cacheEntry.UpdateCacheItemAsync(
+            this, previousResult, isFullyLoaded, state, project.Language, cancellationToken).ConfigureAwait(false);
     }
 
     private long GetNextResultId()

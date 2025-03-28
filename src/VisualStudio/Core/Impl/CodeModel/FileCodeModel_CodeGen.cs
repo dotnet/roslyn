@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 access,
                 options,
                 baseType: baseTypeSymbol,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 options,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 
@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 CodeModelService.GetUnescapedName(name),
                 access,
                 options,
-                implementedInterfaces: implementedInterfaceSymbols.ToImmutableArray());
+                implementedInterfaces: [.. implementedInterfaceSymbols]);
 
             var insertionIndex = CodeModelService.PositionVariantToMemberInsertionIndex(position, containerNode, fileCodeModel: this);
 

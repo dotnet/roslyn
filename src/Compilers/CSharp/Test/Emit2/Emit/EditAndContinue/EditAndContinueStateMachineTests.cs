@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Iterator, CompilerFeature.Async, CompilerFeature.AsyncStreams)]
     public class EditAndContinueStateMachineTests(ITestOutputHelper logger) : EditAndContinueTestBase
     {
         private readonly ITestOutputHelper _logger = logger;
@@ -4747,7 +4748,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       33 (0x21)
+  // Code size       41 (0x29)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4773,12 +4774,15 @@ class C
     IL_001d:  endfinally
   }
   IL_001e:  br.s       IL_0020
-  IL_0020:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.s   -2
+  IL_0023:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0028:  ret
 }
 ");
             diff1.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size      108 (0x6c)
+  // Code size      116 (0x74)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4843,7 +4847,10 @@ class C
     IL_0068:  endfinally
   }
   IL_0069:  br.s       IL_006b
-  IL_006b:  ret
+  IL_006b:  ldarg.0
+  IL_006c:  ldc.i4.s   -2
+  IL_006e:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0073:  ret
 }
 ");
 
@@ -5176,7 +5183,7 @@ class C
 
             v0.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       33 (0x21)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5202,12 +5209,18 @@ class C
     IL_001d:  endfinally
   }
   IL_001e:  br.s       IL_0020
-  IL_0020:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  ldnull
+  IL_0022:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+  IL_0027:  ldarg.0
+  IL_0028:  ldc.i4.s   -2
+  IL_002a:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_002f:  ret
 }
 ");
             diff1.VerifyIL("C.<F>d__0.System.IDisposable.Dispose", @"
 {
-  // Code size       35 (0x23)
+  // Code size       50 (0x32)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -5235,7 +5248,13 @@ class C
     IL_001f:  endfinally
   }
   IL_0020:  br.s       IL_0022
-  IL_0022:  ret
+  IL_0022:  ldarg.0
+  IL_0023:  ldnull
+  IL_0024:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.s   -2
+  IL_002c:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0031:  ret
 }
 ");
 
@@ -5493,7 +5512,7 @@ class C
 
             diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
-  // Code size      526 (0x20e)
+  // Code size      514 (0x202)
   .maxstack  2
   .locals init (bool V_0,
                 int V_1,
@@ -5514,7 +5533,7 @@ class C
     IL_0022:  br         IL_0165
     IL_0027:  ldc.i4.0
     IL_0028:  stloc.0
-    IL_0029:  leave      IL_020c
+    IL_0029:  leave      IL_0200
     IL_002e:  ldarg.0
     IL_002f:  ldc.i4.m1
     IL_0030:  stfld      ""int C.<F>d__0.<>1__state""
@@ -5557,7 +5576,7 @@ class C
     IL_00a6:  ldarg.0
     IL_00a7:  ldc.i4.s   -8
     IL_00a9:  stfld      ""int C.<F>d__0.<>1__state""
-    IL_00ae:  br         IL_01a6
+    IL_00ae:  br         IL_019a
     IL_00b3:  ldarg.0
     IL_00b4:  ldarg.0
     IL_00b5:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__6""
@@ -5608,7 +5627,7 @@ class C
     IL_013c:  stfld      ""int C.<F>d__0.<>1__state""
     IL_0141:  ldc.i4.1
     IL_0142:  stloc.0
-    IL_0143:  leave      IL_020c
+    IL_0143:  leave      IL_0200
     IL_0148:  ldarg.0
     IL_0149:  ldc.i4.s   -10
     IL_014b:  stfld      ""int C.<F>d__0.<>1__state""
@@ -5620,7 +5639,7 @@ class C
     IL_0159:  stfld      ""int C.<F>d__0.<>1__state""
     IL_015e:  ldc.i4.1
     IL_015f:  stloc.0
-    IL_0160:  leave      IL_020c
+    IL_0160:  leave      IL_0200
     IL_0165:  ldarg.0
     IL_0166:  ldc.i4.s   -10
     IL_0168:  stfld      ""int C.<F>d__0.<>1__state""
@@ -5642,57 +5661,54 @@ class C
     IL_0194:  ldnull
     IL_0195:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__8""
     IL_019a:  ldarg.0
-    IL_019b:  ldflda     ""System.ValueTuple<int, int> C.<F>d__0.<z>5__7""
-    IL_01a0:  initobj    ""System.ValueTuple<int, int>""
-    IL_01a6:  ldarg.0
-    IL_01a7:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__6""
-    IL_01ac:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_01b1:  brtrue     IL_00b3
-    IL_01b6:  ldarg.0
-    IL_01b7:  call       ""void C.<F>d__0.<>m__Finally6()""
-    IL_01bc:  nop
-    IL_01bd:  ldarg.0
-    IL_01be:  ldnull
-    IL_01bf:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__6""
-    IL_01c4:  ldarg.0
-    IL_01c5:  call       ""void C.<F>d__0.<>m__Finally5()""
-    IL_01ca:  nop
-    IL_01cb:  ldarg.0
-    IL_01cc:  call       ""void C.<F>d__0.<>m__Finally4()""
-    IL_01d1:  nop
-    IL_01d2:  ldarg.0
-    IL_01d3:  ldnull
-    IL_01d4:  stfld      ""System.IDisposable C.<F>d__0.<y1>5__4""
-    IL_01d9:  ldarg.0
-    IL_01da:  ldnull
-    IL_01db:  stfld      ""System.IDisposable C.<F>d__0.<y2>5__5""
-    IL_01e0:  ldarg.0
-    IL_01e1:  call       ""void C.<F>d__0.<>m__Finally3()""
-    IL_01e6:  nop
-    IL_01e7:  ldarg.0
-    IL_01e8:  ldnull
-    IL_01e9:  stfld      ""System.IDisposable C.<F>d__0.<>s__3""
-    IL_01ee:  ldc.i4.0
-    IL_01ef:  stloc.0
-    IL_01f0:  br.s       IL_01f2
-    IL_01f2:  ldarg.0
-    IL_01f3:  call       ""void C.<F>d__0.<>m__Finally2()""
-    IL_01f8:  nop
-    IL_01f9:  br.s       IL_01fb
-    IL_01fb:  ldarg.0
-    IL_01fc:  call       ""void C.<F>d__0.<>m__Finally1()""
-    IL_0201:  nop
-    IL_0202:  leave.s    IL_020c
+    IL_019b:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__6""
+    IL_01a0:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_01a5:  brtrue     IL_00b3
+    IL_01aa:  ldarg.0
+    IL_01ab:  call       ""void C.<F>d__0.<>m__Finally6()""
+    IL_01b0:  nop
+    IL_01b1:  ldarg.0
+    IL_01b2:  ldnull
+    IL_01b3:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__6""
+    IL_01b8:  ldarg.0
+    IL_01b9:  call       ""void C.<F>d__0.<>m__Finally5()""
+    IL_01be:  nop
+    IL_01bf:  ldarg.0
+    IL_01c0:  call       ""void C.<F>d__0.<>m__Finally4()""
+    IL_01c5:  nop
+    IL_01c6:  ldarg.0
+    IL_01c7:  ldnull
+    IL_01c8:  stfld      ""System.IDisposable C.<F>d__0.<y1>5__4""
+    IL_01cd:  ldarg.0
+    IL_01ce:  ldnull
+    IL_01cf:  stfld      ""System.IDisposable C.<F>d__0.<y2>5__5""
+    IL_01d4:  ldarg.0
+    IL_01d5:  call       ""void C.<F>d__0.<>m__Finally3()""
+    IL_01da:  nop
+    IL_01db:  ldarg.0
+    IL_01dc:  ldnull
+    IL_01dd:  stfld      ""System.IDisposable C.<F>d__0.<>s__3""
+    IL_01e2:  ldc.i4.0
+    IL_01e3:  stloc.0
+    IL_01e4:  br.s       IL_01e6
+    IL_01e6:  ldarg.0
+    IL_01e7:  call       ""void C.<F>d__0.<>m__Finally2()""
+    IL_01ec:  nop
+    IL_01ed:  br.s       IL_01ef
+    IL_01ef:  ldarg.0
+    IL_01f0:  call       ""void C.<F>d__0.<>m__Finally1()""
+    IL_01f5:  nop
+    IL_01f6:  leave.s    IL_0200
   }
   fault
   {
-    IL_0204:  ldarg.0
-    IL_0205:  call       ""void C.<F>d__0.Dispose()""
-    IL_020a:  nop
-    IL_020b:  endfinally
+    IL_01f8:  ldarg.0
+    IL_01f9:  call       ""void C.<F>d__0.Dispose()""
+    IL_01fe:  nop
+    IL_01ff:  endfinally
   }
-  IL_020c:  ldloc.0
-  IL_020d:  ret
+  IL_0200:  ldloc.0
+  IL_0201:  ret
 }");
         }
 

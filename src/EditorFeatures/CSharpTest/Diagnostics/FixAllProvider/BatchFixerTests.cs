@@ -37,7 +37,7 @@ public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUser
         {
             get
             {
-                return ImmutableArray.Create(Descriptor);
+                return [Descriptor];
             }
         }
 
@@ -64,7 +64,7 @@ public partial class BatchFixerTests : AbstractCSharpDiagnosticProviderBasedUser
         {
             get
             {
-                return ImmutableArray.Create(QualifyWithThisAnalyzer.Descriptor.Id);
+                return [QualifyWithThisAnalyzer.Descriptor.Id];
             }
         }
 

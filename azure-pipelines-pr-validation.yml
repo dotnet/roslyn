@@ -13,6 +13,9 @@ parameters:
   type: number
 - name: CommitSHA
   type: string
+- name: EnforceLatestCommit
+  type: boolean
+  default: true
 - name: VisualStudioBranchName
   type: string
   default: default
@@ -143,6 +146,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
@@ -192,7 +198,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: '-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }}'
+            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(OriginalBuildNumber)"
@@ -214,16 +220,6 @@ extends:
             packageType: sdk
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
-
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
         - task: MicroBuildSigningPlugin@4
           inputs:
@@ -339,5 +335,6 @@ extends:
         # Symbol validation is not entirely reliable as of yet, so should be turned off until
         # https://github.com/dotnet/arcade/issues/2871 is resolved.
         enableSymbolValidation: false
+        enableSigningValidation: false
         enableSourceLinkValidation: false
         SDLValidationParameters: false

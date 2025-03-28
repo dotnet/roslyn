@@ -128,11 +128,10 @@ internal sealed class ImplementAbstractClassData(
         ImplementTypePropertyGenerationBehavior propertyGenerationBehavior,
         CancellationToken cancellationToken)
     {
-        return _unimplementedMembers
+        return [.. _unimplementedMembers
             .SelectMany(t => t.members)
             .Select(m => GenerateMember(compilation, m, throughMember, propertyGenerationBehavior, cancellationToken))
-            .WhereNotNull()
-            .ToImmutableArray();
+            .WhereNotNull()];
     }
 
     private ISymbol? GenerateMember(
@@ -215,7 +214,7 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.GetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetGetAccessorStatements(
-                    compilation, property, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
             : null;
 
         var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -224,7 +223,7 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.SetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetSetAccessorStatements(
-                    compilation, property, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
             : null;
 
         return CodeGenerationSymbolFactory.CreatePropertySymbol(

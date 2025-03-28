@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
                 ISymbol? referencedSymbol = null;
 
-                if (syntaxFactsService.IsBindableToken(syntaxToken))
+                if (syntaxFactsService.IsBindableToken(semanticModel, syntaxToken))
                 {
                     var bindableParent = syntaxFactsService.TryGetBindableParent(syntaxToken);
 

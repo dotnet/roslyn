@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
                     End If
 
                     Dim child = childNodeOrToken.AsNode()
-                    If Not TypeOf child Is TryBlockSyntax AndAlso Not TypeOf child Is LambdaExpressionSyntax Then
+                    If TypeOf child IsNot TryBlockSyntax AndAlso TypeOf child IsNot LambdaExpressionSyntax Then
                         HighlightRelatedStatements(child, highlights)
                     End If
                 Next

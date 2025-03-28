@@ -17,11 +17,6 @@
         <target state="translated">Standardfall hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Explizite Umwandlung hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_file_header">
         <source>Add file header</source>
         <target state="translated">Dateiheader hinzufügen</target>

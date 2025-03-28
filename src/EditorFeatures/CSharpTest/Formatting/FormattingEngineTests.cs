@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,10 +25,8 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [Trait(Traits.Feature, Traits.Features.Formatting)]
-public class FormattingEngineTests : CSharpFormattingEngineTestBase
+public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpFormattingEngineTestBase(output)
 {
-    public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
-
     private static OptionsCollection SmartIndentButDoNotFormatWhileTyping()
         => new(LanguageNames.CSharp)
         {
@@ -991,7 +990,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
                 {
                     static void Main(string[] args)
                     {
-                            label1:   int s = 0;
+                    label1: int s = 0;
                     }
                 }
                 """;
@@ -2910,7 +2909,37 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         AssertFormatAfterTypeChar(code, expected);
     }
 
-    private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection? globalOptions = null, ParseOptions? parseOptions = null)
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/13981")]
+    public void FormatLabeledStatementAfterColon()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                        foo:$$
+                }
+            }
+            """;
+
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                foo:
+                }
+            }
+            """;
+
+        AssertFormatAfterTypeChar(code, expected);
+    }
+
+    private static void AssertFormatAfterTypeChar(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
+        OptionsCollection? globalOptions = null,
+        ParseOptions? parseOptions = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
 

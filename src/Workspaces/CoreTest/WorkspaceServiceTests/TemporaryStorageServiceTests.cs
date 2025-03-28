@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             });
 
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll([.. tasks]);
             GC.Collect(2);
             GC.WaitForPendingFinalizers();
             GC.Collect(2);

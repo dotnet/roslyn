@@ -126,16 +126,16 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
         }
 
         protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-            => _invocationExpression.ArgumentList.Arguments.Select(a => a.GetRefKind()).ToImmutableArray();
+            => [.. _invocationExpression.ArgumentList.Arguments.Select(a => a.GetRefKind())];
 
         protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
-            => _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToImmutableArray();
+            => [.. _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken))];
 
         private ITypeSymbol DetermineParameterType(ArgumentSyntax argument, CancellationToken cancellationToken)
             => argument.DetermineParameterType(Document.SemanticModel, cancellationToken);
 
         protected override ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
-            => _invocationExpression.ArgumentList.Arguments.Select(a => false).ToImmutableArray();
+            => [.. _invocationExpression.ArgumentList.Arguments.Select(a => false)];
 
         protected override bool IsIdentifierName()
             => State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;

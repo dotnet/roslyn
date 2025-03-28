@@ -29,7 +29,8 @@ internal class ExtractClassViewModel
         string languageName,
         string typeParameterSuffix,
         ImmutableArray<string> conflictingNames,
-        ISyntaxFactsService syntaxFactsService)
+        ISyntaxFactsService syntaxFactsService,
+        bool canAddDocument)
     {
         _notificationService = notificationService;
         _selectedType = selectedType;
@@ -46,7 +47,8 @@ internal class ExtractClassViewModel
             defaultNamespace,
             typeParameterSuffix,
             conflictingNames,
-            syntaxFactsService);
+            syntaxFactsService,
+            canAddDocument);
     }
 
     internal bool TrySubmit()

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
-internal class CSharpBlockStructureProvider : AbstractBlockStructureProvider
+internal sealed class CSharpBlockStructureProvider : AbstractBlockStructureProvider
 {
     private static ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> CreateDefaultNodeProviderMap()
     {
@@ -47,6 +47,7 @@ internal class CSharpBlockStructureProvider : AbstractBlockStructureProvider
         builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
         builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
         builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();
+        builder.Add<SwitchExpressionSyntax, SwitchExpressionStructureProvider>();
         builder.Add<SwitchStatementSyntax, SwitchStatementStructureProvider>();
         builder.Add<LiteralExpressionSyntax, StringLiteralExpressionStructureProvider>();
         builder.Add<InterpolatedStringExpressionSyntax, InterpolatedStringExpressionStructureProvider>();

@@ -36,19 +36,8 @@ internal static class SyntaxTokenExtensions
             : [];
     }
 
-    public static SyntaxNode? GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
-    {
-        Contract.ThrowIfTrue(token1.RawKind == 0 || token2.RawKind == 0);
-
-        // find common starting node from two tokens.
-        // as long as two tokens belong to same tree, there must be at least on common root (Ex, compilation unit)
-        if (token1.Parent == null || token2.Parent == null)
-        {
-            return null;
-        }
-
-        return token1.Parent.GetCommonRoot(token2.Parent);
-    }
+    public static SyntaxNode GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
+        => token1.GetRequiredParent().GetCommonRoot(token2.GetRequiredParent());
 
     public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
     {
@@ -159,7 +148,7 @@ internal static class SyntaxTokenExtensions
     }
 
     public static SyntaxTrivia[] GetTrivia(this IEnumerable<SyntaxToken> tokens)
-        => tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token)).ToArray();
+        => [.. tokens.SelectMany(token => SyntaxNodeOrTokenExtensions.GetTrivia(token))];
 
     public static SyntaxNode GetRequiredParent(this SyntaxToken token)
         => token.Parent ?? throw new InvalidOperationException("Token's parent was null");

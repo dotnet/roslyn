@@ -607,15 +607,7 @@ class Program : IDisposable
     void IDisposable.[|Dspose|]
 }";
 
-        var expected = @"
-using System;
-
-class Program : IDisposable
-{
-    void IDisposable.Dispose
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+        await TestMissingInRegularAndScriptAsync(text);
     }
 
     [Fact]
@@ -634,20 +626,7 @@ class Program : IInterface
     void IInterface.[|Generi|]
 }";
 
-        var expected = @"
-using System;
-
-interface IInterface
-{
-    void Generic<K, V>();
-}
-
-class Program : IInterface
-{
-    void IInterface.Generic
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+        await TestMissingInRegularAndScriptAsync(text);
     }
 
     [Fact]
@@ -666,20 +645,7 @@ class Program : IInterface
     void IInterface.[|thi|]
 }";
 
-        var expected = @"
-using System;
-
-interface IInterface
-{
-    int this[int i] { get; }
-}
-
-class Program : IInterface
-{
-    void IInterface.this
-}";
-
-        await TestInRegularAndScriptAsync(text, expected);
+        await TestMissingInRegularAndScriptAsync(text);
     }
 
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]

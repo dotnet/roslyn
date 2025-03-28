@@ -9,13 +9,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class TypeVarKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class TypeVarKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.TypeVarKeyword)
 {
-    public TypeVarKeywordRecommender()
-        : base(SyntaxKind.TypeVarKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var token = context.TargetToken;

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -172,7 +173,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var stateChecksums = await project.State.GetStateChecksumsAsync(CancellationToken.None);
 
             var textChecksums = stateChecksums.Documents.TextChecksums;
-            var textChecksumsReversed = new ChecksumCollection(textChecksums.Children.Reverse().ToImmutableArray());
+            var textChecksumsReversed = new ChecksumCollection([.. textChecksums.Children.Reverse()]);
 
             var documents = await service.GetAssetsArrayAsync<SerializableSourceText>(
                 AssetPath.FullLookupForTesting, textChecksums, CancellationToken.None);

@@ -32,6 +32,7 @@ using static SyntaxFactory;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     : AbstractUseAutoPropertyCodeFixProvider<
+        CSharpUseAutoPropertyCodeFixProvider,
         TypeDeclarationSyntax,
         PropertyDeclarationSyntax,
         VariableDeclaratorSyntax,
@@ -130,8 +131,8 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         // Move any field initializer over to the property as well.
         if (fieldInitializer != null)
         {
-            updatedProperty = updatedProperty
-                .WithInitializer(EqualsValueClause(fieldInitializer))
+            updatedProperty = updatedProperty.WithoutTrailingTrivia()
+                .WithInitializer(EqualsValueClause(EqualsToken.WithLeadingTrivia(Space).WithTrailingTrivia(Space), fieldInitializer))
                 .WithSemicolonToken(SemicolonToken);
         }
 

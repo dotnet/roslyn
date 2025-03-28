@@ -272,7 +272,7 @@ internal static class SerializableBytes
             => throw new NotSupportedException();
     }
 
-    private sealed class ReadStream(long length, byte[][] chunks) : PooledStream(length, new List<byte[]>(chunks))
+    private sealed class ReadStream(long length, byte[][] chunks) : PooledStream(length, [.. chunks])
     {
     }
 

@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -48,8 +49,9 @@ internal static class OperatorGenerator
         var declaration = GenerateOperatorDeclarationWorker(method, destination, info, cancellationToken);
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 
-        return AddAnnotationsTo(method,
+        declaration = AddAnnotationsTo(method,
             ConditionallyAddDocumentationCommentTo(declaration, method, info, cancellationToken));
+        return declaration.WithAdditionalAnnotations(Formatter.Annotation);
     }
 
     private static OperatorDeclarationSyntax UseExpressionBodyIfDesired(
@@ -89,6 +91,7 @@ internal static class OperatorGenerator
             ? CheckedKeyword
             : default;
 
+        var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
         var operatorDecl = OperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
             modifiers: GenerateModifiers(method, destination, hasNoBody),
@@ -97,7 +100,7 @@ internal static class OperatorGenerator
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             operatorToken: operatorToken,
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());

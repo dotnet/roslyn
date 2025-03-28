@@ -39,7 +39,7 @@ internal sealed partial class SymbolicRenameLocations
         ImmutableArray<ReferenceLocation> implicitLocations,
         ImmutableArray<ISymbol> referencedSymbols)
     {
-        Debug.Assert(locations.Distinct().Count() == locations.Length, "Locations should be unique");
+        Debug.Assert(locations.Distinct().Length == locations.Length, "Locations should be unique");
         Contract.ThrowIfTrue(locations.IsDefault);
         Contract.ThrowIfTrue(implicitLocations.IsDefault);
         Contract.ThrowIfTrue(referencedSymbols.IsDefault);

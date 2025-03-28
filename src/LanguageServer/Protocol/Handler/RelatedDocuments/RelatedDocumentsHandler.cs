@@ -76,7 +76,7 @@ internal sealed class RelatedDocumentsHandler
                 // progress reporter.
                 progress.Report(new VSInternalRelatedDocumentReport
                 {
-                    FilePaths = relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull().ToArray(),
+                    FilePaths = [.. relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull()],
                 });
 
                 return ValueTaskFactory.CompletedTask;

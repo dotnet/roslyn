@@ -213,6 +213,22 @@ namespace System.Diagnostics.CodeAnalysis
 }
 ";
 
+        protected static readonly string CallerArgumentExpressionAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                public sealed class CallerArgumentExpressionAttribute : Attribute
+                {
+                    public CallerArgumentExpressionAttribute(string parameterName)
+                    {
+                        ParameterName = parameterName;
+                    }
+
+                    public string ParameterName { get; }
+                }
+            }
+            """;
+
         protected static readonly string IsExternalInitTypeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -587,7 +603,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        protected static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
+        public static readonly string AsyncStreamsTypes = DisposableAsyncEnumeratorDefinition + CommonAsyncStreamsTypes;
 
         protected static readonly string EnumeratorCancellationAttributeType = @"
 namespace System.Runtime.CompilerServices
@@ -760,6 +776,20 @@ namespace System.Diagnostics.CodeAnalysis
                 .property instance int32 Priority()
                 {
                     .get instance int32 System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::get_Priority()
+                }
+            }
+            """;
+
+        /// <summary>
+        /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
+        /// </summary>
+        internal const string CompilerLoweringPreserveAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+                public class CompilerLoweringPreserveAttribute : Attribute
+                {
+                    public CompilerLoweringPreserveAttribute() { }
                 }
             }
             """;
@@ -2530,9 +2560,17 @@ namespace System.Runtime.CompilerServices
             var cultureInfoHandler = @"
 public class CultureInfoNormalizer
 {
+    private static CultureInfo originalCulture;
+
     public static void Normalize()
     {
+        originalCulture = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+
+    public static void Reset()
+    {
+        CultureInfo.CurrentCulture = originalCulture;
     }
 }
 ";

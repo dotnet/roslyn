@@ -270,15 +270,14 @@ internal static class FormattingRangeHelper
         // don't do anything if there is no proper parent
         var parent = endToken.Parent;
         if (parent == null || parent.Kind() == SyntaxKind.SkippedTokensTrivia)
-        {
             return null;
-        }
 
         // cases such as namespace, type, enum, method almost any top level elements
         if (IsColonInSwitchLabel(endToken))
-        {
-            return ValueTuple.Create(GetPreviousTokenIfNotFirstTokenInTree(parent.GetFirstToken()), parent.GetLastToken());
-        }
+            return (GetPreviousTokenIfNotFirstTokenInTree(parent.GetFirstToken()), parent.GetLastToken());
+
+        if (endToken.Kind() == SyntaxKind.ColonToken && parent is LabeledStatementSyntax)
+            return (GetPreviousTokenIfNotFirstTokenInTree(parent.GetFirstToken()), parent.GetLastToken());
 
         return null;
     }

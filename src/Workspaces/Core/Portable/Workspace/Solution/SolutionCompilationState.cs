@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
@@ -168,8 +169,8 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, TranslationAction?}?,
-    /// bool)"/> except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
+    /// Same as <see cref="ForkProject{TArg}(StateChange, Func{StateChange, TArg, TranslationAction?}, bool, TArg)"/>
+    /// except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
     /// </summary>
     private SolutionCompilationState ForceForkProject(
         StateChange stateChange,
@@ -538,6 +539,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithHasSdkCodeStyleAnalyzers"/>
+    internal SolutionCompilationState WithHasSdkCodeStyleAnalyzers(
+        ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        return ForkProject(
+            this.SolutionState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
@@ -574,7 +585,8 @@ internal sealed partial class SolutionCompilationState
             .WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace)
             .WithHasAllInformation(projectId, attributes.HasAllInformation)
             .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
-            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm);
+            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm)
+            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers);
     }
 
     public SolutionCompilationState WithProjectInfo(ProjectInfo info)
@@ -702,17 +714,6 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
-    public SolutionCompilationState AddAnalyzerReferences(StateChange stateChange, ImmutableArray<AnalyzerReference> analyzerReferences)
-    {
-        return ForkProject(
-            stateChange,
-            static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: analyzerReferences),
-            forkTracker: true,
-            arg: analyzerReferences);
-    }
-
     public SolutionCompilationState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added from
@@ -735,17 +736,6 @@ internal sealed partial class SolutionCompilationState
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that change
         // SGs all come from entrypoints that are specific to a particular project.
         return Branch(this.SolutionState.WithAnalyzerReferences(analyzerReferences));
-    }
-
-    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-    {
-        return ForkProject(
-            this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
-            static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToRemove: [analyzerReference]),
-            forkTracker: true,
-            arg: analyzerReference);
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAnalyzerReferences"/>
@@ -1120,9 +1110,6 @@ internal sealed partial class SolutionCompilationState
     public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
 
-    public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
-
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
         this.SolutionState.CheckContainsProject(projectId);
@@ -1227,6 +1214,17 @@ internal sealed partial class SolutionCompilationState
     {
         try
         {
+            // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is
+            // emitting a 'metadata-only' stream for it (a 'skeleton' reference).  So we just bail here.  Note: this is
+            // not a common user scenario (they have to be explicitly creating 'modules' which are a feature practically
+            // never used anymore). So it's not worthwhile trying to merge the referenced module into the current
+            // compilation in any fashion.
+            //
+            // Note: ProjectSystemProjectFactory.CanConvertMetadataReferenceToProjectReference attempts to prevent this
+            // scenario from arising.  However, this code just acts as a final failsafe to ensure we don't crash.
+            if (tracker.ProjectState.CompilationOptions?.OutputKind == OutputKind.NetModule)
+                return null;
+
             // If same language then we can wrap the other project's compilation into a compilation reference
             if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
             {
@@ -1465,36 +1463,7 @@ internal sealed partial class SolutionCompilationState
 
     private SolutionCompilationState ComputeFrozenSnapshot(CancellationToken cancellationToken)
     {
-        var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
-        var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
-
-        foreach (var projectId in this.SolutionState.ProjectIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
-            var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
-            if (!oldProjectState.SupportsCompilation)
-                continue;
-
-            var oldTracker = GetCompilationTracker(projectId);
-
-            // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
-            // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
-            if (oldTracker == newTracker)
-                continue;
-
-            Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
-
-            var newProjectState = newTracker.ProjectState;
-
-            newIdToProjectStateMapBuilder[projectId] = newProjectState;
-            newIdToTrackerMapBuilder[projectId] = newTracker;
-        }
-
-        var newIdToProjectStateMap = newIdToProjectStateMapBuilder.ToImmutable();
-        var newIdToTrackerMap = newIdToTrackerMapBuilder.ToImmutable();
+        var (newIdToProjectStateMap, newIdToTrackerMap) = ComputeFrozenSnapshotMaps(cancellationToken);
 
         var dependencyGraph = SolutionState.CreateDependencyGraph(this.SolutionState.ProjectIds, newIdToProjectStateMap);
 
@@ -1509,6 +1478,58 @@ internal sealed partial class SolutionCompilationState
             cachedFrozenSnapshot: _cachedFrozenSnapshot);
 
         return newCompilationState;
+    }
+
+    private (ImmutableDictionary<ProjectId, ProjectState>, ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>) ComputeFrozenSnapshotMaps(CancellationToken cancellationToken)
+    {
+        // Loop until we have calculated the maps against a set of compilation trackers that hasn't changed during our calculation.
+        while (true)
+        {
+            var originalProjectIdToTrackerMap = _projectIdToTrackerMap;
+            var newIdToProjectStateMapBuilder = this.SolutionState.ProjectStates.ToBuilder();
+            var newIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
+
+            // Used to track any new compilation trackers created in the loop. This is done to avoid allocations
+            // from individually adding to the _projectIdToTrackerMap ImmutableSegmentedDictionary .
+            var updatedIdToTrackerMapBuilder = originalProjectIdToTrackerMap.ToBuilder();
+
+            foreach (var projectId in this.SolutionState.ProjectIds)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Definitely do nothing for non-C#/VB projects.  We have nothing to freeze in that case.
+                var oldProjectState = this.SolutionState.GetRequiredProjectState(projectId);
+                if (!oldProjectState.SupportsCompilation)
+                    continue;
+
+                if (!originalProjectIdToTrackerMap.TryGetValue(projectId, out var oldTracker))
+                {
+                    oldTracker = CreateCompilationTracker(projectId, this.SolutionState);
+
+                    // Collect all compilation trackers that needed to be created
+                    updatedIdToTrackerMapBuilder[projectId] = oldTracker;
+                }
+
+                // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
+                // perf hit on either of those at all for our clients.
+                var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
+                if (oldTracker == newTracker)
+                    continue;
+
+                Contract.ThrowIfFalse(newIdToProjectStateMapBuilder.ContainsKey(projectId));
+
+                var newProjectState = newTracker.ProjectState;
+
+                newIdToProjectStateMapBuilder[projectId] = newProjectState;
+                newIdToTrackerMapBuilder[projectId] = newTracker;
+            }
+
+            // Attempt to update _projectIdToTrackerMap to include all the newly created compilation trackers. If another thread has updated
+            // it since we captured it, then we'll need to loop again to ensure we've operated on the latest compilation trackers.
+            var updatedIdToTrackerMap = updatedIdToTrackerMapBuilder.ToImmutable();
+            if (originalProjectIdToTrackerMap == RoslynImmutableInterlocked.InterlockedCompareExchange(ref _projectIdToTrackerMap, updatedIdToTrackerMap, originalProjectIdToTrackerMap))
+                return (newIdToProjectStateMapBuilder.ToImmutable(), newIdToTrackerMapBuilder.ToImmutable());
+        }
     }
 
     /// <summary>

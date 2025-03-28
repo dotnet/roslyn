@@ -514,7 +514,6 @@ public class AssignOutParametersAtStartTests
                         return 'a';
                     }
                 }
-
                 char N(bool b, out int i, out int j)
                 {
                     i = 0;
@@ -599,7 +598,6 @@ public class AssignOutParametersAtStartTests
                     else
                         return 'a';
                 }
-
                 char N(bool b, out int i, out int j)
                 {
                     i = 0;
@@ -710,7 +708,6 @@ public class AssignOutParametersAtStartTests
                         return 'a';
                     }
                 }
-
                 char N(bool b, out int i, out int j)
                 {
                     i = 0;

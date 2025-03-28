@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// TODO (https://github.com/dotnet/roslyn/issues/72713):
 /// Once debugger is updated to use the brokered service, this class should be removed and <see cref="EditAndContinueLanguageService"/> should be exported directly.
 /// </summary>
-internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAndContinueLanguageService service) : IManagedHotReloadLanguageService
+internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAndContinueLanguageService service) : IManagedHotReloadLanguageService2
 {
     public ValueTask StartSessionAsync(CancellationToken cancellationToken)
         => service.StartSessionAsync(cancellationToken);
@@ -30,11 +32,18 @@ internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAn
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false));
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => service.GetUpdatesAsync(cancellationToken);
+
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
+        => service.GetUpdatesAsync(runningProjects, cancellationToken);
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
+
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => service.UpdateBaselinesAsync(projectPaths, cancellationToken);
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => service.DiscardUpdatesAsync(cancellationToken);

@@ -37,7 +37,7 @@ $$
 End Class", HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickCancelAsync(HangMitigatingCancellationToken);
         var actualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
@@ -66,7 +66,7 @@ $$
 End Class", HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.ClickOKAsync(HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LightBulb, HangMitigatingCancellationToken);
@@ -100,7 +100,7 @@ $$
 End Class", HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
@@ -137,7 +137,7 @@ $$
 End Class", HangMitigatingCancellationToken);
 
         await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Generate constructor from members...", applyFix: true, blockUntilComplete: false, cancellationToken: HangMitigatingCancellationToken);
         await TestServices.PickMembersDialog.VerifyOpenAsync(HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.TAB, HangMitigatingCancellationToken);

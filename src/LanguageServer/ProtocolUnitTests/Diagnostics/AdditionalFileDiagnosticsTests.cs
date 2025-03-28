@@ -40,7 +40,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
             @"C:\C.cs: []",
             @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
             @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
+        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -64,7 +64,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(3, results.Length);
 
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -100,12 +100,12 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
         Assert.Equal(6, results.Length);
 
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
-        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics.Single()).Projects.First().ProjectName);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics.Single().Code);
+        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
         Assert.Equal(@"C:\Test.txt", results[4].Uri.LocalPath);
-        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics.Single()).Projects.First().ProjectName);
+        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -115,9 +115,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));
 
     private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
-        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                new MockAdditionalFileDiagnosticAnalyzer())));
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer()]));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
@@ -126,7 +124,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         private readonly DiagnosticDescriptor _descriptor = new(Id, "MockAdditionalDiagnostic", "MockAdditionalDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            => ImmutableArray.Create(_descriptor);
+            => [_descriptor];
 
         public override void Initialize(AnalysisContext context)
             => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);

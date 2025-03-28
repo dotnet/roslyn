@@ -6,6 +6,7 @@
 
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
 
@@ -69,17 +70,13 @@ internal abstract class ObjectListItem
 
     public ProjectId ProjectId { get; }
 
-    public Compilation GetCompilation(Workspace workspace)
+    public async Task<Compilation> GetCompilationAsync(Workspace workspace, CancellationToken cancellationToken)
     {
         var project = workspace.CurrentSolution.GetProject(ProjectId);
         if (project == null)
-        {
             return null;
-        }
 
-        return project
-            .GetCompilationAsync(CancellationToken.None)
-            .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+        return await project.GetCompilationAsync(cancellationToken).ConfigureAwait(true);
     }
 
     public ushort GlyphIndex { get; }
