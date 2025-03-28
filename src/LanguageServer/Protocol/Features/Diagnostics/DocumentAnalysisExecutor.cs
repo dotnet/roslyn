@@ -101,7 +101,7 @@ internal sealed partial class DocumentAnalysisExecutor
             var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                 documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, tree, cancellationToken).ConfigureAwait(false);
 
-            return ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
+            return Extensions.ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
         }
 
         // quick optimization to reduce allocations.
@@ -157,7 +157,7 @@ internal sealed partial class DocumentAnalysisExecutor
         var compilation = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) ? _compilationWithAnalyzers.ProjectCompilation : _compilationWithAnalyzers.HostCompilation;
         RoslynDebug.AssertNotNull(compilation);
         Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, compilation).Count());
-        Debug.Assert(diagnostics.Length == ConvertToLocalDiagnostics(diags, textDocument, span).Count());
+        Debug.Assert(diagnostics.Length == Extensions.ConvertToLocalDiagnostics(diags, textDocument, span).Count());
 #endif
 
         return diagnostics;
