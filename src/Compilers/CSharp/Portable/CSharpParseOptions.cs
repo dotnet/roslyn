@@ -230,6 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Used for parsing .cs file-based programs.
+        /// </summary>
+        /// <remarks>
+        /// In this mode, ignored directives <c>#:</c> are allowed.
+        /// </remarks>
+        internal bool FileBasedProgram => Features.ContainsKey("FileBasedProgram");
+
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {
             ValidateOptions(builder, MessageProvider.Instance);

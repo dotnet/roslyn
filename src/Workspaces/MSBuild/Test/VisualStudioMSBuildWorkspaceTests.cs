@@ -995,7 +995,7 @@ class C1
         var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
         var text = await doc.GetTextAsync();
         Assert.Empty(text.ToString());
-        Assert.NotNull(await doc.State.GetLoadDiagnosticAsync(CancellationToken.None));
+        Assert.NotNull(await doc.State.GetFailedToLoadExceptionMessageAsync(CancellationToken.None));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]

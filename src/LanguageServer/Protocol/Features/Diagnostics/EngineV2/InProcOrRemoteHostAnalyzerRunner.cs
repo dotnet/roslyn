@@ -22,16 +22,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal sealed class InProcOrRemoteHostAnalyzerRunner
 {
-    private readonly bool _enabled;
     private readonly IAsynchronousOperationListener _asyncOperationListener;
     public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
     public InProcOrRemoteHostAnalyzerRunner(
-        bool enabled,
         DiagnosticAnalyzerInfoCache analyzerInfoCache,
         IAsynchronousOperationListener? operationListener = null)
     {
-        _enabled = enabled;
         AnalyzerInfoCache = analyzerInfoCache;
         _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
     }
@@ -39,12 +36,10 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
     public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentAsync(
         DocumentAnalysisScope documentAnalysisScope,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
-        => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers,
-            isExplicit, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        => AnalyzeAsync(documentAnalysisScope, documentAnalysisScope.TextDocument.Project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
     public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeProjectAsync(
         Project project,
@@ -52,21 +47,16 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
-        => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers,
-            isExplicit: false, logPerformanceInfo, getTelemetryInfo, cancellationToken);
+        => AnalyzeAsync(documentAnalysisScope: null, project, compilationWithAnalyzers, logPerformanceInfo, getTelemetryInfo, cancellationToken);
 
     private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
     {
-        if (!_enabled)
-            return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-
         var result = await AnalyzeCoreAsync().ConfigureAwait(false);
         Debug.Assert(getTelemetryInfo || result.TelemetryInfo.IsEmpty);
         return result;
@@ -79,7 +69,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             if (remoteHostClient != null)
             {
                 return await AnalyzeOutOfProcAsync(documentAnalysisScope, project, compilationWithAnalyzers, remoteHostClient,
-                    isExplicit, logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
+                    logPerformanceInfo, getTelemetryInfo, cancellationToken).ConfigureAwait(false);
             }
 
             return await AnalyzeInProcAsync(documentAnalysisScope, project, compilationWithAnalyzers,
@@ -89,9 +79,6 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
 
     public async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
     {
-        if (!_enabled)
-            return [];
-
         var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
         var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (remoteHostClient != null)
@@ -192,7 +179,6 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
         Project project,
         CompilationWithAnalyzersPair compilationWithAnalyzers,
         RemoteHostClient client,
-        bool isExplicit,
         bool logPerformanceInfo,
         bool getTelemetryInfo,
         CancellationToken cancellationToken)
@@ -221,8 +207,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             documentAnalysisScope?.Kind,
             project.Id,
             [.. projectAnalyzerMap.Keys],
-            [.. hostAnalyzerMap.Keys],
-            isExplicit);
+            [.. hostAnalyzerMap.Keys]);
 
         var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
             project.Solution,
@@ -230,11 +215,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
             cancellationToken).ConfigureAwait(false);
 
         if (!result.HasValue)
-        {
             return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
-        }
-
-        var documentIds = (documentAnalysisScope != null) ? ImmutableHashSet.Create(documentAnalysisScope.TextDocument.Id) : null;
 
         return new DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>(
             result.Value.Diagnostics.ToImmutableDictionary(
@@ -244,8 +225,7 @@ internal sealed class InProcOrRemoteHostAnalyzerRunner
                     syntaxLocalMap: Hydrate(entry.diagnosticMap.Syntax, project),
                     semanticLocalMap: Hydrate(entry.diagnosticMap.Semantic, project),
                     nonLocalMap: Hydrate(entry.diagnosticMap.NonLocal, project),
-                    others: entry.diagnosticMap.Other,
-                    documentIds)),
+                    others: entry.diagnosticMap.Other)),
             result.Value.Telemetry.ToImmutableDictionary(
                 entry => IReadOnlyDictionaryExtensions.GetValueOrDefault(projectAnalyzerMap, entry.analyzerId) ?? hostAnalyzerMap[entry.analyzerId],
                 entry => entry.telemetry));

@@ -27,7 +27,6 @@ internal sealed partial class DocumentAnalysisExecutor
 {
     private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
     private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-    private readonly bool _isExplicit;
     private readonly bool _logPerformanceInfo;
     private readonly Action? _onAnalysisException;
 
@@ -41,14 +40,12 @@ internal sealed partial class DocumentAnalysisExecutor
         DocumentAnalysisScope analysisScope,
         CompilationWithAnalyzersPair? compilationWithAnalyzers,
         InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
-        bool isExplicit,
         bool logPerformanceInfo,
         Action? onAnalysisException = null)
     {
         AnalysisScope = analysisScope;
         _compilationWithAnalyzers = compilationWithAnalyzers;
         _diagnosticAnalyzerRunner = diagnosticAnalyzerRunner;
-        _isExplicit = isExplicit;
         _logPerformanceInfo = logPerformanceInfo;
         _onAnalysisException = onAnalysisException;
 
@@ -66,7 +63,7 @@ internal sealed partial class DocumentAnalysisExecutor
     public DocumentAnalysisScope AnalysisScope { get; }
 
     public DocumentAnalysisExecutor With(DocumentAnalysisScope analysisScope)
-        => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _isExplicit, _logPerformanceInfo, _onAnalysisException);
+        => new(analysisScope, _compilationWithAnalyzers, _diagnosticAnalyzerRunner, _logPerformanceInfo, _onAnalysisException);
 
     /// <summary>
     /// Return all local diagnostics (syntax, semantic) that belong to given document for the given analyzer by calculating them.
@@ -80,19 +77,6 @@ internal sealed partial class DocumentAnalysisExecutor
         var kind = AnalysisScope.Kind;
 
         var document = textDocument as Document;
-        RoslynDebug.Assert(document != null || kind == AnalysisKind.Syntax, "We only support syntactic analysis for non-source documents");
-
-        var loadDiagnostic = await textDocument.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
-
-        if (analyzer == FileContentLoadAnalyzer.Instance)
-        {
-            return loadDiagnostic != null
-                ? [DiagnosticData.Create(loadDiagnostic, textDocument)]
-                : [];
-        }
-
-        if (loadDiagnostic != null)
-            return [];
 
         if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
         {
@@ -110,14 +94,14 @@ internal sealed partial class DocumentAnalysisExecutor
 
         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
         {
-            if (document == null)
-                return [];
-
             // DocumentDiagnosticAnalyzer is a host-only analyzer
+            var tree = document is null
+                ? null
+                : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                documentAnalyzer, document, kind, _compilationWithAnalyzers?.HostCompilation, cancellationToken).ConfigureAwait(false);
+                documentAnalyzer, textDocument, kind, _compilationWithAnalyzers?.HostCompilation, tree, cancellationToken).ConfigureAwait(false);
 
-            return ConvertToLocalDiagnostics(documentDiagnostics, document, span);
+            return ConvertToLocalDiagnostics(documentDiagnostics, textDocument, span);
         }
 
         // quick optimization to reduce allocations.
@@ -158,9 +142,9 @@ internal sealed partial class DocumentAnalysisExecutor
         // Remap diagnostic locations, if required.
         diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
-        if (span.HasValue && document != null)
+        if (span.HasValue)
         {
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await textDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
             // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
@@ -185,8 +169,8 @@ internal sealed partial class DocumentAnalysisExecutor
 
         try
         {
-            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
-                _isExplicit, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
+            var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(
+                analysisScope, _compilationWithAnalyzers, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
             return resultAndTelemetry.AnalysisResult;
         }
         catch when (_onAnalysisException != null)

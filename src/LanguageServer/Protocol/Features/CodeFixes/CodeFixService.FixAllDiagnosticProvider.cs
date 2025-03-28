@@ -58,7 +58,7 @@ internal sealed partial class CodeFixService
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, fixAllSpan, shouldIncludeDiagnostic,
                 priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
-                DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false));
+                DiagnosticKind.All, cancellationToken).ConfigureAwait(false));
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
