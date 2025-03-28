@@ -78,19 +78,19 @@ internal sealed partial class DocumentAnalysisExecutor
 
         var document = textDocument as Document;
 
-        if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
-        {
-            // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
-            if (kind == AnalysisKind.Semantic)
-            {
-                var generatorDiagnostics = await GetSourceGeneratorDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-                return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
-            }
-            else
-            {
-                return [];
-            }
-        }
+        //if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
+        //{
+        //    // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
+        //    if (kind == AnalysisKind.Semantic)
+        //    {
+        //        var generatorDiagnostics = await GetSourceGeneratorDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
+        //        return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
+        //    }
+        //    else
+        //    {
+        //        return [];
+        //    }
+        //}
 
         if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
         {
@@ -180,18 +180,18 @@ internal sealed partial class DocumentAnalysisExecutor
         }
     }
 
-    private async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-        }
-        catch when (_onAnalysisException != null)
-        {
-            _onAnalysisException.Invoke();
-            throw;
-        }
-    }
+    //private async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+    //{
+    //    try
+    //    {
+    //        return await InProcOrRemoteHostAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+    //    }
+    //    catch when (_onAnalysisException != null)
+    //    {
+    //        _onAnalysisException.Invoke();
+    //        throw;
+    //    }
+    //}
 
     private async Task<ImmutableArray<DiagnosticData>> GetCompilerAnalyzerDiagnosticsAsync(DiagnosticAnalyzer analyzer, TextSpan? span, CancellationToken cancellationToken)
     {
