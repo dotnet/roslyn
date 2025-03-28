@@ -28,14 +28,14 @@ internal sealed partial class DiagnosticAnalyzerService
         private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticAnalysisResultsAsync(
             CompilationWithAnalyzersPair? compilationWithAnalyzers,
             Project project,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DocumentDiagnosticAnalyzer> analyzers,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, analyzers, cancellationToken))
             {
                 try
                 {
-                    var result = await ComputeDiagnosticsForIDEAnalyzersAsync(analyzers).ConfigureAwait(false);
+                    var result = await ComputeDiagnosticsForAnalyzersAsync(analyzers).ConfigureAwait(false);
 
                     // If project is not loaded successfully, get rid of any semantic errors from compiler analyzer.
                     // Note: In the past when project was not loaded successfully we did not run any analyzers on the project.
@@ -86,7 +86,7 @@ internal sealed partial class DiagnosticAnalyzerService
             // Calculate all diagnostics for a given project using analyzers referenced by the project and specified IDE analyzers.
             // </summary>
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForAnalyzersAsync(
-                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers)
+                ImmutableArray<DocumentDiagnosticAnalyzer> ideAnalyzers)
             {
                 try
                 {
@@ -106,8 +106,6 @@ internal sealed partial class DiagnosticAnalyzerService
                         UpdateAnalyzerTelemetryData(resultMap.TelemetryInfo);
                     }
 
-                    // check whether there is IDE specific project diagnostic analyzer
-                    Debug.Assert(ideAnalyzers.All(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer));
                     return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(ideAnalyzers, result).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -116,63 +114,38 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
             }
 
-            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> ComputeDiagnosticsForIDEAnalyzersAsync(
-                ImmutableArray<DiagnosticAnalyzer> analyzers)
-            {
-                try
-                {
-                    var ideAnalyzers = analyzers.WhereAsArray(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer);
-
-                    return await ComputeDiagnosticsForAnalyzersAsync(ideAnalyzers).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-            }
-
             async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
-                ImmutableArray<DiagnosticAnalyzer> ideAnalyzers,
+                ImmutableArray<DocumentDiagnosticAnalyzer> ideAnalyzers,
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result)
             {
                 try
                 {
                     var compilation = compilationWithAnalyzers?.HostCompilation;
 
-                    result = await UpdateWithGeneratorFailuresAsync(result).ConfigureAwait(false);
+                    // result = await UpdateWithGeneratorFailuresAsync(result).ConfigureAwait(false);
 
                     foreach (var analyzer in ideAnalyzers)
                     {
                         var builder = new DiagnosticAnalysisResultBuilder(project);
 
-                        switch (analyzer)
+                        foreach (var textDocument in project.AdditionalDocuments.Concat(project.Documents))
                         {
-                            case DocumentDiagnosticAnalyzer documentAnalyzer:
-                                foreach (var textDocument in project.AdditionalDocuments.Concat(project.Documents))
-                                {
-                                    var tree = textDocument is Document document
-                                        ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
-                                        : null;
-                                    var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
-                                    var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(documentAnalyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
+                            var tree = textDocument is Document document
+                                ? await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false)
+                                : null;
+                            var syntaxDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Syntax, compilation, tree, cancellationToken).ConfigureAwait(false);
+                            var semanticDiagnostics = await DocumentAnalysisExecutor.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(analyzer, textDocument, AnalysisKind.Semantic, compilation, tree, cancellationToken).ConfigureAwait(false);
 
-                                    if (tree != null)
-                                    {
-                                        builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
-                                        builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
-                                    }
-                                    else
-                                    {
-                                        builder.AddExternalSyntaxDiagnostics(textDocument.Id, syntaxDiagnostics);
-                                        builder.AddExternalSemanticDiagnostics(textDocument.Id, semanticDiagnostics);
-                                    }
-                                }
-
-                                break;
-
-                            case ProjectDiagnosticAnalyzer projectAnalyzer:
-                                builder.AddCompilationDiagnostics(await DocumentAnalysisExecutor.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(projectAnalyzer, project, compilation, cancellationToken).ConfigureAwait(false));
-                                break;
+                            if (tree != null)
+                            {
+                                builder.AddSyntaxDiagnostics(tree, syntaxDiagnostics);
+                                builder.AddSemanticDiagnostics(tree, semanticDiagnostics);
+                            }
+                            else
+                            {
+                                builder.AddExternalSyntaxDiagnostics(textDocument.Id, syntaxDiagnostics);
+                                builder.AddExternalSemanticDiagnostics(textDocument.Id, semanticDiagnostics);
+                            }
                         }
 
                         // merge the result to existing one.
@@ -187,25 +160,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     throw ExceptionUtilities.Unreachable();
                 }
-            }
-
-            async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> UpdateWithGeneratorFailuresAsync(
-                ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results)
-            {
-                var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-                var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project);
-                foreach (var generatorDiagnostic in generatorDiagnostics)
-                {
-                    // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
-                    // we want that to be refreshed and deduplicated with regular document analysis.
-                    diagnosticResultBuilder.AddDiagnosticTreatedAsLocalSemantic(generatorDiagnostic);
-                }
-
-                results = results.SetItem(
-                    GeneratorDiagnosticsPlaceholderAnalyzer.Instance,
-                    DiagnosticAnalysisResult.CreateFromBuilder(diagnosticResultBuilder));
-
-                return results;
             }
 
             void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)

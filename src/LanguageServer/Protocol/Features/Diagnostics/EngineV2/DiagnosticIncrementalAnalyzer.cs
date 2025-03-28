@@ -48,7 +48,7 @@ internal sealed partial class DiagnosticAnalyzerService
         public Task<ImmutableArray<DiagnosticAnalyzer>> GetAnalyzersForTestingPurposesOnlyAsync(Project project, CancellationToken cancellationToken)
             => _stateManager.GetOrCreateAnalyzersAsync(project.Solution.SolutionState, project.State, cancellationToken);
 
-        private static string GetProjectLogMessage(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        private static string GetProjectLogMessage(Project project, ImmutableArray<DocumentDiagnosticAnalyzer> analyzers)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, analyzers.Select(a => a.ToString()))})";
     }
 }
