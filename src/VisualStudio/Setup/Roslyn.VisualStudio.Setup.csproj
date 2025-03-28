@@ -286,6 +286,7 @@
       <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
 
       <!-- Disable NGEN. Core assemblies are crossgened. -->
       <Ngen>false</Ngen>
@@ -301,6 +302,7 @@
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\HostProcess\x86\InteractiveHost32.csproj">
       <Name>InteractiveHost.Desktop32</Name>
@@ -316,6 +318,7 @@
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
       <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
       <Name>SemanticSearchRefs</Name>
@@ -329,14 +332,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Humanizer.Core" IncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="ICSharpCode.Decompiler" IncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" IncludeInVsix="true" PkgDefEntry="CodeBase" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
+    <PackageReference Include="Humanizer.Core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="ICSharpCode.Decompiler" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
-    <PackageReference Include="SQLitePCLRaw.core" IncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" IncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" IncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLitePCLRaw.core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
