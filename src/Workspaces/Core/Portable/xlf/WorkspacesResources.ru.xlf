@@ -9,12 +9,17 @@
       </trans-unit>
       <trans-unit id="AbsolutePathExpected">
         <source>Absolute path expected</source>
-        <target state="new">Absolute path expected</target>
+        <target state="translated">Ожидался абсолютный путь</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Добавление документов конфигурации анализатора не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="translated">После</target>
         <note />
       </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
@@ -90,16 +95,6 @@
       <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
         <source>'FixAllScope.Custom' is not supported with this API</source>
         <target state="translated">"FixAllScope.Custom" не поддерживается с этим API</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_and_spacing">
-        <source>Indentation and spacing</source>
-        <target state="translated">Отступы и интервалы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_line_preferences">
-        <source>New line preferences</source>
-        <target state="translated">Предпочтения для новых строк</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
@@ -201,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">Синхронизировать пространство имен со структурой папок</target>
         <note />
+      </trans-unit>
+      <trans-unit id="TODO_Unmerged_change_from_project_0">
+        <source>TODO: Unmerged change from project '{0}'</source>
+        <target state="translated">TODO: необъединенное изменение из проекта "{0}"</target>
+        <note>{Locked="TODO"}</note>
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
         <source>The contents of a SourceGeneratedDocument may not be changed.</source>
@@ -337,16 +337,6 @@
         <target state="translated">"{0}" не открыт.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">Для данного параметра невозможно указать имя языка.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">Для данного параметра необходимо указать имя языка.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
         <source>File was externally modified: {0}.</source>
         <target state="translated">Файл был изменен извне: {0}.</target>
@@ -392,11 +382,6 @@
         <target state="translated">{0} все еще открыт.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">Слишком большое значение для представления в виде 30-разрядного целого числа без знака.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
         <target state="translated">Не удается открыть проект "{0}", так как расширение файла "{1}" не связано с языком.</target>
@@ -427,29 +412,9 @@
         <target state="translated">Не удалось найти файл решения: "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unmerged_change_from_project_0">
-        <source>Unmerged change from project '{0}'</source>
-        <target state="translated">Необъединенное слияние из проекта "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Added_colon">
-        <source>Added:</source>
-        <target state="translated">Добавлены:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">После:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Before_colon">
         <source>Before:</source>
         <target state="translated">До:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removed_colon">
-        <source>Removed:</source>
-        <target state="translated">Удалено:</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
@@ -605,11 +570,6 @@
       <trans-unit id="Show_Stack_Trace">
         <source>Show Stack Trace</source>
         <target state="translated">Показать трассировку стека</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_is_too_long">
-        <source>Stream is too long.</source>
-        <target state="translated">Слишком длинный поток.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

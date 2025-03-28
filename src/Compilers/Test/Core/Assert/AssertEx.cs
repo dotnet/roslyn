@@ -182,15 +182,15 @@ namespace Roslyn.Test.Utilities
         public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual)
             => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
 
-        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
+        public static void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
-            if (expected == null || actual.IsDefault)
+            if (expected == null || actual == null)
             {
-                Assert.True((expected == null) == actual.IsDefault, message);
+                Assert.True(expected is null == actual is null, message);
             }
             else
             {
-                Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
+                Equal(expected, actual, comparer, message, itemSeparator);
             }
         }
 

@@ -219,6 +219,316 @@ class GraphicsContext
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_01()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct B<T>
+{
+    A<B<T>> x;
+}
+
+struct C<T>
+{
+    D<T> x;
+}
+struct D<T>
+{
+    C<D<T>> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (14,10): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
+                //     D<T> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 10),
+                // (18,13): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
+                //     C<D<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_02()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct B<T>
+{
+    A<C<B<T>>> x;
+}
+
+struct C<T>
+{
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_03()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct E
+{}
+
+struct X<T>
+{
+    T _t;
+}
+
+struct Y
+{
+    X<Z> xz;
+}
+
+struct Z
+{
+    X<E> xe;
+    X<Y> xy;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (12,10): error CS0523: Struct member 'Y.xz' of type 'X<Z>' causes a cycle in the struct layout
+                //     X<Z> xz;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xz").WithArguments("Y.xz", "X<Z>").WithLocation(12, 10),
+                // (18,10): error CS0523: Struct member 'Z.xy' of type 'X<Y>' causes a cycle in the struct layout
+                //     X<Y> xy;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "xy").WithArguments("Z.xy", "X<Y>").WithLocation(18, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_04()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    A<B<T>> x;
+    C<B<T>> y;
+    B<T> z;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (16,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(16, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_05()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    B<T> z;
+    A<B<T>> x;
+    C<B<T>> y;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (14,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(14, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_06()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    A<B<T>> x;
+    B<T> z;
+    C<B<T>> y;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (15,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(15, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void StaticMemberExplosion_01()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    static A<A<T>> x;
+}
+
+struct B<T>
+{
+    static A<B<T>> x;
+}
+
+struct C<T>
+{
+    static D<T> x;
+}
+struct D<T>
+{
+    static C<D<T>> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     static A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20),
+                // (14,17): error CS0523: Struct member 'C<T>.x' of type 'D<T>' causes a cycle in the struct layout
+                //     static D<T> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "D<T>").WithLocation(14, 17),
+                // (18,20): error CS0523: Struct member 'D<T>.x' of type 'C<D<T>>' causes a cycle in the struct layout
+                //     static C<D<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("D<T>.x", "C<D<T>>").WithLocation(18, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void StaticMemberExplosion_02()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    static A<A<T>> x;
+}
+
+struct B<T>
+{
+    static A<C<B<T>>> x;
+}
+
+struct C<T>
+{
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,20): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     static A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75701")]
+        public void StaticMemberExplosion_03()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct E
+{}
+
+struct X<T>
+{
+    static T _t;
+}
+
+struct Y
+{
+    static X<Z> xz;
+}
+
+struct Z
+{
+    static X<E> xe;
+    static X<Y> xy;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // Errors are expected here, see https://github.com/dotnet/roslyn/issues/75701.
+                );
+        }
+
         [Fact, WorkItem(1017887, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1017887")]
         public void EmptyStructsFromMetadata()
         {

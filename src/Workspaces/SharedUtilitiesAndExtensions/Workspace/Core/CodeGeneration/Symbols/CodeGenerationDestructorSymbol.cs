@@ -18,9 +18,9 @@ internal sealed class CodeGenerationDestructorSymbol(
          refKind: RefKind.None,
          explicitInterfaceImplementations: default,
          name: string.Empty,
-         typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-         parameters: ImmutableArray<IParameterSymbol>.Empty,
-         returnTypeAttributes: ImmutableArray<AttributeData>.Empty)
+         typeParameters: [],
+         parameters: [],
+         returnTypeAttributes: [])
 {
     public override MethodKind MethodKind => MethodKind.Destructor;
 

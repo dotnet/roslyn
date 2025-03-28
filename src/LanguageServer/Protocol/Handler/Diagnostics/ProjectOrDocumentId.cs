@@ -10,18 +10,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// Wrapper around project and document ids for convenience in caching diagnostic results and
 /// use in the <see cref="IDiagnosticSource"/>
 /// </summary>
-internal readonly struct ProjectOrDocumentId
+internal readonly record struct ProjectOrDocumentId
 {
     /// <summary>
     /// Non-null if this represents a documentId.  Used for equality comparisons.
     /// </summary>
-    [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used for equality comparison.")]
     private readonly DocumentId? _documentId;
 
     /// <summary>
     /// Non-null if this represents a projectId.  Used for equality comparisons.
     /// </summary>
-    [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used for equality comparison.")]
     private readonly ProjectId? _projectId;
 
     public ProjectOrDocumentId(ProjectId projectId)

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors, out _);
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 
@@ -177,9 +177,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal sealed override int? TryGetOverloadResolutionPriority()
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
     }
 }

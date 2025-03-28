@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string ChangeSignature = nameof(ChangeSignature);
             public const string ClassView = nameof(ClassView);
             public const string Classification = nameof(Classification);
-            public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
+            public const string CodeActionsAddOrRemoveAccessibilityModifiers = "CodeActions.AddOrRemoveAccessibilityModifiers";
             public const string CodeActionsAddAnonymousTypeMemberName = "CodeActions.AddAnonymousTypeMemberName";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSimplifyConditional = "CodeActions.SimplifyConditional";
             public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
             public const string CodeActionsSimplifyLinqExpression = "CodeActions.SimplifyLinqExpression";
+            public const string CodeActionsSimplifyLinqTypeCheckAndCast = "CodeActions.SimplifyLinqTypeCheckAndCast";
             public const string CodeActionsSimplifyPropertyPattern = "CodeActions.SimplifyPropertyPattern";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
@@ -192,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseConditionalExpression = "CodeActions.UseConditionalExpression";
             public const string CodeActionsUseDeconstruction = "CodeActions.UseDeconstruction";
             public const string CodeActionsUseDefaultLiteral = "CodeActions.UseDefaultLiteral";
+            public const string CodeActionsUseExplicitArrayInExpressionTree = "CodeActions.UseExplicitArrayInExpressionTree";
             public const string CodeActionsUseExplicitTupleName = "CodeActions.UseExplicitTupleName";
             public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeActionsUseExplicitTypeForConst = "CodeActions.UseExplicitTypeForConst";
@@ -218,6 +220,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
             public const string CodeActionsUseSystemThreadingLock = "CodeActions.UseSystemThreadingLock";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
+            public const string CodeActionsUseTupleSwap = "CodeActions.UseTupleSwap";
+            public const string CodeActionsUseUnboundGenericTypeInNameOf = "CodeActions.UseUnboundGenericTypeInNameOf";
             public const string CodeActionsUseUtf8StringLiteral = "CodeActions.CodeActionsUseUtf8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";
             public const string CodeCleanup = nameof(CodeCleanup);

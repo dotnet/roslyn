@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
-    Public Class CSharpReferenceHighlightingTests
+    Public NotInheritable Class CSharpReferenceHighlightingTests
         Inherits AbstractReferenceHighlightingTests
 
         <WpfTheory, CombinatorialData>

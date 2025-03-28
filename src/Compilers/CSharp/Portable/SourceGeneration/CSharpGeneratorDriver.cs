@@ -76,6 +76,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override string SourceExtension => ".cs";
 
+        internal override string EmbeddedAttributeDefinition => """
+            namespace Microsoft.CodeAnalysis
+            {
+                internal sealed partial class EmbeddedAttribute : global::System.Attribute
+                {
+                }
+            }
+            """;
+
         internal override ISyntaxHelper SyntaxHelper => CSharpSyntaxHelper.Instance;
     }
 }

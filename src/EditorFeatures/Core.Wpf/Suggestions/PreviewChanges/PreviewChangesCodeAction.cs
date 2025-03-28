@@ -37,13 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
                     if (previewDialogService == null)
                     {
-                        return ImmutableArray<CodeActionOperation>.Empty;
+                        return [];
                     }
 
                     var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
                     if (previewResult?.ChangeSummary is not { } changeSummary)
                     {
-                        return ImmutableArray<CodeActionOperation>.Empty;
+                        return [];
                     }
 
                     var changedSolution = previewDialogService.PreviewChanges(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (changedSolution == null)
                     {
                         // User pressed the cancel button.
-                        return ImmutableArray<CodeActionOperation>.Empty;
+                        return [];
                     }
 
                     cancellationToken.ThrowIfCancellationRequested();

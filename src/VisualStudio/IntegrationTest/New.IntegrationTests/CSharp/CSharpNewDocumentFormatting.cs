@@ -138,7 +138,7 @@ csharp_style_namespace_declarations = file_scoped
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], cancellationToken);
         var actualContents = await TestServices.ErrorList.GetErrorsAsync(cancellationToken);
         AssertEx.EqualOrDiff(
-            string.Join<string>(Environment.NewLine, Array.Empty<string>()),
+            string.Join<string>(Environment.NewLine, []),
             string.Join<string>(Environment.NewLine, actualContents));
     }
 }

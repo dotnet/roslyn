@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace BuildActionTelemetryTable
 {
-    public class Program
+    public static class Program
     {
         private static readonly string s_executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
@@ -76,7 +76,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CodeStyle.CSharpFormattingCodeFixProvider", "Formatting" },
             { "Microsoft.CodeAnalysis.CodeStyle.VisualBasicFormattingCodeFixProvider", "Formatting" },
             { "Microsoft.CodeAnalysis.ConvertToInterpolatedString.ConvertRegularStringToInterpolatedStringRefactoringProvider", "Convert To Interpolated String: Convert Regular String To Interpolated String (Refactoring)" },
-            { "Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersCodeFixProvider", "Add Accessibility Modifiers" },
+            { "Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers.CSharpAddOrRemoveAccessibilityModifiersCodeFixProvider", "Add Accessibility Modifiers" },
             { "Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName.CSharpAddAnonymousTypeMemberNameCodeFixProvider", "Add Anonymous Type Member Name" },
             { "Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay.CSharpAddDebuggerDisplayCodeRefactoringProvider", "Add Debugger Display (Refactoring)" },
             { "Microsoft.CodeAnalysis.CSharp.AddFileBanner.CSharpAddFileBannerCodeRefactoringProvider", "Add File Banner (Refactoring)" },
@@ -312,7 +312,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.UseExplicitTupleName.UseExplicitTupleNameCodeFixProvider", "Use Explicit Tuple Name" },
             { "Microsoft.CodeAnalysis.UseSystemHashCode.UseSystemHashCodeCodeFixProvider", "Use System Hash Code" },
             { "Microsoft.CodeAnalysis.UseThrowExpression.UseThrowExpressionCodeFixProvider", "Use Throw Expression" },
-            { "Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersCodeFixProvider", "Add Accessibility Modifiers" },
+            { "Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers.VisualBasicAddOrRemoveAccessibilityModifiersCodeFixProvider", "Add Accessibility Modifiers" },
             { "Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName.VisualBasicAddAnonymousTypeMemberNameCodeFixProvider", "Add Anonymous Type Member Name" },
             { "Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay.VisualBasicAddDebuggerDisplayCodeRefactoringProvider", "Add Debugger Display (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.AddFileBanner.VisualBasicAddFileBannerCodeRefactoringProvider", "Add File Banner (Refactoring)" },
@@ -402,7 +402,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements.VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider", "Replace Conditional With Statements (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag.VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider", "Replace Doc Comment Text With Tag (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation.VisualBasicSimplifyInterpolationCodeFixProvider", "Simplify Interpolation" },
-            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.VisualBasicSimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
+            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.SimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider", "Simplify Object Creation" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe.VisualBasicSimplifyThisOrMeCodeFixProvider", "Simplify This Or Me" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames.SimplifyTypeNamesCodeFixProvider", "Simplify Type Names" },

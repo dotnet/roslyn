@@ -165,7 +165,7 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
-        _project.SetOptions(arguments.ToImmutableArray());
+        _project.SetOptions([.. arguments]);
         return Task.CompletedTask;
     }
 

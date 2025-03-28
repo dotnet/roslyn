@@ -35,7 +35,7 @@ Console.ReadLine(1);
 ";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(1, 2) });
+            [new SourceLineUpdate(1, 2)]);
     }
 
     [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1426286")]
@@ -56,7 +56,7 @@ void F()
 ";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     #endregion
@@ -97,12 +97,11 @@ class C
 
         // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
         edits.VerifyLineEdits(
-            new[]
-            {
+            [
                 new SourceLineUpdate(4, 9),
                 new SourceLineUpdate(7, 7),
                 new SourceLineUpdate(9, 4)
-            },
+            ],
             semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))]);
     }
 
@@ -151,10 +150,9 @@ class C
 
         // Consider: we could detect that the body of the method hasn't changed and create line edits instead of an update.
         edits.VerifyLineEdits(
-            new[]
-            {
+            [
                 new SourceLineUpdate(4, 9),
-            },
+            ],
             semanticEdits:
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
@@ -217,7 +215,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 6) });
+            [new SourceLineUpdate(4, 6)]);
     }
 
     [Fact]
@@ -243,7 +241,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 5) });
+            [new SourceLineUpdate(4, 5)]);
     }
 
     [Fact]
@@ -269,7 +267,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact]
@@ -295,7 +293,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(6, 5) });
+            [new SourceLineUpdate(6, 5)]);
     }
 
     [Fact]
@@ -322,7 +320,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 4) });
+            [new SourceLineUpdate(5, 4)]);
     }
 
     [Fact]
@@ -348,7 +346,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(6, 7) });
+            [new SourceLineUpdate(6, 7)]);
     }
 
     [Fact]
@@ -380,7 +378,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(8, 9) });
+            [new SourceLineUpdate(8, 9)]);
     }
 
     [Fact]
@@ -418,11 +416,10 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[]
-            {
+            [
                 new SourceLineUpdate(3, 4),
                 new SourceLineUpdate(4, 4)
-            });
+            ]);
     }
 
     [Fact]
@@ -512,7 +509,7 @@ class C<T>
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(6, 5) });
+            [new SourceLineUpdate(6, 5)]);
     }
 
     [Fact]
@@ -635,7 +632,7 @@ class C
 
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69027")]
@@ -768,12 +765,11 @@ class C
 
         // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
         edits.VerifyLineEdits(
-            new[]
-            {
+            [
                 new SourceLineUpdate(3, 7),
                 new SourceLineUpdate(6, 6),
                 new SourceLineUpdate(7, 3)
-            },
+            ],
             semanticEdits:
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_Boolean }]), preserveLocalVariables: true)
@@ -799,11 +795,11 @@ class C
     {}
 }";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyLineEdits(new[]
-        {
+        edits.VerifyLineEdits(
+        [
             new SourceLineUpdate(3, 4),
             new SourceLineUpdate(4, 4)
-        });
+        ]);
     }
 
     [Fact]
@@ -852,7 +848,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact]
@@ -876,7 +872,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact]
@@ -900,7 +896,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact]
@@ -927,7 +923,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(6, 8) });
+            [new SourceLineUpdate(6, 8)]);
     }
 
     [Fact]
@@ -941,10 +937,10 @@ class
       C(int a);";
 
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyLineEdits(new[]
-        {
+        edits.VerifyLineEdits(
+        [
             new SourceLineUpdate(1, 2)
-        });
+        ]);
     }
 
     [Fact]
@@ -1084,7 +1080,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 5) });
+            [new SourceLineUpdate(4, 5)]);
     }
 
     [Fact]
@@ -1192,7 +1188,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 6) });
+            [new SourceLineUpdate(5, 6)]);
     }
 
     [Fact]
@@ -1270,7 +1266,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(5, 4) });
+            [new SourceLineUpdate(5, 4)]);
     }
 
     [Fact]
@@ -1290,7 +1286,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1310,7 +1306,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     #endregion
@@ -1398,7 +1394,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 6) });
+            [new SourceLineUpdate(3, 6)]);
     }
 
     [Fact]
@@ -1442,7 +1438,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new SourceLineUpdate[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1712,7 +1708,7 @@ class C
                 { return 1; } }
 }";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyLineEdits(new[] { new SourceLineUpdate(3, 4) });
+        edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1732,7 +1728,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1752,7 +1748,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1772,7 +1768,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1792,7 +1788,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1812,7 +1808,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1833,7 +1829,7 @@ class C
         // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            lineEdits: new[] { new SourceLineUpdate(3, 4) },
+            lineEdits: [new SourceLineUpdate(3, 4)],
             semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"))]);
     }
 
@@ -1856,7 +1852,7 @@ class C
         // We can only apply one delta per line, but that affects both getter and initializer. So we need to recompile one of them.
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            lineEdits: new[] { new SourceLineUpdate(3, 5) },
+            lineEdits: [new SourceLineUpdate(3, 5)],
             semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"))]);
     }
 
@@ -1921,7 +1917,7 @@ class C
                           { return 1; } }
 }";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyLineEdits(new[] { new SourceLineUpdate(3, 4) });
+        edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1940,7 +1936,7 @@ class C
     int this[int a] { get { return 1; } set { } }
 }";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyLineEdits(new[] { new SourceLineUpdate(3, 4) });
+        edits.VerifyLineEdits([new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1960,7 +1956,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -1980,7 +1976,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -2000,7 +1996,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     #endregion
@@ -2024,7 +2020,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) });
+            [new SourceLineUpdate(3, 4)]);
     }
 
     [Fact]
@@ -2044,7 +2040,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 3) });
+            [new SourceLineUpdate(4, 3)]);
     }
 
     [Fact]
@@ -2064,7 +2060,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 3) });
+            [new SourceLineUpdate(4, 3)]);
     }
 
     [Fact]
@@ -2084,7 +2080,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 3) });
+            [new SourceLineUpdate(4, 3)]);
     }
 
     [Fact]
@@ -2149,7 +2145,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(3, 4) },
+            [new SourceLineUpdate(3, 4)],
             semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.E").RemoveMethod)]);
     }
 
@@ -2171,7 +2167,7 @@ class C
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[] { new SourceLineUpdate(4, 3), new SourceLineUpdate(5, 3) });
+            [new SourceLineUpdate(4, 3), new SourceLineUpdate(5, 3)]);
     }
 
     #endregion
@@ -2209,12 +2205,11 @@ class C
 ";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
-            new[]
-            {
+            [
                 new SourceLineUpdate(3, 9),
                 new SourceLineUpdate(5, 5),
                 new SourceLineUpdate(9, 3)
-            });
+            ]);
     }
 
     #endregion
@@ -2304,10 +2299,7 @@ class D
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(
-                    new SourceLineUpdate(2, 12), // x, y, F1, F2
-                    new SourceLineUpdate(6, 6), // lines between F2 and D ctor
-                    new SourceLineUpdate(9, 19))) // D ctor
+                new("a", [new SourceLineUpdate(2, 12), new SourceLineUpdate(6, 6), new SourceLineUpdate(9, 19)]) // D ctor
             },
             semanticEdits:
             [
@@ -2372,8 +2364,8 @@ class C
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(new SourceLineUpdate(0, 1))),
-                new("b", ImmutableArray.Create(new SourceLineUpdate(0, 1))),
+                new("a", [new SourceLineUpdate(0, 1)]),
+                new("b", [new SourceLineUpdate(0, 1)]),
             });
     }
 
@@ -2414,7 +2406,7 @@ class C
         edits.VerifyLineEdits(
             new SequencePointUpdates[]
             {
-                new("a", ImmutableArray.Create(new SourceLineUpdate(6, 4))),
+                new("a", [new SourceLineUpdate(6, 4)]),
             },
             semanticEdits:
             [

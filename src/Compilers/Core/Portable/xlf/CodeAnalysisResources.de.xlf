@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="new">attribute</target>
+        <target state="translated">Attribut</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -85,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">"Ende" darf nicht kleiner sein als "Start". start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; Die Datei ist möglicherweise durch {1} gesperrt.</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -270,7 +275,7 @@
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
-        <target state="new">Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</target>
+        <target state="translated">Native PDB für Methode '{0}' kann nicht ausgeben werden, da die Größe der Debugmetadaten {1} den Grenzwert {2} überschreitet.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
@@ -280,7 +285,7 @@
       </trans-unit>
       <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
-        <target state="new">'{0}' type does not have the expected constructor</target>
+        <target state="translated">'{0}' Typ weist nicht den erwarteten Konstruktor auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

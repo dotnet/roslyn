@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
@@ -109,7 +110,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
             }
 
-            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
+            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, [".dll"]));
         }
     }
 

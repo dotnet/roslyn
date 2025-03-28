@@ -1281,5 +1281,129 @@ End Namespace]]>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/60949")>
+        Public Async Function TestImplicitObjectCreation(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class D
+{
+    void M()
+    {
+        C c1 = new {|TypeOrNamespaceUsageInfo.ObjectCreation:[|C|]|}();
+        C c2 = {|TypeOrNamespaceUsageInfo.ObjectCreation:[|new|]|}();
+    }
+}
+
+class C
+{
+    public {|Definition:$$C|}()
+    {
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Program
+        {
+            public {|Definition:$$Program|}(int i)
+            {
+            }
+        }
+
+        class Derived() : [|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class Program
+        {
+            public {|Definition:$$Program|}(int i)
+            {
+            }
+        }
+
+        class Derived() : global::[|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73704")>
+        Public Async Function TestPrimaryConstructor3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        namespace N
+        {
+            class Program
+            {
+                public {|Definition:$$Program|}(int i)
+                {
+                }
+            }
+        }
+
+        class Derived() : N.[|Program|](0)
+        {
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function PartialConstructor(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <Document>
+using System;
+partial class Program
+{
+    public partial {|Definition:Program|}();
+    public partial {|Definition:P$$rogram|}() { }
+
+    static void Main(string[] args)
+    {
+        var p = new [|Program|]();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

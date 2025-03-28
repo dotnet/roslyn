@@ -4929,7 +4929,7 @@ class C
         [|Other|] b;
     }
 }
-", ImmutableArray<string>.Empty);
+", []);
     }
 
     [Fact]

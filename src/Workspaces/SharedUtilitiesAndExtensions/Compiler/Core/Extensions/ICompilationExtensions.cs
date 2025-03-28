@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -69,8 +71,23 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+
+    public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
+    public static INamedTypeSymbol? ArrayType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
+
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+
+    public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+
+    public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
@@ -79,7 +96,10 @@ internal static class ICompilationExtensions
         => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
 
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Runtime.InteropServices.StructLayoutAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+
+    public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
 
     public static INamedTypeSymbol? DesignerCategoryAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
@@ -92,6 +112,9 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
+    public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
@@ -140,6 +163,12 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
+
+    public static INamedTypeSymbol? ISetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
+
+    public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
 
     public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");

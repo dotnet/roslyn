@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.WithTypeParametersBinder;
+        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbol)?.WithTypeParametersBinder;
 
         internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
@@ -210,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scope = CalculateEffectiveScopeIgnoringAttributes();
                 if (scope != ScopedKind.None &&
-                    HasUnscopedRefAttribute)
+                    HasUnscopedRefAttribute &&
+                    UseUpdatedEscapeRules)
                 {
                     return ScopedKind.None;
                 }
@@ -470,12 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialImplementationPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> implParameters = this.ContainingSymbol.GetPartialImplementationPart()?.GetParameters() ?? default;
 
                 if (implParameters.IsDefault)
                 {
@@ -491,12 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol switch
-                {
-                    SourceMemberMethodSymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    SourcePropertySymbol { PartialDefinitionPart.Parameters: { } parameters } => parameters,
-                    _ => default
-                };
+                ImmutableArray<ParameterSymbol> defParameters = this.ContainingSymbol.GetPartialDefinitionPart()?.GetParameters() ?? default;
 
                 if (defParameters.IsDefault)
                 {
@@ -865,6 +856,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
             {
+                if (!this.UseUpdatedEscapeRules)
+                {
+                    diagnostics.Add(ErrorCode.WRN_UnscopedRefAttributeOldRules, arguments.AttributeSyntaxOpt.Location);
+                }
+
                 if (!this.IsValidUnscopedRefAttributeTarget())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, arguments.AttributeSyntaxOpt.Location);
@@ -878,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsValidUnscopedRefAttributeTarget()
         {
-            return UseUpdatedEscapeRules && (RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType()));
+            return RefKind != RefKind.None || (HasParamsModifier && Type.IsRefLikeOrAllowsRefLikeType());
         }
 
         private static bool? DecodeMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(CSharpAttributeData attribute)

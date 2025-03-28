@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -36,7 +37,11 @@ public class SymbolFinderTests : TestBase
             projectName,
             languageName,
             metadataReferences: [metadataReference],
-            projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            projectReferences: projectReferences.Select(p => new ProjectReference(p)),
+            compilationOptions: solution.Services
+                .GetRequiredLanguageService<ICompilationFactoryService>(languageName)
+                .GetDefaultCompilationOptions()
+                .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
         return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
     }
 
@@ -581,7 +586,7 @@ delegate void D();
 
         Assert.NotEmpty(delegates); // We should find delegates when looking for implementations
         Assert.True(delegates.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata delegate");
-        Assert.Single(delegates.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source delegate
+        Assert.Single(delegates, i => i.Locations.Any(loc => loc.IsInSource)); // We should find a single source delegate
     }
 
     [Theory, CombinatorialData]
@@ -611,7 +616,7 @@ enum E
 
         Assert.NotEmpty(enums); // We should find enums when looking for implementations
         Assert.True(enums.Any(i => i.Locations.Any(loc => loc.IsInMetadata)), "We should find a metadata enum");
-        Assert.Single(enums.Where(i => i.Locations.Any(loc => loc.IsInSource))); // We should find a single source type
+        Assert.Single(enums, i => i.Locations.Any(loc => loc.IsInSource)); // We should find a single source type
     }
 
     [Theory, CombinatorialData]

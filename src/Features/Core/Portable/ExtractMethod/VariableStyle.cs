@@ -2,51 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal sealed class VariableStyle
+internal sealed record class VariableStyle(
+    ParameterStyle ParameterStyle,
+    ReturnStyle ReturnStyle)
 {
-    public ParameterStyle ParameterStyle { get; private set; }
-    public ReturnStyle ReturnStyle { get; private set; }
-
     public static readonly VariableStyle None =
-        new VariableStyle() { ParameterStyle = ParameterStyle.None, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.None, ReturnStyle.None);
 
     public static readonly VariableStyle InputOnly =
-        new VariableStyle() { ParameterStyle = ParameterStyle.InputOnly, ReturnStyle = ReturnStyle.None };
-
-    public static readonly VariableStyle Delete =
-        new VariableStyle() { ParameterStyle = ParameterStyle.Delete, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.InputOnly, ReturnStyle.None);
 
     public static readonly VariableStyle MoveOut =
-        new VariableStyle() { ParameterStyle = ParameterStyle.MoveOut, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.MoveOut, ReturnStyle.None);
 
     public static readonly VariableStyle SplitOut =
-        new VariableStyle() { ParameterStyle = ParameterStyle.SplitOut, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.SplitOut, ReturnStyle.None);
 
     public static readonly VariableStyle MoveIn =
-        new VariableStyle() { ParameterStyle = ParameterStyle.MoveIn, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.MoveIn, ReturnStyle.None);
 
     public static readonly VariableStyle SplitIn =
-        new VariableStyle() { ParameterStyle = ParameterStyle.SplitIn, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.SplitIn, ReturnStyle.None);
 
     public static readonly VariableStyle NotUsed =
-        new VariableStyle() { ParameterStyle = ParameterStyle.MoveOut, ReturnStyle = ReturnStyle.Initialization };
+        new(ParameterStyle.MoveOut, ReturnStyle.Initialization);
 
     public static readonly VariableStyle Ref =
-        new VariableStyle() { ParameterStyle = ParameterStyle.Ref, ReturnStyle = ReturnStyle.AssignmentWithInput };
+        new(ParameterStyle.Ref, ReturnStyle.AssignmentWithInput);
 
     public static readonly VariableStyle OnlyAsRefParam =
-        new VariableStyle() { ParameterStyle = ParameterStyle.Ref, ReturnStyle = ReturnStyle.None };
+        new(ParameterStyle.Ref, ReturnStyle.None);
 
     public static readonly VariableStyle Out =
-        new VariableStyle() { ParameterStyle = ParameterStyle.Out, ReturnStyle = ReturnStyle.AssignmentWithNoInput };
+        new(ParameterStyle.Out, ReturnStyle.AssignmentWithNoInput);
 
     public static readonly VariableStyle OutWithErrorInput =
-        new VariableStyle() { ParameterStyle = ParameterStyle.Out, ReturnStyle = ReturnStyle.AssignmentWithInput };
+        new(ParameterStyle.Out, ReturnStyle.AssignmentWithInput);
 
     public static readonly VariableStyle OutWithMoveOut =
-        new VariableStyle() { ParameterStyle = ParameterStyle.OutWithMoveOut, ReturnStyle = ReturnStyle.Initialization };
+        new(ParameterStyle.OutWithMoveOut, ReturnStyle.Initialization);
 }

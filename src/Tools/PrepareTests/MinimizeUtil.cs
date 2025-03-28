@@ -22,18 +22,10 @@ internal static class MinimizeUtil
         var duplicateDirectory = Path.Combine(destinationDirectory, duplicateDirectoryName);
         Directory.CreateDirectory(duplicateDirectory);
 
-        // https://github.com/dotnet/roslyn/issues/49486
-        // we should avoid copying the files under Resources.
-        Directory.CreateDirectory(Path.Combine(destinationDirectory, "src/Workspaces/MSBuildTest/Resources"));
         var individualFiles = new[]
         {
             "global.json",
             "NuGet.config",
-            "src/Workspaces/MSBuildTest/Resources/global.json",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",
-            "src/Workspaces/MSBuildTest/Resources/Directory.Build.rsp",
-            "src/Workspaces/MSBuildTest/Resources/NuGet.Config",
         };
 
         foreach (var individualFile in individualFiles)
@@ -53,21 +45,18 @@ internal static class MinimizeUtil
         //  2. Hard link all other files into destination directory
         Dictionary<Guid, List<FilePathInfo>> initialWalk()
         {
-            IEnumerable<string> directories = new[] {
-                Path.Combine(sourceDirectory, "eng"),
-            };
-
-            if (!isUnix)
-            {
-                directories = directories.Concat([Path.Combine(sourceDirectory, "artifacts", "VSSetup")]);
-            }
-
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
-            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
-            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.IntegrationTests"));
-            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
+            List<string> directories =
+            [
+                Path.Combine(sourceDirectory, "eng"),
+                Path.Combine(sourceDirectory, "artifacts", "VSSetup"),
+                .. Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"),
+                .. Directory.EnumerateDirectories(artifactsDir, "*.IntegrationTests"),
+                .. Directory.EnumerateDirectories(artifactsDir, "RunTests")
+            ];
 
             var idToFilePathMap = directories.AsParallel()
+                .Where(x => Directory.Exists(x))
                 .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
                 .GroupBy(pair => pair.mvid)
                 .ToDictionary(
@@ -79,7 +68,7 @@ internal static class MinimizeUtil
 
         static IEnumerable<(Guid mvid, FilePathInfo pathInfo)> walkDirectory(string unitDirPath, string sourceDirectory, string destinationDirectory)
         {
-            Console.WriteLine($"[{DateTime.UtcNow}] Walking {unitDirPath}");
+            Console.WriteLine($"Walking {unitDirPath}");
             string? lastOutputDirectory = null;
             foreach (var sourceFilePath in Directory.EnumerateFiles(unitDirPath, "*", SearchOption.AllDirectories))
             {

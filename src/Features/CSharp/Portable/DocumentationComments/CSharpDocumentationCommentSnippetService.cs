@@ -15,25 +15,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentSnippetService), LanguageNames.CSharp), Shared]
-internal class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
+internal sealed class CSharpDocumentationCommentSnippetService : AbstractDocumentationCommentSnippetService<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
 {
     public override string DocumentationCommentCharacter => "/";
 
     protected override bool AddIndent => true;
     protected override string ExteriorTriviaText => "///";
-
-    private static readonly SymbolDisplayFormat s_format =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions:
-                SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

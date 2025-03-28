@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         public static IEnumerable<object[]> GetRealWorldCases()
         {
             using var stream = typeof(CSharpRegexParserTests).Assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions.Regex_RealWorldPatterns.json");
-            using var streamReader = new StreamReader(stream);
+            using var streamReader = new StreamReader(stream!);
             using var textReader = new JsonTextReader(streamReader);
 
             foreach (var obj in JArray.Load(textReader))

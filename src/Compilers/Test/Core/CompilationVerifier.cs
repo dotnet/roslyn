@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <param name="validateExpected">An action to invoke with the emitted IL.</param>
         public void VerifyTypeIL(string typeName, Action<string> validateExpected)
         {
-            var output = new ICSharpCode.Decompiler.PlainTextOutput();
+            var output = new ICSharpCode.Decompiler.PlainTextOutput() { IndentationString = "    " };
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleFullName = Emit(testEnvironment, manifestResources: null, EmitOptions.Default);
@@ -633,7 +633,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new Exception($"Failed to extract PDB information. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
-                var methodDef = (Cci.IMethodDefinition)methodData.Method.GetCciAdapter();
+                var method = methodData.Method.PartialDefinitionPart ?? methodData.Method;
+                var methodDef = (Cci.IMethodDefinition)method.GetCciAdapter();
                 var methodToken = MetadataTokens.GetToken(_testData.MetadataWriter.GetMethodDefinitionOrReferenceHandle(methodDef));
                 var xmlDocument = XElement.Parse(actualPdbXml);
                 var xmlMethod = ILValidation.GetMethodElement(xmlDocument, methodToken);

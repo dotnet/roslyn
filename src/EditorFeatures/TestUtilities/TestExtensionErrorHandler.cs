@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [Export(typeof(ITestErrorHandler))]
     internal class TestExtensionErrorHandler : IExtensionErrorHandler, ITestErrorHandler
     {
-        public ImmutableList<Exception> Exceptions { get; private set; } = ImmutableList<Exception>.Empty;
+        public ImmutableList<Exception> Exceptions { get; private set; } = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

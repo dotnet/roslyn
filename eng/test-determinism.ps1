@@ -67,6 +67,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:RepoRoot=$rootDir `
      /p:TreatWarningsAsErrors=true `
      /p:BootstrapBuildPath=$bootstrapDir `
+     /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
      /p:RunAnalyzersDuringBuild=false `
      /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation `
@@ -222,7 +223,10 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
     Write-Host "`tVerified $relativeDir\$fileName"
   }
 
-  if (-not $allGood) {
+  if ($allGood) {
+    Write-Host "Determinism check succeeded"
+  }
+  else {
     Write-Host "Determinism failed for the following binaries:"
     foreach ($name in $errorList) {
       Write-Host "`t$name"
@@ -286,8 +290,8 @@ try {
 
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
-    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "determinism"
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci
+    $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "determinism")
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force
     Test-LastExitCode
   }
 

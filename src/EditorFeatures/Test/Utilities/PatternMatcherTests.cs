@@ -193,8 +193,10 @@ public class PatternMatcherTests
     [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
 
     [InlineData("_ABC_[|Abc|]_", "Abc", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+    [InlineData("[|C|]reate[|R|]ange", "CR", PatternMatchKind.CamelCaseExact, CaseSensitive)]
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/17275")]
     internal void TestNonFuzzyMatch(
         string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
     {

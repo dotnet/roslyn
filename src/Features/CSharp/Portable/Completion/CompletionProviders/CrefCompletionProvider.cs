@@ -337,7 +337,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             displayText: insertionText,
             displayTextSuffix: "",
             insertionText: insertionText,
-            symbols: ImmutableArray.Create(symbol),
+            symbols: [symbol],
             contextPosition: position,
             sortText: sortText,
             filterText: insertionText,

@@ -315,6 +315,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Friend Overrides Sub VisitPreprocessing(symbol As IPreprocessingSymbol)
+            Dim part = New SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol, symbol.Name)
+            builder.Add(part)
+        End Sub
+
         Protected Overrides Sub AddSpace()
             Builder.Add(CreatePart(SymbolDisplayPartKind.Space, Nothing, " ", False))
         End Sub

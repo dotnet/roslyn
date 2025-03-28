@@ -19,7 +19,6 @@ internal interface IBrokeredServiceBridgeManifest
     /// Returns services that the container wishes to expose across the bridge.
     /// </summary>
     /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken);
 }
 

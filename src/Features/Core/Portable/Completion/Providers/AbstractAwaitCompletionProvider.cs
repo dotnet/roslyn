@@ -55,10 +55,8 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         _awaitfFilterText = $"{_awaitKeyword}F"; // Uppercase F to select "awaitf" if "af" is written.
     }
 
-    /// <summary>
-    /// Gets the span start where async keyword should go.
-    /// </summary>
-    protected abstract int GetSpanStart(SyntaxNode declaration);
+    protected abstract int GetAsyncKeywordInsertionPosition(SyntaxNode declaration);
+    protected abstract TextChange? GetReturnTypeChange(SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken);
 
     protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
@@ -191,7 +189,20 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
-            builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " "));
+            // Add the 'async' modifier at the appropriate location.
+            var asyncChange = new TextChange(new TextSpan(GetAsyncKeywordInsertionPosition(declaration), 0), syntaxFacts.GetText(syntaxKinds.AsyncKeyword) + " ");
+
+            // Try to fixup the return type to be task-like if needed.
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var returnTypeChange = GetReturnTypeChange(semanticModel, declaration, cancellationToken);
+            var addImportsChanges = returnTypeChange == null
+                ? []
+                : await ImportCompletionProviderHelpers.GetAddImportTextChangesAsync(
+                    document, leftTokenPosition, "System.Threading.Tasks", cancellationToken).ConfigureAwait(false);
+
+            builder.AddRange(addImportsChanges);
+            builder.Add(asyncChange);
+            builder.AddIfNotNull(returnTypeChange);
         }
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))

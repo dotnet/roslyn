@@ -87,6 +87,8 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         this._languageDebugInfo = CreateLanguageDebugInfo();
     }
 
+    private IThreadingContext ThreadingContext => this.Package.ComponentModel.GetService<IThreadingContext>();
+
     public override IServiceProvider SystemServiceProvider
         => Package;
 
@@ -223,7 +225,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             this.DebuggerLanguageId,
             (TLanguageService)this,
             languageServices,
-            this.Package.ComponentModel.GetService<IThreadingContext>(),
             this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>());
     }
 

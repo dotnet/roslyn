@@ -12,6 +12,6 @@ internal interface IEditorConfigOptionAccumulator<TResults, TResult>
     where TResults : EditorConfigFile<TResult>
     where TResult : EditorConfigOption
 {
-    void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties);
+    void ProcessSection(Section section, IReadOnlyDictionary<string, string> values, IReadOnlyDictionary<string, TextLine> lines);
     TResults Complete(string? filePath);
 }

@@ -112,7 +112,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
         var results = await testLspServer.ExecuteRequestAsync<LSP.VSInternalMapCodeParams, LSP.WorkspaceEdit>(VSInternalMethods.WorkspaceMapCodeName, mapCodeParams, CancellationToken.None);
         AssertEx.NotNull(results);
 
-        TextEdit[] edits;
+        TextEdit[]? edits;
         if (supportDocumentChanges)
         {
             Assert.Null(results.Changes);
@@ -121,7 +121,7 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
             var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
             Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
 
-            edits = textDocumentEdits.Edits.Select(e => e.Unify()).ToArray();
+            edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
         }
         else
         {
@@ -130,6 +130,8 @@ public class MapCodeTests : AbstractLanguageServerProtocolTests
 
             Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
         }
+
+        AssertEx.NotNull(edits);
 
         var documentText = await document.GetTextAsync();
         var actualText = ApplyTextEdits(edits, documentText);

@@ -122,11 +122,6 @@
         <target state="translated">namespace içinde</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">namespace dışında</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Desen eşleştirme tercihleri:</target>
@@ -147,14 +142,9 @@
         <target state="translated">Tür görünür olduğunda örtük nesne oluşturmayı tercih et</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">Tür denetimi yerine 'null' denetimini tercih edin</target>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +167,6 @@
         <target state="translated">Tercih edilen 'using' yönergesi yerleştirmesi</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">Gereksiz Kullanımları Kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">Sorguyu Çalıştır</target>
@@ -192,29 +177,24 @@
         <target state="translated">Çalıştır (Ctrl+Enter)</target>
         <note />
       </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">Anlamsal Arama</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">'new' ifadeleri için ipuçlarını göster</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster</target>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">Ad ö_nerilerini göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">Yeni kod parçacığı deneyimini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">Yeni kod parçacığı deneyimini göster (deneysel)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">Hızlı Bilgi notlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -225,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Şununla Çevrele</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">Kod Parçacığı Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -522,39 +497,9 @@
         <target state="translated">Anahtar sözcükler için yeni satır seçenekleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Kullanılmayan yerel</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">Yordam satır ayıraçlarını _göster</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">Düzenleyici Yardımı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">İmlecin altında ilgili ana_htar sözcükleri vurgula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">İmlecin altındaki sembole başvuruları _vurgula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">Dosyalar açıldığında a_na hat oluşturma moduna gir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Metodu Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -562,34 +507,9 @@
         <target state="translated">/// için _XML belge açıklamaları üret</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">Vurgulama</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">_/* */ açıklamaları yazarken her yeni satırın başına _ekle *</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Çözüm boyutunu iyileştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Büyük</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normal</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Küçük</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -597,19 +517,9 @@
         <target state="translated">Using Yönergeleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Performans</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
         <target state="translated">using deyimlerini sıralarken 'System' yönergelerini ilk sıraya _yerleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">Bir karakter yazıldıktan sonra tamamlanma listesini _göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -625,11 +535,6 @@
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">Tamamlama Listesinden Seçim</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Yeniden adlandırma i_zlemesi için önizleme göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
@@ -732,36 +637,6 @@
         <target state="translated">_Enter tuşuna basıldığında dize değişmez değerlerini böl</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">Tamamlanma listesi öğelerinin eşleşen bölümlerini _vurgula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">Tamamlanma öğesi _filtrelerini göster</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Enter tuşu davranışı:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">_Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">_Enter tuşuna basıldığında her zaman yeni satır ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">Enter tuşuna basıldığında _hiçbir zaman yeni satır ekleme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
         <target state="translated">Kod parçacıklarını her zaman dahil et</target>
@@ -770,21 +645,6 @@
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="translated">Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Kod parçacıklarını hiçbir zaman dahil etme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">Kod parçacığı davranışı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">Bir karakter _silindikten sonra tamamlanma listesini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -822,11 +682,6 @@
         <target state="translated">Yazarken otomatik biçimlendir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Hiçbir zaman</target>
-        <note />
-      </trans-unit>
       <trans-unit id="When_on_single_line">
         <source>When on single line</source>
         <target state="translated">Tek satırdayken</target>
@@ -858,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">Ad ö_nerilerini göster</target>
+        <source>Show name suggestions</source>
+        <target state="translated">Ad önerilerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

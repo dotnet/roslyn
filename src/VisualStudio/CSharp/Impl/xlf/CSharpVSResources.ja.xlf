@@ -122,11 +122,6 @@
         <target state="translated">namespace 内</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">namespace 外</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">パターン マッチング設定:</target>
@@ -147,14 +142,9 @@
         <target state="translated">型が明白な場合に暗黙的なオブジェクトの作成を優先する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">型のチェックよりも 'null 値' チェックを優先する</target>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -177,11 +167,6 @@
         <target state="translated">優先する 'using' ディレクティブの配置</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">不要な using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
         <target state="translated">クエリの実行</target>
@@ -192,29 +177,24 @@
         <target state="translated">実行 (Ctrl + Enter)</target>
         <note />
       </trans-unit>
-      <trans-unit id="SemanticSearch">
-        <source>Semantic Search</source>
-        <target state="translated">セマンティック検索</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">'new' 式のヒントを表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">インポートされていない名前空間の項目を表示する</target>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">名前の提案を表示(_U)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">新しいスニペット エクスペリエンスを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">クイック ヒントに注釈を表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -225,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">ブロックの挿入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">スニペットの挿入</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -522,39 +497,9 @@
         <target state="translated">キーワードの改行オプション</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">未使用のローカル</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">プロシージャ行の区切り記号を表示する(_S)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">エディターのヘルプ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">カーソルの下にあるキーワードの関連キーワードをハイライトする(_K)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする(_H)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">ファイルを開くときにアウトライン モードに入る(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">メソッドの抽出</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -562,34 +507,9 @@
         <target state="translated">/// が入力されたとき、XML ドキュメント コメントを生成する(_G)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">強調表示</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">/* */ コメントを記述する際、新しい行の先頭に * を挿入する(_I)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">ソリューションのサイズを最適化します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">大</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">標準</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">小</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -597,19 +517,9 @@
         <target state="translated">ディレクティブを使用する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">パフォーマンス</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
         <target state="translated">using を並べ替える際に、'System' ディレクティブを先頭に配置する(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">文字が入力された後に入力候補一覧を表示する(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -625,11 +535,6 @@
       <trans-unit id="Selection_In_Completion_List">
         <source>Selection In Completion List</source>
         <target state="translated">入力候補一覧からの選択</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">名前変更追跡のプレビューの表示(_T)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
@@ -732,36 +637,6 @@
         <target state="translated">Enter で文字列リテラルを分割する(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">入力候補一覧の項目の一致している部分を強調表示する(_H)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">入力候補の項目フィルターを表示する(_F)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Enter キー入力時動作:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">Enter キーで常に新しい行を追加する(_A)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">Enter キーで新しい行を追加しない(_N)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
         <target state="translated">常にスニペットを含める</target>
@@ -770,21 +645,6 @@
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="translated">識別子の後に ? Tab を入力したときにスニペットを含める</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">スニペットを含めない</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">スニペットの動作</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">文字が削除された後に入力候補一覧を表示する(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -822,11 +682,6 @@
         <target state="translated">入力時にオートフォーマットする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">行わない</target>
-        <note />
-      </trans-unit>
       <trans-unit id="When_on_single_line">
         <source>When on single line</source>
         <target state="translated">1 行の場合</target>
@@ -858,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">名前の提案を表示(_U)</target>
+        <source>Show name suggestions</source>
+        <target state="translated">名前の提案を表示</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

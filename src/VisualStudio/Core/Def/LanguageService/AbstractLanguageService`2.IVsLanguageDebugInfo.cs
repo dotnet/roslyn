@@ -5,9 +5,9 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Roslyn.Utilities;
 using IVsEnumBSTR = Microsoft.VisualStudio.TextManager.Interop.IVsEnumBSTR;
 using IVsTextBuffer = Microsoft.VisualStudio.TextManager.Interop.IVsTextBuffer;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;

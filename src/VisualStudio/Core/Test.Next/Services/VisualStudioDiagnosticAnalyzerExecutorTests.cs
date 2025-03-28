@@ -62,8 +62,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(isHostAnalyzer ? DiagnosticSeverity.Info : DiagnosticSeverity.Hidden, diagnostics[0].Severity);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestVisualBasicAnalyzerOptions(bool isHostAnalyzer)
         {
             var code = @"Class Test
@@ -83,7 +82,7 @@ End Class";
             ImmutableArray<DiagnosticData> diagnostics;
             if (isHostAnalyzer)
             {
-                Assert.True(analyzerResult.IsEmpty);
+                Assert.True(analyzerResult.GetAllDiagnostics().IsEmpty);
             }
             else
             {
@@ -162,7 +161,7 @@ End Class";
             var compilationWithAnalyzers = new CompilationWithAnalyzersPair(
                 projectCompilationWithAnalyzers: null,
                 (await project.GetCompilationAsync()).WithAnalyzers(
-                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
                     project.AnalyzerOptions));
 
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -233,7 +232,7 @@ End Class";
             }
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                [.. analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType)],
                 project.AnalyzerOptions);
             var analyzerDriver = isHostAnalyzer
                 ? new CompilationWithAnalyzersPair(projectCompilationWithAnalyzers: null, compilationWithAnalyzers)
@@ -263,7 +262,7 @@ End Class";
         private class MyAnalyzer : DiagnosticAnalyzer
         {
             private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
-                ImmutableArray.Create(new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true));
+                [new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true)];
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 
@@ -283,7 +282,7 @@ End Class";
         private class DuplicateAnalyzer : DiagnosticAnalyzer
         {
             private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
-                ImmutableArray.Create(new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true));
+                [new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true)];
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
 

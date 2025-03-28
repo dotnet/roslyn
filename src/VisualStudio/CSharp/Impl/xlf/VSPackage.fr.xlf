@@ -440,11 +440,6 @@ Afficher les éléments des espaces de noms qui ne sont pas importés (expérime
         <target state="translated">Ne jamais inclure d'extrait de code</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>Only add new line on enter after end of fully typed word</source>
-        <target state="translated">Ajouter une nouvelle ligne en appuyant sur Entrée seulement après la fin d'un mot entièrement tapé</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -17,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveAsyncModifierCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)]
-public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase
+public sealed class RemoveAsyncModifierTests
 {
     [Fact]
     public async Task Method_Task_MultipleAndNested()
@@ -917,7 +918,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
     }
 
     [Fact]
-    public async Task ParenthesisedLambda_TaskOfT_ExpressionBody()
+    public async Task ParenthesizedLambda_TaskOfT_ExpressionBody()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
@@ -947,7 +948,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
     }
 
     [Fact]
-    public async Task ParenthesisedLambda_TaskOfT_BlockBody()
+    public async Task ParenthesizedLambda_TaskOfT_BlockBody()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
@@ -982,7 +983,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
     }
 
     [Fact]
-    public async Task ParenthesisedLambda_Task_ExpressionBody()
+    public async Task ParenthesizedLambda_Task_ExpressionBody()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
@@ -1012,7 +1013,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
     }
 
     [Fact]
-    public async Task ParenthesisedLambda_Task_BlockBody()
+    public async Task ParenthesizedLambda_Task_BlockBody()
     {
         await VerifyCS.VerifyCodeFixAsync(
             """
@@ -1163,7 +1164,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
                     yield return 1;
                 }
             }
-            """ + AsyncStreamsTypes;
+            """ + CSharpTestBase.AsyncStreamsTypes;
 
         await new VerifyCS.Test
         {
@@ -1207,7 +1208,7 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
     }
 
     [Fact]
-    public async Task ParenthesisedLambda_AsyncVoid_Missing()
+    public async Task ParenthesizedLambda_AsyncVoid_Missing()
     {
         var source = """
             using System;
@@ -1262,5 +1263,39 @@ public class RemoveAsyncModifierTests : CodeAnalysis.CSharp.Test.Utilities.CShar
             },
             FixedCode = source,
         }.RunAsync();
+    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65380")]
+    public async Task TestCloseBraceTrivia()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            public class Class1
+            {
+                public async Task {|CS1998:Goo|}()
+                {
+                    //Hello 
+                    Console.WriteLine("Goo");
+                    //World
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Threading.Tasks;
+            
+            public class Class1
+            {
+                public Task Goo()
+                {
+                    //Hello 
+                    Console.WriteLine("Goo");
+                    return Task.CompletedTask;
+                    //World
+                }
+            }
+            """);
     }
 }

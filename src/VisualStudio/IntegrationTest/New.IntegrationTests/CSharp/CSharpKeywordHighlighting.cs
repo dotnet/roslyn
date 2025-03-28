@@ -47,7 +47,7 @@ public class CSharpKeywordHighlighting : AbstractEditorTest
         await VerifyAsync("foreach", spans, HangMitigatingCancellationToken);
         await VerifyAsync("break", spans, HangMitigatingCancellationToken);
         await VerifyAsync("continue", spans, HangMitigatingCancellationToken);
-        await VerifyAsync("in", ImmutableArray.Create<TextSpan>(), HangMitigatingCancellationToken);
+        await VerifyAsync("in", [], HangMitigatingCancellationToken);
     }
 
     [IdeFact]

@@ -368,8 +368,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
-        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="translated">'INumberBase&lt;T&gt;'에서 상속되거나 확장되므로 '{0}' 숫자 상수 또는 관계형 패턴을 사용할 수 없습니다. 형식 패턴을 사용하여 특정 숫자 형식으로 좁히는 것이 좋습니다.</target>
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
+        <target state="needs-review-translation">'INumberBase&lt;T&gt;'에서 상속되거나 확장되므로 '{0}' 숫자 상수 또는 관계형 패턴을 사용할 수 없습니다. 형식 패턴을 사용하여 특정 숫자 형식으로 좁히는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -537,6 +537,11 @@
         <target state="translated">레코드가 봉인되지 않았으므로 복사 생성자 '{0}'이(가) 퍼블릭이거나 보호되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
+        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
+        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">'{0}' 이름이 해당 'Deconstruct' 매개 변수 '{1}'과(와) 일치하지 않습니다.</target>
@@ -634,7 +639,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
         <source>Cannot emit update; {0} '{1}' is missing.</source>
-        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <target state="translated">업데이트를 내보낼 수 없습니다.  {0} '{1}' 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -975,6 +980,11 @@
       <trans-unit id="ERR_ImplicitlyTypedDefaultParameter">
         <source>Implicitly typed lambda parameter '{0}' cannot have a default value.</source>
         <target state="translated">암시적 형식 람다 매개 변수 '{0}'은(는) 기본값을 가질 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -1329,7 +1339,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorRefLikeElementType">
         <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
-        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <target state="translated">반복기의 요소 형식은 ref 구조체 또는 ref 구조체를 허용하는 형식 매개 변수일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
@@ -1662,6 +1672,16 @@
         <target state="translated">params 매개 변수는 유효한 컬렉션 형식이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">두 부분 멤버 선언에는 동일한 접근성 한정자를 갖어야 합니다.</target>
@@ -1672,9 +1692,29 @@
         <target state="translated">부분 멤버는 'abstract' 한정자를 갖을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">두 부분 멤버 선언은 '{0}' 및 '{1}' 모두에서 동일한 튜플 요소 이름을 사용해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1700,6 +1740,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">부분 멤버 선언에는 일치하는 참조 반환 값이 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1770,11 +1815,6 @@
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
         <target state="translated">두 부분 속성 선언이 모두 필요하거나 둘 다 필요하지 않을 수 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">두 부분 속성 선언의 형식이 같아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
@@ -1990,6 +2030,11 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">유형 및 별칭은 '필수'로 지정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' 형식은 제네릭이 아니고, 내부, sealed, static이 아니어야 하고, 매개 변수가 없는 생성자를 포함하고, System.Attribute에서 상속하며, 모든 형식에 적용할 수 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
@@ -2342,6 +2387,11 @@
         <target state="translated">모든 필드가 할당되기 전에는 'this' 개체를 사용할 수 없습니다. 할당되지 않은 필드의 기본값을 자동으로 설정하려면 언어 버전 '{0}'(으)로 업데이트하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">일반 작업과 같은 반환 유형이 예상되었지만 'AsyncMethodBuilder' 특성에 있는 '{0}' 유형이 적합하지 않습니다. 이는 인자 수가 1인 바인딩되지 않은 제네릭 유형이어야 하고, 포함하는 유형(있는 경우)은 제네릭이 아니어야 합니다.</target>
@@ -2424,7 +2474,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFirstClassSpan">
         <source>first-class Span types</source>
-        <target state="new">first-class Span types</target>
+        <target state="translated">첫 번째 클래스 범위 형식</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2502,6 +2552,11 @@
         <target state="translated">보간에서 줄 바꿈</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">오버로드 해결 우선 순위</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">매개 변수 없는 구조체 생성자</target>
@@ -2510,6 +2565,11 @@
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
         <target state="translated">params 컬렉션</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2567,6 +2627,11 @@
         <target state="translated">레코드의 봉인된 ToString</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStringEscapeCharacter">
         <source>string escape character</source>
         <target state="translated">문자열 이스케이프 문자</target>
@@ -2575,6 +2640,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">구조체 필드 이니셜라이저</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="translated">nameof 연산자의 바인딩되지 않은 제네릭 형식</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -2617,11 +2687,6 @@
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_OverloadResolutionPriority">
-        <source>overload resolution priority</source>
-        <target state="translated">오버로드 해결 우선 순위</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">포인터 요소 액세스</target>
@@ -2647,11 +2712,6 @@
         <target state="translated">포인터</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
-        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="translated">식별자는 이후 언어 버전에서 특정 의미를 가진 컨텍스트 키워드입니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
         <target state="translated">컴파일하려면 람다 식을 {0}번 이상 바인딩해야 합니다. 명시적 매개 변수 형식을 사용하여 람다 식을 선언하거나, 포함하는 메서드 호출이 제네릭인 경우 명시적 형식 인수를 사용하는 것이 좋습니다.</target>
@@ -2669,12 +2729,12 @@
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
         <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
-        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <target state="translated">다른 접근자가 사용하고 있으므로 속성 '{1}' '{0}' 접근자는 'field'를 사용해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
         <source>Property accessor should use 'field' because the other accessor is using it.</source>
-        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
+        <target state="translated">다른 접근자가 사용하고 있으므로 속성 접근자는 'field'를 사용해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2947,6 +3007,16 @@
         <target state="translated">이 컨텍스트에서 변수를 사용하면 선언 범위 외부에서 참조된 변수가 노출될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="translated">'{0}'은(는) 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. '{1}'. 계속하려면 이 진단을 표시하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">형식은 평가 목적으로 제공되며, 이후 업데이트에서 변경되거나 제거될 수 있습니다. 계속하려면 이 진단을 표시하지 않습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
         <target state="translated">언어 버전 {0}에서 'field' 키워드는 속성에 대한 합성된 지원 필드에 바인딩됩니다. 합성된 지원 필드가 생성되지 않도록 하고 기존 멤버를 참조하려면 대신 'this.field' 또는 '@field'를 사용합니다.</target>
@@ -3015,6 +3085,16 @@
       <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
         <source>Signatures of interceptable and interceptor methods do not match.</source>
         <target state="translated">인터셉터블 및 인터셉터 메서드의 서명이 일치하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)'는 지원되지 않습니다. 대신 이러한 특성의 'InterceptableLocation' 기반 생성으로 이동합니다. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)'는 지원되지 않습니다. 대신 이러한 특성의 'InterceptableLocation' 기반 생성으로 이동합니다. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -3147,14 +3227,14 @@
         <target state="translated">매개 변수에 람다의 매개 변수 한정자가 있지만 대상 대리자 형식에는 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">부분 속성 선언 '{0}' 및 '{1}'에는 서명 차이가 있습니다.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">부분 속성 선언에는 서명 차이가 있습니다.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3656,7 +3736,7 @@
                              Visual C# 컴파일러 옵션
 
                        - 출력 파일 -
--out:&lt;file&gt;                   출력 파일 이름 지정(기본값: 
+-out:&lt;file&gt;                   출력 파일 이름 지정(기본값:
                               메인 클래스가 있는 파일의 기본 이름 또는 첫 번째 파일)
 -target:exe                   콘솔 실행 파일 빌드(기본값)(Short
                               형식: -t:exe)
@@ -5235,12 +5315,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField">
         <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">'{0}' 필드는 ref-assign되지 않으며 항상 기본값(null 참조)을 갖습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedInternalRefField_Title">
         <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
-        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <target state="translated">필드는 ref-assign되지 않으며 항상 기본값(null 참조)을 갖습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
@@ -5351,6 +5431,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">매개 변수를 읽을 수 없습니다. 이 매개 변수를 사용하여 해당 이름으로 속성을 초기화했는지 확인하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="translated">UnscopedRefAttribute는 C# 11 이상 또는 net7.0 이상을 대상으로 하는 경우에만 유효합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="translated">UnscopedRefAttribute는 C# 11 이상 또는 net7.0 이상을 대상으로 하는 경우에만 유효합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -6654,8 +6744,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 또는 속성 반환 형식 바로 앞에만 올 수 있습니다.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 또는 속성 반환 형식 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -10305,8 +10395,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">'{0}'을(를) 쓰기용으로 열 수 없습니다. '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="translated">'{0}'을(를) 쓰기용으로 열 수 없습니다. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -12670,8 +12760,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">프로그램에서 사용하는 사용자 문자열의 결합된 길이가 허용 한도를 초과합니다. 문자열 리터럴의 사용을 줄여 보세요.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="translated">프로그램에서 사용하는 사용자 문자열을 합친 길이가 허용 한도를 초과합니다. 문자열 리터럴의 사용을 줄이거나 실험적 기능 플래그 'experimental-data-section-string-literals'를 사용해 보세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -13021,7 +13111,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
         <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
-        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
+        <target state="translated">'{0}' 어셈블리에서 '{2}' 메서드(토큰 0x{1:X8})의 디버그 정보를 읽을 수 없습니다.{3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">

@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterGlobalStatement_Interactive()
+        public async Task TestAfterGlobalStatement()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+            await VerifyKeywordAsync(
                 """
                 System.Console.WriteLine();
                 $$
@@ -349,9 +349,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedPartial()
+        public async Task TestAfterNestedPartial()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C {
                     partial $$

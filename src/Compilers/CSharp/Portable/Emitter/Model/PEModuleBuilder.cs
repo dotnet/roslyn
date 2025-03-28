@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
-            // Temporarily disable assert to unblock getting net8.0 teststing re-nabled on Unix. Will 
+            // Temporarily disable assert to unblock getting net8.0 testing re-enabled on Unix. Will 
             // remove this shortly.
             // https://github.com/dotnet/roslyn/issues/71571
             // Debug.Assert(!context.MetadataOnly);
@@ -613,9 +613,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (_lazyExportedTypes.IsDefault)
             {
-                _lazyExportedTypes = CalculateExportedTypes();
+                var initialized = ImmutableInterlocked.InterlockedInitialize(ref _lazyExportedTypes, CalculateExportedTypes());
 
-                if (_lazyExportedTypes.Length > 0)
+                if (initialized && _lazyExportedTypes.Length > 0)
                 {
                     ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics);
                 }

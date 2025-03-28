@@ -228,10 +228,12 @@ internal sealed class VisualStudioDocumentNavigationService(
                     // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.
                     // Otherwise, just pick one of the ids to use for navigation.
                     var documentIdToNavigate = documentIdsForFilePath.Contains(documentId) ? documentId : documentIdsForFilePath.First();
-                    return GetNavigationCallback(
-                        documentIdToNavigate,
-                        workspace,
-                        sourceText => getVsTextSpanForMapping(sourceText, mappedSpan.Span));
+
+                    // For Venus documents, further mapping is done in the callback, so we don't want to do it here via getVsTextSpanForMapping
+                    var getSpanForCallback = IsSecondaryBuffer(documentIdToNavigate)
+                        ? getVsTextSpan
+                        : sourceText => getVsTextSpanForMapping(sourceText, mappedSpan.Span);
+                    return GetNavigationCallback(documentIdToNavigate, workspace, getSpanForCallback);
                 }
 
                 return await GetNavigableLocationForMappedFileAsync(

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 
         public bool IsCaseSensitive => false;
 
-        public ImmutableArray<TextSpan> NameMatchSpans => ImmutableArray<TextSpan>.Empty;
+        public ImmutableArray<TextSpan> NameMatchSpans => [];
 
         public string SecondarySort => null;
 

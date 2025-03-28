@@ -17,7 +17,7 @@ internal sealed class CSharpSemanticSearchUtilities
         Query = """
             static IEnumerable<ISymbol> Find(Compilation compilation)
             {
-                return compilation.GlobalNamespace.GetMembers("C");
+                return compilation.Assembly.GlobalNamespace.GetMembers("C");
             }
             """,
         GlobalUsings = """

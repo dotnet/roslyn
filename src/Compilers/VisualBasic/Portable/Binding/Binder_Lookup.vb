@@ -1217,7 +1217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' Process all methods from the same type together.
                             Do
                                 ' Try to reduce this method and merge with the current result
-                                Dim reduced As MethodSymbol = methods(i).ReduceExtensionMethod(container, proximity, useSiteInfo)
+                                Dim reduced As MethodSymbol = methods(i).ReduceExtensionMethod(container, proximity, useSiteInfo, binder.Compilation.LanguageVersion)
 
                                 If reduced IsNot Nothing Then
                                     lookupResult.MergeOverloadedOrPrioritizedExtensionMethods(binder.CheckViability(reduced, arity, options, reduced.ContainingType, useSiteInfo))

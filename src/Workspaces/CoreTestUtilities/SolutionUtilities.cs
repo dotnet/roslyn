@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class SolutionUtilities
+    public static class SolutionUtilities
     {
         public static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
         {

@@ -77,12 +77,16 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
         return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
     }
 
-    protected override void AddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+    protected override bool TryAddSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // Note: this may return no snapshot spans.  We have to be resilient to that
         // when processing the TaggerContext<>.SpansToTag below.
         foreach (var buffer in textViewOpt.BufferGraph.GetTextBuffers(b => IsSupportedContentType(b.ContentType)))
             result.Add(buffer.CurrentSnapshot.GetFullSpan());
+
+        // Fine to always return 'true' here.  If we get no spans to tag, we can move ourselves to the no-tags state and
+        // update the editor.
+        return true;
     }
 
     protected override Task ProduceTagsAsync(

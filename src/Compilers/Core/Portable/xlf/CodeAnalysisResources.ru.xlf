@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="new">attribute</target>
+        <target state="translated">атрибут</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -85,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">Значение "end" не должно быть меньше, чем "start". start="{0}", end="{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; файл может быть заблокирован {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -270,7 +275,7 @@
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
-        <target state="new">Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</target>
+        <target state="translated">Не удается создать собственный PDB-файл для '{0}', так как размер метаданных отладки {1} превышает ограничение {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
@@ -280,7 +285,7 @@
       </trans-unit>
       <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
-        <target state="new">'{0}' type does not have the expected constructor</target>
+        <target state="translated">'{0}' тип не имеет ожидаемого конструктора</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 
 internal static class GoToDefinitionFeatureHelpers
 {
-    public static async Task<ISymbol?> TryGetPreferredSymbolAsync(
+    public static ISymbol? TryGetPreferredSymbol(
         Solution solution, ISymbol? symbol, CancellationToken cancellationToken)
     {
         // VB global import aliases have a synthesized SyntaxTree.
@@ -40,14 +40,19 @@ internal static class GoToDefinitionFeatureHelpers
                 symbol = alias.Target;
         }
 
-        var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+        var definition = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         symbol = definition ?? symbol;
 
         // If symbol has a partial implementation part, prefer to go to it, since that is where the body is.
-        symbol = (symbol as IMethodSymbol)?.PartialImplementationPart ?? symbol;
-        symbol = (symbol as IPropertySymbol)?.PartialImplementationPart ?? symbol;
+        symbol = symbol switch
+        {
+            IMethodSymbol method => method.PartialImplementationPart,
+            IPropertySymbol property => property.PartialImplementationPart,
+            IEventSymbol ev => ev.PartialImplementationPart,
+            _ => symbol,
+        } ?? symbol;
 
         return symbol;
     }
@@ -58,7 +63,7 @@ internal static class GoToDefinitionFeatureHelpers
         bool thirdPartyNavigationAllowed,
         CancellationToken cancellationToken)
     {
-        symbol = await TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+        symbol = TryGetPreferredSymbol(solution, symbol, cancellationToken);
         if (symbol is null)
             return [];
 

@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS9207", // ErrorCode.ERR_InterceptableMethodMustBeOrdinary
     "CS8419", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
     "CS8420", // ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
-    "CS9217" // ErrorCode.ERR_RefLocalAcrossAwait
+    "CS9217", // ErrorCode.ERR_RefLocalAcrossAwait
+    "CS9274"  // ErrorCode.ERR_DataSectionStringLiteralHashCollision
     )]
 [Shared]
 internal sealed class CSharpLspBuildOnlyDiagnostics : ILspBuildOnlyDiagnostics

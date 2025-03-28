@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,61 +12,55 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
-internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
+internal abstract partial class AbstractMoveTypeService<
+    TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TCompilationUnitSyntax>
 {
     /// <summary>
     /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
     /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
     /// </summary>
-    private sealed class MoveTypeNamespaceScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken) : Editor(service, state, fileName, cancellationToken)
+    private sealed class MoveTypeNamespaceScopeEditor(
+        TService service,
+        SemanticDocument document,
+        TTypeDeclarationSyntax typeDeclaration,
+        string fileName,
+        CancellationToken cancellationToken)
+        : Editor(service, document, typeDeclaration, fileName, cancellationToken)
     {
-        public override async Task<Solution> GetModifiedSolutionAsync()
+        public override async Task<Solution?> GetModifiedSolutionAsync()
         {
-            var node = State.TypeNode;
-            var documentToEdit = State.SemanticDocument.Document;
-
-            if (node.Parent is TNamespaceDeclarationSyntax namespaceDeclaration)
-            {
-                return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
-            }
-
-            return null;
+            return TypeDeclaration.Parent is TNamespaceDeclarationSyntax namespaceDeclaration
+                ? await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration).ConfigureAwait(false)
+                : null;
         }
 
-        private static async Task<Solution> GetNamespaceScopeChangedSolutionAsync(
-            TNamespaceDeclarationSyntax namespaceDeclaration,
-            TTypeDeclarationSyntax typeToMove,
-            Document documentToEdit,
-            CancellationToken cancellationToken)
+        private async Task<Solution?> GetNamespaceScopeChangedSolutionAsync(
+            TNamespaceDeclarationSyntax namespaceDeclaration)
         {
-            var syntaxFactsService = documentToEdit.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFactsService = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var childNodes = syntaxFactsService.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration);
 
             if (childNodes.Count <= 1)
-            {
                 return null;
-            }
 
-            var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
-            editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
+            var editor = await DocumentEditor.CreateAsync(SemanticDocument.Document, this.CancellationToken).ConfigureAwait(false);
+            editor.RemoveNode(this.TypeDeclaration, SyntaxRemoveOptions.KeepNoTrivia);
+            var generator = editor.Generator;
 
-            var syntaxGenerator = editor.Generator;
-            var index = childNodes.IndexOf(typeToMove);
+            var index = childNodes.IndexOf(this.TypeDeclaration);
 
-            var itemsBefore = index > 0 ? childNodes.Take(index) : [];
-            var itemsAfter = index < childNodes.Count - 1 ? childNodes.Skip(index + 1) : [];
+            var itemsBefore = childNodes.Take(index).ToImmutableArray();
+            var itemsAfter = childNodes.Skip(index + 1).ToImmutableArray();
 
             var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-            var newNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
+            var newNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(this.TypeDeclaration)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
             if (itemsBefore.Any() && itemsAfter.Any())
             {
-                var itemsAfterNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(itemsAfter));
+                var itemsAfterNamespaceDeclaration = generator.NamespaceDeclaration(name, WithElasticTrivia(itemsAfter));
 
                 foreach (var nodeToRemove in itemsAfter)
-                {
                     editor.RemoveNode(nodeToRemove, SyntaxRemoveOptions.KeepNoTrivia);
-                }
 
                 editor.InsertAfter(namespaceDeclaration, [newNamespaceDeclaration, itemsAfterNamespaceDeclaration]);
             }
@@ -94,46 +86,30 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         private static SyntaxNode WithElasticTrivia(SyntaxNode syntaxNode, bool leading = true, bool trailing = true)
         {
             if (leading && syntaxNode.HasLeadingTrivia)
-            {
                 syntaxNode = syntaxNode.WithLeadingTrivia(syntaxNode.GetLeadingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
 
             if (trailing && syntaxNode.HasTrailingTrivia)
-            {
                 syntaxNode = syntaxNode.WithTrailingTrivia(syntaxNode.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
-            }
 
             return syntaxNode;
         }
 
-        private static IEnumerable<SyntaxNode> WithElasticTrivia(IEnumerable<SyntaxNode> syntaxNodes)
+        private static ImmutableArray<SyntaxNode> WithElasticTrivia(ImmutableArray<SyntaxNode> syntaxNodes)
         {
-            if (syntaxNodes.Any())
+            var result = new FixedSizeArrayBuilder<SyntaxNode>(syntaxNodes.Length);
+            for (int i = 0, n = syntaxNodes.Length; i < n; i++)
             {
-                var firstNode = syntaxNodes.First();
-                var lastNode = syntaxNodes.Last();
+                var node = syntaxNodes[i];
+                if (i == 0)
+                    node = WithElasticTrivia(node, leading: true);
 
-                if (firstNode == lastNode)
-                {
-                    yield return WithElasticTrivia(firstNode);
-                }
-                else
-                {
-                    yield return WithElasticTrivia(firstNode, trailing: false);
+                if (i == n - 1)
+                    node = WithElasticTrivia(node, trailing: true);
 
-                    foreach (var node in syntaxNodes.Skip(1))
-                    {
-                        if (node == lastNode)
-                        {
-                            yield return WithElasticTrivia(node, leading: false);
-                        }
-                        else
-                        {
-                            yield return node;
-                        }
-                    }
-                }
+                result.Add(node);
             }
+
+            return result.MoveToImmutable();
         }
     }
 }

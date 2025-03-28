@@ -36,7 +36,7 @@ internal partial class UnusedReferenceAnalysisService : IUnusedReferenceAnalysis
 
             if (!result.HasValue)
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                return [];
             }
 
             return result.Value;

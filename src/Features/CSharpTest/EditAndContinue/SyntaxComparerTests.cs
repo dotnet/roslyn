@@ -42,8 +42,8 @@ public class SyntaxComparerTests
     public void GetSequenceEdits2()
     {
         var edits = SyntaxComparer.GetSequenceEdits(
-            ImmutableArray.Create(MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)),
-            ImmutableArray.Create(MakeLiteral(1), MakeLiteral(3)));
+            [MakeLiteral(0), MakeLiteral(1), MakeLiteral(2)],
+            [MakeLiteral(1), MakeLiteral(3)]);
 
         AssertEx.Equal(
         [
@@ -74,8 +74,8 @@ public class SyntaxComparerTests
     public void GetSequenceEdits4()
     {
         var edits = SyntaxComparer.GetSequenceEdits(
-            ImmutableArray.Create(PublicKeyword, StaticKeyword, AsyncKeyword),
-            ImmutableArray.Create(StaticKeyword, PublicKeyword, AsyncKeyword));
+            [PublicKeyword, StaticKeyword, AsyncKeyword],
+            [StaticKeyword, PublicKeyword, AsyncKeyword]);
 
         AssertEx.Equal(
         [

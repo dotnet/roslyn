@@ -35,7 +35,7 @@ internal static partial class DirectiveSyntaxExtensions
         => CodeAnalysis.Shared.Extensions.SyntaxNodeExtensions.GetDirectiveInfoForRoot<DirectiveTriviaSyntax>(
             root, CSharpSyntaxKinds.Instance, cancellationToken);
 
-    internal static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
+    public static DirectiveTriviaSyntax? GetMatchingDirective(this DirectiveTriviaSyntax directive, CancellationToken cancellationToken)
     {
         if (IsConditionalDirective(directive) ||
             IsRegionDirective(directive))

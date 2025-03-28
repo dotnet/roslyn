@@ -351,15 +351,15 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
         {
             case "":
             case null:
-                return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+                return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: false);
 
             case "all":
-                return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: true);
+                return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: true);
 
             default:
                 // Default string representation for unconfigured option value should be treated as no exclusions.
                 if (userExclusions == CodeStyleOptions2.RemoveUnnecessarySuppressionExclusions.DefaultValue)
-                    return (userIdExclusions: ImmutableArray<string>.Empty, userCategoryExclusions: ImmutableArray<string>.Empty, analyzerDisabled: false);
+                    return (userIdExclusions: [], userCategoryExclusions: [], analyzerDisabled: false);
 
                 break;
         }
@@ -745,10 +745,11 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             return false;
         }
 
-        using var pooledDeclarationNodes = SyntaxFacts.GetTopLevelAndMethodLevelMembers(root);
-        var declarationNodes = pooledDeclarationNodes.Object;
+        // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var declarationNodes);
+        this.SyntaxFacts.AddTopLevelAndMethodLevelMembers(root, declarationNodes);
 
-        using var _ = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);
+        using var _2 = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);
         if (declarationNodes.Count > 0)
         {
             foreach (var node in declarationNodes)

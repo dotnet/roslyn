@@ -19,9 +19,4 @@ internal static class DocumentSymbols
         // with a VSImageId. This value should be retrieved from the language server's client capabilities.
         return DocumentSymbolsHandler.GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken);
     }
-
-    [Obsolete("Update to call overload that takes 'supportsVSExtensions' argument.")]
-    public static Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
-        Document document, bool useHierarchicalSymbols, CancellationToken cancellationToken)
-        => GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions: false, cancellationToken);
 }

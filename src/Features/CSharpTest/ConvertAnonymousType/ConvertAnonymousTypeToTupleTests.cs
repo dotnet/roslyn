@@ -9,12 +9,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
-public partial class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider();
@@ -478,6 +479,121 @@ public partial class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeAction
                 void Method()
                 {
                     var t1 = (a: , b: );
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34749")]
+    public async Task NotInExpressionTree()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Linq.Expressions;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    Expression<Func<string, string, dynamic>> test =
+                        (par1, par2) => [||]new { Parameter1 = par1, Parameter2 = par2 };
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    public async Task RemoveTrailingComma()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = [||]new { a = 1, b = 2, };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = (a: 1, b: 2);
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
+    public async Task TestMultiLine1()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        [||]new
+                        {
+                            x = 1,
+                            y = 2,
+                        },
+                    };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        (
+                            x: 1,
+                            y: 2
+                        ),
+                    };
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50470")]
+    public async Task TestMultiLine2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        [||]new
+                        {
+                            x = 1,
+                            y = 2
+                        },
+                    };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = var items = new[]
+                    {
+                        (
+                            x: 1,
+                            y: 2
+                        ),
+                    };
                 }
             }
             """;

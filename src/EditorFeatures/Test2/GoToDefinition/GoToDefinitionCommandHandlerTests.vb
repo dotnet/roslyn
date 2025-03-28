@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Utilities
@@ -18,7 +17,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-    Public Class GoToDefinitionCommandHandlerTests
+    Public NotInheritable Class GoToDefinitionCommandHandlerTests
         <WpfFact>
         Public Async Function TestInLinkedFiles() As Task
             Dim definition =
@@ -57,9 +56,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
@@ -99,9 +96,7 @@ int y = x$$</Document>
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
@@ -144,9 +139,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 Dim snapshot = document.GetTextBuffer().CurrentSnapshot
