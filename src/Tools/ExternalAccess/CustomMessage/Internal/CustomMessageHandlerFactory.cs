@@ -28,7 +28,7 @@ internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFacto
                 continue;
             }
 
-            resultBuilder.Add(new CustomMessageDocumentHandlerWrapper(handler, handlerInterface);
+            resultBuilder.Add(new CustomMessageDocumentHandlerWrapper(handler, handlerInterface));
         }
 
         return resultBuilder.ToImmutable();
@@ -46,7 +46,7 @@ internal sealed class CustomMessageHandlerFactory() : ICustomMessageHandlerFacto
                 continue;
             }
 
-            resultBuilder.Add(new CustomMessageHandlerWrapper(handler, handlerInterface);
+            resultBuilder.Add(new CustomMessageHandlerWrapper(handler, handlerInterface));
         }
 
         return resultBuilder.ToImmutable();

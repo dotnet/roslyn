@@ -64,9 +64,9 @@ internal class CustomMessageDocumentHandler()
             Contract.ThrowIfNull(context.Workspace);
             var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
             var response = await service.HandleCustomDocumentMessageAsync(
+                    context.Document,
                     request.MessageName,
                     request.Message,
-                    context.Document,
                     cancellationToken).ConfigureAwait(false);
 
             return new CustomResponse(response);
