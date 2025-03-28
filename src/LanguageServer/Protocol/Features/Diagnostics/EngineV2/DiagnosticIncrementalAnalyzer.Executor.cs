@@ -189,25 +189,6 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
             }
 
-            //async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> UpdateWithGeneratorFailuresAsync(
-            //    ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> results)
-            //{
-            //    var generatorDiagnostics = await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            //    var diagnosticResultBuilder = new DiagnosticAnalysisResultBuilder(project);
-            //    foreach (var generatorDiagnostic in generatorDiagnostics)
-            //    {
-            //        // We'll always treat generator diagnostics that are associated with a tree as a local diagnostic, because
-            //        // we want that to be refreshed and deduplicated with regular document analysis.
-            //        diagnosticResultBuilder.AddDiagnosticTreatedAsLocalSemantic(generatorDiagnostic);
-            //    }
-
-            //    results = results.SetItem(
-            //        GeneratorDiagnosticsPlaceholderAnalyzer.Instance,
-            //        DiagnosticAnalysisResult.CreateFromBuilder(diagnosticResultBuilder));
-
-            //    return results;
-            //}
-
             void UpdateAnalyzerTelemetryData(ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
             {
                 foreach (var (analyzer, telemetryInfo) in telemetry)
