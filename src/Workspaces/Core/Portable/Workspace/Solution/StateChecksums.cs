@@ -138,50 +138,47 @@ internal sealed class SolutionCompilationStateChecksums
                 onAssetFound(this.SourceGeneratorExecutionVersionMap, filteredExecutionMap, arg);
             }
 
-            if (compilationState.FrozenSourceGeneratedDocumentStates != null)
+            Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
+            Contract.ThrowIfFalse(FrozenSourceGeneratedDocuments.HasValue);
+
+            // This could either be the checksum for the text (which we'll use our regular helper for first)...
+            if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentText)
             {
-                Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentIdentities.HasValue);
-                Contract.ThrowIfFalse(FrozenSourceGeneratedDocuments.HasValue);
+                await ChecksumCollection.FindAsync(
+                    new AssetPath(AssetPathKind.DocumentText, assetPath.ProjectId, assetPath.DocumentId),
+                    compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+            }
 
-                // This could either be the checksum for the text (which we'll use our regular helper for first)...
-                if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentText)
+            // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
+            // two collections we hold onto.
+            if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentIdentities)
+            {
+                var documentId = assetPath.DocumentId;
+                if (documentId != null)
                 {
-                    await ChecksumCollection.FindAsync(
-                        new AssetPath(AssetPathKind.DocumentText, assetPath.ProjectId, assetPath.DocumentId),
-                        compilationState.FrozenSourceGeneratedDocumentStates, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
-                }
-
-                // ... or one of the identities. In this case, we'll use the fact that there's a 1:1 correspondence between the
-                // two collections we hold onto.
-                if (assetPath.IncludeSolutionFrozenSourceGeneratedDocumentIdentities)
-                {
-                    var documentId = assetPath.DocumentId;
-                    if (documentId != null)
+                    // If the caller is asking for a specific document, we can just look it up directly.
+                    var index = FrozenSourceGeneratedDocuments.Value.Ids.IndexOf(documentId);
+                    if (index >= 0)
                     {
-                        // If the caller is asking for a specific document, we can just look it up directly.
-                        var index = FrozenSourceGeneratedDocuments.Value.Ids.IndexOf(documentId);
-                        if (index >= 0)
+                        var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value.Children[index];
+                        if (searchingChecksumsLeft.Remove(identityChecksum))
                         {
-                            var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value.Children[index];
-                            if (searchingChecksumsLeft.Remove(identityChecksum))
-                            {
-                                Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(documentId, out var state));
-                                onAssetFound(identityChecksum, state.Identity, arg);
-                            }
+                            Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(documentId, out var state));
+                            onAssetFound(identityChecksum, state.Identity, arg);
                         }
                     }
-                    else
+                }
+                else
+                {
+                    // Otherwise, we'll have to search through all of them.
+                    for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
                     {
-                        // Otherwise, we'll have to search through all of them.
-                        for (var i = 0; i < FrozenSourceGeneratedDocumentIdentities.Value.Count; i++)
+                        var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
+                        if (searchingChecksumsLeft.Remove(identityChecksum))
                         {
-                            var identityChecksum = FrozenSourceGeneratedDocumentIdentities.Value[0];
-                            if (searchingChecksumsLeft.Remove(identityChecksum))
-                            {
-                                var id = FrozenSourceGeneratedDocuments.Value.Ids[i];
-                                Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
-                                onAssetFound(identityChecksum, state.Identity, arg);
-                            }
+                            var id = FrozenSourceGeneratedDocuments.Value.Ids[i];
+                            Contract.ThrowIfFalse(compilationState.FrozenSourceGeneratedDocumentStates.TryGetState(id, out var state));
+                            onAssetFound(identityChecksum, state.Identity, arg);
                         }
                     }
                 }

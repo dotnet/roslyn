@@ -42,7 +42,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionState SolutionState { get; }
 
     public bool PartialSemanticsEnabled { get; }
-    public TextDocumentStates<SourceGeneratedDocumentState>? FrozenSourceGeneratedDocumentStates { get; }
+    public TextDocumentStates<SourceGeneratedDocumentState> FrozenSourceGeneratedDocumentStates { get; }
 
     // Values for all these are created on demand.
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
@@ -62,7 +62,7 @@ internal sealed partial class SolutionCompilationState
         bool partialSemanticsEnabled,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap,
-        TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates,
+        TextDocumentStates<SourceGeneratedDocumentState> frozenSourceGeneratedDocumentStates,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
@@ -94,7 +94,7 @@ internal sealed partial class SolutionCompilationState
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
               sourceGeneratorExecutionVersionMap: SourceGeneratorExecutionVersionMap.Empty,
-              frozenSourceGeneratedDocumentStates: null)
+              frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty)
     {
     }
 
@@ -117,7 +117,7 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         SourceGeneratorExecutionVersionMap? sourceGeneratorExecutionVersionMap = null,
-        Optional<TextDocumentStates<SourceGeneratedDocumentState>?> frozenSourceGeneratedDocumentStates = default,
+        Optional<TextDocumentStates<SourceGeneratedDocumentState>> frozenSourceGeneratedDocumentStates = default,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
@@ -1277,7 +1277,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState WithoutFrozenSourceGeneratedDocuments()
     {
         // If there's nothing frozen, there's nothing to do.
-        if (FrozenSourceGeneratedDocumentStates == null)
+        if (FrozenSourceGeneratedDocumentStates.IsEmpty)
             return this;
 
         var projectIdsToUnfreeze = FrozenSourceGeneratedDocumentStates.States.Values
@@ -1312,7 +1312,7 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.SolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            frozenSourceGeneratedDocumentStates: null);
+            frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
     /// <summary>
@@ -1328,7 +1328,7 @@ internal sealed partial class SolutionCompilationState
         // and so those are always forks off the main solution. There's also a bit of a design question -- does calling this a second time
         // leave the existing frozen documents in place, or replace them? It depends on the need, but until then we'll cross that bridge
         // if/when we need it.
-        Contract.ThrowIfFalse(FrozenSourceGeneratedDocumentStates == null, $"We shouldn't be calling {nameof(WithFrozenSourceGeneratedDocuments)} on a solution with frozen source generated documents.");
+        Contract.ThrowIfTrue(FrozenSourceGeneratedDocumentStates.Count > 0, $"We shouldn't be calling {nameof(WithFrozenSourceGeneratedDocuments)} on a solution with frozen source generated documents.");
 
         if (documents.IsEmpty)
             return this;
