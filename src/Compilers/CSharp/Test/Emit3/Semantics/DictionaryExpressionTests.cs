@@ -1390,12 +1390,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, typeInfo.ConvertedType.SpecialType);
 
-            // PROTOTYPE: Implement IOperation support.
+            // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
             VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
                 """
                 ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Int64, System.Object>) (Syntax: '[x:y]')
                   Elements(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'x:y')
+                """);
+        }
+
+        [Fact]
+        public void KeyValuePairExpressionConversions_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new KeyValuePair<int, string>();
+                        IDictionary<object, object> d = /*<bind>*/[x]/*</bind>*/;
+                        d.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify([source, s_dictionaryExtensions], expectedOutput: "[0:null], ");
+            verifier.VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var element = tree.GetRoot().DescendantNodes().OfType<ExpressionElementSyntax>().Single();
+            // https://github.com/dotnet/roslyn/issues/77872: Implement GetTypeInfo() support.
+            var typeInfo = model.GetTypeInfo(element.Expression);
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[x]')
+                  Elements(1):
+                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                """);
+        }
+
+        [Fact]
+        public void KeyValuePairExpressionConversions_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var y = new KeyValuePair<int, string>[0];
+                        IDictionary<object, object> d = /*<bind>*/[..y]/*</bind>*/;
+                        d.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify([source, s_dictionaryExtensions], expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var element = tree.GetRoot().DescendantNodes().OfType<SpreadElementSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(element.Expression);
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            // https://github.com/dotnet/roslyn/issues/77872: Include IOperation support for implicit Key and Value conversions.
+            VerifyOperationTreeForTest<CollectionExpressionSyntax>(comp,
+                """
+                ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: System.Collections.Generic.IDictionary<System.Object, System.Object>) (Syntax: '[..y]')
+                  Elements(1):
+                      ISpreadOperation (ElementType: System.Collections.Generic.KeyValuePair<System.Int32, System.String>) (OperationKind.Spread, Type: null) (Syntax: '..y')
+                        Operand:
+                          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Collections.Generic.KeyValuePair<System.Int32, System.String>[]) (Syntax: 'y')
+                        ElementConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (Identity)
                 """);
         }
 
