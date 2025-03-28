@@ -11,10 +11,10 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -43,10 +43,6 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
     // Used to protect access to _extensions, _handlers and _documentHandlers.
     private readonly object _lockObject = new();
 
-    private readonly AssemblyLoadContext _defaultLoadContext
-        = AssemblyLoadContext.GetLoadContext(typeof(CustomMessageHandlerService).Assembly)
-        ?? throw new InvalidOperationException($"Cannot get assembly load context for {nameof(CustomMessageHandlerService)}.");
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CustomMessageHandlerService(ICustomMessageHandlerFactory customMessageHandlerFactory)
@@ -55,6 +51,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
     }
 
     public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+        Solution solution,
         string assemblyFolderPath,
         string assemblyFileName,
         CancellationToken cancellationToken)
@@ -64,6 +61,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             throw new ArgumentException($"{assemblyFileName} is not a valid file name", nameof(assemblyFileName));
         }
 
+        var analyzerAssemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
         CustomMessageHandlerExtension? extension;
@@ -72,10 +70,26 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             // Check if the assembly is already loaded.
             if (!_extensions.TryGetValue(assemblyFolderPath, out extension))
             {
-                var loadContext = new AssemblyLoadContext(name: $"RemoteCustomMessageHandlerService assembly load context for {assemblyFolderPath}", isCollectible: true);
-                loadContext.Resolving += ResolveExtensionAssembly;
+                var analyzerAssemblyLoader = analyzerAssemblyLoaderProvider.CreateNewShadowCopyLoader();
 
-                extension = new CustomMessageHandlerExtension(loadContext);
+                // Allow this assembly loader to load any dll in assemblyFolderPath.
+                foreach (var dll in Directory.EnumerateFiles(assemblyFolderPath, "*.dll"))
+                {
+                    try
+                    {
+                        // Check if the file is a valid .NET assembly.
+                        AssemblyName.GetAssemblyName(dll);
+                    }
+                    catch
+                    {
+                        // The file is not a valid .NET assembly, skip it.
+                        continue;
+                    }
+
+                    analyzerAssemblyLoader.AddDependencyLocation(dll);
+                }
+
+                extension = new CustomMessageHandlerExtension(analyzerAssemblyLoader);
                 _extensions[assemblyFolderPath] = extension;
             }
         }
@@ -102,7 +116,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 var mustCleanupExtension = false;
                 try
                 {
-                    var assembly = extension.AssemblyLoadContext.LoadFromAssemblyPath(assemblyPath);
+                    var assembly = extension.AnalyzerAssemblyLoader.LoadFromPath(assemblyPath);
                     var messageHandlers = _customMessageHandlerFactory.CreateMessageHandlers(assembly)
                         .ToDictionary(h => h.Name, h => h);
                     var messageDocumentHandlers = _customMessageHandlerFactory.CreateMessageDocumentHandlers(assembly)
@@ -114,7 +128,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                         // Make sure a call to UnloadCustomMessageHandlersAsync hasn't happened while we relinquished the lock on _lockObject
                         if (!_extensions.TryGetValue(assemblyFolderPath, out var currentExtension) || !currentExtension.Equals(extension))
                         {
-                            // extension is not in the _extensions dictionary anymore, so it's AssemblyLoadContext must be unloaded
+                            // extension is not in the _extensions dictionary anymore, so it's AnalyzerAssemblyLoader must be unloaded
                             mustCleanupExtension = true;
                             throw new InvalidOperationException($"{assemblyPath} was unloaded while loading handlers.");
                         }
@@ -158,7 +172,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
                     if (mustCleanupExtension)
                     {
-                        extension.AssemblyLoadContext.Unload();
+                        extension.AnalyzerAssemblyLoader.Dispose();
                     }
                     else
                     {
@@ -168,24 +182,6 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                     throw;
                 }
             }
-        }
-
-        Assembly? ResolveExtensionAssembly(AssemblyLoadContext context, AssemblyName assemblyName)
-        {
-            try
-            {
-                return _defaultLoadContext.LoadFromAssemblyName(assemblyName);
-            }
-            catch
-            {
-            }
-
-            var extensionAssemblyPath = Path.Combine(assemblyFolderPath, $"{assemblyName.Name}.dll");
-
-            // This will throw FileNotFoundException if the assembly is not found.
-            // The exception is bubbled up to the extension and the original assembly that was being
-            // loaded marked as not-loadable by adding ia null to CustomMessageHandlerExtension.Assemblies.
-            return context.LoadFromAssemblyPath(extensionAssemblyPath);
         }
     }
 
@@ -266,7 +262,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 }
             }
 
-            extension?.AssemblyLoadContext.Unload();
+            extension?.AnalyzerAssemblyLoader.Dispose();
         }
         catch (Exception e) when (LogAndPropagate(e))
         {
@@ -307,13 +303,13 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
         foreach (var extension in extensions)
         {
-            extension.AssemblyLoadContext.Unload();
+            extension.AnalyzerAssemblyLoader.Dispose();
         }
     }
 
-    private class CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext)
+    private class CustomMessageHandlerExtension(IAnalyzerAssemblyLoaderInternal analyzerAssemblyLoader)
     {
-        public AssemblyLoadContext AssemblyLoadContext { get; } = assemblyLoadContext;
+        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; } = analyzerAssemblyLoader;
 
         public Dictionary<string, CustomMessageHandlerAssembly?> Assemblies { get; } = new();
 

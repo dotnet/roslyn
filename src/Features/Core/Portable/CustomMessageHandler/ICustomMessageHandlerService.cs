@@ -16,11 +16,13 @@ internal interface ICustomMessageHandlerService : IWorkspaceService
     /// <summary>
     /// Loads custom message handlers from the specified assembly.
     /// </summary>
+    /// <param name="solution">The solution object.</param>
     /// <param name="assemblyFolderPath">The folder containing <paramref name="assemblyFileName"/>.</param>
     /// <param name="assemblyFileName">The assembly to load and create message handlers from.</param>
     /// <param name="cancellationToken">Cancellation token to cancel the async operation.</param>
     /// <returns>The names of the loaded handlers.</returns>
     ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+        Solution solution,
         string assemblyFolderPath,
         string assemblyFileName,
         CancellationToken cancellationToken);

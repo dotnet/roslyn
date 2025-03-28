@@ -23,16 +23,22 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     }
 
     public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+        Checksum solutionChecksum,
         string assemblyFolderPath,
         string assemblyFileName,
         CancellationToken cancellationToken)
     {
-        var service = this.GetWorkspace().Services.GetRequiredService<ICustomMessageHandlerService>();
         return RunServiceAsync(
-            (_) => service.LoadCustomMessageHandlersAsync(
-                assemblyFolderPath,
-                assemblyFileName,
-                cancellationToken),
+            solutionChecksum,
+            solution =>
+            {
+                var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
+                return service.LoadCustomMessageHandlersAsync(
+                    solution,
+                    assemblyFolderPath,
+                    assemblyFileName,
+                    cancellationToken);
+            },
             cancellationToken);
     }
 

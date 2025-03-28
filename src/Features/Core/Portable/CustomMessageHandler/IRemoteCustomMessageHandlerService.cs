@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CustomMessageHandler;
 internal interface IRemoteCustomMessageHandlerService
 {
     ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
+        Checksum solutionChecksum,
         string assemblyFolderPath,
         string assemblyFileName,
         CancellationToken cancellationToken);

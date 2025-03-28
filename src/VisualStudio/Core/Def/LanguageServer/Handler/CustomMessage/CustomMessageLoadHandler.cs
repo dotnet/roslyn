@@ -38,6 +38,7 @@ internal class CustomMessageLoadHandler()
             var response = await client.TryInvokeAsync<IRemoteCustomMessageHandlerService, RegisterHandlersResponse>(
                 solution,
                 (service, solutionInfo, cancellationToken) => service.LoadCustomMessageHandlersAsync(
+                    solutionInfo,
                     request.AssemblyFolderPath,
                     request.AssemblyFileName,
                     cancellationToken),
@@ -54,9 +55,10 @@ internal class CustomMessageLoadHandler()
         {
             var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
             var response = await service.LoadCustomMessageHandlersAsync(
-                    request.AssemblyFolderPath,
-                    request.AssemblyFileName,
-                    cancellationToken).ConfigureAwait(false);
+                solution,
+                request.AssemblyFolderPath,
+                request.AssemblyFileName,
+                cancellationToken).ConfigureAwait(false);
 
             return new(response.Handlers.ToArray(), response.DocumentHandlers.ToArray());
         }
