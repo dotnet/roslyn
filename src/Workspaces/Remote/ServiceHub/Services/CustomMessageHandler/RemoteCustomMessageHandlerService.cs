@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CustomMessageHandler;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -19,9 +20,6 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     public RemoteCustomMessageHandlerService(in ServiceConstructionArguments arguments)
         : base(arguments)
     {
-#if DEBUG
-        System.Diagnostics.Debugger.Launch();
-#endif
     }
 
     public ValueTask<RegisterHandlersResponse> LoadCustomMessageHandlersAsync(
@@ -47,15 +45,16 @@ internal sealed partial class RemoteCustomMessageHandlerService : BrokeredServic
     {
         return RunServiceAsync(
             solutionChecksum,
-            solution =>
+            async solution =>
             {
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
                 var service = solution.Services.GetRequiredService<ICustomMessageHandlerService>();
-                return service.HandleCustomDocumentMessageAsync(
-                solution,
-                messageName,
-                jsonMessage,
-                documentId,
-                cancellationToken);
+                return await service.HandleCustomDocumentMessageAsync(
+                    messageName,
+                    jsonMessage,
+                    document,
+                    cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);
     }

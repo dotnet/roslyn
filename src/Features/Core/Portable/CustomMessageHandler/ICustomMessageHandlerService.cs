@@ -22,10 +22,9 @@ internal interface ICustomMessageHandlerService : IWorkspaceService
         CancellationToken cancellationToken);
 
     ValueTask<string> HandleCustomDocumentMessageAsync(
-        Solution solution,
         string messageName,
         string jsonMessage,
-        DocumentId documentId,
+        Document documentId,
         CancellationToken cancellationToken);
 
     ValueTask UnloadCustomMessageHandlersAsync(

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -41,6 +42,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
     private readonly ICustomMessageHandlerFactory _customMessageHandlerFactory;
 
+    // Used to protect access to _extensions, _handlers and _documentHandlers.
     private readonly object _lockObject = new();
 
     private readonly AssemblyLoadContext _defaultLoadContext
@@ -59,13 +61,9 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         string assemblyFileName,
         CancellationToken cancellationToken)
     {
-#if DEBUG
-        System.Diagnostics.Debugger.Launch();
-#endif
-
         var assemblyPath = Path.Combine(assemblyFolderPath, assemblyFileName);
 
-        CustomMessageHandlerExtension extension;
+        CustomMessageHandlerExtension? extension;
         lock (_lockObject)
         {
             // Check if the assembly is already loaded.
@@ -140,8 +138,8 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
 
                         extension.Assemblies[assemblyFileName] = new()
                         {
-                            Handlers = messageHandlers.Keys.ToHashSet(),
-                            DocumentHandlers = messageDocumentHandlers.Keys.ToHashSet(),
+                            Handlers = messageHandlers.Keys.ToImmutableHashSet(),
+                            DocumentHandlers = messageDocumentHandlers.Keys.ToImmutableHashSet(),
                         };
 
                         return ValueTask.FromResult<RegisterHandlersResponse>(
@@ -161,6 +159,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                     }
                     else
                     {
+                        // Cache null so that we don't try to load the same assembly again.
                         extension.Assemblies[assemblyFileName] = null;
                     }
                     throw;
@@ -181,6 +180,8 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             var extensionAssemblyPath = Path.Combine(assemblyFolderPath, $"{assemblyName.Name}.dll");
 
             // This will throw FileNotFoundException if the assembly is not found.
+            // The exception is bubbled up to the extension and the original assembly that was being
+            // loaded marked as not-loadable by adding ia null to CustomMessageHandlerExtension.Assemblies.
             return context.LoadFromAssemblyPath(extensionAssemblyPath);
         }
     }
@@ -191,10 +192,6 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         string jsonMessage,
         CancellationToken cancellationToken)
     {
-#if DEBUG
-        System.Diagnostics.Debugger.Launch();
-#endif
-
         ICustomMessageHandlerWrapper handler;
         lock (_lockObject)
         {
@@ -204,6 +201,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             }
         }
 
+        // Any exception thrown in this method is left to bubble up to the extension.
         var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
         var result = await handler.ExecuteAsync(message, solution, cancellationToken)
             .ConfigureAwait(false);
@@ -212,19 +210,11 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
     }
 
     public async ValueTask<string> HandleCustomDocumentMessageAsync(
-        Solution solution,
         string messageName,
         string jsonMessage,
-        DocumentId documentId,
+        Document document,
         CancellationToken cancellationToken)
     {
-#if DEBUG
-        System.Diagnostics.Debugger.Launch();
-#endif
-
-        var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-        Contract.ThrowIfNull(document);
-
         ICustomMessageDocumentHandlerWrapper handler;
         lock (_lockObject)
         {
@@ -234,8 +224,9 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
             }
         }
 
+        // Any exception thrown in this method is left to bubble up to the extension.
         var message = JsonSerializer.Deserialize(jsonMessage, handler.MessageType);
-        var result = await handler.ExecuteAsync(message, document, solution, cancellationToken)
+        var result = await handler.ExecuteAsync(message, document, cancellationToken)
             .ConfigureAwait(false);
         var responseJson = JsonSerializer.Serialize(result, handler.ResponseType);
         return responseJson;
@@ -245,13 +236,9 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         string assemblyFolderPath,
         CancellationToken cancellationToken)
     {
-#if DEBUG
-        System.Diagnostics.Debugger.Launch();
-#endif
-
         try
         {
-            CustomMessageHandlerExtension extension = default;
+            CustomMessageHandlerExtension? extension = null;
             lock (_lockObject)
             {
                 if (_extensions.TryGetValue(assemblyFolderPath, out extension))
@@ -276,7 +263,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 }
             }
 
-            extension.AssemblyLoadContext?.Unload();
+            extension?.AssemblyLoadContext.Unload();
         }
         catch (Exception e) when (LogAndPropagate(e))
         {
@@ -321,30 +308,31 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
         }
     }
 
-    private readonly struct CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext) : IEquatable<CustomMessageHandlerExtension>
+    private class CustomMessageHandlerExtension(AssemblyLoadContext assemblyLoadContext)
     {
         public AssemblyLoadContext AssemblyLoadContext { get; } = assemblyLoadContext;
 
         public Dictionary<string, CustomMessageHandlerAssembly?> Assemblies { get; } = new();
 
+        /// <summary>
+        /// Gets the object that is used to lock in order to avoid multiple calls from the same extensions to load the same assembly concurrently
+        /// resulting in the constructors of the same handlers being called more than once.
+        /// All other concurrent operations, including modifying <see cref="Assemblies"/> are protected by <see cref="_lockObject"/>.
+        /// </summary>
         public object AssemblyLoadLockObject { get; } = new();
-
-        // Used to avoid race conditions between RegisterHandlersAsync and UnloadCustomMessageHandlersAsync
-        public bool Equals(CustomMessageHandlerExtension other)
-            => ReferenceEquals(Assemblies, other.Assemblies);
-
-        public override bool Equals([NotNullWhen(true)] object? obj)
-            => obj is CustomMessageHandlerExtension other && Equals(other);
-
-        public override int GetHashCode()
-            => RuntimeHelpers.GetHashCode(Assemblies);
     }
 
     private readonly struct CustomMessageHandlerAssembly
     {
-        public required HashSet<string> DocumentHandlers { get; init; }
+        /// <summary>
+        /// Gets the names of the document-specific handlers that can be passed to <see cref="HandleCustomDocumentMessageAsync"/>.
+        /// </summary>
+        public required ImmutableHashSet<string> DocumentHandlers { get; init; }
 
-        public required HashSet<string> Handlers { get; init; }
+        /// <summary>
+        /// Gets the names of the non-document-specific handlers that can be passed to <see cref="HandleCustomMessageAsync"/>.
+        /// </summary>
+        public required ImmutableHashSet<string> Handlers { get; init; }
     }
 }
 #endif

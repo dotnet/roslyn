@@ -16,5 +16,5 @@ internal interface ICustomMessageDocumentHandlerWrapper
 
     string Name { get; }
 
-    Task<object?> ExecuteAsync(object? message, Document document, Solution solution, CancellationToken cancellationToken);
+    Task<object?> ExecuteAsync(object? message, Document document, CancellationToken cancellationToken);
 }

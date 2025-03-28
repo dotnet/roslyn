@@ -1,7 +1,7 @@
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageContext.CustomMessageContext(Microsoft.CodeAnalysis.Solution! solution) -> void
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.CustomMessageDocumentHandlerWrapper(object! handler, System.Type! iCustomMessageDocumentHandlerInterface) -> void
-Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.ExecuteAsync(object? message, Microsoft.CodeAnalysis.Document? document, Microsoft.CodeAnalysis.Solution! solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
+Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.ExecuteAsync(object? message, Microsoft.CodeAnalysis.Document! document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<object?>!
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.MessageType.get -> System.Type!
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.Name.get -> string!
 Microsoft.CodeAnalysis.CustomMessageHandler.CustomMessageDocumentHandlerWrapper.ResponseType.get -> System.Type!

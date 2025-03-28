@@ -33,14 +33,14 @@ internal sealed class CustomMessageDocumentHandlerWrapper : ICustomMessageDocume
 
     public string Name { get; }
 
-    public async Task<object?> ExecuteAsync(object? message, Document? document, Solution solution, CancellationToken cancellationToken)
+    public async Task<object?> ExecuteAsync(object? message, Document document, CancellationToken cancellationToken)
     {
         if ((message is null && MessageType.IsValueType) || (message is not null && !MessageType.IsAssignableFrom(message.GetType())))
         {
             throw new InvalidOperationException($"The message type {message?.GetType().FullName ?? "null"} is not assignable to {MessageType.FullName}.");
         }
 
-        var responseTask = (Task)executeAsyncMethod.Invoke(handler, [message, new CustomMessageContext(solution), document, cancellationToken]);
+        var responseTask = (Task)executeAsyncMethod.Invoke(handler, [message, new CustomMessageContext(document.Project.Solution), document, cancellationToken]);
         await responseTask.ConfigureAwait(false);
         var response = responseTaskResultProperty.GetValue(responseTask);
 
