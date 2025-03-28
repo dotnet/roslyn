@@ -66,9 +66,7 @@ public static class EditorTestCompositions
             typeof(VisualBasic.VBEditorResources).Assembly,
             typeof(LanguageServerProtocolResources).Assembly);
 
-    public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
-        .AddAssemblies(
-            typeof(EditorFeaturesWpfResources).Assembly);
+    public static readonly TestComposition EditorFeaturesWpf = EditorFeatures;
 
     public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf
         .AddAssemblies(
