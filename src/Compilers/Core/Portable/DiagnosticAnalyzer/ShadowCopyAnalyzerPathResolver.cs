@@ -17,9 +17,6 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-#if NET
-    [SupportedOSPlatform("windows")]
-#endif
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
         /// <summary>
