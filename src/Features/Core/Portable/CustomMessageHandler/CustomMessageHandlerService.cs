@@ -90,7 +90,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                 if (extensionAssembly.HasValue)
                 {
                     return ValueTask.FromResult<RegisterHandlersResponse>(
-                        new(extensionAssembly.Value.Handlers.ToArray(), extensionAssembly.Value.DocumentHandlers.ToArray()));
+                        new(extensionAssembly.Value.Handlers.ToImmutableArray(), extensionAssembly.Value.DocumentHandlers.ToImmutableArray()));
                 }
                 else
                 {
@@ -146,7 +146,7 @@ internal sealed class CustomMessageHandlerService : ICustomMessageHandlerService
                         };
 
                         return ValueTask.FromResult<RegisterHandlersResponse>(
-                            new(messageHandlers.Keys.ToArray(), messageDocumentHandlers.Keys.ToArray()));
+                            new(messageHandlers.Keys.ToImmutableArray(), messageDocumentHandlers.Keys.ToImmutableArray()));
                     }
                 }
                 catch (Exception e)
