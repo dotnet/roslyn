@@ -789,15 +789,12 @@ internal sealed partial class SolutionCompilationState
     {
         var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
 
-        var state = UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
+        return UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
             ordinaryDocuments,
+            sourceGeneratedDocuments,
             arg: mode,
             updateDocument: static (oldDocumentState, text, mode) =>
                 SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
-
-        state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
-
-        return state;
 
         (ImmutableArray<(DocumentId, SourceText)>,
          ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
@@ -832,11 +829,12 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState, TDocumentData, TArg>(
         ImmutableArray<(DocumentId documentId, TDocumentData documentData)> documentsToUpdate,
+        ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText sourceText, SyntaxNode? syntaxNode)> sourceGeneratedDocuments,
         TArg arg,
         Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument)
         where TDocumentState : TextDocumentState
     {
-        return WithDocumentStatesOfMultipleProjects(
+        var state = WithDocumentStatesOfMultipleProjects(
             documentsToUpdate
                 .GroupBy(static d => d.documentId.ProjectId)
                 .Select(g =>
@@ -860,6 +858,8 @@ internal sealed partial class SolutionCompilationState
                     return (projectId, newDocumentStates.ToImmutableAndClear());
                 }),
             GetUpdateDocumentsTranslationAction);
+
+        return state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
     }
 
     /// <summary>
@@ -992,17 +992,14 @@ internal sealed partial class SolutionCompilationState
     {
         var (ordinaryDocuments, sourceGeneratedDocuments) = GetOrdinaryAndSourceGeneratedDocuments();
 
-        var state = UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
+        return UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
             ordinaryDocuments,
+            sourceGeneratedDocuments,
             arg: mode,
             static (oldDocumentState, root, mode) =>
                 oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
                     ? oldDocumentState
                     : oldDocumentState.UpdateTree(root, mode));
-
-        state = state.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
-
-        return state;
 
         (ImmutableArray<(DocumentId, SyntaxNode)>,
          ImmutableArray<(SourceGeneratedDocumentIdentity, DateTime, SourceText, SyntaxNode?)>) GetOrdinaryAndSourceGeneratedDocuments()
@@ -1035,6 +1032,7 @@ internal sealed partial class SolutionCompilationState
     {
         return UpdateDocumentsInMultipleProjects<DocumentState, DocumentState, bool>(
             documentIdsAndStates,
+            sourceGeneratedDocuments: [],
             arg: forceEvenIfTreesWouldDiffer,
             static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
                 oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
