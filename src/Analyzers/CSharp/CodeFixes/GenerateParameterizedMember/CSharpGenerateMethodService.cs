@@ -87,7 +87,7 @@ internal sealed class CSharpGenerateMethodService() :
 
         var memberAccess = simpleName.GetRequiredParent() as MemberAccessExpressionSyntax;
         var (conditionalAccessExpression, invocation) =
-            simpleName.GetRequiredParent() is { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccessExpression1 } invocation1 } memberBinding } &&
+            simpleName is { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccessExpression1 } invocation1 } memberBinding } &&
             conditionalAccessExpression1.WhenNotNull == invocation1 &&
             invocation1.Expression == memberBinding &&
             memberBinding.Name == simpleName ? (conditionalAccessExpression1, invocation1) : default;
