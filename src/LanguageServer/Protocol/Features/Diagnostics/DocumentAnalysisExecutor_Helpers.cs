@@ -157,9 +157,10 @@ internal sealed partial class DocumentAnalysisExecutor
 
     public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
         DocumentDiagnosticAnalyzer analyzer,
-        Document document,
+        TextDocument document,
         AnalysisKind kind,
         Compilation? compilation,
+        SyntaxTree? tree,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -167,14 +168,14 @@ internal sealed partial class DocumentAnalysisExecutor
         ImmutableArray<Diagnostic> diagnostics;
         try
         {
-            var analyzeAsync = kind switch
+            diagnostics = kind switch
             {
-                AnalysisKind.Syntax => analyzer.AnalyzeSyntaxAsync(document, cancellationToken),
-                AnalysisKind.Semantic => analyzer.AnalyzeSemanticsAsync(document, cancellationToken),
+                AnalysisKind.Syntax => await analyzer.AnalyzeSyntaxAsync(document, tree, cancellationToken).ConfigureAwait(false),
+                AnalysisKind.Semantic => await analyzer.AnalyzeSemanticsAsync(document, tree, cancellationToken).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
-            diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
+            diagnostics = diagnostics.NullToEmpty();
 
 #if DEBUG
             // since all DocumentDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime

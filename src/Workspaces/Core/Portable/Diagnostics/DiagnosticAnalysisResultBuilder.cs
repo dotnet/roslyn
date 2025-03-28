@@ -34,13 +34,16 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     public readonly ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> NonLocals => Convert(_lazyNonLocals);
     public readonly ImmutableArray<DiagnosticData> Others => _lazyOthers == null ? [] : [.. _lazyOthers];
 
-    public void AddExternalSyntaxDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSyntaxDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         AddExternalDiagnostics(ref _lazySyntaxLocals, documentId, diagnostics);
     }
 
-    public void AddExternalSemanticDiagnostics(DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+    public void AddExternalSemanticDiagnostics(DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
+        if (diagnostics.Length == 0)
+            return;
+
         // this is for diagnostic producer that doesnt use compiler based DiagnosticAnalyzer such as TypeScript.
         Contract.ThrowIfTrue(Project.SupportsCompilation);
 
@@ -48,7 +51,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     }
 
     private void AddExternalDiagnostics(
-        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, IEnumerable<Diagnostic> diagnostics)
+        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, DocumentId documentId, ImmutableArray<Diagnostic> diagnostics)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -113,16 +116,16 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
         _lazyOthers.Add(data);
     }
 
-    public void AddSyntaxDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
+    public void AddSyntaxDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySyntaxLocals, tree, diagnostics);
 
     public void AddDiagnosticTreatedAsLocalSemantic(Diagnostic diagnostic)
         => AddDiagnostic(ref _lazySemanticLocals, diagnostic.Location.SourceTree, diagnostic);
 
-    public void AddSemanticDiagnostics(SyntaxTree tree, IEnumerable<Diagnostic> diagnostics)
+    public void AddSemanticDiagnostics(SyntaxTree tree, ImmutableArray<Diagnostic> diagnostics)
         => AddDiagnostics(ref _lazySemanticLocals, tree, diagnostics);
 
-    public void AddCompilationDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    public void AddCompilationDiagnostics(ImmutableArray<Diagnostic> diagnostics)
     {
         Dictionary<DocumentId, List<DiagnosticData>>? dummy = null;
         AddDiagnostics(ref dummy, tree: null, diagnostics: diagnostics);
@@ -185,7 +188,7 @@ internal struct DiagnosticAnalysisResultBuilder(Project project)
     }
 
     private void AddDiagnostics(
-        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, IEnumerable<Diagnostic> diagnostics)
+        ref Dictionary<DocumentId, List<DiagnosticData>>? lazyLocals, SyntaxTree? tree, ImmutableArray<Diagnostic> diagnostics)
     {
         foreach (var diagnostic in diagnostics)
             AddDiagnostic(ref lazyLocals, tree, diagnostic);
