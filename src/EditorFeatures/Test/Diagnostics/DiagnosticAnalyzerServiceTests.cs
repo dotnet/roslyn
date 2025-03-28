@@ -233,49 +233,6 @@ public sealed class DiagnosticAnalyzerServiceTests
     }
 
     [Fact]
-    public async Task TestHostAnalyzerOrderingAsync()
-    {
-        using var workspace = CreateWorkspace();
-        var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-
-        var analyzerReference = new AnalyzerImageReference(
-        [
-            new Priority20Analyzer(),
-            new Priority10Analyzer(),
-            new Priority0Analyzer(),
-            new CSharpCompilerDiagnosticAnalyzer(),
-            new Analyzer()
-,
-        ]);
-
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
-
-        var project = workspace.AddProject(
-                      ProjectInfo.Create(
-                          ProjectId.CreateNewId(),
-                          VersionStamp.Create(),
-                          "Dummy",
-                          "Dummy",
-                          LanguageNames.CSharp));
-
-        var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-
-        var analyzers = await service.GetTestAccessor().GetAnalyzersAsync(project, CancellationToken.None).ConfigureAwait(false);
-        var analyzersArray = analyzers.ToArray();
-
-        AssertEx.Equal(
-        [
-            typeof(FileContentLoadAnalyzer),
-            typeof(GeneratorDiagnosticsPlaceholderAnalyzer),
-            typeof(CSharpCompilerDiagnosticAnalyzer),
-            typeof(Analyzer),
-            typeof(Priority0Analyzer),
-            typeof(Priority10Analyzer),
-            typeof(Priority20Analyzer)
-        ], analyzersArray.Select(a => a.GetType()));
-    }
-
-    [Fact]
     public async Task TestHostAnalyzerErrorNotLeaking()
     {
         using var workspace = CreateWorkspace();
@@ -689,7 +646,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
             document, project, Checksum.Null, span: null, projectAnalyzerIds: [], analyzerIdsToRequestDiagnostics,
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-            isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
+            logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
         Assert.False(analyzer2.ReceivedSymbolCallback);
 
@@ -758,7 +715,7 @@ public sealed class DiagnosticAnalyzerServiceTests
             _ = await DiagnosticComputer.GetDiagnosticsAsync(
                 documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics, hostAnalyzerIds: [],
                 analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
-                isExplicit: false, logPerformanceInfo: false, getTelemetryInfo: false,
+                logPerformanceInfo: false, getTelemetryInfo: false,
                 CancellationToken.None);
             Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
             if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
@@ -813,7 +770,7 @@ public sealed class DiagnosticAnalyzerServiceTests
         try
         {
             _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-                projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false,
+                projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
             throw ExceptionUtilities.Unreachable();
@@ -826,7 +783,7 @@ public sealed class DiagnosticAnalyzerServiceTests
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
         var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
-            projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false,
+            projectAnalyzerIds: [], analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
         var diagnostic = kind == AnalysisKind.Syntax ? builder.Syntax.Single().Item2.Single() : builder.Semantic.Single().Item2.Single();
@@ -925,34 +882,6 @@ public sealed class DiagnosticAnalyzerServiceTests
             context.RegisterSemanticModelAction(c => c.ReportDiagnostic(Diagnostic.Create(s_semanticRule, c.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
             context.RegisterCompilationAction(c => c.ReportDiagnostic(Diagnostic.Create(s_compilationRule, c.Compilation.SyntaxTrees.First().GetRoot().GetLocation())));
         }
-    }
-
-    private sealed class NoNameAnalyzer : DocumentDiagnosticAnalyzer
-    {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_syntaxRule];
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(Diagnostic.Create(s_syntaxRule, Location.Create(document.FilePath, TextSpan.FromBounds(0, 0), new LinePositionSpan(new LinePosition(0, 0), new LinePosition(0, 0))))));
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<ImmutableArray<Diagnostic>>();
-    }
-
-    private sealed class Priority20Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority20Analyzer() : base(priority: 20) { }
-    }
-
-    private sealed class Priority10Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority10Analyzer() : base(priority: 10) { }
-    }
-
-    private sealed class Priority0Analyzer : PriorityTestDocumentDiagnosticAnalyzer
-    {
-        public Priority0Analyzer() : base(priority: -1) { }
     }
 
     private class PriorityTestDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
