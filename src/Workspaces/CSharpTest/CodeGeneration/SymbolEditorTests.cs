@@ -23,10 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class SymbolEditorTests
     {
-        private SyntaxGenerator _g;
-
-        private SyntaxGenerator Generator
-            => _g ??= SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
+        private SyntaxGenerator Generator { get => field ??= SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp); set; }
 
         private static Solution GetSolution(params string[] sources)
         {

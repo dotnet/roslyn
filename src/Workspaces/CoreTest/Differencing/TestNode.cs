@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         public readonly TestNode[] Children;
         public TestNode Parent;
 
-        private TestNode _lazyRoot;
-
         public TestNode(int label, int value, params TestNode[] children)
         {
             Debug.Assert(value is >= 0 and <= MaxValue);
@@ -39,10 +37,12 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         {
             get
             {
-                _lazyRoot ??= this.Parent == null ? this : this.Parent.Root;
+                field ??= this.Parent == null ? this : this.Parent.Root;
 
-                return _lazyRoot;
+                return field;
             }
+
+            private set;
         }
 
         public override string ToString()

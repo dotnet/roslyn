@@ -11,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
     public sealed class MockRefactorNotifyService : IRefactorNotifyService
     {
-        private int _onAfterSymbolRenamedCount = 0;
-
         public int OnBeforeSymbolRenamedCount { get; private set; } = 0;
-        public int OnAfterSymbolRenamedCount { get { return _onAfterSymbolRenamedCount; } }
+        public int OnAfterSymbolRenamedCount { get; private set; } = 0;
 
         public bool OnBeforeSymbolRenamedReturnValue { get; set; }
         public bool OnAfterSymbolRenamedReturnValue { get; set; }
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            _onAfterSymbolRenamedCount++;
+            OnAfterSymbolRenamedCount++;
 
             if (throwOnFailure && !OnAfterSymbolRenamedReturnValue)
             {

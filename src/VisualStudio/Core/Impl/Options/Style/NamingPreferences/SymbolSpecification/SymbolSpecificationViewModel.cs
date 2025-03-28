@@ -24,8 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public List<AccessibilityViewModel> AccessibilityList { get; set; }
         public List<ModifierViewModel> ModifierList { get; set; }
 
-        private string _symbolSpecName;
-
         public bool CanBeDeleted { get; set; }
 
         private readonly INotificationService _notificationService;
@@ -135,8 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         public string ItemName
         {
-            get { return _symbolSpecName; }
-            set { SetProperty(ref _symbolSpecName, value); }
+            get;
+            set { SetProperty(ref field, value); }
         }
 
         internal SymbolSpecification GetSymbolSpecification()
@@ -162,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
         // For screen readers
         public override string ToString()
-            => _symbolSpecName;
+            => ItemName;
 
         internal interface ISymbolSpecificationViewModelPart
         {
@@ -174,15 +172,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             public string Name { get; set; }
             public bool IsChecked
             {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
+                get;
+                set { SetProperty(ref field, value); }
             }
 
             private readonly SymbolKind? _symbolKind;
             private readonly TypeKind? _typeKind;
             private readonly MethodKind? _methodKind;
-
-            private bool _isChecked;
 
             public SymbolKindViewModel(SymbolKind symbolKind, string name, SymbolSpecification specification)
             {
@@ -221,11 +217,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             public string Name { get; set; }
 
-            private bool _isChecked;
             public bool IsChecked
             {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
+                get;
+                set { SetProperty(ref field, value); }
             }
 
             public AccessibilityViewModel(Accessibility accessibility, string name, SymbolSpecification specification)
@@ -241,11 +236,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         {
             public string Name { get; set; }
 
-            private bool _isChecked;
             public bool IsChecked
             {
-                get { return _isChecked; }
-                set { SetProperty(ref _isChecked, value); }
+                get;
+                set { SetProperty(ref field, value); }
             }
 
             internal readonly DeclarationModifiers _modifier;

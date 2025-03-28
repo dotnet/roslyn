@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // a more-likely-to-be-correct output path from project references.
             { PropertyNames.ShouldUnsetParentConfigurationAndPlatform, bool.FalseString }
         }.ToImmutableDictionary();
-
-        private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
         private readonly ILogger? _msbuildLogger;
         private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
         private MSBuildDiagnosticLogger? _batchBuildLogger;
@@ -71,12 +69,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
         {
-            _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
+            AllGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
             _msbuildLogger = msbuildLogger;
         }
 
         private ImmutableDictionary<string, string> AllGlobalProperties
-            => s_defaultGlobalProperties.AddRange(_additionalGlobalProperties);
+            => s_defaultGlobalProperties.AddRange(field);
 
         private static async Task<(MSB.Evaluation.Project? project, DiagnosticLog log)> LoadProjectAsync(
             string path, MSB.Evaluation.ProjectCollection? projectCollection, CancellationToken cancellationToken)
