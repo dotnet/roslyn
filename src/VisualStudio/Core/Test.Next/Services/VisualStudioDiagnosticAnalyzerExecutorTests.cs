@@ -221,7 +221,7 @@ public sealed class VisualStudioDiagnosticAnalyzerExecutorTests
     }
 
     private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
-        => new(new DiagnosticAnalyzerInfoCache());
+        => new(enabled: true, new DiagnosticAnalyzerInfoCache());
 
     private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, bool isHostAnalyzer, CancellationToken cancellationToken = default)
     {
