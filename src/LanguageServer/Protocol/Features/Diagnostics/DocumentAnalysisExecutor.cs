@@ -94,20 +94,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (loadDiagnostic != null)
                 return [];
 
-            if (analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
-            {
-                // We will count generator diagnostics as semantic diagnostics; some filtering to either syntax/semantic is necessary or else we'll report diagnostics twice.
-                if (kind == AnalysisKind.Semantic)
-                {
-                    var generatorDiagnostics = await GetSourceGeneratorDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-                    return ConvertToLocalDiagnostics(generatorDiagnostics, textDocument, span);
-                }
-                else
-                {
-                    return [];
-                }
-            }
-
             if (analyzer is DocumentDiagnosticAnalyzer documentAnalyzer)
             {
                 if (document == null)
@@ -188,19 +174,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var resultAndTelemetry = await _diagnosticAnalyzerRunner.AnalyzeDocumentAsync(analysisScope, _compilationWithAnalyzers,
                     _isExplicit, _logPerformanceInfo, getTelemetryInfo: false, cancellationToken).ConfigureAwait(false);
                 return resultAndTelemetry.AnalysisResult;
-            }
-            catch when (_onAnalysisException != null)
-            {
-                _onAnalysisException.Invoke();
-                throw;
-            }
-        }
-
-        private async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
-        {
-            try
-            {
-                return await _diagnosticAnalyzerRunner.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
             }
             catch when (_onAnalysisException != null)
             {
