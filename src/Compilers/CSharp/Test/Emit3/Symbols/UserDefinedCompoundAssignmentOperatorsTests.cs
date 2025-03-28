@@ -5274,12 +5274,17 @@ public class C4
 
         [Theory]
         [CombinatorialData]
-        public void Increment_093_Consumption_OrdinaryMethod(bool fromMetadata)
+        public void Increment_093_Consumption_RegularVsOperator(bool fromMetadata)
         {
             var source1 = @"
 public class C1
 {
     public void op_Increment() {}
+}
+
+public class C2
+{
+    public void operator++() {}
 }
 ";
             var comp1 = CreateCompilation(source1);
@@ -5291,6 +5296,8 @@ public class Program
     {
         C1 x = new C1();
         ++x;
+        C2 y = new C2();
+        y.op_Increment();
     } 
 }
 ";
@@ -5299,7 +5306,10 @@ public class Program
             comp2.VerifyDiagnostics(
                 // (7,9): error CS0023: Operator '++' cannot be applied to operand of type 'C1'
                 //         ++x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "C1").WithLocation(7, 9),
+                // (9,11): error CS0571: 'C2.operator ++()': cannot explicitly call operator or accessor
+                //         y.op_Increment();
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Increment").WithArguments("C2.operator ++()").WithLocation(9, 11)
                 );
         }
 
